@@ -1,0 +1,265 @@
+
+/* Wrapper container for the cards */
+
+.container {
+  width: 1200px; 
+  margin: 0 auto; 
+  overflow: hidden; 
+}
+
+/* homoloation cards*/
+
+.homologation-cards {
+  display: flex;
+  justify-content: space-around; /* Space between cards */
+  align-items: center; /* Align items vertically */
+  padding: 40px 10px; /* Spacing inside the banner */
+  background: linear-gradient(#6EBA35, #10677A); /* Yellow to green gradient */
+  border-radius: 0px; /* Rounded corners for the banner */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Slight shadow for the banner */
+}
+
+/*homologation card container*/
+.homologation-card {
+  width: 340px; 
+  height: 500px; 
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/*homologation card first card*/
+.homologation-card:first-child {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+/* Image fills the entire first card */
+.homologation-card:first-child .image-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.homologation-card:first-child img {
+  width: 90%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the card */
+}
+
+/* Specific styles for the first card */
+.homologation-card.first-card {
+  border: none; /* Remove border */
+}
+
+.homologation-card.first-card .fill-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 30px;
+  left: 20px;
+  
+  color: #0e0c0c;
+  
+  font-size: 30px;
+  border-radius: 5px;
+}
+
+/* General image styles */
+.image-wrapper {
+  position: relative;
+  width: 80%;
+  height: 200px;
+}
+.homologation-card:nth-child(n+2) .image-wrapper {
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center; 
+  align-items: flex-start; 
+  padding-top: 10px;
+}
+/* Specific styles for 1st card */
+.homologation-card:nth-child(1) .card-image {
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+}
+.homologation-card:nth-child(n+2) .card-image {
+  width: 250px; 
+  height: 250px; 
+  object-fit: contain; 
+}
+/* Specific styles for 2nd card */
+.homologation-card:nth-child(2) .card-image {
+  width: 350px; 
+  height: 300; 
+  object-fit: contain; 
+  margin-top: 10px; 
+}
+
+/* Specific styles for 4th card */
+.homologation-card:nth-child(4) .card-image {
+  width: 200px; 
+  height: 220; 
+  object-fit: contain;
+  margin-top: 10px; 
+}
+
+
+.card-image {
+  width: 80%;
+  height: 80%;
+  object-fit: cover;
+}
+
+.resizable-image {
+  object-fit: contain; 
+}
+
+/* Title and description */
+.card-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 10px;
+  color:#007e01;
+}
+
+.card-description {
+  font-size: 15px;
+  margin: 10px;
+  flex-grow: 1;
+}
+
+/* Learn more section */
+.learn-more-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 3cqmin;
+}
+
+.learn-more-line {
+  width: 100%;
+  height: 2px;
+  background-color: rgb(202, 193, 193);
+  margin-bottom: 10px;
+}
+
+.learn-more-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: white;
+  background-color: #22b81d;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+.homologation-detail {
+  text-align: center;
+  padding: 20px;
+}
+
+.detail-image {
+  max-width: 100%;
+  height: auto;
+}
+
+.detail-title {
+  font-size: 1rem;
+  margin-top: 20px;
+}
+
+.detail-description {
+  font-size: 1.1rem;
+  color: #555;
+  margin-top: 10px;
+}
+
+.back-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.back-button:hover {
+  background-color: #0056b3;
+}
+
+
+
+
+.learn-more-btn:hover {
+  background-color: #212724;
+}
+
+
+
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .homologation-cards {
+    flex-direction: column; /* Stack cards vertically */
+    padding: 20px 10px;
+  }
+
+  .homologation-card {
+    width: 100%; /* Full width for mobile */
+    height: auto; /* Adjust height automatically */
+    margin-bottom: 20px; /* Add spacing between cards */
+  }
+
+  .card-title {
+    font-size: 20px; /* Smaller text */
+  }
+
+  .card-description {
+    font-size: 16px;
+  }
+
+  .learn-more-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .homologation-cards {
+    flex-wrap: wrap; /* Allow wrapping */
+    justify-content: center;
+  }
+
+  .homologation-card {
+    width: 45%; /* Adjust card width */
+    margin: 10px; /* Add spacing between cards */
+  }
+
+  .card-title {
+    font-size: 25px; /* Adjust text size */
+  }
+
+  .card-description {
+    font-size: 17px;
+  }
+}

@@ -1,0 +1,154 @@
+
+.page-section {
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    background-color: #f8f8f8;
+    gap: 30px;
+  }
+  .img1
+  {
+    margin-top: 40px;
+    margin-left: 5px;
+  }
+  .img2
+  {
+    margin-top: 5px;
+    margin-left: 5px;
+  }
+  .img3
+  {
+    margin-top: 5px;
+    margin-right: 5px;
+  }
+  .img4
+  {
+    margin-bottom: 5px;
+    margin-left: 5px;
+  }
+  
+  /* Create four equal columns that sits next to each other */
+  .page-images 
+  {
+    flex: 25%;
+    max-width: 25%;
+    padding: 5cqw;
+  }
+  
+  .page-images img
+   {
+    margin-top: 8px;
+    vertical-align: middle;
+    width: 100%;
+  }
+  .page-images 
+  {
+    display: flex;
+    justify-content: unset;
+    flex-direction:row;
+    gap: 20px;
+    flex-basis: 50%;
+    justify-content: center;
+  }
+  .page-images img
+   {
+    width: 100px;
+    height: auto;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .page-text
+   {
+    flex-basis: 50%;
+    max-width: 500px;
+    padding: 20px;
+    text-align: left;
+   
+  }
+  .learn-more-btn
+  {
+    background-color: #007e01; 
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: flex; 
+  justify-content: flex-end;
+  position: absolute;
+   right: 20%;
+   bottom: 30%;
+  }
+  .page-text h1 
+  {
+    font-size: 2rem;
+    font:linear-gradient(#75C02F,#10677A,#FF4400)
+   
+  }
+  
+  
+  .page-text span {
+    color: #10677A; /* Orange */
+  }
+  
+  .page-text p {
+    margin-top: 20px;
+    font-size: 1rem;
+    color: 000000;
+  }
+  .page-text h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: left;
+    background: linear-gradient(90deg, #75C02F, #10677A, #FF4400);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; /* Ensures only the gradient is visible */
+  }
+
+  @media (max-width: 768px) {
+    .column, .column1, .page-images, .page-text {
+      flex: 1 1 100%; /* Columns stack vertically */
+      max-width: 100%; /* Take full width */
+    }
+  
+    .page-section {
+      padding: 90px 10px; /* Smaller padding for mobile */
+    }
+  
+    .page-text h1 {
+      font-size: 1.5rem; /* Smaller heading font size */
+    }
+  
+    .page-text p {
+      font-size: 0.9rem; /* Smaller paragraph font size */
+    }
+  
+    .page-images img {
+      max-width: 80px; /* Smaller image size for mobile */
+    }
+  }
+
+ 
+  
+
+  @media (min-width: 1024px) {
+    .page-section {
+      padding: 60px 30px; /* Larger padding for desktop */
+    }
+  
+    .column, .column1, .page-images, .page-text {
+      flex: 1 1 50%; /* Two columns side by side */
+    }
+  
+    .page-text h1 {
+      font-size: 2.5rem; /* Larger heading font size */
+    }
+  
+    .page-images img {
+      max-width: 150px; /* Larger images for desktop */
+    }
+  }
+  

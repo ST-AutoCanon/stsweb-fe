@@ -1,0 +1,181 @@
+/* General Footer Styling */
+.footer {
+  background-color: #0d707e;
+  color: white;
+  padding: 20px 15px;
+  width: 100%;
+}
+
+/* Container for footer elements */
+.footer-container {
+  max-width: 1200px;
+  height:9vh;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0px;
+}
+
+
+.scanner {
+  height: 60px;
+  width: 60px;
+  display: flex;
+  gap: 20px;
+}
+/* Links Section */
+.footer-links {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li a {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.footer-links li a:hover {
+  text-decoration: underline;
+}
+
+/* Feedback Section */
+.footer-feedback {
+  max-width: 450px;
+  font-size: small;
+  text-align: right;
+}
+
+.footer-feedback p {
+  margin: 5px 0;
+}
+
+.feedback-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.feedback-button:hover {
+  background-color: #45a049;
+}
+
+/* Social Media Icons */
+.footer-social {
+  display: flex;
+  gap: 10px;
+}
+
+.footer-social a {
+  color: white;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #4caf50;
+}
+
+/* Sticky Footer for Desktop View */
+
+/* Non-Sticky Footer for Mobile View */
+@media (max-width: 768px) {
+  .footer {
+    width: 100%; /* Make sure footer takes full width */
+    height: 300px; /* Allow the footer to adjust its height based on content */
+    position: static; /* Footer naturally flows after the content */
+    margin-top: 20px; /* Add spacing from the content */
+    display: flex;
+    flex-direction: column; /* Stack all items vertically */
+    align-items: center; /* Center all items */
+    gap: 20px; /* Add space between sections */
+    padding: 20px; /* Optional padding for spacing */
+  }
+
+  /* Scanner - Position the scanner section vertically first */
+  .scanner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    width: 50px;
+    order: 1; /* First item */
+    margin-top: 10px; /* Add margin to give space from the top */
+  }
+
+  .scanner img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* Social Icons - Stack them vertically */
+  .footer-social {
+    display: flex;
+    flex-direction: column; /* Stack icons vertically */
+    align-items: center;
+    gap: 10px; /* Add space between icons */
+    margin-top: 30px;
+    order: 2; /* Position social icons after scanner */
+  }
+
+  .footer-social a {
+    font-size: 15px;
+    color: white;
+  }
+
+  .footer-social a:hover {
+    color: #4caf50;
+  }
+
+  /* Footer Feedback - Stack feedback content */
+  .footer-feedback {
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+    font-size: 80%;
+    text-align: center;
+    margin-top: 10px;
+    order: 3; /* After social icons */
+  }
+
+  .footer-feedback p {
+    margin: 5px 0;
+  }
+
+  /* Feedback Button - Positioned below feedback text */
+  .feedback-button {
+    font-size: 12px; /* Adjust font size */
+    padding: 5px 10px;
+    order: 4;
+    margin-top: 10px; /* Add margin between the feedback text and button */
+  }
+
+  /* Footer Links - Make sure links appear at the bottom */
+  .footer-links {
+    order: 5; /* Display links at the bottom */
+    display: flex;
+    flex-direction: column; /* Stack links vertically */
+    gap: 10px; /* Add space between links */
+    align-items: center;
+  }
+
+  .footer-links li a {
+    font-size: 16px;
+    color: white;
+    text-decoration: none;
+  }
+
+  .footer-links li a:hover {
+    text-decoration: underline;
+  }
+}

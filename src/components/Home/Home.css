@@ -1,0 +1,148 @@
+/* Hero Section Styling */
+.hero-image {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* Full screen height */
+  background-color: #f0f0f0; /* Fallback color */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-card {
+  position: absolute; 
+  top: 50%; 
+  left: 20%;
+  transform: translate(-50%, -50%); 
+  width: 300px; 
+  height: 300px;
+  background-color:#001D4A ; 
+  border-radius: 0px; 
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+}
+
+.hero-card-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: white; /* Dark text */
+  margin-bottom: 20px;
+}
+
+.hero-card-description {
+  font-size: 16px;
+  color: white; /* Neutral text color */
+  margin-bottom: 90px;
+}
+
+
+.learn-moree-btn {
+  background-color: #007e01; 
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  
+}
+
+.learn-moree-btn:hover {
+  background-color: #005c00; /* Darker green on hover */
+}
+
+/* Scrolling Buttons Styling */
+.scrolling-buttons {
+  position: absolute;
+  bottom:100px;
+  display: flex;
+  gap: 15px;
+
+ 
+   /* Position at the bottom of the page */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust position to align center */
+ 
+  flex-direction: row; /* Stack buttons vertically */
+  /* Add spacing between the buttons */
+  
+  
+}
+
+.scroll-btn {
+  width: 5px;
+  height: 5px;
+  background-color: #90f011;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.scroll-btn.active {
+  transform: scale(1.0);
+  opacity: 1;
+}
+
+.scroll-btn:hover {
+  transform: scale(1.2);
+  background-color: #007e01;
+}
+
+/* Mobile View of hero card */
+@media screen and (max-width: 768px) {
+  .hero-card {
+    width: 400px;
+    max-width: 250px;
+    height: 250px;
+    padding: 10px;
+    left: 17%; /* Move the card to the right by 10% */
+    top:auto;
+    transform: translateX(-5%);
+  }
+
+  .hero-card-title {
+    font-size: 20px;
+  }
+
+  .hero-card-description {
+    font-size: 14px;
+  }
+/*mobile view of scrolling section*/
+
+  .learn-moree-btn {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+
+  /* Scrolling Buttons Styling */
+.scrolling-buttons {
+  position: absolute;
+  bottom: 30px;
+  
+  gap: 15px;
+}
+
+.scroll-btn {
+  width: -20px;
+  height: -20px;
+  background-color: #90f011;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+.scroll-btn.active {
+  transform: scale(1.0);
+  opacity: 1;
+}
+
+.scroll-btn:hover {
+  transform: scale(0.1);
+  background-color: #007e01;
+}
+  
+}
