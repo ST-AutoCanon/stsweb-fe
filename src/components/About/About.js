@@ -45,17 +45,17 @@ const Page = () => {
           it stands for Highly Skilled and Knowledge. SukalpaTech abides by its meaning by 
           utilizing advanced technologies and well-qualified, experienced staff.
 
-
+{/* 
+          <button className="learn-moreebtn">Learn More</button> */}
 
 
 
         </p>
+        
       </div>
-      <div className="learn-morebtn">
-    <button className="learn-more-btn">Learn More</button>
+      
     </div>
-    </div>
-   
+    
     </section>
   );
 };
