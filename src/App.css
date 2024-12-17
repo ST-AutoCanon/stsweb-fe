@@ -32,6 +32,7 @@ main {
   padding-bottom: 70px;
 
 }
+
 .service123
  {
   padding-top: 50px;
@@ -47,6 +48,12 @@ main {
   padding-top: 50%;
   padding-bottom :70px; ;
 }
+.services123
+{
+  padding-top: 50%;
+  padding-bottom :70px; 
+}
+
 .Navbar {
  
   top: 0;

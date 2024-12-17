@@ -1,0 +1,106 @@
+/* Main container */
+.e-mobility-solutions-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 120px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+  }
+  
+  /* Left section */
+  .e-mobility-solutions-text {
+    width: 60%;
+  }
+  
+  .e-mobility-solutions-text h1 {
+    font-size: 2em;
+    color: #000;
+    margin-bottom: 10px;
+  }
+  
+  .e-mobility-solutions-text p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  
+  .services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+  }
+  
+  .services-list li {
+    width: 45%;
+    font-size: 0.9em;
+    color: #333;
+  }
+  
+  /* Button */
+  .e-mobility-solutions-button {
+    background-color: #00c853;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .e-mobility-solutions-button:hover {
+    background-color: #009624;
+  }
+  
+  /* Right section */
+  .e-mobility-solutions-image {
+    position: relative;
+    width: 35%;
+  }
+  
+  .services-image {
+    width: 60%;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  .overlay-text {
+    position: absolute;
+    bottom: 10%;
+    left: 10%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .e-mobility-solutions-container {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+    }
+  
+    .e-mobility-solutions-text {
+      width: 100%;
+    }
+  
+    .e-mobility-solutions-image {
+      width: 100%;
+    }
+  
+    .services-list li {
+      width: 100%;
+    }
+  }
+  

@@ -1,0 +1,156 @@
+/* Main Container */
+.circular-design-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    height: 800px;
+  }
+  
+  /* Center Logo */
+  .center-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  
+  .center-logo img {
+    width: 150px;
+    height: auto;
+    border-radius: 50%;
+  }
+  
+  .center-logo p {
+    margin-top: 10px;
+    font-size: 1em;
+    color: #555;
+  }
+  
+  /* Circular Items */
+  .circular-items {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .circular-item {
+    position: absolute;
+    width: 200px;
+    text-align: center;
+  }
+  
+  .circular-item h3 {
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .circular-item p {
+    font-size: 0.85em;
+    color: #555;
+  }
+  
+  /* Item Positions (CSS Positions for 8 items) */
+  .item-1 {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+  
+  .item-2 {
+    top: 15%;
+    right: 10%;
+    transform: translate(0, 0);
+  }
+  
+  .item-3 {
+    top: 50%;
+    right: 0;
+    transform: translate(0, -50%);
+  }
+  
+  .item-4 {
+    bottom: 15%;
+    right: 10%;
+    transform: translate(0, 0);
+  }
+  
+  .item-5 {
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+  
+  .item-6 {
+    bottom: 15%;
+    left: 10%;
+    transform: translate(0, 0);
+  }
+  
+  .item-7 {
+    top: 50%;
+    left: 0;
+    transform: translate(0, -50%);
+  }
+  
+  .item-8 {
+    top: 15%;
+    left: 10%;
+    transform: translate(0, 0);
+  }
+  
+  /* Dotted Circular Lines */
+  /* .circular-items::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 80%;
+    border: 2px dashed #ddd;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  } */
+  
+  /* Dotted Lines for Each Item */
+  .circular-item::before {
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 80px;
+    background: #ddd;
+  }
+  
+  .item-1::before {
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+  
+  .item-2::before {
+    top: 80%;
+    left: 10%;
+  }
+  
+  .item-3::before {
+    right: 100%;
+    top: 50%;
+  }
+  
+  .item-4::before {
+    top: 0;
+    right: 0;
+  }
+  
+  .item-5::before {
+    bottom: 100%;
+    left: 50%;
+  }
+  
+  .item-6::before {
+    bottom: 80%;
+    right: 10%;
+  }
+  

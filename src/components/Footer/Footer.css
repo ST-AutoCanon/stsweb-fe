@@ -91,7 +91,7 @@
 @media (max-width: 768px) {
   .footer {
     width: 100%; /* Make sure footer takes full width */
-    height: 300px; /* Allow the footer to adjust its height based on content */
+    height: 100px; /* Allow the footer to adjust its height based on content */
     position: static; /* Footer naturally flows after the content */
     margin-top: 20px; /* Add spacing from the content */
     display: flex;
@@ -104,25 +104,28 @@
   /* Scanner - Position the scanner section vertically first */
   .scanner {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: left;
+    align-items: left;
     height: 50px;
     width: 50px;
     order: 1; /* First item */
     margin-top: 10px; /* Add margin to give space from the top */
+    margin-left: 20px;
+    padding: 20px;
   }
 
   .scanner img {
     height: 100%;
     width: 100%;
     object-fit: cover;
+    
   }
 
   /* Social Icons - Stack them vertically */
   .footer-social {
     display: flex;
     flex-direction: column; /* Stack icons vertically */
-    align-items: center;
+    align-items: right;
     gap: 10px; /* Add space between icons */
     margin-top: 30px;
     order: 2; /* Position social icons after scanner */
@@ -137,28 +140,7 @@
     color: #4caf50;
   }
 
-  /* Footer Feedback - Stack feedback content */
-  .footer-feedback {
-    display: flex;
-    flex-direction: column;
-    max-width: 300px;
-    font-size: 80%;
-    text-align: center;
-    margin-top: 10px;
-    order: 3; /* After social icons */
-  }
 
-  .footer-feedback p {
-    margin: 5px 0;
-  }
-
-  /* Feedback Button - Positioned below feedback text */
-  .feedback-button {
-    font-size: 12px; /* Adjust font size */
-    padding: 5px 10px;
-    order: 4;
-    margin-top: 10px; /* Add margin between the feedback text and button */
-  }
 
   /* Footer Links - Make sure links appear at the bottom */
   .footer-links {
@@ -178,4 +160,5 @@
   .footer-links li a:hover {
     text-decoration: underline;
   }
+
 }

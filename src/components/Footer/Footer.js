@@ -21,15 +21,15 @@ const Footer = () => {
       </a>
       
       <a href="mailto:info@sukalpatech.com" className="social-icon">
-        <i className="fas fa-envelope"></i> mailto: info@sukalpatech.com
+        <i className="fas fa-envelope"></i> info@sukalpatech.com
       </a>  
           <a href="https://www.linkedin.com/company/sukalpa-tech/" className="social-icon"><i className="fab fa-linkedin-in"></i>  Linkedin</a>
         </div>
-        <div className="footer-feedback">
+        {/* <div className="footer-feedback">
           <p>Were you able to find what you needed?</p>
           <p>Help us make Sukalpa Tech website a better experience for users like you!</p>
           <button className="feedback-button">Provide Feedback</button>
-        </div>
+        </div> */}
       </div>
     </footer>
   );

@@ -1,4 +1,4 @@
-
+/*Page Section of about Page*/
 .page-section {
     display: flex; 
     flex-wrap: wrap;
@@ -8,6 +8,8 @@
     background-color: #f8f8f8;
     gap: 30px;
   }
+
+/*images of about page*/
   .img1
   {
     margin-top: 40px;
@@ -67,7 +69,9 @@
     text-align: left;
    
   }
-  .learn-moreebtn
+
+  /*learn more button */ 
+  .learn-morebtn
   {
     background-color: #007e01; 
   color: white;
@@ -88,8 +92,7 @@
     font:linear-gradient(#75C02F,#10677A,#FF4400)
    
   }
-  
-  
+
   .page-text span {
     color: #10677A; /* Orange */
   }
@@ -108,7 +111,9 @@
     -webkit-text-fill-color: transparent; /* Ensures only the gradient is visible */
   }
 
-  @media (max-width: 768px) {
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
     .column, .column1, .page-images, .page-text {
       flex: 1 1 100%; /* Columns stack vertically */
       max-width: 100%; /* Take full width */
@@ -127,28 +132,28 @@
     }
   
     .page-images img {
-      max-width: 80px; /* Smaller image size for mobile */
+      max-width: 80px; 
     }
   }
 
  
   
+/* Responsive adjustments for smaller screens */
 
   @media (min-width: 1024px) {
     .page-section {
-      padding: 60px 30px; /* Larger padding for desktop */
+      padding: 60px 30px; 
     }
   
     .column, .column1, .page-images, .page-text {
-      flex: 1 1 50%; /* Two columns side by side */
+      flex: 1 1 50%; 
     }
   
     .page-text h1 {
-      font-size: 2.5rem; /* Larger heading font size */
+      font-size: 2.5rem; 
     }
   
     .page-images img {
-      max-width: 150px; /* Larger images for desktop */
+      max-width: 150px; 
     }
   }
-  

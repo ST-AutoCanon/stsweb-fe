@@ -1,0 +1,196 @@
+/* Main container */
+.about-container {
+    display: flex;
+    height: 80%;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box; /* Ensure padding and borders don't overflow */
+    min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
+
+  }
+  
+  /* Image section */
+  .image-section {
+    width: 60%;
+    position: relative;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  
+  .about-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Text section */
+  .text-section {
+    width: 85%;
+    background-color: #2FAAC6;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%);
+    margin-left: -6%;
+  }
+  
+  /* Diagonal shaded line */
+  .about-container::before {
+    content: "";
+    position: absolute;
+    /* Match the width of the image-section */
+    
+    z-index: 2;
+    background: linear-gradient(
+      to bottom right,
+      rgb(16, 176, 216),
+      rgba(214, 215, 219, 0)
+    );
+    
+    pointer-events: none;
+    left: 40%; /* Lean closer to the text section */
+    width: 3%; /* Thicker line */
+    height: 150%; /* Extends the line significantly */
+    top: -25%;
+    
+    transform: skewX(-10deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
+
+  }
+  
+  .text-section h1 {
+    font-size: 3em;
+    margin-bottom: 10px;
+    z-index: 3;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  .text-section p {
+    font-size: 1.5em;
+    
+    text-align: center;
+    padding: 0 20px;
+    z-index: 3;
+  }
+  
+  .container {
+    display: flex;
+    flex-direction: row;
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .image-wrapper {
+    flex: 1;
+  }
+  
+  .image {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 8px;
+  }
+  
+  .text-wrapper {
+    flex: 2;
+    padding: 10px;
+  }
+  
+  .info-section {
+    margin: 20px 0;
+  }
+  
+  .about-right{
+    text-align: center;
+    width: 100%;
+    height: 100%;
+
+  }
+  .about-right h1{
+    text-align: left;
+    margin-left: 10%;
+    color:black;
+    margin-bottom: 3%;
+    margin-top: 2%;
+    
+  }
+.about-right h2{
+  text-align: left;
+  color:#010d0f;
+  margin-left: 10%;
+}
+.about-right p
+{
+  text-align: left;
+  margin-left: 10%;
+  font-size: 18px;
+  margin-right:10%;
+}
+.about-right ul{
+  text-align: left;
+  margin-left: 10%;
+  gap: 50px;
+  margin-bottom: 5%;
+}
+ul li{
+  margin-bottom: 10px;
+  margin-left: 0px;
+}
+
+
+  @media (max-width: 768px) {
+  .about-container {
+    flex-direction: column; /* Stack sections vertically */
+    height: auto; /* Adjust height for stacked layout */
+  }
+
+  .image-section {
+    width: 100%; /* Full width for the image section */
+    height: 55vh; /* Half the viewport height */
+    clip-path: none; /* Remove clip-path for a full rectangular display */
+  }
+
+  .text-section {
+    width: 100%; /* Full width for the text section */
+    height:35vh;
+    margin-left: 0; /* Remove overlap */
+    clip-path: none; /* Remove clip-path for a rectangular display */
+    padding: 20px; /* Add padding for spacing */
+  }
+
+  .text-section h1 {
+    font-size: 2em; /* Adjust font size for smaller screens */
+    margin-right: 30px;
+  }
+
+  .text-section p {
+    font-size: 1em; /* Adjust paragraph font size */
+    margin-right:15px;
+  }
+
+  .about-container::before {
+    display: none; /* Hide the diagonal line in mobile view */
+  }
+  .about-right ul{
+    text-align: left;
+    margin-left: 10%;
+    
+    margin-bottom: 5%;
+    margin-right: 10%;
+  }
+  ul li {
+    margin-bottom: 10px; /* Adds space between list items */
+    margin-right: 0%;
+  }
+  .about-right p
+{
+  text-align: left;
+  margin-left: 10%;
+  font-size: 100%;
+  line-height: 1.9;
+  margin-right: 10%;
+}
+
+  
+}

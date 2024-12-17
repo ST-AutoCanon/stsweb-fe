@@ -220,7 +220,7 @@
 @media (max-width: 768px) {
   .homologation-cards {
     flex-direction: column; /* Stack cards vertically */
-    padding: 20px 10px;
+    padding: 60px 30px;
   }
 
   .homologation-card {

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import "./Services.css";
+ import "./Services.css";
 
 const Services = () => {
+
+  
   const services = [
     {
       id: 1,

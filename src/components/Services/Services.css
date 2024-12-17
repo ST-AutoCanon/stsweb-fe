@@ -128,7 +128,7 @@
 }
 @media (max-width: 768px) {
   .services-container {
-    padding: 20px; /* Less padding for smaller screens */
+    padding: 60px 30px; /* Less padding for smaller screens */
   }
 
   .services-header {
