@@ -10,8 +10,8 @@ const Login = () => {
 
   // Function to close the modal
   const closeModal = () => {
-    setIsModalOpen(false);
-    navigate('/Home');
+    setIsModalOpen(true);
+    navigate('/About');
   };
 
   const handleSubmit = async (e) => {
@@ -94,6 +94,7 @@ const Login = () => {
         </div>
       </div>
     )
+    
   );
 };
 

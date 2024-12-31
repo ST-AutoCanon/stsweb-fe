@@ -1,6 +1,5 @@
 import React from "react";
 import "./ITNetworkingServices.css";
-import EngineeringServices from "../EngineeringServices/EngineeringServices";
 
 const ITNetworkingServices = () => {
   return (
@@ -33,7 +32,9 @@ const ITNetworkingServices = () => {
       </div>
       
     </div>
-    <EngineeringServices />
+    
+   
+    
     </>
   );
 

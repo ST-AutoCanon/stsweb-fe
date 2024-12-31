@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
-
+import About from "../About/About";
+import Services from '../Services/Services';
+import HomologationPage from '../Homologation/Homologation';
 // Custom Hook to Detect Screen Size
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -21,9 +23,9 @@ const Home = () => {
 
   // Different image sets for desktop and mobile
   const desktopImages = [
-    './images/home1.png',
-    './images/a2.png',
-    './images/home5.png',
+    './images/Homepage1.png',
+    './images/Homepage2.png',
+    './images/Homepage4.png',
     './images/home3.png',
   ];
 
@@ -82,7 +84,11 @@ const Home = () => {
           ))}
         </div>
       </div>
-    </section>
+      
+      <Services/>
+      <HomologationPage/>
+      <About/>
+      </section>
   );
 };
 
