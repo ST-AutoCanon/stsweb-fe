@@ -28,7 +28,6 @@ const Drafting = () => {
           <li>Assembly Drawings</li>
           <li>Technical Illustrations</li>
         </ul>
-        <button className="drafting-button">Learn More</button>
       </div>
     </div>
   );

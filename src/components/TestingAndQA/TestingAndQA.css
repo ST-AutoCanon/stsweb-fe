@@ -1,0 +1,89 @@
+/* Main container */
+.testing-qa-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px;
+    background-color: #ffffff; /* Set background to white */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+/* Left Section - Content */
+.testing-qa-text {
+    width: 60%;
+    order: 1; /* Place content on the left */
+}
+
+/* Right Section - Image */
+.testing-qa-image {
+    position: relative;
+    width: 35%;
+    order: 2; /* Place image on the right */
+}
+
+.services-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* List styling */
+.services-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.services-list ul {
+    margin-top: 5px;
+    margin-bottom: 15px;
+    padding-left: 20px;
+}
+
+.services-list li {
+    margin-bottom: 10px;
+}
+.testing-qa-text h1
+{
+       font-size: 2rem; /* Main headline font size */
+        color: #000;
+        margin-bottom: 10px;
+     
+}
+.testing-qa-text h2
+{
+    font-size: 1.5rem; /* Main headline font size */
+        color: #555;
+        margin-bottom: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .testing-qa-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .testing-qa-text {
+        width: 100%;
+    }
+
+    /* Right Section - Image */
+.testing-qa-image {
+    position: relative;
+    width: 100%;
+    order: 0; /* Place image on the right */
+}
+
+.services-image {
+    width: 100%;
+    height: auto;
+   
+}
+    
+}

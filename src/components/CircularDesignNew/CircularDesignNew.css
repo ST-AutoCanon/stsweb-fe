@@ -1,0 +1,247 @@
+/* Container for the circular layout */
+.circular-container-new {
+  position: relative;
+  width: 600px; /* Container size */
+  height: 600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+/* Central wrapper with dotted border */
+.central-wrapper-new {
+  position: absolute;
+  width: 180px; /* Slightly larger than the central image */
+  height: 180px;
+  border-radius: 50%; /* Makes the dotted border circular */
+  border: 3px dotted #ddd; /* Creates the dotted border */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Central image inside the circle */
+.central-image-new {
+  position: absolute;
+  width: 150px; /* Size of the central image */
+  height: 150px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.central-image-new img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Individual circular item */
+.circular-item-new {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  transform-origin: center;
+}
+
+/* Dotted line connecting the central image to the button */
+.line-new {
+  position: absolute;
+  width: 120px !important;
+  height: 0.15px !important;
+  background: transparent;
+  border-top: 2px dashed #000 !important;
+  transform-origin: left;
+}
+
+.line-1-new
+{
+  width: 52%!important;
+  transform: rotate(-50deg);
+  top: 290% !important;
+  left: -16%!important;
+}
+.line-2-new
+{
+  top: 50%;
+  left: -73%!important;
+  width: 75%!important;
+  transform: rotate(0deg);
+}
+.line-3-new
+{
+  top: 10%;
+  left: 5%;
+  width: 35%!important;
+  transform: rotate(240deg);
+}
+.line-4-new
+{
+  top: 50%;
+  left: 175%;
+  width: 73%!important;
+  transform: rotate(180deg);
+}
+.line-5-new
+{
+  top: 290%;
+  left: 140%;
+  width: 65%!important;
+  transform: rotate(230deg);
+}
+.line-6-new
+{
+  top: -10%;
+  left: 82%;
+  width: 68%!important;
+  transform: rotate(320deg);
+}
+/* Button layout inside each circular item */
+.circular-button-new {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid black;
+  border-radius: 50px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  gap: 10px; /* Space between image and text */
+}
+
+/* Reverse layout for buttons */
+.circular-button-new.reverse {
+  flex-direction: row; /* Reverse layout */
+}
+
+.circular-button-new.reverse img {
+  margin-right: 0 !important;
+  margin-left: 5px !important; /* Add space on the left for reversed layout */
+}
+
+/* Button hover state */
+.circular-item-new .circular-button-new:hover {
+  background-color: grey;
+}
+
+/* Button when active */
+.circular-button-new.active-button-new {
+  background-color: grey;
+  color: black;
+  cursor: default;
+}
+
+/* Images inside the buttons */
+.circular-item-new img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+/* Text inside the button */
+.circular-item-new p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Page section for dynamic content */
+.page-section-new {
+  padding: 50px 20px;
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.page-section-new h2 {
+  font-size: 1.8em;
+  margin-bottom: 20px;
+}
+
+.page-section-new p {
+  font-size: 1.2em;
+  color: #555;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .circular-container-new {
+    width: 400px; /* Adjust container size for smaller screens */
+    height: 400px;
+  }
+
+  .central-wrapper-new {
+    width: 140px;
+    height: 140px;
+  }
+
+  .central-image-new {
+    width: 120px;
+    height: 120px;
+  }
+
+  .circular-item-new {
+    transform-origin: center;
+  }
+
+  .circular-button-new {
+    padding: 5px 8px;
+    gap: 5px;
+  }
+
+  .circular-item-new p {
+    font-size: 12px;
+  }
+
+  /* Adjust the dotted lines connecting buttons */
+  .line-new {
+    width: 60px !important;
+    height: 0.1px !important;
+    border-top: 1px dashed #000 !important;
+  }
+
+  /* Line positions for smaller screens */
+  .line-1-new {
+    width: 35% !important;
+    transform: rotate(-50deg);
+    top: 210% !important;
+    left: 6% !important;
+  }
+  .line-2-new {
+    top: 40%;
+    left: -19% !important;
+    width: 19% !important;
+    transform: rotate(0deg);
+  }
+  .line-3-new {
+    top: 5%;
+    left: 25%;
+    width: 38% !important;
+    transform: rotate(240deg);
+  }
+  .line-4-new {
+    top: 43%;
+    left: 120%;
+    width: 23% !important;
+    transform: rotate(180deg);
+  }
+  .line-5-new {
+    top: 235%;
+    left: 100%;
+    width: 50% !important;
+    transform: rotate(230deg);
+  }
+  .line-6-new {
+    top: -10%;
+    left: 65%;
+    width: 65% !important;
+    transform: rotate(315deg);
+  }
+
+}

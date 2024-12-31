@@ -1,0 +1,80 @@
+/* Main container */
+.plant-layout-planning-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px;
+    background-color: #ffffff; /* Set background to white */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+/* Right Section - Image */
+.plant-layout-planning-image {
+    position: relative;
+    width: 35%;
+    order: 2; /* Place image on the right */
+}
+
+.services-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Left Section - Content */
+.plant-layout-planning-text {
+    width: 60%;
+    order: 1; /* Place content on the left */
+}
+
+.plant-layout-planning-text h1 {
+    font-size: 2em;
+    color: #000;
+    margin-bottom: 10px;
+}
+
+.plant-layout-planning-text p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.services-list li {
+    width: 45%;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .plant-layout-planning-container {
+        flex-direction: column; /* Stack items for smaller screens */
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .plant-layout-planning-text {
+        width: 100%;
+        order: 1; /* Maintain order for responsive layout */
+    }
+
+    .plant-layout-planning-image {
+        width: 100%;
+        order: 2; /* Maintain order for responsive layout */
+    }
+
+    .services-list li {
+        width: 100%;
+    }
+}

@@ -1,0 +1,152 @@
+.reachus-container {
+  margin-top: 10px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 50vh;
+}
+
+.header-section {
+  text-align: left;
+  margin-bottom: 40px;
+  margin-right: 50%;
+}
+
+.header-section h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-top: 60px;
+  margin-bottom:-20px;
+  
+}
+
+.content-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 100px;
+  width: 60%;
+  height:10%;
+}
+
+.map-box,
+.form-box {
+  flex: 1;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  height: 40%;
+  width: 50%;
+}
+
+.map-section h3 {
+  margin-top:8px;
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #080303;
+}
+
+.map-section iframe {
+  width: 100%;
+  height: 350px;
+  border: 0;
+  border-radius: 10px;
+}
+
+.form-section p {
+  margin-bottom: 5px;
+  font-size: 1em;
+  color: #130808;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  margin-left:40px;
+
+}
+
+.contact-form label {
+  margin-top:10px;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #333;
+  
+}
+
+.input-field,
+.textarea-field {
+  margin-top:0px;
+  width: 80%;
+  padding: 5px;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  
+}
+
+.textarea-field {
+  resize: none;
+}
+
+.send-button {
+  padding: 10px;
+  font-size: 1em;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 88%;
+  margin-top:10px;
+}
+
+.send-button:hover {
+  background-color: #218838;
+}
+
+.success-message {
+  color: green;
+  font-weight: bold;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+
+
+/* Media Query for Mobile View */
+@media (max-width: 768px) {
+  .header-section h1 {
+    font-size: 1.2rem; /* Smaller font size for mobile */
+  }
+
+  .content-section {
+    flex-direction: column; /* Stack content vertically */
+    gap: 20px;
+    width: 100%;
+  }
+
+  .map-box,
+  .form-box {
+    width: 90%; /* Full width for smaller screens */
+  }
+
+  .map-section iframe {
+    height: 200px; /* Further reduce height for mobile */
+  }
+
+  .input-field,
+  .textarea-field {
+    width: 90%; /* Wider input fields for better usability */
+  }
+ 
+
+  }

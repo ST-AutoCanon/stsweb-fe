@@ -1,232 +1,145 @@
 
 
-// import React, { useState } from 'react';
-// import { NavLink, useNavigate } from 'react-router-dom';
-// import './Navbar.css';
 
-// const Navbar = () => {
-//   const [menuOpen, setMenuOpen] = useState(false); // Mobile menu state
-//   const [dropdownOpen, setDropdownOpen] = useState(false); // Dropdown state
-//   const navigate = useNavigate();
-
-//   // Toggles the menu (used for mobile responsiveness)
-//   const toggleMenu = () => {
-//     setMenuOpen(!menuOpen);
-//   };
-
-//   // Toggles dropdown visibility
-//   const toggleDropdown = () => {
-//     setDropdownOpen(!dropdownOpen);
-//   };
-  
-  
-//   // Assuming this is your existing function for handling navigation
-// const handleNavClick = (path) => {
-//   // Close the menu immediately
-//   setMenuOpen(false);
-
-//   // Add a slight delay to ensure the menu closes smoothly
-//   setTimeout(() => {
-//     // Your existing navigation logic
-//     window.scrollTo(0, 0); // Scroll to the top of the page
-//     navigate(path); // Navigate to the specified path
-//   }, 1000); // Adjust delay (in milliseconds) based on your desired transition speed
-// };
-
-//   return (
-//     <nav className="navbar">
-//       <div className="logo">
-//         <img src="/images/image 108.png" alt="Logo" />
-//       </div>
-
-//       {/* Hamburger icon for mobile menu */}
-//       <div className="hamburger" onClick={toggleMenu}>
-//         <span className="line"></span>
-//         <span className="line"></span>
-//         <span className="line"></span>
-//       </div>
-
-//       {/* Navigation links */}
-//       <ul className={`nav-links ${menuOpen ? 'open' : ''}`}>
-//         <li>
-//           <NavLink to="/" onClick={() => handleNavClick('/')}>
-//             Home
-//           </NavLink>
-//         </li>
-//         <li>
-//           <NavLink to="/About" onClick={() => handleNavClick('/About')}>
-//             About
-//           </NavLink>
-//         </li>
-
-//         {/* Dropdown for Services */}
-//         <li className="dropdown" onClick={toggleDropdown}>
-//           <NavLink to="/Services" onClick={() => handleNavClick('/Services')}>
-//             Services
-//           </NavLink>
-//           {/* Dropdown Menu */}
-//           <ul className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
-//             <li><NavLink to="/ITNetworkingServices">ITNetworkingServices</NavLink></li>
-//             <li><NavLink to="/EngineeringServices">EngineeringServices</NavLink></li>
-//             <li><NavLink to="/OtherServices">OtherServices</NavLink></li>
-            
-//           </ul>
-//         </li>
-
-//         <li>
-//           <NavLink
-//             to="/Homologation"
-//             onClick={() => handleNavClick('/Homologation')}
-//           >
-//             Testimonials
-//           </NavLink>
-//         </li>
-//         <li>
-//           <NavLink to="/ReachUs" onClick={() => handleNavClick('/ReachUs')}>
-//             Reach Us
-//           </NavLink>
-//         </li>
-//         <li>
-//           <NavLink to="/KnowMore" onClick={() => handleNavClick('/KnowMore')}>
-//             Know More
-//           </NavLink>
-//         </li>
-//         <div className="loginbtn">
-//           <li>
-//             <NavLink to="/Login" onClick={() => handleNavClick('/Login')}>
-//               Emp-Login
-//             </NavLink>
-//           </li>
-//         </div>
-//       </ul>
-//     </nav>
-//   );
-// };
-
-// export default Navbar;
-
-
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import Tooling from '../Tooling/Tooling';
-import './Navbar.css';
+import React, { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import "./Navbar.css";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false); // Mobile menu state
-  const [dropdownOpen, setDropdownOpen] = useState(false); // Dropdown state
+  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false); // Services dropdown state
+  const [knowMoreDropdownOpen, setKnowMoreDropdownOpen] = useState(false); // KnowMore dropdown state
   const navigate = useNavigate();
 
-  // Toggles the menu (used for mobile responsiveness)
+  // Toggles the mobile menu
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
-  // Toggles dropdown visibility
-  const toggleDropdown = (e) => {
-    e.preventDefault(); // Prevent default navigation
-    setDropdownOpen(!dropdownOpen); // Toggle the dropdown menu
+  // Toggles dropdown for "Services"
+  const toggleServicesDropdown = (e) => {
+    e.preventDefault();
+    setServicesDropdownOpen(!servicesDropdownOpen);
+  };
+
+  // Toggles dropdown for "KnowMore"
+  const toggleKnowMoreDropdown = (e) => {
+    e.preventDefault();
+    setKnowMoreDropdownOpen(!knowMoreDropdownOpen);
   };
 
   // Handles navigation and scrolls the page to the top
   const handleNavClick = (path) => {
-    // Close the menu
     setMenuOpen(false);
-
-    // Add a slight delay to ensure the menu closes smoothly
+    setServicesDropdownOpen(false);
+    setKnowMoreDropdownOpen(false);
     setTimeout(() => {
-      window.scrollTo(0, 0); // Scroll to the top of the page
-      navigate(path); // Navigate to the specified path
-    }, 300); // Adjust delay as needed
+      window.scrollTo(0, 0);
+      navigate(path);
+    }, 300);
   };
 
   return (
     <nav className="navbar">
       <div className="logo">
-        <img src="/images/image 108.png" alt="Logo" />
+        <img src="/images/STS-Logo.png" alt="Logo" />
       </div>
 
-      {/* Hamburger icon for mobile menu */}
+      {/* Hamburger icon for mobile */}
       <div className="hamburger" onClick={toggleMenu}>
         <span className="line"></span>
         <span className="line"></span>
         <span className="line"></span>
       </div>
 
-      {/* Navigation links */}
-      <ul className={`nav-links ${menuOpen ? 'open' : ''}`}>
+      {/* Navigation Links */}
+      <ul className={`nav-links ${menuOpen ? "open" : ""}`}>
         <li>
-          <NavLink to="/" onClick={() => handleNavClick('/')}>
+          <NavLink to="/" onClick={() => handleNavClick("/")}>
             Home
           </NavLink>
         </li>
         <li>
-          <NavLink to="/About" onClick={() => handleNavClick('/About')}>
+          <NavLink to="/About" onClick={() => handleNavClick("/About")}>
             About
           </NavLink>
         </li>
 
-        {/* Dropdown for Services */}
-        <li className="dropdown">
+        {/* Services Dropdown */}
+        <li className={`dropdown ${servicesDropdownOpen ? "open" : ""}`}>
           <NavLink
             to="/Services"
-            onClick={(e) => {
-              toggleDropdown(e); // Open dropdown menu
-              handleNavClick('/Services'); // Navigate to the "Services" page
-            }}
+            onClick={(e) => handleNavClick("/Services")}
           >
             Services
           </NavLink>
-          {/* Dropdown Menu */}
-          <ul className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
+          <span className="dropdown-arrow" onClick={toggleServicesDropdown}><i class='fas fa-chevron-down'></i></span>
+          <ul className={`dropdown-menu ${servicesDropdownOpen ? "show" : ""}`}>
             <li>
               <NavLink
                 to="/ITNetworkingServices"
-                onClick={() => handleNavClick('/ITNetworkingServices')}
+                onClick={() => handleNavClick("/ITNetworkFirst")}
               >
-                ITNetworkingServices
+                IT Networking Services
               </NavLink>
             </li>
             <li>
               <NavLink
                 to="/EngineeringServices"
-                onClick={() => handleNavClick('/EngineeringServices')}
+                onClick={() => handleNavClick("/EngineeringServiceFirst")}
               >
-                EngineeringServices
+                Engineering Services
               </NavLink>
             </li>
             <li>
               <NavLink
                 to="/OtherServices"
-                onClick={() => handleNavClick('/OtherServices')}
+                onClick={() => handleNavClick("/OtherServiceFirst")}
               >
-                OtherServices
+                Other Services
+              </NavLink>
+            </li>
+          </ul>
+        </li>
+
+        {/* KnowMore Dropdown */}
+        <li className={`dropdown ${knowMoreDropdownOpen ? "open" : ""}`}>
+          <NavLink
+            to="/KnowMore"
+            onClick={(e) => handleNavClick("/KnowMore")}
+          >
+            KnowMore
+          </NavLink>
+          <span className="dropdown-arrow" onClick={toggleKnowMoreDropdown}><i class='fas fa-chevron-down'></i></span>
+          <ul className={`dropdown-menu ${knowMoreDropdownOpen ? "show" : ""}`}>
+            <li>
+              <NavLink
+                to="/Broucherfirst"
+                onClick={() => handleNavClick("/Broucherfirst")}
+              >
+                Broucher
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/Gallery"
+                onClick={() => handleNavClick("/Gallery")}
+              >
+                Gallery
               </NavLink>
             </li>
           </ul>
         </li>
 
         <li>
-          <NavLink
-            to="/Homologation"
-            onClick={() => handleNavClick('/Homologation')}
-          >
-            Testimonials
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/ReachUs" onClick={() => handleNavClick('/ReachUs')}>
-            Reach Us
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/KnowMore" onClick={() => handleNavClick('/KnowMore')}>
-            Know More
+          <NavLink to="/ReachUs" onClick={() => handleNavClick("/ReachUs")}>
+            ReachUs
           </NavLink>
         </li>
         <div className="loginbtn">
           <li>
-            <NavLink to="/Login" onClick={() => handleNavClick('/Login')}>
-              Emp-Login
+            <NavLink to="/Login" onClick={() => handleNavClick("/Login")}>
+              EmpLogin
             </NavLink>
           </li>
         </div>
