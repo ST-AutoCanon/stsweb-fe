@@ -8,7 +8,7 @@ const ITNetworkingServices = () => {
       {/* Left Section - Image */}
       <div className="it-networking-services-image">
         <img
-          src="./images/ITNetworking.png"
+          src="./images/ITfirstpage.png"
           alt="IT & Networking Services"
           className="services-image"
         />

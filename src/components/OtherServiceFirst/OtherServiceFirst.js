@@ -23,7 +23,7 @@ const OtherServiceFirst = () => {
       {/* Container for About */}
       <div className="about-container">
         <div className="image-section">
-          <img src="./images/m8.png" alt="About Us" className="about-image" />
+          <img src="./images/otherfirstpage.png" alt="About Us" className="about-image" />
         </div>
         <div className="text-section">
           <h1>Other Services</h1>

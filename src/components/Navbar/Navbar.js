@@ -132,7 +132,7 @@ const Navbar = () => {
         </li>
 
         <li>
-          <NavLink to="/ReachUs" onClick={() => handleNavClick("/ReachUs")}>
+          <NavLink to="/ReachUs" onClick={() => handleNavClick("/ReachusFirst")}>
             ReachUs
           </NavLink>
         </li>

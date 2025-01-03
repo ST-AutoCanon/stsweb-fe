@@ -1,12 +1,13 @@
 /* Main container */
 .about-container {
     display: flex;
-    height: 80%;
+    height: 100%;
     width: 100%;
     overflow: hidden;
     position: relative;
     box-sizing: border-box; /* Ensure padding and borders don't overflow */
     min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
+    margin-top:80px;
   }
   
   /* Image section */
@@ -50,7 +51,7 @@
     );
     
     pointer-events: none;
-    left: 40%; /* Lean closer to the text section */
+    left: 46%!important; /* Lean closer to the text section */
     width: 3%; /* Thicker line */
     height: 150%; /* Extends the line significantly */
     top: -25%;

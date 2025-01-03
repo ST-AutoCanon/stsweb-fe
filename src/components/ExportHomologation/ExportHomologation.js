@@ -7,7 +7,7 @@ const ExportHomologation = () => {
       {/* Left Section - Image */}
       <div className="export-homologation-image">
         <img
-          src="./images/ConsultingService.png"
+          src="./images/exporthomologation.png"
           alt="Export Homologation Services"
           className="services-image"
         />

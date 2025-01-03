@@ -23,30 +23,41 @@
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
 }
-
+.hero-card-title1
+{
+  font-size: 15px;
+  
+  color:#77DD0D ; /* Dark text */
+  margin-bottom: 20px;
+  text-align:left;
+  padding: 2%;
+}
 .hero-card-title {
-  font-size: 24px;
+  font-size: 45px;
   font-weight: bold;
   color: white; /* Dark text */
   margin-bottom: 20px;
+  text-align: left;
 }
 
 .hero-card-description {
-  font-size: 16px;
+  font-size: 18px;
   color: white; /* Neutral text color */
   margin-bottom: 90px;
 }
 
 
 .learn-moree-btn {
-  background-color: #007e01; 
+  background-color: #77DD0D; 
   color: white;
-  padding: 10px 20px;
+  padding: 10px 100px;
+  top:-20%;
+  
   border-radius: 5px;
   font-weight: bold;
   border: none;
   cursor: pointer;
-  
+  position: relative;
 }
 
 .learn-moree-btn:hover {
@@ -144,7 +155,28 @@
   .hero-card-title {
     font-size: 20px;
   }
-
+  .hero-card-title1
+  {
+    font-size: 15px;
+    
+    color:#77DD0D ; /* Dark text */
+    margin-bottom: 20px;
+    text-align:left;
+    padding: 2%;
+  }
+  .hero-card-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: white; /* Dark text */
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  
+  .hero-card-description {
+    font-size: 18px;
+    color: white; /* Neutral text color */
+    margin-bottom: 90px;
+  }
   .hero-card-description {
     font-size: 18px;
     margin-bottom: 15px;
@@ -153,8 +185,9 @@
 
   .learn-moree-btn {
     font-size: 14px;
-    padding: 8px 15px;
-    margin-top: 10px;
+    padding: 10px 115px;
+    margin-top: 50px;
+    margin-left:-20px ;
   }
 
   /* Scrolling Buttons Styling */

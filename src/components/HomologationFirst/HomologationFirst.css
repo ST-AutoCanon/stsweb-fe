@@ -1,0 +1,315 @@
+/* General Container Styles */
+.homologation-container {
+  font-family: Open Sans, sans-serif;
+  background: linear-gradient(to bottom, #7AC127 , #0B5F80);
+  color: white;
+  padding: 70px;
+}
+
+/* Title Styles */
+.homologation-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.homologation-title h1 {
+  font-size: 32px;
+  font-weight: bold;
+  text-align: left;
+  padding-left: 60px;
+}
+
+/* Content Section */
+.homologation-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  position: relative;
+}
+
+/* Circle Diagram Section */
+.homologation-circle {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.homologation-circle img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 50%;
+}
+
+/* Horizontal Steps Section */
+.homologation-steps {
+  flex: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  padding: 20px 0;
+}
+/* Location Icons */
+.location-icons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+}
+
+.location-icon {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: white;
+  border-radius: 50%;
+  border: 2px solid white;
+  z-index: 1;
+}
+
+.location-icon .icon-stick {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  width: 2px;
+  height: 18px;
+  background-color: white;
+  transform: translateX(-50%);
+}
+
+/* Step-specific Positions */
+.location-step-1 {
+  top: 165px;
+  left: 14%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+/* .location-step-2 {
+  top: 80px;
+  left: 30%;
+} */
+
+.location-step-3 {
+  top: 74px;
+  left: 55%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* .location-step-4 {
+  top: 80px;
+  left: 75%;
+} */
+
+.location-step-5 {
+  top: 118px;
+  left: 88%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Reverse the icon and stick for specific steps */
+.location-step-2 .icon-stick,
+.location-step-4 .icon-stick {
+  top: -20px;
+  
+  
+}
+
+.location-step-2 {
+  top: 180px;
+  left: 38%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.location-step-4 {
+  top: 122px;
+  left: 68%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+/* Common Step Styles */
+.step {
+  max-width: 100%;
+  text-align: center;
+  position: relative;
+  padding: 10px 0;
+}
+
+.step h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: white;
+  text-align: left;
+  padding-left: 5%;
+}
+
+.step p {
+  font-size: 13px;
+  line-height: 1.5;
+  width: 90%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+/* SVG Curved Line */
+.curved-line {
+  position: absolute;
+  top: 0;
+  left: -6.5%;
+  width: 100%;
+  height: 200px;
+  z-index: 0;
+  stroke-dasharray: 9, 9;
+}
+
+/* Specific Step Classes */
+.what-is-homologation {
+  top: -70px;
+  left: -10px;
+  text-align: ;
+}
+
+.pre-homologation-process {
+  top: 150px; /* Adjusted position for Pre-Homologation */
+  left: -130px;
+}
+
+.documentation {
+  top: -120px; /* Adjusted position for Documentation */
+  left: -170px;
+}
+
+.testing-validation {
+  top: 90px;
+  left: -150px;
+}
+
+.certification {
+  top: -100px;
+  left: -30px;
+}
+
+/* Specific Step Title Image Positioning */
+
+/* Step 1: What is Homologation? */
+.what-is-homologation .step-title1 img {
+  position: absolute;
+  left: -30px; /* Adjust horizontal position */
+  top: 20px; /* Adjust vertical position */
+  width: 40px; /* Adjust size */
+  height: auto;
+}
+
+/* Step 2: Pre-Homologation Process */
+.pre-homologation-process .step-title2 img {
+  position: absolute;
+  left: -40px; /* Adjust horizontal position */
+  top: 25px; /* Adjust vertical position */
+  width: 45px; /* Adjust size */
+  height: auto;
+}
+
+/* Step 3: Documentation */
+.documentation .step-title3 img {
+  position: absolute;
+  left: -40px; /* Adjust horizontal position */
+  top: 30px; /* Adjust vertical position */
+  width: 35px; /* Adjust size */
+  height: auto;
+}
+
+/* Step 4: Testing and Validation */
+.testing-validation .step-title4 img {
+  position: absolute;
+  left: -60px; /* Adjust horizontal position */
+  top: 20px; /* Adjust vertical position */
+  width: 50px; /* Adjust size */
+  height: auto;
+}
+
+/* Step 5: Certification */
+.certification .step-title img {
+  position: absolute;
+  left: -45px; /* Adjust horizontal position */
+  top: 20px; /* Adjust vertical position */
+  width: 40px; /* Adjust size */
+  height: auto;
+}
+/* Hide images by default for desktop */
+.step-image {
+  display: none;
+  width: 100%;
+  height: auto;
+  margin-top: 15px; /* Adjust margin if needed */
+}
+/* Responsive Styles */
+@media screen and (max-width: 768px) {
+  .homologation-content {
+    flex-direction: column;
+    align-items: center;
+  }
+  .homologation-title {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .homologation-steps {
+    flex-direction: column;
+    gap: 20px;
+    padding: 0;
+  }
+
+  .curved-line {
+    display: none; /* Hide the curved line */
+  }
+
+  .step {
+    max-width: 100%;
+  }
+  .step-image {
+    display: block;
+  }
+  /* Hide location-related content */
+  .location-icons,
+  .location-icon,
+  .location-icon .icon-stick {
+    display: none;
+  }
+  .homologation-title h1 {
+    font-size: 32px;
+    font-weight: bold;
+    text-align: left;
+    padding-left: 30px;
+  }
+  
+/* Specific Step Classes */
+.what-is-homologation {
+  top: -10px;
+  left: 20px;
+  
+}
+
+.pre-homologation-process {
+  top: -10px; /* Adjusted position for Pre-Homologation */
+  left: 20px;
+}
+
+.documentation {
+  top: -10px; /* Adjusted position for Documentation */
+  left: 20px;
+}
+
+.testing-validation {
+  top: -10px;
+  left: 20px;
+}
+
+.certification {
+  top: -10px;
+  left: 20px;
+}
+
+}

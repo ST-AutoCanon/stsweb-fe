@@ -45,7 +45,7 @@ import PlantLayoutPlanningServices from "./components/PlantLayoutAndPlanningServ
 import Reachusfirst from "./components/Reachusfirst/Reachusfirst";
 import Broucher from "./components/Broucher/Broucher";
 import Gallery from "./components/Gallery/Gallery";
-
+import HomologationFirst from "./components/HomologationFirst/HomologationFirst";
 
 
 import CircularDesignNew from "./components/CircularDesignNew/CircularDesignNew";
@@ -93,7 +93,7 @@ function App() {
           <Route path="/Gallery" element={<Gallery/>} />
           <Route path="/ReachUs" element={<ReachUs/>} />
           <Route path="/Reachusfirst" element={<Reachusfirst/>} />
-          
+          <Route path="/HomologationFirst" element={<HomologationFirst/>} />
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}
@@ -107,7 +107,7 @@ function App() {
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
         {/* Footer */}
-    
+        {/* <HomologationFirst /> */}
         <Footer />
         
       </div>

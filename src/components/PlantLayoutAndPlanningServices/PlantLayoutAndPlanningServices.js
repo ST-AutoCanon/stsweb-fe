@@ -7,7 +7,7 @@ const PlantLayoutAndPlanningServices = () => {
       {/* Right Section - Image */}
       <div className="plant-layout-planning-image">
         <img
-          src="./images/CAEAnalysis.png"
+          src="./images/plantlayout.png"
           alt="Plant Layout Planning Services"
           className="services-image"
         />

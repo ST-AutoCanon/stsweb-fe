@@ -170,15 +170,24 @@
     height: 400px;
   }
 
-  .central-wrapper-engg {
-    width: 140px;
-    height: 140px;
+  .central-image-engg img {
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
   }
 
-  .central-image-engg {
-    width: 120px;
-    height: 120px;
-  }
+/* Central wrapper with dotted border */
+.central-wrapper-engg {
+  position: absolute;
+  width: 100px; /* Slightly larger than the central image */
+  height: 100px;
+  border-radius: 50%; /* Makes the dotted border circular */
+  border: 3px dotted #ddd; /* Creates the dotted border */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
   .circular-item-engg {
     transform-origin: center;
@@ -202,39 +211,39 @@
 
   /* Line positions for smaller screens */
   .line-1-engg {
-    width: 35% !important;
-    transform: rotate(-50deg);
-    top: 210% !important;
-    left: 6% !important;
+    width: 30% !important;
+    transform: rotate(-55deg);
+    top: 200% !important;
+    left: 20% !important;
   }
   .line-2-engg {
     top: 40%;
-    left: -19% !important;
-    width: 19% !important;
+    left: -6% !important;
+    width: 5% !important;
     transform: rotate(0deg);
   }
   .line-3-engg {
-    top: 5%;
+    top: 4%;
     left: 25%;
-    width: 34% !important;
+    width: 20% !important;
     transform: rotate(240deg);
   }
   .line-4-engg {
     top: 43%;
-    left: 130%;
-    width: 30% !important;
+    left: 115%;
+    width: 15% !important;
     transform: rotate(180deg);
   }
   .line-5-engg {
-    top: 225%;
-    left: 90%;
-    width: 37% !important;
-    transform: rotate(230deg);
+    top: 220%;
+    left: 95%;
+    width: 35% !important;
+    transform: rotate(240deg);
   }
   .line-6-engg {
-    top: -13%;
-    left: 65%;
-    width: 33% !important;
-    transform: rotate(315deg);
+    top: -5%;
+    left: 85%;
+    width: 15% !important;
+    transform: rotate(308deg);
   }
 }

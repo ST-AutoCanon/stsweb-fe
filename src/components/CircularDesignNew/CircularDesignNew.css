@@ -175,11 +175,35 @@
     width: 400px; /* Adjust container size for smaller screens */
     height: 400px;
   }
-
-  .central-wrapper-new {
-    width: 140px;
-    height: 140px;
+  .central-image-new img {
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
   }
+
+/* Central wrapper with dotted border */
+.central-wrapper-new {
+  position: absolute;
+  width: 80px; /* Slightly larger than the central image */
+  height: 80px;
+  border-radius: 50%; /* Makes the dotted border circular */
+  border: 3px dotted #ddd; /* Creates the dotted border */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+  .central-image-new
+  {
+    position: absolute;
+    width: 1%; /* Size of the central image */
+    height: 1%;
+    border-radius: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
 
   .central-image-new {
     width: 120px;
@@ -201,47 +225,51 @@
 
   /* Adjust the dotted lines connecting buttons */
   .line-new {
+  
     width: 60px !important;
     height: 0.1px !important;
     border-top: 1px dashed #000 !important;
   }
 
-  /* Line positions for smaller screens */
+/*Line positions for smaller screens */
   .line-1-new {
-    width: 35% !important;
+    width: 25% !important;
     transform: rotate(-50deg);
-    top: 210% !important;
-    left: 6% !important;
+    top: 170% !important;
+    left: 10% !important;
   }
   .line-2-new {
     top: 40%;
-    left: -19% !important;
-    width: 19% !important;
+    left: -6% !important;
+    width: 7% !important;
     transform: rotate(0deg);
   }
   .line-3-new {
-    top: 5%;
+    top: -5%;
     left: 25%;
-    width: 38% !important;
+    width: 25% !important;
     transform: rotate(240deg);
   }
   .line-4-new {
     top: 43%;
-    left: 120%;
-    width: 23% !important;
+    left: 110%;
+    width: 12% !important;
     transform: rotate(180deg);
   }
   .line-5-new {
-    top: 235%;
-    left: 100%;
-    width: 50% !important;
+    top: 175%;
+    left: 110%;
+    width: 34% !important;
     transform: rotate(230deg);
   }
   .line-6-new {
-    top: -10%;
-    left: 65%;
-    width: 65% !important;
-    transform: rotate(315deg);
+    top: -5%;
+    left: 85%;
+    width: 45% !important;
+    transform: rotate(308deg);
   }
-
+.circular-button-new
+{
+  gap:1%;
+}
 }

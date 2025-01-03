@@ -7,7 +7,7 @@ const ThreeDModeling = () => {
       {/* Left Section - Image */}
       <div className="three-d-modeling-image">
         <img
-          src="./images/CAEAnalysis.png"
+          src="./images/3Dmodeling.png"
           alt="3D Modeling Services"
           className="services-image"
         />

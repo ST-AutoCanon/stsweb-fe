@@ -7,7 +7,7 @@ const WebsiteDesign = () => {
       {/* Left Section - Image */}
       <div className="website-design-image">
         <img
-          src="./images/CAEAnalysis.png"
+          src="./images/websitedesign.png"
           alt="Website Design Services"
           className="services-image"
         />

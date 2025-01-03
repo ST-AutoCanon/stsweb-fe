@@ -1,12 +1,13 @@
 /* Main container */
 .about-container {
     display: flex;
-    height: 80%;
+    height: -60%!important;
     width: 100%;
     overflow: hidden;
     position: relative;
     box-sizing: border-box; /* Ensure padding and borders don't overflow */
     min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
+    margin-top: 10px;
   }
   
   /* Image section */
