@@ -21,24 +21,24 @@ const Footer = () => {
         {/* Social Icons Section */}
         <div className="social-icons">
           <a href="mailto:info@sukalpatech.com" className="social-icon">
-            <FaEnvelope size={11} />
+            <FaEnvelope size={21} />
           </a>
           <a href="tel:9742134584" className="social-icon">
-            <FaPhone size={11} />
+            <FaPhone size={21} />
           </a>
           <a href="https://www.linkedin.com/company/sukalpa-tech/" target="_blank" rel="noopener noreferrer" className="social-icon">
-            <FaLinkedin size={11} />
+            <FaLinkedin size={21} />
           </a>
         </div>
         <div className="social-icons2">
           <a href="mailto:info@sukalpatech.com" className="social-icon2">
-            <FaEnvelope size={20} />
+            <FaEnvelope size={21} />
           </a>
           <a href="tel:9742134584" className="social-icon2">
-            <FaPhone size={20} />
+            <FaPhone size={21} />
           </a>
           <a href="https://www.linkedin.com/company/sukalpa-tech/" target="_blank" rel="noopener noreferrer" className="social-icon2">
-            <FaLinkedin size={22} />
+            <FaLinkedin size={23} />
           </a>
         </div>
 
@@ -54,7 +54,8 @@ const Footer = () => {
         {/* Feedback Section */}
         <div className="footer-feedback">
           
-          <p>We Focus On Making The Best In All Sectors</p>
+          <p>We Focus On Making </p>
+          <p>The Best In All Sectors</p>
           <button className="feedback-button" onClick={handleFeedbackClick}>
             send your queries
           </button>

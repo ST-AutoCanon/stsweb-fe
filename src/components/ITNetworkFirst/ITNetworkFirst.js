@@ -1,6 +1,7 @@
 import React from "react";
 import "./ITNetworkFirst.css"; // You can rename this file later if necessary
 import CircularDesign from "../CircularDesignNew/CircularDesignNew";
+import ITfirstpage from "../../assets/images/ITFirstpage.png";
 
 
 // Details of Cards
@@ -23,7 +24,9 @@ const ITNetworkFirst = () => {
       {/* Container for About */}
       <div className="about-container">
         <div className="image-section">
-          <img src="./images/ITfirstpage.png" alt="About Us" className="about-image" />
+          {/* <img src="./images/ITfirstpage.png" alt="About Us" className="about-image" /> */}
+          <img src={ITfirstpage} alt="About Us" className="about-image" />
+
         </div>
         <div className="text-section">
           <h1>ITNetworkingServices</h1>
@@ -31,9 +34,9 @@ const ITNetworkFirst = () => {
         </div>
       
       </div>
-      
+      <div className="circular1">
       <CircularDesign />
-    
+      </div>
       </section>
      
       </> 

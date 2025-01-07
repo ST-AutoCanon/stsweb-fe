@@ -3,8 +3,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 80px; /* Reduce padding to minimize gaps */
-    background-color: #f5f5f5;
+    padding: 50px;
+    background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     gap: 20px;
@@ -15,7 +15,8 @@
     position: relative;
     width: 35%;
     order: 1; /* Place image on the left */
-    margin: 0; /* Remove extra margin around the image */
+
+    margin-top: -100px;
 }
 
 .services-image {

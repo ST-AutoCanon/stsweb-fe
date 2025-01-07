@@ -92,24 +92,99 @@
 // };
 
 // export default Services;
-import React from "react";
+// import React from "react";
+// import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
+// import "./Services.css";
+
+// const Services = () => {
+//   const navigate = useNavigate(); // Initialize useNavigate
+
+//   // Reordered services array
+//   const services = [
+//     { id: 4, image: "./images/serviceFour.png", path: "/service-four" },  // Service Four comes first
+//     { id: 1, image: "./images/Itservice1.png", path: "/ITNetworkFirst" },  // IT Networking service comes second
+//     { id: 2, image: "./images/Engineeringservice1.png", path: "/EngineeringServiceFirst" },  // Engineering service third
+//     { id: 3, image: "./images/otherservice1.png", path: "/OtherServiceFirst" },  // Other service comes last
+//   ];
+
+//   const handleLearnMore = (service) => {
+//     navigate(service.path);  // Navigate directly to the service page based on path
+//   };
+
+//   return (
+//     <section className="service123">
+//       <div className="services-container">
+//         <h2 className="services-header">Our Services</h2>
+//         <div className="services-grid">
+//           {services.map((service) => (
+//             <div key={service.id} className="service-card">
+//               <img
+//                 className="service-image"
+//                 src={service.image}
+//                 alt={service.title}
+//               />
+//               <div className="service-content">
+//                 <span className="service-subtitle">{service.subtitle}</span>
+//                 <h3 className="service-title">{service.title}</h3>
+//                 <p className="service-description">{service.description}</p>
+//                 {/* Divider */}
+//                 <div className="service-divider"></div>
+//                 {/* Button */}
+//                 <button
+//                   className="service-button"
+//                   onClick={() => handleLearnMore(service)} // Trigger navigation on button click
+//                 >
+//                   Learn More
+//                 </button>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Services;
+ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
 import "./Services.css";
+import serviceFour from "../../assets/images/serviceFour.png";
+import itService from "../../assets/images/ITservice1.png";
+import engineeringService from "../../assets/images/Engineeringservice1.png";
+import otherService from "../../assets/images/Otherservice1.png";
 
 const Services = () => {
   const navigate = useNavigate(); // Initialize useNavigate
 
   // Reordered services array
   const services = [
-    { id: 4, image: "./images/serviceFour.png", path: "/service-four" },  // Service Four comes first
-    { id: 1, image: "./images/Itservice1.png", path: "/ITNetworkFirst" },  // IT Networking service comes second
-    { id: 2, image: "./images/Engineeringservice1.png", path: "/EngineeringServiceFirst" },  // Engineering service third
-    { id: 3, image: "./images/otherservice1.png", path: "/OtherServiceFirst" },  // Other service comes last
-  ];
+    { id: 4, image: serviceFour, path: "/service-four" },
+    { id: 1, image: itService, path: "/ITNetworkFirst" },
+    { id: 2, image: engineeringService, path: "/EngineeringServiceFirst" },
+    { id: 3, image: otherService, path: "/OtherServiceFirst" },
+];;
+
 
   const handleLearnMore = (service) => {
     navigate(service.path);  // Navigate directly to the service page based on path
   };
+
+  // State to manage the moving images
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [
+    "./images/car.png", 
+    "./images/auto.png", 
+    "./images/bus.png"
+  ];  // Add more images as needed
+
+  // Change the image every 6 seconds after the current image moves out of view
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    },7500); // Adjust interval to match the image movement duration (6 seconds)
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section className="service123">
@@ -117,12 +192,34 @@ const Services = () => {
         <h2 className="services-header">Our Services</h2>
         <div className="services-grid">
           {services.map((service) => (
-            <div key={service.id} className="service-card">
-              <img
-                className="service-image"
-                src={service.image}
-                alt={service.title}
-              />
+            <div key={service.id} className={`service-card ${service.id === 4 ? 'sticky-card' : ''}`}>
+              <div className="service-image-container">
+                {service.id === 4 ? (
+                  // Sticky image in the first card
+                  <img
+                    className="service-image sticky-image"
+                    src={service.image}
+                    alt="Sticky Image"
+                  />
+                ) : (
+                  <img
+                    className="service-image"
+                    src={service.image}
+                    alt={service.title}
+                  />
+                )}
+
+                {service.id === 4 && (
+                  // Overlay moving images (car, auto, bus)
+                  <div className="moving-images">
+                    <img
+                      className="moving-image"
+                      src={images[currentImageIndex]}
+                      alt="Moving Image"
+                    />
+                  </div>
+                )}
+              </div>
               <div className="service-content">
                 <span className="service-subtitle">{service.subtitle}</span>
                 <h3 className="service-title">{service.title}</h3>

@@ -2,7 +2,7 @@
 .hero-image {
   position: relative;
   width: 100%;
-  height: 100vh; /* Full screen height */
+  height: 80vh; /* Full screen height */
   background-color: #f0f0f0; /* Fallback color */
   overflow: hidden;
   display: flex;
@@ -36,22 +36,24 @@
   font-size: 45px;
   font-weight: bold;
   color: white; /* Dark text */
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   text-align: left;
+  margin-top: -10px;
 }
 
 .hero-card-description {
   font-size: 18px;
   color: white; /* Neutral text color */
   margin-bottom: 90px;
+  margin-left: -20px;
 }
 
 
 .learn-moree-btn {
   background-color: #77DD0D; 
   color: white;
-  padding: 10px 100px;
-  top:-20%;
+  padding: 10px 110px;
+  top:-10%;
   
   border-radius: 5px;
   font-weight: bold;
@@ -67,7 +69,7 @@
 /* Scrolling Buttons Styling */
 .scrolling-buttons {
   position: absolute;
-  bottom:100px;
+  margin-bottom: -60px;
   display: flex;
   gap: 15px;
 
@@ -121,6 +123,13 @@
   background-color: #007e01 !important;
 }
 
+.HomeServices{
+  margin-top: -60px;
+}
+.HomeServices3{
+  margin-bottom: -80px;
+  margin-top: -90px;
+}
 
 /* Mobile View of hero card */
 @media screen and (max-width: 1200px) {
@@ -181,6 +190,7 @@
     font-size: 18px;
     margin-bottom: 15px;
   }
+
 /*mobile view of scrolling section*/
 
   .learn-moree-btn {

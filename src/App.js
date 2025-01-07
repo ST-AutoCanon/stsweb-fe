@@ -51,9 +51,11 @@ import HomologationFirst from "./components/HomologationFirst/HomologationFirst"
 import CircularDesignNew from "./components/CircularDesignNew/CircularDesignNew";
 import "./App.css";
 import Broucherfirst from "./components/Broucherfirst/Broucherfirst";
+import Feedbackform from "./components/Feedbackform/Feedbackform";
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
   return (
+    
     <Router>
       <div className="App">
         {/* Navbar */}
@@ -94,6 +96,8 @@ function App() {
           <Route path="/ReachUs" element={<ReachUs/>} />
           <Route path="/Reachusfirst" element={<Reachusfirst/>} />
           <Route path="/HomologationFirst" element={<HomologationFirst/>} />
+          <Route path="/Feedbackform" element={<Feedbackform/>} />
+
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}

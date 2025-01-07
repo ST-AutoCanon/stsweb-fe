@@ -75,8 +75,7 @@ const MainAbout = () => {
       </div>
 
       {/* Pass cardData to CardLayout */}
-    <CardLayout />
-    <MajorServices />
+    
     <MajorProjects />
       
     </>

@@ -8,21 +8,21 @@ const Broucher = () => {
       url: "/Broucherpdfs/Artboard 1 copy 2.pdf",
       image: "./images/Broucher3.jpg",
       topDescription: "Learn about our company\nvision and mission.",
-      bottomDescription: "Detailed insights into\nour company values.",
+      bottomDescription: "Detailed insights\n into our company\n values.",
     },
     {
       name: "PRODUCT CATLOG",
       url: "/Broucherpdfs/SK-General Profile.pdf",
       image: "./images/Broucher1.jpg",
       topDescription: "Explore our wide range\nof products.",
-      bottomDescription: "Get detailed specifications\nand features.",
+      bottomDescription: "Get detailed \nspecifications\nand features.",
     },
     {
-      name: "PRICING DETAILS",
+      name: "OUR CUSTOMERS",
       url: "/Broucherpdfs/STS_Contents.pdf",
       image: "./images/Broucher2.jpg",
-      topDescription: "Find our competitive\npricing options.",
-      bottomDescription: "Transparent and flexible\npricing plans.",
+      topDescription: "we serve principles driving \n toward excellence.",
+      bottomDescription: "Innovative solutions,\n reliability, and customer\n satisfaction.",
     },
   ];
 
@@ -67,6 +67,7 @@ const Broucher = () => {
   download={brochure.name + ".pdf"}
 >
   <i className="fas fa-download"></i>
+
 </a>
           
           </div>

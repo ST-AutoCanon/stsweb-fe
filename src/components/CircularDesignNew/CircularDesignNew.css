@@ -15,29 +15,30 @@
   position: absolute;
   width: 180px; /* Slightly larger than the central image */
   height: 180px;
-  border-radius: 50%; /* Makes the dotted border circular */
+  border-radius: 50%; /* Makes the dotted border circular */ 
   border: 3px dotted #ddd; /* Creates the dotted border */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+
 /* Central image inside the circle */
 .central-image-new {
   position: absolute;
-  width: 150px; /* Size of the central image */
+  width: 150px;
   height: 150px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
 .central-image-new img {
-  width: 100%;
+   width: 100%;
   height: 100%;
   border-radius: 50%;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+
 }
 
 /* Individual circular item */
@@ -152,11 +153,13 @@
 
 /* Page section for dynamic content */
 .page-section-new {
-  padding: 50px 20px;
+  padding: 100px 40px; 
   margin-top: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #f9f9f9;
+  margin-bottom: -50px;
+  margin-top: -80px;
 }
 
 .page-section-new h2 {

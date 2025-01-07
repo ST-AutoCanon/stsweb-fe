@@ -5,8 +5,11 @@
   width: 1200px; 
   margin: 0 auto; 
   overflow: hidden; 
-}
 
+}
+/* .homologation123{
+  padding: 0;
+} */
 /* homoloation cards*/
 
 .homologation-cards {
@@ -145,7 +148,7 @@
   font-size: 15px;
   margin: 20px;
   flex-grow: 1;
-  
+    
 
 }
 

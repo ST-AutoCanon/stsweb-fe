@@ -2,11 +2,12 @@
 /* Footer Styling */
 .footer {
   background-color: #0f6679; /* Teal background */
-  color: #fff;
+  color: #6bb9c7;
   padding: 20px 10px;
   font-family: Arial, sans-serif;
   text-align: center;
   margin-top: 5px;
+  
 }
 
 .footer-container {
@@ -14,7 +15,7 @@
   justify-content: space-between;
   align-items: center;
   max-width: 1200px;
-  height:25px;
+  height:45px;
   margin: 0 auto;
   flex-wrap: wrap;
   
@@ -28,7 +29,7 @@
 }
 
 .footer-logo img {
-  max-width: 40px;  /* Make the QR code smaller */
+  max-width: 200px;  /* Make the QR code smaller */
   height: auto;
   margin-bottom: 5px;
 }
@@ -36,10 +37,10 @@
 /* Social Icons Section */
 .social-icons {
   display: flex;
-  gap: 15px;
+  gap: 25px;
   justify-content: center;
-  margin-top: 70px;
-  margin-left:-300px;
+  margin-top: -20px;
+  margin-left:-150px;
   
 }
 
@@ -49,9 +50,9 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: 20px;  /* Circle width */
-  height: 20px; /* Circle height */
-  border: 1px solid #fff;  /* Thin white border */
+  width: 35px;  /* Circle width */
+  height: 35px; /* Circle height */
+  border: 2px solid #fff;  /* Thin white border */
   border-radius: 50%;  /* Makes the border circular */
   font-size: 12px;  /* Adjusted icon size */
   transition: background-color 0.3s ease, border-color 0.3s ease;
@@ -75,7 +76,7 @@
   margin-bottom: 40px;
   text-decoration: none;
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 1.1rem;
   transition: color 0.3s ease;
 }
 
@@ -94,7 +95,7 @@
 
 .footer-feedback p {
   margin: 5px 0;
-  font-size: 0.8rem;
+  font-size: 1.0rem;
 }
 
 .feedback-button {
@@ -125,87 +126,120 @@
 .social-icons2{
   display: none;
 }
-/* General Mobile View Adjustments */
+/* Mobile View */
 @media (max-width: 768px) {
-  .footer-container {
-    flex-direction: column;
-    align-items: center;
+  .footer {
+    padding: 10px;
     text-align: center;
-    height: 190px;
+    font-size: 0.9rem;
   }
 
-  /* Remove the QR Code Section */
+  .footer-container {
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center;
+    height: 180px;
+    
+    margin: 0 auto;
+  }
+
+  /* QR Code Section */
   .footer-logo {
+    margin-top: 0;
+    text-align: center;
     display: none;
   }
 
-  .footer-links{
-    display: none;
+  .footer-logo img {
+    max-width: 150px;  /* Adjust QR code size for mobile */
+    height: auto;
+    margin-bottom: 10px;
   }
-  .social-icons2 {
+
+  /* Social Icons Section */
+  .social-icons {
     display: flex;
     gap: 15px;
+    margin-left :50px;
     justify-content: center;
-    margin-left:0px;
-    margin-top:80px;
-    
-  }
-  
-  .social-icon2 {
-    color: #fff;
-    text-decoration: none;
-    display: inline-flex;
-    justify-content: center;
+    margin-top: 130px;
     align-items: center;
-    width: 40px;  /* Circle width */
-    height: 40px; /* Circle height */
-    border: 1.5px solid #fff;  /* Thin white border */
-    border-radius: 50%;  /* Makes the border circular */
-    font-size: 12px;  /* Adjusted icon size */
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    margin-bottom: -50px;
   }
-  
-  .social-icon2:hover {
-    color: #28a745;  /* Green color on hover */
-    background-color: #fff; /* White background on hover */
-    border-color: #28a745;  /* Green border on hover */
+
+  .social-icon {
+    width: 60px;  /* Slightly bigger icons for easier tap */
+    height: 60px;
+    font-size: 14px;
+    border: 3px solid #fff;  /* Thin white border */
+
   }
+
+  /* Links Section */
+  .footer-links {
+    display: none;
+    flex-direction: column;  /* Stack links vertically */
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
+  }
+
+  .footer-links a {
+    font-size: 1rem;
+    margin-bottom: 60px;
+  }
+
+  /* Feedback Section */
   .footer-feedback {
-    text-align: left;
-    max-width: 300px;
-    color: #fff;
-    font-size: 0.9rem;
-     /* This places the feedback section before the links */
-  }
-  
-  .footer-feedback p {
-    margin-left:5px;
-    margin-top:-180px;
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin-bottom: 90px;
-  }
-  
-  .feedback-button {
-    padding: 15px 100px;
-    font-size: 0.7rem;
-    color: black;
-    background-color: #28a745; /* Green button */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-   
-  }
-  
-  .feedback-button:hover {
-    background-color: #218838; /* Darker green on hover */
-  }
-  .footer-bottom {
+    text-align: center;
+    max-width: 90%;
+    margin-bottom: 60px;
+    font-size: 2.5rem;
     margin-top: 40px;
-    font-size: 0.8rem;
-    margin-right: -40px;
-    color: #ccc;
+
   }
+
+  .footer-feedback p {
+    margin: 5px 0;
+    margin-left:-300px; 
+    font-size: 1.5rem;
+  font-weight: 800; 
   
+}
+
+  .feedback-button {
+    padding: 15px 95px;
+    font-size: 0.9rem;
+    background-color: #28a745;
+    color: white;
+    margin-top: 120px;
+    margin-left:-290px;
+
+  }
+
+  .footer-bottom {
+    margin-top: 130px;
+    font-size: 0.7rem;
+    color: #ccc;
+    text-align: center;
+    margin-bottom: 70px;
+  }
+  .footer-bottom p{
+    
+    margin-right: -80px;
+  }
+
+  .footer-slogan {
+    display: block; /* Show slogan on mobile */
+    font-size: 0.9rem;
+    color: #6bb9c7;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .social-icons2 {
+    display: block; /* Display additional social icons if any */
+    margin-top: 10px;
+    display: none;
+    justify-content: none;
+  }
 }

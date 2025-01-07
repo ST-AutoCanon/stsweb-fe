@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Home.css';
 import About from "../About/About";
 import Services from '../Services/Services';
-import HomologationPage from '../Homologation/Homologation';
+import Homologation from '../Homologation/Homologation';
 import HomologationFirst from '../HomologationFirst/HomologationFirst';
 // Custom Hook to Detect Screen Size
 const useIsMobile = () => {
@@ -31,9 +31,9 @@ const Home = () => {
   ];
 
   const mobileImages = [
-    './images/m4.png',
-    './images/m2.png',
-    './images/m5.png',
+    './images/mobile_banner_1.png',
+    './images/mobile_banner_2.png',
+    './images/mobile_banner_3.png',
     './images/m7.png',
   ];
 
@@ -67,7 +67,7 @@ const Home = () => {
       >
         {/* Hero Card */}
         <div className="hero-card">
-          <h1 className="hero-card-title1">Hi welcome to</h1>
+          <h1 className="hero-card-title1">welcome to</h1>
           <h2 className="hero-card-title">Sukalpa Tech Solutions</h2>
           <p className="hero-card-description">
             Let us join to support you deserve
@@ -87,9 +87,18 @@ const Home = () => {
         </div>
       </div>
       
+      
+      <div className='HomeServices'>
       <Services/>
+      </div>
+      <div className='HomeServices1'>
       <HomologationFirst/>
+      </div>
+      <div className='HomeServices3'>
       <About/>
+      </div>
+     
+      
       </section>
   );
 };

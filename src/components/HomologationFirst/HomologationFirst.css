@@ -38,9 +38,10 @@
 }
 
 .homologation-circle img {
-  max-width: 100%;
-  height: auto;
+  width: 120%;
+  height: 130%;
   border-radius: 50%;
+  margin-top: -10px;
 }
 
 /* Horizontal Steps Section */
@@ -168,29 +169,29 @@
 
 /* Specific Step Classes */
 .what-is-homologation {
-  top: -70px;
-  left: -10px;
-  text-align: ;
+  top: -50px;
+  left: 50px;
+  text-align: start;
 }
 
 .pre-homologation-process {
-  top: 150px; /* Adjusted position for Pre-Homologation */
-  left: -130px;
+  top: 170px; /* Adjusted position for Pre-Homologation */
+  left: 60px;
 }
 
 .documentation {
-  top: -120px; /* Adjusted position for Documentation */
-  left: -170px;
+  top: -130px; /* Adjusted position for Documentation */
+  left: 20px;
 }
 
 .testing-validation {
-  top: 90px;
-  left: -150px;
+  top: 110px;
+  left: 10px;
 }
 
 .certification {
-  top: -100px;
-  left: -30px;
+  top: -110px;
+  left: 20px;
 }
 
 /* Specific Step Title Image Positioning */
@@ -198,7 +199,7 @@
 /* Step 1: What is Homologation? */
 .what-is-homologation .step-title1 img {
   position: absolute;
-  left: -30px; /* Adjust horizontal position */
+  left: -40px; /* Adjust horizontal position */
   top: 20px; /* Adjust vertical position */
   width: 40px; /* Adjust size */
   height: auto;
@@ -207,7 +208,7 @@
 /* Step 2: Pre-Homologation Process */
 .pre-homologation-process .step-title2 img {
   position: absolute;
-  left: -40px; /* Adjust horizontal position */
+  left: -50px; /* Adjust horizontal position */
   top: 25px; /* Adjust vertical position */
   width: 45px; /* Adjust size */
   height: auto;
@@ -271,6 +272,11 @@
   }
   .step-image {
     display: block;
+    width: 20px;
+    height: 70px;
+    position: relative;
+    right: -60px;
+    top:20px;
   }
   /* Hide location-related content */
   .location-icons,

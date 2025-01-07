@@ -5,12 +5,16 @@ const Feedbackform = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [rating, setRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+
+  const handleRating = (value) => {
+    setRating(value);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Feedback submitted:", { name, email, message });
+    console.log("Feedback submitted:", { name, email, message, rating });
     setSubmitted(true);
   };
 
@@ -19,9 +23,9 @@ const Feedbackform = () => {
     setName("");
     setEmail("");
     setMessage("");
-    // Hide the form when the close button is clicked
-    const formOverlay = document.querySelector('.feedback-form-overlay');
-    formOverlay.style.display = 'none';
+    setRating(0);
+    const formOverlay = document.querySelector(".feedback-form-overlay");
+    formOverlay.style.display = "none";
   };
 
   return (
@@ -39,7 +43,22 @@ const Feedbackform = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="feedback-form">
-            <h2>Provide Feedback</h2>
+            <h2>Feedback</h2>
+            <div className="rating">
+              <label>Rate Us:</label>
+              <div className="stars">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    className={`star ${star <= rating ? "filled" : ""}`}
+                    onClick={() => handleRating(star)}
+                  >
+                    &#9733;
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <label htmlFor="name">Name:</label>
             <input
               type="text"

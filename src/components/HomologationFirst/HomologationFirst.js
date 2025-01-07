@@ -91,7 +91,7 @@
 //   );
 // };
 
-// export default HomologationFirst;
+// export default HomologationFirst;import React from 'react';
 import React from 'react';
 import './HomologationFirst.css';
 
@@ -113,23 +113,21 @@ const HomologationFirst = () => {
           <svg
             className="curved-line"
             xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 150 1390 400" 
+            viewBox="0 150 1390 400"
             preserveAspectRatio="none"
           >
-    <defs>
-  <marker
-    id="arrowhead"
-    markerWidth="10"
-    markerHeight="10"
-    refX="-72"
-    refY="29"
-    orient="auto"
-  >
-   
-    <polygon points="1 2, 6 8, 10 0" fill="white" />
-  </marker>
-</defs>
-
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="10"
+                refX="-72"
+                refY="29"
+                orient="auto"
+              >
+                <polygon points="1 2, 6 8, 10 0" fill="white" />
+              </marker>
+            </defs>
 
             <path
               d="M5,500 C800,700 600,200 1200,400 C1500,600 1400,150 1390,180"
@@ -137,7 +135,7 @@ const HomologationFirst = () => {
               strokeWidth="3"
               strokeDasharray="8,8"
               fill="none"
-              marker-end="url(#arrowhead)" 
+              marker-end="url(#arrowhead)"
             />
           </svg>
 
@@ -166,11 +164,8 @@ const HomologationFirst = () => {
               <img src="/images/what_homo.png" alt="Step 1 Icon" />
               <h2>What is Homologation?</h2>
             </div>
-            <p>
-              Homologation is the process of getting Government Approval by means of a Certificate which allows the product to enter the targeted market. The process starts with the initial assessment, followed by the list of tests according to standards and directives until the compilation of validated technical reports that result in approval.
-            </p>
-            <img src="/images/arrow.png" className="step-image" alt="What is Homologation?" />
-
+           <p>Homologation is the process of obtaining government approval for a product to enter a market. It involves assessment, testing based on standards, and validation of technical reports for approval.</p>
+            <img src="/images/flow.png" className="step-image" alt="What is Homologation?" />
           </div>
 
           <div className="step pre-homologation-process">
@@ -179,8 +174,9 @@ const HomologationFirst = () => {
               <h2>Pre-Homologation Process</h2>
             </div>
             <p>
-              Pre-Homologation involves the performance of all or critical tests as per the applicable regulations, similar to actual tests that are performed by the testing agency during the approval process.
+              Pre-homologation involves initial tests like performance checks and compliance verification to address potential issues before formal certification.
             </p>
+            <img src="/images/flow.png" className="step-image" alt="What is Homologation?" />
           </div>
 
           <div className="step documentation">
@@ -189,8 +185,9 @@ const HomologationFirst = () => {
               <h2>Documentation</h2>
             </div>
             <p>
-              Homologation involves the process of gathering Government approvals for a series of certificates and allows the product to enter the targeted market.
+              Detailed records, including technical data and compliance reports, are prepared to support the certification process.
             </p>
+            <img src="/images/flow.png" className="step-image" alt="What is Homologation?" />
           </div>
 
           <div className="step testing-validation">
@@ -199,8 +196,9 @@ const HomologationFirst = () => {
               <h2>Testing and Validation</h2>
             </div>
             <p>
-              Testing ensures that the product meets all regulatory requirements. The process involves rigorous assessments.
+              Comprehensive testing ensures safety and reliability. Validation confirms that the product meets design and regulatory requirements.
             </p>
+            <img src="/images/flow.png" className="step-image" alt="What is Homologation?" />
           </div>
 
           <div className="step certification">
@@ -209,7 +207,7 @@ const HomologationFirst = () => {
               <h2>Certification</h2>
             </div>
             <p>
-              Certification is the final step where the product is officially approved and certified to enter the market.
+              Certification is the final step, where an official approval is granted, confirming compliance with all applicable standards and regulations.
             </p>
           </div>
         </div>

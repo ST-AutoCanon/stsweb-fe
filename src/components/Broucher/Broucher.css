@@ -1,4 +1,6 @@
 /* General Styles */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
+
 .broucher-container {
   font-family: Arial, sans-serif;
   padding: 20px;
@@ -36,6 +38,7 @@
   align-items: flex-start;
   box-shadow: 0 6px 12px rgba(30, 219, 233, 0.1);
   transition: transform 0.3s ease;
+  font-family: 'Oswald', sans-serif;
 }
 
 .broucher-card:hover {
@@ -44,18 +47,19 @@
 
 /* Top Description */
 .card-top-description {
-  font-size: 16px;
-  font-weight:150px;
+  font-size: 22px;
+  font-weight: 200;
   color: white;
   text-align: left;
   margin-top:50px;
+  font-family: 'Oswald', sans-serif;
 }
 
 /* Hexagon Design */
 /* Hexagon Design */
 .hexagon {
-  width: 120px;
-  height: 120px;
+  width: 180px;
+  height: 180px;
   clip-path: polygon(
     50% 0%, 
     95% 22%, 
@@ -68,7 +72,7 @@
   overflow: hidden;
   position: relative;
   margin: 0 auto;
-  margin-right: 20px;
+  margin-right: 5px;
   border-radius: 105px; /* Adds smoothness to the edges */
 }
 
@@ -87,12 +91,12 @@
   font-size: 28px;
   color: white;
   text-align: left;
-  margin-top: -320px;
+  margin-top: -300px;
 }
 
 /* Bottom Description */
 .card-bottom-description {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 200;
   color: white;
   text-align: left;
@@ -108,21 +112,27 @@
   color: #fff;
   text-decoration: none;
   border-radius: 4px;
-  font-size: 14px;
-  padding: 8px 12px;
+  font-size: 50px;
+  padding: 10px 16px;
   transition: background-color 0.3s ease;
 }
-
+.download-text {
+  margin-top: 25px;
+  font-size: 16px;
+  color: #ecf1ec; /* Text color */
+  font-weight: 300;
+  text-align: center;
+}
 .download-button:hover {
   background-color: #50b9b9;
 }
 /* Download Button with Downward Arrow */
 .download-icon {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 30px;
+  right: 30px;
   color: #ecf1ec; /* Icon color */
-  font-size: 20px; /* Adjust the icon size */
+  font-size: 50px; /* Adjust the icon size */
   transition: color 0.3s ease;
 }
 
@@ -130,21 +140,40 @@
   color: #0d8f3f; /* Icon color on hover */
 }
 
-//* Mobile View */
+/* Mobile View */
 @media (max-width: 768px) {
   .broucher-cards {
     flex-direction: column; /* Stack cards vertically */
     align-items: center;
     gap: 20px;
+    padding: 10px;
   }
 
   .broucher-card {
-    width: 10%; /* Make each card take up 90% of the screen width */
-    height: auto; /* Adjust height based on content */
-    align-items: center; /* Center-align items */
+    width: 90%; /* Adjust width for mobile */
+    padding: 15px;
+    text-align: center; /* Center-align text */
+  }
+
+  .broucher-info h2,
+  .card-top-description {
+    text-align: center;
+  }
+
+  .hexagon {
+    margin: 15px auto; /* Center hexagon on mobile */
+    margin-right: 10px;
+  }
+
+  .card-bottom-description {
+    text-align: left; /* Left-align bottom description */
+    margin-top: 10px;
+    width: 100%;
   }
 
   .download-button {
-    align-self: center; /* Center the download button */
+    align-self: flex-end; /* Align download button to the right */
+    margin-top: 10px;
   }
 }
+

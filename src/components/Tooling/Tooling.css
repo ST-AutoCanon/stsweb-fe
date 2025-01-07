@@ -10,7 +10,11 @@
 
 /* Left Section - Image */
 .tooling-image {
+  position: relative;
   width: 35%;
+  order: 2; /* Place image on the left */
+  padding: 10px 0;
+  margin-top: -20px;
 }
 
 .services-image {
@@ -22,6 +26,7 @@
 /* Right Section - Content */
 .tooling-text {
   width: 60%;
+  margin-top: -60px;
 }
 
 .tooling-text h1 {

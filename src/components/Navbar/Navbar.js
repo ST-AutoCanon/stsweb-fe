@@ -136,6 +136,17 @@ const Navbar = () => {
             ReachUs
           </NavLink>
         </li>
+
+        <li>
+          <a
+            href="https://auto-canon.in/" // Replace with your desired product URL
+            target="_blank"
+            rel="noopener noreferrer"
+            className="product-link"
+          >
+            Product
+          </a>
+        </li>
         <div className="loginbtn">
           <li>
             <NavLink to="/Login" onClick={() => handleNavClick("/Login")}>

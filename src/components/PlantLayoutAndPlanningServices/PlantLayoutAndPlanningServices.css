@@ -15,18 +15,21 @@
     position: relative;
     width: 35%;
     order: 2; /* Place image on the right */
+    margin-top: 20px;
 }
 
 .services-image {
     width: 100%;
     height: auto;
     border-radius: 8px;
+    
 }
 
 /* Left Section - Content */
 .plant-layout-planning-text {
     width: 60%;
     order: 1; /* Place content on the left */
+    margin-top: -250px;
 }
 
 .plant-layout-planning-text h1 {

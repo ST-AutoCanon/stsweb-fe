@@ -11,7 +11,7 @@ const Login = () => {
   // Function to close the modal
   const closeModal = () => {
     setIsModalOpen(false);
-    navigate('/Home');
+    navigate('/');
   };
 
   const handleSubmit = async (e) => {

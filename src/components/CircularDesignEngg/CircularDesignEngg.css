@@ -145,11 +145,13 @@
 
 /* Page section for dynamic content */
 .page-section-engg {
-  padding: 50px 20px;
+  padding: 100px 40px; 
   margin-top: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #f9f9f9;
+  margin-bottom: -50px;
+  margin-top: -80px;
 }
 
 .page-section-engg h2 {

@@ -15,18 +15,21 @@
     position: relative;
     width: 35%;
     order: 1; /* Place image on the left */
+    margin-top: 20px;
 }
 
 .services-image {
     width: 100%;
     height: auto;
     border-radius: 8px;
+    
 }
 
 /* Right Section - Content */
 .staffing-and-training-text {
     width: 60%;
     order: 2; /* Place content on the right */
+    margin-top: -250px;
 }
 
 .staffing-and-training-text h1 {
