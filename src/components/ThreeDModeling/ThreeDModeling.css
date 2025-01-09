@@ -16,7 +16,7 @@
     width: 35%;
     order: 1;
     padding: 10px 0;
-    margin-top: -20px;
+    margin-top: 0;
 }
 
 .services-image {
@@ -29,7 +29,7 @@
 .three-d-modeling-text {
     width: 60%;
     order: 2;
-    margin-top: -60px;
+    margin-top: -10px;
 
 }
 

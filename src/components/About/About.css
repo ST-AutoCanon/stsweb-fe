@@ -98,7 +98,7 @@
   }
   
   .page-text p {
-    margin-top: 20px;
+    margin-top: -20px;
     font-size: 1rem;
     color: 000000;
   }
@@ -106,11 +106,15 @@
     font-size: 2.5rem;
     font-weight: bold;
     text-align: left;
+    margin-top: -30px;
     background: linear-gradient(90deg, #75C02F, #10677A, #FF4400);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent; /* Ensures only the gradient is visible */
   }
-
+.learn-morebtn
+{
+  margin-top: 10px;
+}
 
 /* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {

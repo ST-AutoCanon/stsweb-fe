@@ -46,8 +46,8 @@ import Reachusfirst from "./components/Reachusfirst/Reachusfirst";
 import Broucher from "./components/Broucher/Broucher";
 import Gallery from "./components/Gallery/Gallery";
 import HomologationFirst from "./components/HomologationFirst/HomologationFirst";
-
-
+import MainAboutSecond from "./components/MainAboutSecond/MainAboutSecond.js";
+import KnowMoreFirstPage from "./components/KnowMoreFirstPage/KnowMoreFirstPage.js";
 import CircularDesignNew from "./components/CircularDesignNew/CircularDesignNew";
 import "./App.css";
 import Broucherfirst from "./components/Broucherfirst/Broucherfirst";
@@ -97,7 +97,7 @@ function App() {
           <Route path="/Reachusfirst" element={<Reachusfirst/>} />
           <Route path="/HomologationFirst" element={<HomologationFirst/>} />
           <Route path="/Feedbackform" element={<Feedbackform/>} />
-
+          <Route path="/KnowMoreFirstPage" element={<KnowMoreFirstPage/>}/>
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}

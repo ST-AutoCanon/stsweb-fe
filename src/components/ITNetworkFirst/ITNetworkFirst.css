@@ -1,5 +1,5 @@
 /* Main container */
-.about-container {
+.itabout-container {
     display: flex;
     height: 100%;
     width: 100%;
@@ -24,9 +24,9 @@
   }
   
   /* Text section */
-  .text-section {
+  .ittext-section {
     width: 85%;
-    background-color: #2FAAC6;
+    background-color: #008392;
     color: white;
     display: flex;
     flex-direction: column;
@@ -38,7 +38,7 @@
   }
   
   /* Diagonal shaded line */
-  .about-container::before {
+  .itabout-container::before {
     content: "";
     position: absolute;
     /* Match the width of the image-section */
@@ -46,29 +46,29 @@
     z-index: 2;
     background: linear-gradient(
       to bottom right,
-      rgb(16, 176, 216),
+      #008392,
       rgba(214, 215, 219, 0)
     );
     
     pointer-events: none;
-    left: 46%!important; /* Lean closer to the text section */
+    left: 46.5%!important; /* Lean closer to the text section */
     width: 3%; /* Thicker line */
     height: 150%; /* Extends the line significantly */
     top: -25%;
     
-    transform: skewX(-10deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
+    transform: skewX(-7deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
   }
   
-  .text-section h1 {
+  .ittext-section h1 {
     font-size: 3em;
+    margin-top: -100px;
     margin-bottom: 10px;
     z-index: 3;
     font-family: Arial, Helvetica, sans-serif;
   }
   
-  .text-section p {
-    font-size: 1.5em;
-    
+  .ittext-section p {
+    font-size: 1.3em;
     text-align: center;
     padding: 0 20px;
     z-index: 3;

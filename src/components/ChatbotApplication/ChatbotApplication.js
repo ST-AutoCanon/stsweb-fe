@@ -46,14 +46,7 @@ const ChatbotApplication = () => {
             <strong>6. Seamless Integration</strong>
             <p>Easily integrates with CRMs and business systems for enhanced functionality.</p>
           </li>
-          <li>
-  <strong>9. Automation of Repetitive Tasks</strong>
-  <p>Automates routine tasks like FAQs and bookings, freeing agents for complex issues and boosting productivity.</p>
-</li>
-<li>
-  <strong>10. Analytics and Reporting</strong>
-  <p>Provides insights on interactions and performance, helping improve chatbot efficiency and customer strategies.</p>
-</li>
+  
 
         </ul>
       </div>

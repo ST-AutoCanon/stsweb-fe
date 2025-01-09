@@ -16,7 +16,7 @@
     width: 35%;
     order: 1; /* Place image on the left */
 
-    margin-top: -100px;
+    margin-top: 0;
 }
 
 .services-image {
@@ -31,7 +31,8 @@
 .chatbot-application-text {
     width: 60%;
     order: 2; /* Place content on the right */
-    padding: 10px 0; /* Add some padding to the text section for balance */
+   /* Add some padding to the text section for balance */
+    margin-top: -40px;
 }
 
 

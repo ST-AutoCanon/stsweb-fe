@@ -131,7 +131,7 @@
 
 /* Button when active */
 .circular-button-new.active-button-new {
-  background-color: grey;
+  background-color: #EBEBEB;
   color: black;
   cursor: default;
 }

@@ -7,17 +7,17 @@ const Gallery = () => {
   const [selectedSection, setSelectedSection] = useState(""); // To track which section the image is from
 
   const images = [
-    "./images/g10.jpg",
-    "./images/g2.jpg",
-    "./images/g3.jpg",
-    "./images/g4.jpg",
+    "./images/grp6.jpg",
+    "./images/grp7.jpg",
+    "./images/grp1.jpeg",
+    "./images/grp5.jpg",
   ];
 
   const secondSectionImages = [
-    "./images/g1.jpg",
-    "./images/g2.jpg",
-    "./images/g3.jpg",
-    "./images/g4.jpg",
+    "./images/grp8.jpeg",
+    "./images/grp2.jpeg",
+    "./images/grp4.jpeg",
+    "./images/grp3.jpeg",
     "./images/g5.jpg",
   ];
 
@@ -65,11 +65,11 @@ const Gallery = () => {
         </div>
 
         <div className="info-section">
-          <h2>{selectedImage !== null ? "Selected Idea" : "Diwali Celebration at the Office"}</h2>
+          <h2>{selectedImage !== null ? "Selected Idea" : "Capturing Moments of Celebration"}</h2>
           <p>
             {selectedImage !== null
               ? descriptions[selectedImage]
-              : "Join us as we celebrate the Festival of Lights with joy, unity, and festive spirit in the workplace!"}
+              : "A glimpse of the joyous Diwali celebrations at the office,showcasing the vibrant teamwork, unity, and festive cheer among colleagues."}
           </p>
         </div>
       </div>
@@ -103,11 +103,9 @@ const Gallery = () => {
       <div className="second-gallery-container">
         <div className="second-gallery-content">
           <div className="second-left-info">
-            <h2>Cheers to a New Year: Office Celebration Awaits!</h2>
+            <h2>Team Celebration Event</h2>
             <p>
-            
-Celebrate the arrival of the new year with us! Enjoy a festive atmosphere, fun activities, and a chance to unwind with colleagues. Let’s make this year’s office celebration one to remember!
-            </p>
+            Employees gather for a joyous team event, where gifts are distributed as tokens of appreciation for their hard work and dedication throughout the year.          </p>
           </div>
           <div className="second-right-images">
             {secondSectionImages.map((src, index) => (

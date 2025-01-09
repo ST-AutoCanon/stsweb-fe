@@ -5,24 +5,24 @@ const Broucher = () => {
   const brochures = [
     {
       name: "COMPANY PROFILE",
-      url: "/Broucherpdfs/Artboard 1 copy 2.pdf",
+      url: "/Broucherpdfs/SK-General Profile.pdf",
       image: "./images/Broucher3.jpg",
       topDescription: "Learn about our company\nvision and mission.",
       bottomDescription: "Detailed insights\n into our company\n values.",
     },
     {
-      name: "PRODUCT CATLOG",
-      url: "/Broucherpdfs/SK-General Profile.pdf",
+      name: "2/3 WHEELER CAPABILITIES",
+      url: "/Broucherpdfs/SK-2&3W Capabilities.pdf",
       image: "./images/Broucher1.jpg",
-      topDescription: "Explore our wide range\nof products.",
+      topDescription: "Innovate solutions for 2&3 wheeler\n Design and Manufacturing.",
       bottomDescription: "Get detailed \nspecifications\nand features.",
     },
     {
-      name: "OUR CUSTOMERS",
-      url: "/Broucherpdfs/STS_Contents.pdf",
+      name: "COMMERTIAL VEHICLE CATALOG",
+      url: "/Broucherpdfs/SK-CV Capabilities.pdf",
       image: "./images/Broucher2.jpg",
-      topDescription: "we serve principles driving \n toward excellence.",
-      bottomDescription: "Innovative solutions,\n reliability, and customer\n satisfaction.",
+      topDescription: "Understand commertial \n vehicle catalog.",
+      bottomDescription: "Empovering \nInnovation in commertial\n Vehicle Solutions",
     },
   ];
 

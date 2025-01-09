@@ -1,154 +1,126 @@
+
 .feedback-form-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(136, 121, 121, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
   
+  justify-content: right;
+  
+  align-items: center;
+  z-index: 1000;
+}
+
 .feedback-form-container {
-    background: #fff;
-    padding: 10px 10px;
-    border-radius: 10px;
-    width: 400px;
-    margin-left: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    position: relative; /* For positioning the close button */
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adds consistent spacing between form elements */
 }
-.feedback-form h2{
-  font-weight: 900;
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  color: #565454;
+}
+
+.feedback-form h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  text-align: center; /* Center the heading */
+  font-weight: bold;
+}
+
+.feedback-form label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.feedback-form input,
+.feedback-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  margin-bottom:10px;
   
 }
-.feedback-form-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .rating {
-    margin-bottom: 20px;
-  }
+
+.feedback-form textarea {
+  resize: none;
+}
+
+.rating {
+  display: flex;
+  align-items: left;
+  flex-direction: column;
+  gap: 10px; /* Space between label and stars */
+}
+
+.stars {
+  display: flex;
   
-  .rating label {
-    font-weight: bold;
-    margin-bottom: 8px;
-    display: block;
-  }
-  
-  .stars {
-    display: flex;
-    gap: 5px;
-  }
-  
-  .star {
-    font-size: 24px;
-    color: #ccc;
-    cursor: pointer;
-  }
-  
-  .star.filled {
-    color: #ffc107;
-  }
-  
-  .star:hover,
-  .star.filled:hover ~ .star {
-    color: #ffeb3b;
-  }
-  
-  
-  .feedback-form-container {
-    background: #fff;
-    padding: 20px 30px;
-    border-radius: 10px;
-    width: 300px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    position: relative;
-  }
-  
-  .close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;  /* This positions the close button on the right side */
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #333;
-    cursor: pointer;
-  }
-  
-  .close-button:hover {
-    color: #f44336; /* Red color on hover */
-  }
-  
-  .feedback-form h2 {
-    margin-bottom: 20px;
-    text-align: left;
-  }
-  
-  .feedback-form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-  }
-  
-  .feedback-form input,
-  .feedback-form textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .feedback-form textarea {
-    resize: none;
-  }
-  
-  .submit-button {
-    width: 107%;
-    padding: 10px;
-    background: #4caf50;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  .submit-button:hover {
-    background: #45a049;
-  }
-  
-  .feedback-success {
-    text-align: center;
-  }
-  
-  .feedback-success h2 {
-    margin-bottom: 20px;
-  }
-  
-  .close-button {
-    padding: 3px 3px;
-    background: #2196f3;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  .close-button:hover {
-    background: #999c9e;
-  }
-  
+  gap: 10px; /* Space between stars */
+  justify-content: left; /* Center align the stars */
+  margin-bottom: 10px;
+}
+
+.star {
+  font-size: 24px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.star:hover,
+.star.filled:hover ~ .star {
+  color: #ffeb3b;
+}
+
+.submit-button {
+  width: 100%; /* Ensures the button spans the container */
+  padding: 10px;
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+}
+
+.submit-button:hover {
+  background: #45a049;
+}
+
+.feedback-success {
+  text-align: center;
+}
+
+.feedback-success h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}

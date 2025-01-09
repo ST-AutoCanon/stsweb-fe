@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import "./Feedbackform.css";
 
-const Feedbackform = () => {
+const Feedbackform = ({ onClose }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [rating, setRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
+ const closeModal = () => {
+  onClose();
+};
   const handleRating = (value) => {
     setRating(value);
   };
@@ -31,7 +34,7 @@ const Feedbackform = () => {
   return (
     <div className="feedback-form-overlay">
       <div className="feedback-form-container">
-        <button onClick={handleClose} className="close-button">
+        <button onClick={closeModal} className="close-button">
           &#10005;
         </button>
         {submitted ? (

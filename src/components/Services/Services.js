@@ -149,8 +149,8 @@
  import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
 import "./Services.css";
-import serviceFour from "../../assets/images/serviceFour.png";
-import itService from "../../assets/images/ITservice1.png";
+import Service_BG8 from "../../assets/images/Service_BG8.png";
+import card2image from "../../assets/images/card2image.png";
 import engineeringService from "../../assets/images/Engineeringservice1.png";
 import otherService from "../../assets/images/Otherservice1.png";
 
@@ -158,12 +158,13 @@ const Services = () => {
   const navigate = useNavigate(); // Initialize useNavigate
 
   // Reordered services array
+  
   const services = [
-    { id: 4, image: serviceFour, path: "/service-four" },
-    { id: 1, image: itService, path: "/ITNetworkFirst" },
-    { id: 2, image: engineeringService, path: "/EngineeringServiceFirst" },
-    { id: 3, image: otherService, path: "/OtherServiceFirst" },
-];;
+    { id: 4, image: Service_BG8, path: "/service-four", className: "sticky-image" },
+    { id: 1, image: card2image, path: "/ITNetworkFirst", className: "it-image" },
+    { id: 2, image: engineeringService, path: "/EngineeringServiceFirst", className: "engineering-image" },
+    { id: 3, image: otherService, path: "/OtherServiceFirst", className: "other-image" },
+  ];                                                                                                                                                                                                
 
 
   const handleLearnMore = (service) => {
@@ -175,14 +176,20 @@ const Services = () => {
   const images = [
     "./images/car.png", 
     "./images/auto.png", 
-    "./images/bus.png"
+    "./images/bikebike.png",
+    "./images/bus.png",
+    
+    "./images/autoauto.png",
+    
+    "./images/lorry.png"
+
   ];  // Add more images as needed
 
   // Change the image every 6 seconds after the current image moves out of view
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    },7500); // Adjust interval to match the image movement duration (6 seconds)
+    },8500); // Adjust interval to match the image movement duration (6 seconds)
     return () => clearInterval(interval);
   }, []);
 
@@ -220,21 +227,29 @@ const Services = () => {
                   </div>
                 )}
               </div>
-              <div className="service-content">
-                <span className="service-subtitle">{service.subtitle}</span>
-                <h3 className="service-title">{service.title}</h3>
-                <p className="service-description">{service.description}</p>
+              {/* <div className="service-content"> */}
+                {/* <span className="service-subtitle">{service.subtitle}</span> */}
+                {/* <h3 className="service-title">{service.title}</h3>
+                <p className="service-description">{service.description}</p> */}
                 {/* Divider */}
-                <div className="service-divider"></div>
+                {/* <div className="service-divider"></div> */}
                 {/* Button */}
-                <button
+                {/* <button
                   className="service-button"
                   onClick={() => handleLearnMore(service)} // Trigger navigation on button click
                 >
                   Learn More
-                </button>
+                </button> */}
+                 {service.id !== 4 && (
+        <button
+          className="service-button"
+          onClick={() => handleLearnMore(service)} // Trigger navigation on button click
+        >
+          Learn More
+        </button>
+      )}
               </div>
-            </div>
+            // </div>
           ))}
         </div>
       </div>

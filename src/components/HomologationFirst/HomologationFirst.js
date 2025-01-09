@@ -192,7 +192,7 @@ const HomologationFirst = () => {
 
           <div className="step testing-validation">
             <div className="step-title4">
-              <img src="/images/testing.png" alt="Step 4 Icon" />
+              <img src="/images/testing n validationnew.png" alt="Step 4 Icon" />
               <h2>Testing and Validation</h2>
             </div>
             <p>

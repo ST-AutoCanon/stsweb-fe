@@ -14,7 +14,7 @@
   .domestic-type-approval-text {
     width: 60%; /* Take up more space for text */
     order: 1; /* Place text on the left */
-    margin-top: -40px;
+    margin-top: -60px;
   }
   
   .domestic-type-approval-text h1 {
@@ -53,7 +53,7 @@
     position: relative;
     width: 35%; /* Take up less space for the image */
     order: 2; /* Place image on the right */
-    margin-top: -20px;
+    margin-top: 0;
   }
   
   .services-image {

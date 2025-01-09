@@ -128,7 +128,7 @@ import SoftwareDevelopment from "../SoftwareDevelopment/SoftwareDevelopment";
 import ThreeDModeling from "../ThreeDModeling/ThreeDModeling";
 import WebsiteDesign from "../WebsiteDesign/WebsiteDesign";
 import TestingAndQA from "../TestingAndQA/TestingAndQA";
-import CircularImage from "../../assets/images/circularimageLogo.png"
+import Log2 from "../../assets/images/log2.png"
 import "./CircularDesignNew.css";
 
 const CircularDesignNew = () => {
@@ -221,8 +221,8 @@ const CircularDesignNew = () => {
       <div className="circular-container-new">
         <div className="central-wrapper-new">
           <div className="central-image-new">
-            {/* <img src="/images/CircularimageLogo.png" alt="Central Logo" /> */}
-            <img src={CircularImage} alt="Central Logo" />
+            {/* <img src="/images/newlogo1.png" alt="Central Logo" /> */}
+            <img src={Log2} alt="Central Logo" />
 
           </div>
         </div>

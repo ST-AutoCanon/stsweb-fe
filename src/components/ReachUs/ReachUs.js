@@ -56,9 +56,7 @@ const ReachUs = () => {
 
   return (
     <div className="reachus-container">
-      <div className="header-section">
-        <h1>Contact Us</h1>
-      </div>
+      
 
       <div className="content-section">
         <div className="map-box">

@@ -20,14 +20,14 @@
     width: 40%;
     height: auto;
     border-radius: 8px;
-    margin-top: 20px;
+    margin-top: 0;
 }
 
 /* Right Section - Content */
 .it-consulting-text {
     width: 60%;
     order: 1; /* Place content on the left (changed from order: 2) */
-    margin-top: -100px;
+    margin-top: -120px;
     
 }
 

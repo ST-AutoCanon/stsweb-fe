@@ -1,5 +1,7 @@
 /* General Styles */
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
+/* General Styles */
+;
 
 .broucher-container {
   font-family: Arial, sans-serif;
@@ -7,12 +9,13 @@
   background-color: #f9f9f9;
   text-align: center;
   margin: 0 auto;
+  
 }
 
 .broucher-header h1 {
   font-size: 32px;
   color: #011103f1;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   order:1;
 
 }
@@ -51,7 +54,7 @@
   font-weight: 200;
   color: white;
   text-align: left;
-  margin-top:50px;
+  margin-top:20px;
   font-family: 'Oswald', sans-serif;
 }
 
@@ -88,11 +91,13 @@
 
 /* Brochure Info */
 .broucher-info h2 {
-  font-size: 28px;
+  font-size: 24px;
   color: white;
   text-align: left;
   margin-top: -300px;
+  white-space: nowrap; /* Prevent the text from wrapping */
 }
+
 
 /* Bottom Description */
 .card-bottom-description {
@@ -112,7 +117,7 @@
   color: #fff;
   text-decoration: none;
   border-radius: 4px;
-  font-size: 50px;
+  font-size: 40px;
   padding: 10px 16px;
   transition: background-color 0.3s ease;
 }
@@ -176,4 +181,3 @@
     margin-top: 10px;
   }
 }
-

@@ -1,14 +1,34 @@
-import React from "react";
+// import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // To handle navigation
 import "./Footer.css";
 import { FaLinkedin, FaEnvelope, FaPhone } from 'react-icons/fa'; // LinkedIn and Email icons
-
+import FeedBack from '../Feedbackform/Feedbackform.js'
+ 
 const Footer = () => {
-  const navigate = useNavigate(); // Hook for navigation
-
-  const handleFeedbackClick = () => {
-    navigate("/Feedbackform"); // Navigate to Feedback form route
+ const navigate = useNavigate(); // Hook for navigation
+ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for showing the popup
+  const handleFeedbackClick = (path) => {
+    setMenuOpen(false);
+    // setServicesDropdownOpen(false);
+    // setKnowMoreDropdownOpen(false);
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      navigate(path);
+    }, 300);
+     // Navigate to Feedback form route
   };
+   
+  // Open Login modal (triggering the Login form)
+  const openModal = () => {
+    setIsModalOpen(true);  // Trigger modal open by updating state to true
+  };
+
+  // Close Login modal
+  const closeModal = () => {
+    setIsModalOpen(false); // Trigger modal close by updating state to false
+  };
+ 
 
   return (
     <footer className="footer">
@@ -21,13 +41,13 @@ const Footer = () => {
         {/* Social Icons Section */}
         <div className="social-icons">
           <a href="mailto:info@sukalpatech.com" className="social-icon">
-            <FaEnvelope size={21} />
+            <FaEnvelope size={23} />
           </a>
           <a href="tel:9742134584" className="social-icon">
-            <FaPhone size={21} />
+            <FaPhone size={23} />
           </a>
           <a href="https://www.linkedin.com/company/sukalpa-tech/" target="_blank" rel="noopener noreferrer" className="social-icon">
-            <FaLinkedin size={21} />
+            <FaLinkedin size={23} />
           </a>
         </div>
         <div className="social-icons2">
@@ -52,15 +72,22 @@ const Footer = () => {
         </div>
 
         {/* Feedback Section */}
-        <div className="footer-feedback">
+        {/* <div className="footer-feedback">
           
           <p>We Focus On Making </p>
           <p>The Best In All Sectors</p>
           <button className="feedback-button" onClick={handleFeedbackClick}>
             send your queries
           </button>
-        </div>
-
+         */}
+          <div className="floginbtn">
+            
+          <p>We Focus On Making </p>
+          <p>The Best In All Sectors</p>
+              <button onClick={openModal}>send your queries</button> {/* Trigger login form/modal on button click */}
+           
+          </div>
+          
         {/* Links Section */}
         <div className="footer-links">
           <a href="/">Home</a>
@@ -75,6 +102,7 @@ const Footer = () => {
       <div className="footer-bottom">
         <p>Copyright © 2022 Sukalpa Tech. All Rights Reserved.</p>
       </div>
+      {isModalOpen && <FeedBack onClose={closeModal} />}
     </footer>
   );
 };

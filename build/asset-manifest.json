@@ -1,21 +1,30 @@
 {
   "files": {
-    "main.css": "/static/css/main.86fcc936.css",
-    "main.js": "/static/js/main.b687ddd6.js",
+    "main.css": "/static/css/main.9811a2b6.css",
+    "main.js": "/static/js/main.fa45e3aa.js",
+    "static/media/ITService.png": "/static/media/ITService.6887970444ad3e8bd63e.png",
+    "static/media/KnowMore.png": "/static/media/KnowMore.813434b9bd2f95678217.png",
+    "static/media/servicefirst.png": "/static/media/servicefirst.d37cf98e7c300ee52100.png",
     "static/media/fa-solid-900.ttf": "/static/media/fa-solid-900.2582b0e4bcf85eceead0.ttf",
+    "static/media/Engineeringservice1.png": "/static/media/Engineeringservice1.24b88ece73e52c7c1fbe.png",
+    "static/media/card2image.png": "/static/media/card2image.e333ac3c2e9188b0973b.png",
+    "static/media/Otherservice1.png": "/static/media/Otherservice1.ace74168961569a45c79.png",
     "static/media/fa-brands-400.ttf": "/static/media/fa-brands-400.1815e00441357e01619e.ttf",
     "static/media/fa-solid-900.woff2": "/static/media/fa-solid-900.2463b90d9a316e4e5294.woff2",
     "static/media/fa-brands-400.woff2": "/static/media/fa-brands-400.c210719e60948b211a12.woff2",
     "static/media/fa-regular-400.ttf": "/static/media/fa-regular-400.914997e1bdfc990d0897.ttf",
+    "static/media/Homologationnew.png": "/static/media/Homologationnew.60d3147473c122ad63db.png",
+    "static/media/log2.png": "/static/media/log2.d8b3f6fbb9277f5be411.png",
+    "static/media/Service_BG8.png": "/static/media/Service_BG8.58edb3731f291cf4438f.png",
     "static/media/fa-regular-400.woff2": "/static/media/fa-regular-400.89999bdf5d835c012025.woff2",
     "static/media/fa-v4compatibility.ttf": "/static/media/fa-v4compatibility.da94ef451f4969af06e6.ttf",
     "static/media/fa-v4compatibility.woff2": "/static/media/fa-v4compatibility.ea8f94e1d22e0d35ccd4.woff2",
     "index.html": "/index.html",
-    "main.86fcc936.css.map": "/static/css/main.86fcc936.css.map",
-    "main.b687ddd6.js.map": "/static/js/main.b687ddd6.js.map"
+    "main.9811a2b6.css.map": "/static/css/main.9811a2b6.css.map",
+    "main.fa45e3aa.js.map": "/static/js/main.fa45e3aa.js.map"
   },
   "entrypoints": [
-    "static/css/main.86fcc936.css",
-    "static/js/main.b687ddd6.js"
+    "static/css/main.9811a2b6.css",
+    "static/js/main.fa45e3aa.js"
   ]
 }

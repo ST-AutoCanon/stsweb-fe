@@ -24,7 +24,7 @@ const Broucherfirst = () => {
         </div>
         <div className="broucherfirstpage-text-section">
           <h1>Know More</h1>
-          <p>See how Sukalpa Tech focuses on making the best in all sectors</p>
+          <p>Our journey, our purpose—Knowmore about us</p>
         </div>
       </div>
       

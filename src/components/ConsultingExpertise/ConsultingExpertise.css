@@ -15,6 +15,7 @@
     position: relative;
     width: 35%;
     order: 1; /* Place image on the left */
+    margin-top: 0;
 }
 
 .services-image {

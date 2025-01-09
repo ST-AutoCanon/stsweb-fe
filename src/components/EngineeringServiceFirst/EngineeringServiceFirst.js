@@ -1,6 +1,6 @@
 import React from "react";
 import "./EngineeringServiceFirst.css"; // You can rename this file later if necessary
-
+import ITfirstpage from "../../assets/images/servicefirst.png";
 import CircularDesignEngg from "../CircularDesignEngg/CircularDesignEngg";
 // Details of Cards
 const EngineeringServiceFirst = () => {
@@ -19,13 +19,13 @@ const EngineeringServiceFirst = () => {
   return (
     <>
       {/* Container for About */}
-      <div className="about-container">
+      <div className="engineeringabout-container">
         <div className="image-section">
-          <img src="./images/1.png" alt="About Us" className="about-image" />
+        <img src={ITfirstpage} alt="About Us" className="about-image" />
         </div>
-        <div className="text-section">
+        <div className="engineeringtext-section">
           <h1>EngineeringServices</h1>
-          <p>See how Sukalpa Tech focuses on making the best in all sectors</p>
+          <p>Driving Progress Through Innovative Engineering</p>
         </div>
       </div>
       <CircularDesignEngg/>

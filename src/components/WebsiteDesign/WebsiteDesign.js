@@ -15,25 +15,25 @@ const WebsiteDesign = () => {
 
       {/* Right Section - Content */}
       <div className="website-design-text">
-        <h1>Website Design</h1>
+        <h2>Website Design</h2>
         <p>
           At Sukalpa Tech, we don't just design websites — we craft digital experiences that
-          redefine the future of manufacturing. Our website design services are precision-crafted to enhance the efficiency of your manufacturing processes, reduce production costs, and elevate the performance of your operations.
+          redefine the future of manufacturing. Our website design services are precision-crafted to enhance the efficiency of your manufacturing processes, and elevate the performance of your operations.
         </p>
 
         <h2>Optimize Your Manufacturing Process</h2>
         <p>
-          Our website designs are built to integrate seamlessly with your manufacturing operations. From streamlining workflows to providing real-time data access, we ensure that every website we develop serves as a powerful tool to drive operational excellence.
+          Our website designs are built to integrate seamlessly with your manufacturing operations.  we ensure that every website we develop serves as a powerful tool to drive operational excellence.
         </p>
 
         <h2>Tailored Solutions for Maximum Efficiency</h2>
         <p>
-          Each design is customized to meet your unique needs. With a keen focus on quality and performance, we create websites that not only look great but also perform at their best. We take the time to understand your business goals and manufacturing challenges, then deliver a digital solution that improves productivity, reduces downtime, and accelerates your time-to-market.
+        Each design is customized to meet your unique needs. we create websites that not only look great but also perform at their best. We take the time to understand your business goals and manufacturing challenges, then deliver a digital solution that improves productivity, reduces downtime, and accelerates your time-to-market.
         </p>
 
         <h2>Achieving Excellence in Every Step</h2>
         <p>
-          At Sukalpa Tech, we understand that the smallest details can make a big difference in the manufacturing world. That's why our designs are engineered for precision. Every tool we develop — whether it's a product catalog, customer portal, or internal management system — is a step toward achieving excellence in your operations.
+          At Sukalpa Tech, we understand that the smallest details can make a big difference in the manufacturing world. Every tool we develop — whether it's a product catalog, customer portal, or internal management system is a step toward achieving excellence in your operations.
         </p>
       </div>
     </div>

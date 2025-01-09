@@ -98,7 +98,7 @@ const CircularDesignEngg = () => {
       <div className="circular-container-engg">
         <div className="central-wrapper-engg">
           <div className="central-image-engg">
-            <img src="/images/CircularimageLogo.png" alt="Central Logo" />
+            <img src="/images/log2.png" alt="Central Logo" />
           </div>
         </div>
         {items.map((item, index) => (
