@@ -60,6 +60,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+<<<<<<< HEAD
     if (!username || !password) {
       setErrorMessage('Username and password are required.');
       return;
@@ -80,6 +81,41 @@ const Login = () => {
       if (!response.ok) {
         setErrorMessage(data.message || 'Invalid credentials. Please try again.');
         return;
+=======
+    try {
+      // Fetch all users from the JSON Server
+      const response = await fetch("http://localhost:5000/login", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3', // Add the required API key
+        },
+        body: JSON.stringify({
+            email: username,
+            password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorDetails = await response.json();
+        console.error("Error:", errorDetails);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+
+      // Assuming response.json() returns a user object
+      const user = await response.json();
+
+      // Check the user role and navigate accordingly
+      if (user) {
+        if (user.role === "employee") {
+          navigate("/EmployeePage"); // Redirect to employee page
+        } else if (user.role === "admin") {
+          navigate("/AdminPage"); // Redirect to admin page
+        }
+      } else {
+        alert("Invalid username or password");
+>>>>>>> murge
       }
 
       localStorage.setItem('authToken', data.code.token);
@@ -108,7 +144,7 @@ const Login = () => {
       <div className="login-page">
         <div className="login-modal">
           <div className="login-container">
-            <button className="close-button" onClick={closeModal}>
+            <button className="login-close-button" onClick={closeModal}>
               ×
             </button>
             <div className="login-image">
@@ -118,6 +154,7 @@ const Login = () => {
               />
             </div>
             <div className="login-form">
+<<<<<<< HEAD
               <form onSubmit={handleSubmit}>
                 <h2>Login</h2>
                 <div className="form-group">
@@ -153,6 +190,45 @@ const Login = () => {
                   Login
                 </button>
               </form>
+=======
+  <form onSubmit={handleSubmit}>
+    {/* Replace the text header with a logo */}
+    <div className="login-logo">
+      <img
+        src="./images/Loginlogo.png" // Replace with the path to your logo image
+        alt="Logo"
+        className="login-logo-img" // Optional: Add a CSS class for styling the logo
+      />
+    </div>
+    <div className="form-group">
+      <label htmlFor="username">User Name</label>
+      <input
+        type="text"
+        id="username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Enter your username"
+      />
+    </div>
+    <div className="form-group">
+      <label htmlFor="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Enter your password"
+      />
+    </div>
+    <div className="form-options">
+      <a href="#">Forgot Password?</a>
+    </div>
+    <button type="submit" className="btn-login">
+      Login
+    </button>
+  </form>
+
+>>>>>>> murge
             </div>
           </div>
         </div>
@@ -162,4 +238,9 @@ const Login = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Login;
+=======
+export default Login;
+
+>>>>>>> murge

@@ -1,0 +1,108 @@
+/* Main container */
+.export-homologation-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+/* Left Section - Image */
+.export-homologation-image {
+    position: relative;
+    width: 35%;
+    order: 1; /* Place image on the left */
+}
+
+.services-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Right Section - Content */
+.export-homologation-text {
+    width: 60%;
+    order: 2; /* Place content on the right */
+}
+/* Main Headline */
+.export-homologation-text h1 {
+    font-size: 2rem; /* Main headline size */
+    color: #000;
+    margin-bottom: 10px;
+}
+
+/* Sub-Headline */
+.export-homologation-text h2 {
+    font-size: 1.5em!important; /* Smaller than main headline */
+    color: #555;
+    margin-bottom: 15px;
+    font-weight: 600; /* Optional: Make it slightly lighter than the main headline */
+}
+
+/* Paragraphs */
+div.export-homologation-text p {
+    font-size: 1.2em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+  
+
+.services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.services-list li {
+    width: 45%;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Button */
+.export-homologation-button {
+    background-color: #00c853;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.export-homologation-button:hover {
+    background-color: #009624;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .export-homologation-container {
+        flex-direction: column; /* Stack items for smaller screens */
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .export-homologation-text {
+        width: 100%;
+        order: 2; /* Maintain order for responsive layout */
+    }
+
+    .export-homologation-image {
+        width: 100%;
+        order: 1; /* Maintain order for responsive layout */
+    }
+
+    .services-list li {
+        width: 100%;
+    }
+}

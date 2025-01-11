@@ -1,164 +1,211 @@
-/* General Footer Styling */
+/* Footer Styling */
+/* Footer Styling */
 .footer {
-  background-color: #0d707e;
-  color: white;
-  padding: 20px 15px;
-  width: 100%;
+  background-color: #0f6679; /* Teal background */
+  color: #fff;
+  padding: 20px 10px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 5px;
 }
 
-/* Container for footer elements */
 .footer-container {
-  max-width: 1200px;
-  height:9vh;
-  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 1200px;
+  height:25px;
+  margin: 0 auto;
   flex-wrap: wrap;
-  gap: 0px;
+  
+  flex-direction: row; /* Make sure elements are in a row on desktop */
 }
 
+/* QR Code Section */
+.footer-logo {
+  margin-top: -10px;
+  text-align: center;
+}
 
-.scanner {
-  height: 60px;
-  width: 60px;
+.footer-logo img {
+  max-width: 40px;  /* Make the QR code smaller */
+  height: auto;
+  margin-bottom: 5px;
+}
+
+/* Social Icons Section */
+.social-icons {
   display: flex;
-  gap: 20px;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 70px;
+  margin-left:-300px;
+  
 }
+
+.social-icon {
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;  /* Circle width */
+  height: 20px; /* Circle height */
+  border: 1px solid #fff;  /* Thin white border */
+  border-radius: 50%;  /* Makes the border circular */
+  font-size: 12px;  /* Adjusted icon size */
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.social-icon:hover {
+  color: #28a745;  /* Green color on hover */
+  background-color: #fff; /* White background on hover */
+  border-color: #28a745;  /* Green border on hover */
+}
+
 /* Links Section */
 .footer-links {
-  list-style: none;
   display: flex;
-  gap: 30px;
-  padding: 0;
-  margin: 0;
+  gap: 20px;
+  flex-wrap: wrap;
+  order: 1; /* This makes links come after the feedback section */
 }
 
-.footer-links li a {
-  color: white;
+.footer-links a {
+  margin-bottom: 40px;
   text-decoration: none;
-  font-size: 16px;
+  color: #fff;
+  font-size: 0.8rem;
+  transition: color 0.3s ease;
 }
 
-.footer-links li a:hover {
-  text-decoration: underline;
+.footer-links a:hover {
+  color: #28a745; /* Green hover effect */
 }
 
 /* Feedback Section */
 .footer-feedback {
-  max-width: 450px;
-  font-size: small;
-  text-align: right;
+  text-align: left;
+  max-width: 300px;
+  color: #fff;
+  font-size: 0.9rem;
+  order: 2; /* This places the feedback section before the links */
 }
 
 .footer-feedback p {
   margin: 5px 0;
+  font-size: 0.8rem;
 }
 
 .feedback-button {
-  background-color: #4caf50;
-  color: white;
+  padding: 10px 30px;
+  font-size: 0.7rem;
+  color: black;
+  background-color: #28a745; /* Green button */
   border: none;
-  padding: 5px 12px;
-  font-size: 12px;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .feedback-button:hover {
-  background-color: #45a049;
+  background-color: #218838; /* Darker green on hover */
 }
 
-/* Social Media Icons */
-.footer-social {
-  display: flex;
-  gap: 10px;
+/* Copyright Section */
+.footer-bottom {
+  margin-top: 40px;
+  font-size: 0.6rem;
+  margin-left: -40px;
+  color: #ccc;
 }
-
-.footer-social a {
-  color: white;
-  font-size: 15px;
-  text-decoration: none;
+.footer-slogan{
+  display: none;
 }
-
-.footer-social a:hover {
-  color: #4caf50;
+.social-icons2{
+  display: none;
 }
-
-/* Sticky Footer for Desktop View */
-
-/* Non-Sticky Footer for Mobile View */
+/* General Mobile View Adjustments */
 @media (max-width: 768px) {
-  .footer {
-    width: 100%; /* Make sure footer takes full width */
-    height: 100px; /* Allow the footer to adjust its height based on content */
-    position: static; /* Footer naturally flows after the content */
-    margin-top: 20px; /* Add spacing from the content */
-    display: flex;
-    flex-direction: column; /* Stack all items vertically */
-    align-items: center; /* Center all items */
-    gap: 20px; /* Add space between sections */
-    padding: 20px; /* Optional padding for spacing */
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 190px;
   }
 
-  /* Scanner - Position the scanner section vertically first */
-  .scanner {
-    display: flex;
-    justify-content: left;
-    align-items: left;
-    height: 50px;
-    width: 50px;
-    order: 1; /* First item */
-    margin-top: 10px; /* Add margin to give space from the top */
-    margin-left: 20px;
-    padding: 20px;
+  /* Remove the QR Code Section */
+  .footer-logo {
+    display: none;
   }
 
-  .scanner img {
-    height: 100%;
-    width: 100%;
-    object-fit: cover;
+  .footer-links{
+    display: none;
+  }
+  .social-icons2 {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-left:0px;
+    margin-top:80px;
     
   }
-
-  /* Social Icons - Stack them vertically */
-  .footer-social {
-    display: flex;
-    flex-direction: column; /* Stack icons vertically */
-    align-items: right;
-    gap: 10px; /* Add space between icons */
-    margin-top: 30px;
-    order: 2; /* Position social icons after scanner */
-  }
-
-  .footer-social a {
-    font-size: 15px;
-    color: white;
-  }
-
-  .footer-social a:hover {
-    color: #4caf50;
-  }
-
-
-
-  /* Footer Links - Make sure links appear at the bottom */
-  .footer-links {
-    order: 5; /* Display links at the bottom */
-    display: flex;
-    flex-direction: column; /* Stack links vertically */
-    gap: 10px; /* Add space between links */
-    align-items: center;
-  }
-
-  .footer-links li a {
-    font-size: 16px;
-    color: white;
+  
+  .social-icon2 {
+    color: #fff;
     text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;  /* Circle width */
+    height: 40px; /* Circle height */
+    border: 1.5px solid #fff;  /* Thin white border */
+    border-radius: 50%;  /* Makes the border circular */
+    font-size: 12px;  /* Adjusted icon size */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-
-  .footer-links li a:hover {
-    text-decoration: underline;
+  
+  .social-icon2:hover {
+    color: #28a745;  /* Green color on hover */
+    background-color: #fff; /* White background on hover */
+    border-color: #28a745;  /* Green border on hover */
   }
-
+  .footer-feedback {
+    text-align: left;
+    max-width: 300px;
+    color: #fff;
+    font-size: 0.9rem;
+     /* This places the feedback section before the links */
+  }
+  
+  .footer-feedback p {
+    margin-left:5px;
+    margin-top:-180px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 90px;
+  }
+  
+  .feedback-button {
+    padding: 15px 100px;
+    font-size: 0.7rem;
+    color: black;
+    background-color: #28a745; /* Green button */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+   
+  }
+  
+  .feedback-button:hover {
+    background-color: #218838; /* Darker green on hover */
+  }
+  .footer-bottom {
+    margin-top: 40px;
+    font-size: 0.8rem;
+    margin-right: -40px;
+    color: #ccc;
+  }
+  
 }

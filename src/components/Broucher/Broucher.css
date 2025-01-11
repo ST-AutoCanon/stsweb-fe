@@ -1,0 +1,150 @@
+/* General Styles */
+.broucher-container {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f9f9f9;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.broucher-header h1 {
+  font-size: 32px;
+  color: #011103f1;
+  margin-bottom: 20px;
+  order:1;
+
+}
+
+.broucher-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px; /* Space between cards */
+}
+
+/* Brochure Card */
+.broucher-card {
+  background: #AC5C00;
+  border-radius: 12px;
+  width: 300px;
+  height: 400px;
+  padding: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 6px 12px rgba(30, 219, 233, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.broucher-card:hover {
+  transform: scale(1.05);
+}
+
+/* Top Description */
+.card-top-description {
+  font-size: 16px;
+  font-weight:150px;
+  color: white;
+  text-align: left;
+  margin-top:50px;
+}
+
+/* Hexagon Design */
+/* Hexagon Design */
+.hexagon {
+  width: 120px;
+  height: 120px;
+  clip-path: polygon(
+    50% 0%, 
+    95% 22%, 
+    95% 78%, 
+    50% 100%, 
+    5% 78%, 
+    5% 22%
+  ); /* Smoothened edges by adjusting the percentages */
+  background: #ffffff;
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto;
+  margin-right: 20px;
+  border-radius: 105px; /* Adds smoothness to the edges */
+}
+
+.hexagon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  
+}
+
+/* Brochure Info */
+.broucher-info h2 {
+  font-size: 28px;
+  color: white;
+  text-align: left;
+  margin-top: -320px;
+}
+
+/* Bottom Description */
+.card-bottom-description {
+  font-size: 16px;
+  font-weight: 200;
+  color: white;
+  text-align: left;
+  order:2;
+}
+
+/* Download Button */
+.download-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #dce7dc;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 8px 12px;
+  transition: background-color 0.3s ease;
+}
+
+.download-button:hover {
+  background-color: #50b9b9;
+}
+/* Download Button with Downward Arrow */
+.download-icon {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  color: #ecf1ec; /* Icon color */
+  font-size: 20px; /* Adjust the icon size */
+  transition: color 0.3s ease;
+}
+
+.download-icon:hover {
+  color: #0d8f3f; /* Icon color on hover */
+}
+
+//* Mobile View */
+@media (max-width: 768px) {
+  .broucher-cards {
+    flex-direction: column; /* Stack cards vertically */
+    align-items: center;
+    gap: 20px;
+  }
+
+  .broucher-card {
+    width: 10%; /* Make each card take up 90% of the screen width */
+    height: auto; /* Adjust height based on content */
+    align-items: center; /* Center-align items */
+  }
+
+  .download-button {
+    align-self: center; /* Center the download button */
+  }
+}

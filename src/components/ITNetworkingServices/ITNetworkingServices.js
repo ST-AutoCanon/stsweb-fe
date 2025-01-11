@@ -1,6 +1,5 @@
 import React from "react";
 import "./ITNetworkingServices.css";
-import EngineeringServices from "../EngineeringServices/EngineeringServices";
 
 const ITNetworkingServices = () => {
   return (
@@ -9,7 +8,7 @@ const ITNetworkingServices = () => {
       {/* Left Section - Image */}
       <div className="it-networking-services-image">
         <img
-          src="./images/ITNetworking.png"
+          src="./images/ITfirstpage.png"
           alt="IT & Networking Services"
           className="services-image"
         />
@@ -33,7 +32,9 @@ const ITNetworkingServices = () => {
       </div>
       
     </div>
-    <EngineeringServices />
+    
+   
+    
     </>
   );
 

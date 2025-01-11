@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
-
+import About from "../About/About";
+import Services from '../Services/Services';
+import HomologationPage from '../Homologation/Homologation';
+import HomologationFirst from '../HomologationFirst/HomologationFirst';
 // Custom Hook to Detect Screen Size
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -21,9 +24,9 @@ const Home = () => {
 
   // Different image sets for desktop and mobile
   const desktopImages = [
-    './images/home1.png',
-    './images/a2.png',
-    './images/home5.png',
+    './images/Homepage1.png',
+    './images/Homepage2.png',
+    './images/Homepage4.png',
     './images/home3.png',
   ];
 
@@ -64,9 +67,10 @@ const Home = () => {
       >
         {/* Hero Card */}
         <div className="hero-card">
-          <h2 className="hero-card-title">Welcome to Sukalpa Tech Solutions</h2>
+          <h1 className="hero-card-title1">Hi welcome to</h1>
+          <h2 className="hero-card-title">Sukalpa Tech Solutions</h2>
           <p className="hero-card-description">
-            Innovative solutions that drive your business forward.
+            Let us join to support you deserve
           </p>
           <button className="learn-moree-btn">Learn More</button>
         </div>
@@ -82,7 +86,11 @@ const Home = () => {
           ))}
         </div>
       </div>
-    </section>
+      
+      <Services/>
+      <HomologationFirst/>
+      <About/>
+      </section>
   );
 };
 

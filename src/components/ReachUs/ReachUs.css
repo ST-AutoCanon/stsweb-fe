@@ -1,0 +1,138 @@
+.reachus-container {
+  margin-top: 10px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 60vh;
+  position: relative;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header-section h1 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.content-section {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+}
+
+.map-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 130%;
+  overflow: hidden;
+  z-index:1;
+}
+
+.map-box iframe {
+  width: 100%;
+  height: 80%;
+  border: 0;
+}
+
+.form-box {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.9); /* Transparent background */
+  padding: 12px; /* Reduced padding */
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 320px; /* Smaller width */
+  height: 98%;
+  margin: auto;
+  text-align: left;
+  margin-top:10px;
+  margin-right:40px;
+}
+
+.contact-form label {
+  margin-top: 10px;
+  font-size: 0.85em; /* Slightly smaller font size */
+  font-weight: bold;
+  color: #333;
+  
+}
+
+.input-field,
+.textarea-field {
+  margin-top: 5px;
+  width: 90%; /* Ensure fields stay full-width within the form */
+  padding: 7px; /* Reduced padding */
+  font-size: 0.9em; /* Slightly smaller font */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 15px;
+}
+
+.textarea-field {
+  resize: none;
+}
+
+.send-button {
+  width: 95%; /* Ensure fields stay full-width within the form */
+  height:30px;
+  font-size: 0.9em; /* Smaller button text */
+  background-color: #28a745;
+  color: #fff;
+  
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.send-button:hover {
+  background-color: #218838;
+}
+
+.success-message,
+.error-message {
+  font-size: 0.9em; /* Smaller font for messages */
+}
+
+/* Media Query for Mobile View */
+/* Mobile View - Form first, Map below */
+@media (max-width: 768px) {
+  .content-section {
+    display: flex;
+    flex-direction: column-reverse; /* Reverse the order for mobile */
+    align-items: center;
+  }
+  .reachus-container {
+    margin-top: 10px;
+    padding: 40px;
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 130vh;
+    position: relative;
+  }
+  
+  
+  .form-box {
+    width: 90%; /* Ensure form adjusts for smaller screens */
+    margin-bottom: -490px; /* Center form and add space below */
+  }
+
+  .map-box {
+    width: 100%; /* Adjust map width for smaller screens */
+    height: 60vh; /* Adjust height for better display */
+  }
+}
+
