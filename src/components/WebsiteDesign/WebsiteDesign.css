@@ -15,7 +15,7 @@
   position: relative;
   width: 35%;
   order: 1; /* Place image on the left */
-  margin-top: 0;
+  margin-top: 50px;
 }
 
 .services-image {
@@ -30,13 +30,13 @@
 .website-design-text {
   width: 60%;
   order: 2; /* Place content on the right */
-  margin-top: -20px;
+  margin-top: -50px;
 }
 
 .website-design-text h1 {
   font-size: 2em;
   color: #000;
-  margin-bottom: 10px;
+  margin-bottom: -5px;
 }
 .website-design-text h2 {
   font-size: 1rem;

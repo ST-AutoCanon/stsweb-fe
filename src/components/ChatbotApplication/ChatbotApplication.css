@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px;
+    padding: 10px;
     background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -21,7 +21,7 @@
 
 .services-image {
     width: 100%;
-    height: auto;
+    height: 50%;
     border-radius: 8px;
     margin: 0; /* Remove any default margin on the image */
     display: block; /* Ensure the image behaves as a block element */
@@ -32,12 +32,12 @@
     width: 60%;
     order: 2; /* Place content on the right */
    /* Add some padding to the text section for balance */
-    margin-top: -40px;
+    margin-top: -20px;
 }
 
 
 .chatbot-application-text h1 {
-    margin-top: -20px; /* Adjust heading margin to move it upwards */
+    margin-top: 20px; /* Adjust heading margin to move it upwards */
   margin-bottom: 10px;
   font-size: 2rem;
   color: #333;

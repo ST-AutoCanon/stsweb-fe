@@ -8,13 +8,14 @@
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     gap: 20px;
+
   }
   
   /* Left Section - Content */
   .domestic-type-approval-text {
     width: 60%; /* Take up more space for text */
     order: 1; /* Place text on the left */
-    margin-top: -60px;
+    margin-top: -35px;
   }
   
   .domestic-type-approval-text h1 {
@@ -53,7 +54,7 @@
     position: relative;
     width: 35%; /* Take up less space for the image */
     order: 2; /* Place image on the right */
-    margin-top: 0;
+    margin-top:50px;
   }
   
   .services-image {

@@ -7,7 +7,7 @@ const ChatbotApplication = () => {
       {/* Left Section - Image */}
       <div className="chatbot-application-image">
         <img
-          src="./images/chatbot.png"
+          src="./images/chat.png"
           alt="Chatbot Application Services"
           className="services-image"
         />

@@ -22,14 +22,14 @@
     width: 100%;
     height: auto;
     border-radius: 8px;
-    
+    margin-bottom: 20px;
 }
 
 /* Left Section - Content */
 .plant-layout-planning-text {
     width: 60%;
     order: 1; /* Place content on the left */
-    margin-top: -250px;
+    margin-top: -60px;
 }
 
 .plant-layout-planning-text h1 {

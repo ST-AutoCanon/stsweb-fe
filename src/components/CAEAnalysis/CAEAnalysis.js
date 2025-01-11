@@ -7,7 +7,7 @@ const CAEAnalysis = () => {
       {/* Left Section - Image */}
       <div className="cae-analysis-image">
         <img
-          src="./images/caeanalysisone.png"
+          src="./images/cae9.png"
           alt="CAE Analysis Services"
           className="services-image"
         />

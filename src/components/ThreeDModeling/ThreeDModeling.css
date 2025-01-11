@@ -19,17 +19,13 @@
     margin-top: 0;
 }
 
-.services-image {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-}
+
 
 /* Right Section - Content */
 .three-d-modeling-text {
     width: 60%;
     order: 2;
-    margin-top: -10px;
+    margin-top: -75px;
 
 }
 

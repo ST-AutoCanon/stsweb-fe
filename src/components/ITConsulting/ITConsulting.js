@@ -60,7 +60,7 @@ const ITConsulting = () => {
       {/* Right Section - Image */}
       <div className="it-consulting-image">
         <img
-          src="./images/Itconsulting.png"
+          src="./images/itcons.png"
           alt="IT Consulting Services"
           className="services-image"
         />

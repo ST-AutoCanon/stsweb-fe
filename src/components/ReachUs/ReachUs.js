@@ -112,7 +112,7 @@ const ReachUs = () => {
               required
             ></textarea>
 
-            <button type="submit" className="send-button">Send Message</button>
+            <button type="submit" className="send-button">Send your queries</button>
           </form>
 
           {success && <p className="success-message">{success}</p>}

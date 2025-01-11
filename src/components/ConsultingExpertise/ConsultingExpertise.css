@@ -26,6 +26,7 @@
 
 /* Right Section - Content */
 .consulting-expertise-text {
+    margin-top:-80px;
     width: 60%;
     order: 2; /* Place content on the right */
 }

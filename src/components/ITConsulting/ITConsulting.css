@@ -27,7 +27,7 @@
 .it-consulting-text {
     width: 60%;
     order: 1; /* Place content on the left (changed from order: 2) */
-    margin-top: -120px;
+    margin-bottom: 110px;
     
 }
 

@@ -84,7 +84,7 @@ const Footer = () => {
             
           <p>We Focus On Making </p>
           <p>The Best In All Sectors</p>
-              <button onClick={openModal}>send your queries</button> {/* Trigger login form/modal on button click */}
+              <button onClick={openModal}>FeedBack</button> {/* Trigger login form/modal on button click */}
            
           </div>
           

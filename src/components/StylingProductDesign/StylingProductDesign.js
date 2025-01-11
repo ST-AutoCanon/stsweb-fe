@@ -32,7 +32,7 @@ const StylingProductDesign = () => {
       {/* Left Section - Image */}
       <div className="styling-product-design-image">
         <img
-          src="./images/stylingproduct.png"
+          src="./images/styleprod.png"
           alt="Styling Product Design Services"
           className="services-image"
         />

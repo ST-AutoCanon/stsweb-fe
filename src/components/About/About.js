@@ -40,10 +40,11 @@ const Page = () => {
           
           {/* Paragraph describing the organization */}
           <p>
-            The name of our organization was invented with a purpose to keep our vision
-            focused: "Let us join to support your deserve." Sukalpa is a Sanskrit word, and
-            it stands for Highly Skilled and Knowledge. SukalpaTech abides by its meaning by
-            utilizing advanced technologies and well-qualified, experienced staff.
+            The name of our organization was invented with a purpose to keep 
+            our 
+            vision
+            focused: "Let us join to support your deserve."  SukalpaTech abides by its meaning by
+            utilizing advanced technologies and well-qualified, experienced staff.We Invite you to partner with us on this exciting journey.
           </p>
         
           {/* Link to another page for more information */}

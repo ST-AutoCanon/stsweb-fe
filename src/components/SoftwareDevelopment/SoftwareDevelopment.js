@@ -7,7 +7,7 @@ const SoftwareDevelopment = () => {
       {/* Left Section - Image */}
       <div className="software-development-image">
         <img
-          src="./images/softwaredevelopment.png"
+          src="./images/software.png"
           alt="Software Development Services"
           className="services-image"
         />

@@ -14,7 +14,7 @@
 .cae-analysis-text {
   width: 60%;
   order: 1; /* Place content on the left */
-  margin-top: -60px;
+  margin-top: -30px;
 }
 
 .cae-analysis-text h1 {
@@ -54,7 +54,7 @@
   position: relative;
   width: 35%;
   order: 2; /* Place image on the right */
-  margin-top: 0;
+  margin-top: 60px;
 }
 
 .services-image {

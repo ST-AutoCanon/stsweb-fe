@@ -6,7 +6,7 @@
 .broucher-container {
   font-family: Arial, sans-serif;
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: hsl(0, 0%, 98%);
   text-align: center;
   margin: 0 auto;
   
@@ -17,7 +17,7 @@
   color: #011103f1;
   margin-bottom: 10px;
   order:1;
-
+margin-left:5%;
 }
 
 .broucher-cards {
@@ -25,8 +25,9 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 20px; /* Space between cards */
+  margin-left: 5%;
+  margin-right:5%;
 }
-
 /* Brochure Card */
 .broucher-card {
   background: #AC5C00;
