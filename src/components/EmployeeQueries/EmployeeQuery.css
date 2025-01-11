@@ -1,0 +1,44 @@
+.employee-query {
+    margin-top: 200px;
+    margin-left: 200px;
+    max-width: 600px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  
+  .employee-query h1 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .employee-query textarea {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .employee-query textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+  
+  .employee-query button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .employee-query button:hover {
+    background-color: #0056b3;
+  }
+  

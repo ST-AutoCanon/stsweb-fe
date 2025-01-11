@@ -79,14 +79,23 @@ input:focus {
 }
 
 .form-options {
-  margin-bottom: 20px;
-  text-align: right;
+  justify-content: flex-end; /* Align items to the right */
+  margin-bottom: 10px; /* Add spacing from the elements above */
+  margin-left: 130px;
 }
 
-.form-options a {
-  color: #007bff;
-  text-decoration: none;
-  font-size: 14px;
+/* Ensure this class targets the button specifically */
+.login-form .form-options .forgot-password-link {
+  background-color: transparent; /* Transparent background */
+  border: none; /* Remove border */
+  color: #787486; /* Blue text color */
+  font-size: 14px; /* Adjust font size */
+  cursor: pointer; /* Pointer cursor on hover */
+  padding: 5px 5px; /* Optional padding for better touch targets */
+}
+
+.login-form .form-options .forgot-password-link:hover {
+  color: #787486; /* Darker blue on hover */
 }
 
 .btn-login {
