@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 40px;
+    padding: 140px;
     background-color: #f5f5f5;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -13,7 +13,7 @@
 /* Left Section - Image */
 .export-homologation-image {
     position: relative;
-    width: 35%;
+    width: 30%;
     order: 1; /* Place image on the left */
     padding: 10px 0;
     margin-top: 0;
@@ -27,7 +27,7 @@
 
 /* Right Section - Content */
 .export-homologation-text {
-    width: 60%;
+    width: 65%;
     order: 2; /* Place content on the right */
     margin-top: -90px;
 }
@@ -107,5 +107,42 @@ div.export-homologation-text p {
 
     .services-list li {
         width: 100%;
+    }
+}
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+    .export-homologation-container {
+        padding: 80px; /* Increase padding for larger screens */
+    }
+
+    .export-homologation-image {
+        width: 20%; /* Adjust image width */
+    }
+
+    .export-homologation-text {
+        width: 70%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 40%; /* Adjust width of list items */
+    }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .export-homologation-container {
+        padding: 70px; /* Set padding for this screen range */
+    }
+
+    .export-homologation-image {
+        width: 20%; /* Adjust image width */
+    }
+
+    .export-homologation-text {
+        width: 73%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 45%; /* Adjust width of list items */
     }
 }

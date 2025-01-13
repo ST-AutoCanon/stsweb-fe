@@ -3,7 +3,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    padding: 50px;
+    padding: 140px;
     background-color: #f5f5f5;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -13,21 +13,22 @@
 /* Left Section - Image */
 .consulting-expertise-image {
     position: relative;
-    width: 35%;
+    width: 45%;
     order: 1; /* Place image on the left */
-    margin-top: 0;
+    margin-top: -10px;
 }
 
 .services-image {
-    width: 100%;
+    width: 220%;
     height: auto;
     border-radius: 8px;
 }
 
 /* Right Section - Content */
 .consulting-expertise-text {
-    margin-top:-80px;
-    width: 60%;
+    margin-top:-90px;
+    width: 100%;
+    margin-left: 60px;
     order: 2; /* Place content on the right */
 }
 
@@ -95,5 +96,41 @@
 
     .services-list li {
         width: 100%;
+    }
+}
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .consulting-expertise-container {
+        padding: 160px; /* Adjust padding for medium-large screens */
+    }
+
+    .consulting-expertise-text {
+        width: 60%; /* Adjust width for text section */
+    }
+
+    .consulting-expertise-image {
+        width: 35%; /* Adjust width for image section */
+    }
+
+    .services-list li {
+        width: 44%; /* Adjust width of list items */
+    }
+}
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+    .consulting-expertise-container {
+        padding: 100px; /* Increase padding for larger screens */
+    }
+
+    .consulting-expertise-text {
+        width: 58%; /* Adjust width for content */
+    }
+
+    .consulting-expertise-image {
+        width: 38%; /* Adjust image width */
+    }
+
+    .services-list li {
+        width: 40%; /* Adjust list item width */
     }
 }

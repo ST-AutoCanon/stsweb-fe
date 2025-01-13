@@ -7,7 +7,7 @@ const ThreeDModeling = () => {
       {/* Left Section - Image */}
       <div className="three-d-modeling-image">
         <img
-          src="./images/3dmodel.png"
+          src="./images/3dmodel2.png"
           alt="3D Modeling Services"
           className="services-image"
         />
@@ -15,7 +15,7 @@ const ThreeDModeling = () => {
 
       {/* Right Section - Content */}
       <div className="three-d-modeling-text">
-        <h1>3D Modeling Services</h1>
+        <h1>3D Modelling Services</h1>
         <p>
           At Sukalpa Tech Solutions, we specialize in creating digital representations of objects and environments using cutting-edge tools and techniques.
         </p>

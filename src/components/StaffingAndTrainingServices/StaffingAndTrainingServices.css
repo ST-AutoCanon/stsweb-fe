@@ -99,3 +99,42 @@
         width: 100%;
     }
 }
+
+
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+    .staffing-and-training-container {
+        padding: 50px; /* Adjust padding for larger screen */
+    }
+
+    .staffing-and-training-image {
+        width: 25%; /* Adjust image width */
+    }
+
+    .staffing-and-training-text {
+        width: 70%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 40%; /* Adjust width of list items */
+    }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .staffing-and-training-container {
+        padding: 30px; /* Set padding for this screen range */
+    }
+
+    .staffing-and-training-image {
+        width: 32%; /* Adjust image width */
+    }
+
+    .staffing-and-training-text {
+        width: 63%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 45%; /* Adjust width of list items */
+    }
+}

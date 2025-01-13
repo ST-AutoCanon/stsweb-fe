@@ -1,5 +1,6 @@
 .services-container {
   padding: 20px;
+  max-width: 1600px;
   background-color: #ddd;
 }
 
@@ -18,6 +19,8 @@
 }
 
 .service-card {
+  width: 100%;
+  height: 100%;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -39,29 +42,47 @@
   top: 200px;
   width: 100%;
   height: auto;
-  margin-top: -200px;
+  margin-top: -200%;
   margin-bottom: 6px;
 }
-
+.it-image
+{
+  position: sticky;
+}
 .moving-images {
   position: absolute; /* Ensure it's absolutely positioned relative to the parent card */
-  bottom: 170px; /* Move the moving images slightly above the bottom */
-  left: 50%; /* Center horizontally */
+  bottom: 31%; /* Move the moving images slightly above the bottom */
+  right: -8%; /* Center horizontally */
+  
   transform: translateX(-50%); /* Adjust horizontal alignment */
-  width: 100%; /* Optional: Set width for consistency */
+  width: 350%; /* Optional: Set width for consistency */
   display: flex;
   justify-content: center;
   pointer-events: none; /* Prevent interaction with the moving images */
-  transition: left 9.5s ease-in-out, opacity 5.5s ease-in-out; 
-  animation: moveImages 6s linear infinite; /* Animation for movement */
+  transition: transform 0s ease-in-out; 
+  animation: moveImages 12s linear infinite; /* Animation for movement */
+  gap: 25%;
+  flex-shrink: 0;
 }
+
 
 .moving-image {
   width: 100px; /* Adjust size of the moving images */
   height: auto;
-  margin-right: 10px;
+  gap:25%;
+  /* margin-right: 10px; */
+}
+.moving-image.active {
+  left: 0;
+  opacity: 6;
+  z-index: 2;
 }
 
+.moving-image.inactive {
+  left: -100%;
+  opacity: 0;
+  z-index: 0;
+}
 /* Custom styles for specific images */
 
 
@@ -84,6 +105,7 @@
   border: 2px solid #ccc;
 }
 
+/* Set specific background images for cards 1, 2, and 3 */
 
 
 /* Keyframes to move images from left to right */
@@ -101,7 +123,7 @@
     opacity: 0;
   }
   100% {
-    transform: translateX(0);
+    transform: translateX();
     opacity: 1;
   }
 }
@@ -118,8 +140,8 @@
 .service-button {
   margin-bottom: 10px;
   padding: 10px 10px;
-  margin-left: 250px;
-  background-color: white;
+  margin-left: 65%;
+  background-color: rgb(255, 255, 255);
   color: #15801e;
   border: none;
   border-radius: 4px;
@@ -173,14 +195,19 @@
 .back-button:hover {
   background-color: #0056b3;
 }
-
+.service-card:hover {
+  transform: translateY(-10px); /* Move the entire card up slightly */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Add a deeper shadow for emphasis */
+}
 .service-image-container {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
-
+.service-card:hover .service-image {
+  transform: scale(1.1); /* Scale up the image slightly on hover */
+}
 @media (max-width: 768px) {
   .services-grid {
     grid-template-columns: 1fr; /* Single-column layout for mobile */
@@ -196,6 +223,7 @@
     width: 100%;
     height: auto; /* Maintain the aspect ratio */
     object-fit: cover;
+    transition: transform 0.3s ease;
   }
 
   .service-button {
@@ -203,5 +231,154 @@
     padding: 8px 16px; /* Smaller button size */
     margin-left: 0; /* Center align button for mobile */
     align-self: center; /* Adjust alignment for the button */
+  }
+  
+  
+}
+
+
+
+
+
+
+
+
+
+
+@media (min-width: 1366px) and (min-height: 768px) {
+  .services-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjust column size */
+    gap: 25px; /* Adjust gap for larger screens */
+  }
+
+  .service-card {
+    border-radius: 10px; /* Slightly more rounded corners for large screens */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Deeper shadow for larger screens */
+    padding: 20px;
+  }
+
+  .services-header {
+    font-size: 2.5rem; /* Larger header font size */
+  }
+
+  .service-button {
+    font-size: 16px; /* Larger button text */
+    padding: 10px 10px; /* Bigger button */
+    margin-left: auto; /* Align buttons on the right */
+  }
+
+  .service-detail {
+    max-width: 800px; /* Wider content area for details */
+    margin: 0 auto; /* Center the detail section */
+  }
+
+  .service-detail-title {
+    font-size: 2.5rem; /* Larger titles */
+  }
+
+  .service-detail-description {
+    font-size: 1.3rem; /* Larger description text */
+    line-height: 1.8; /* Better readability */
+  }
+
+  .service-divider {
+    border-top: 2px solid #ddd; /* Thicker divider */
+  }
+}
+
+
+/* For larger screens (1366px and above) */
+@media (min-width: 1366px) {
+  .moving-images {
+    bottom: 31%; /* Adjust position for larger screens */
+    right: -5%; /* Reduce the offset on larger screens */
+    width: 300%; /* Adjust width for consistent scaling */
+    gap: 20%; /* Reduce gap for better alignment */
+  }
+
+  .moving-image {
+    width: 100px; /* Increase image size on larger screens */
+    height: auto;
+  }
+
+  .it-image {
+    width: 140px; /* Increase size for specific images */
+    height: 140px;
+    margin-top: -60px; /* Adjust spacing */
+  }
+}
+
+/* For medium screens (1024px - 1366px) */
+@media (max-width: 1380px) and (min-width: 1024px) {
+  .moving-images {
+    bottom: 27%;
+    right: -6%;
+    width: 320%;
+    gap: 22%;
+  }
+
+  .moving-image {
+    width: 100px;
+    height: auto;
+  }
+
+  .it-image {
+    width: 130px;
+    height: 130px;
+    margin-top: -70px;
+  }
+
+}
+
+
+/* For tablets (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .moving-images {
+    bottom: 18%; /* Adjust position for smaller screens */
+    right: -7%; /* Keep images centered */
+    width: 280%;
+    gap: 18%; /* Narrow gaps for tighter layouts */
+  }
+
+  .moving-image {
+    width: 90px;
+    height: auto;
+  }
+
+  .it-image {
+    width: 100px;
+    height: 100px;
+    margin-top: -50px;
+  }
+}
+
+/* For mobile devices (up to 768px) */
+@media (max-width: 768px) {
+  .moving-images {
+    bottom: 31%; /* Lower the images for smaller screens */
+    right: -10%;
+    width: 250%;
+    gap: 15%;
+  }
+
+  
+  .moving-image {
+    width: 100px; /* Adjust size of the moving images */
+    height: auto;
+    gap:25%;
+    /* margin-right: 10px; */
+  }
+  .it-image {
+    width: 80px;
+    height: 80px;
+    margin-top: -40px;
+  }
+  .sticky-card .sticky-image {
+    position: sticky;
+    top: 200px;
+    width: 100%;
+    height: auto;
+    margin-top: 8%;
+    margin-bottom: 6px;
   }
 }

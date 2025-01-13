@@ -3,7 +3,7 @@
     display: flex;
     align-items: flex-start; /* Align items from the top */
     justify-content: space-between;
-    padding: 50px; /* Reduced padding to avoid large top space */
+    padding: 100px; /* Reduced padding to avoid large top space */
     background-color: #f5f5f5;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -84,4 +84,64 @@ div.styling-product-design-text p {
     }
     
 
+}
+
+/* Media Query for 1366x768 screen size */
+@media screen and (min-width: 1380px) and (max-width: 1919px) {
+    .styling-product-design-container {
+        padding: 100px; /* Adjusted padding for medium screens */
+        gap: 15px; /* Reduced gap for balanced layout */
+    }
+
+    .styling-product-design-text {
+        margin-top: -80px; /* Adjusted spacing */
+    }
+
+    .styling-product-design-text h1 {
+        font-size: 1.8rem; /* Slightly smaller headline font size */
+    }
+
+    div.styling-product-design-text p {
+        font-size: 0.9rem; /* Adjusted paragraph font size */
+    }
+
+    .styling-product-design-image {
+        width: 28%; /* Slightly larger image width for balance */
+        margin-top: -20px;
+    }
+
+    .services-list li {
+        width: 48%; /* Adjusted list item width for medium screens */
+        font-size: 0.9rem; /* Reduced font size */
+    }
+}
+
+/* Media Query for 1920px and larger screen sizes */
+@media screen and (min-width: 1920px) {
+    .styling-product-design-container {
+        padding: 100px; /* Larger padding for spacious layout */
+        gap: 25px; /* Enhanced gap for better spacing */
+    }
+
+    .styling-product-design-text {
+        margin-top: -100px; /* Increased spacing for alignment */
+    }
+
+    .styling-product-design-text h1 {
+        font-size: 2.2rem; /* Larger headline font size */
+    }
+
+    div.styling-product-design-text p {
+        font-size: 1.1rem; /* Increased paragraph font size */
+    }
+
+    .styling-product-design-image {
+        width: 33%; /* Slightly reduced image width for proportion */
+        margin-top: -30px;
+    }
+
+    .services-list li {
+        width: 45%; /* Consistent width for list items */
+        font-size: 1.1rem; /* Larger font size for readability */
+    }
 }

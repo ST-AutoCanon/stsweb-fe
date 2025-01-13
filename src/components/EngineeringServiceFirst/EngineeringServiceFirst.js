@@ -24,7 +24,7 @@ const EngineeringServiceFirst = () => {
         <img src={ITfirstpage} alt="About Us" className="about-image" />
         </div>
         <div className="engineeringtext-section">
-          <h1>EngineeringServices</h1>
+          <h1>Engineering Services</h1>
           <p>Driving Progress Through Innovative Engineering</p>
         </div>
       </div>

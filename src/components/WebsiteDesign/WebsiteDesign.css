@@ -3,7 +3,7 @@
   display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px;
+    padding: 90px;
     background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -80,26 +80,82 @@
   background-color: #009624;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .website-design-container {
-      flex-direction: column; /* Stack items for smaller screens */
-      align-items: center;
-      text-align: center;
-      gap: 20px;
-  }
 
-  .website-design-text {
-      width: 100%;
-      order: 2; /* Maintain order for responsive layout */
+@media (min-width: 1380px) and (max-width: 1919px) {
+  .website-design-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px; /* Reduced padding for smaller screens */
+    padding-top:150px;
   }
 
   .website-design-image {
-      width: 100%;
-      order: 1; /* Maintain order for responsive layout */
+    width: 32%; /* Adjusted image size */
+    margin-top: 20px;
+  }
+
+  .website-design-text {
+    width: 62%; /* Adjusted content width */
+    margin-top: -100px;
+  }
+
+  .website-design-text h1 {
+    font-size: 2em; /* Medium heading size */
+  }
+
+  .website-design-text h2 {
+    font-size: 1rem;
+  }
+
+  .website-design-text p {
+    font-size: 1rem;
   }
 
   .services-list li {
-      width: 100%;
+    width: 45%; /* Adjust spacing */
+  }
+
+  .website-design-button {
+    font-size: 1em; /* Default button size */
+    padding: 10px 20px;
+  }
+}
+/* Styles for Large Screens (1920px and Above) */
+@media (min-width: 1920px) {
+  .website-design-container {
+    max-width: 1600px;
+    margin: 0 auto; /* Center the container */
+    padding: 100px; /* Increased padding for larger screens */
+  }
+
+  .website-design-image {
+    width: 40%; /* Slightly larger image */
+    margin-top: 0; /* Adjust top margin */
+  }
+
+  .website-design-text {
+    width: 55%; /* Adjusted content width */
+    margin-top: 0; /* Align content vertically */
+  }
+
+  .website-design-text h1 {
+    font-size: 2.5em; /* Larger heading for desktops */
+  }
+
+  .website-design-text h2 {
+    font-size: 1.2em; /* Larger subheading */
+  }
+
+  .website-design-text p {
+    font-size: 1.1rem; /* Larger paragraph text */
+  }
+
+  .services-list li {
+    width: 42%; /* Adjust width for better spacing */
+  }
+
+  .website-design-button {
+    font-size: 1.1em; /* Larger button text */
+    padding: 15px 25px; /* Bigger button for emphasis */
   }
 }

@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px;
+    padding: 70px;
     background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -13,16 +13,12 @@
 /* Left Section - Image */
 .software-development-image {
     position: relative;
-    width: 35%;
+    width: 34%;
     order: 1; /* Place image on the left */
     margin-top: 0;
 }
 
-.services-image {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-}
+
 
 /* Right Section - Content */
 .software-development-text {
@@ -95,5 +91,75 @@
 
     .services-list li {
         width: 100%;
+    }
+}
+
+
+/* Media Query for 1366x768 screen size */
+@media screen and (min-width: 1380px) and (max-width: 1919px) {
+    .software-development-container {
+        padding: 100px; /* Adjusted padding for medium screens */
+        gap: 15px; /* Reduced gap for tighter layout */
+    }
+
+    .software-development-text {
+        margin-bottom: 100px; /* Adjust spacing for better alignment */
+        margin-right: 30px;
+    }
+
+    .software-development-text h1 {
+        font-size: 1.8em; /* Slightly smaller headline font size */
+    }
+
+    .software-development-text p {
+        font-size: 0.95em; /* Adjusted font size for readability */
+    }
+
+    .software-development-image {
+        width: 31%; /* Adjusted image width for proportional layout */
+    }
+
+    .services-list li {
+        width: 48%; /* Adjust list item width to fit layout */
+        font-size: 0.85em; /* Reduced font size */
+    }
+
+    .software-development-button {
+        padding: 8px 18px; /* Reduced button size */
+        font-size: 0.95em;
+    }
+}
+
+/* Media Query for 1920x1080 screen size */
+@media screen and (min-width: 1920px) {
+    .software-development-container {
+        padding: 80px; /* Increased padding for larger screens */
+        gap: 25px; /* Enhanced gap for spacious layout */
+    }
+
+    .software-development-text {
+        margin-bottom: 100px; /* Increased spacing for content */
+    }
+
+    .software-development-text h1 {
+        font-size: 2.2em; /* Larger headline font size for better visual appeal */
+    }
+
+    .software-development-text p {
+        font-size: 1.1em; /* Increased font size for readability */
+    }
+
+    .software-development-image {
+        width: 32%; /* Reduced image width for balanced layout */
+    }
+
+    .services-list li {
+        width: 45%; /* Consistent width for larger screens */
+        font-size: 1em; /* Larger font size for improved readability */
+    }
+
+    .software-development-button {
+        padding: 12px 24px; /* Larger button size for emphasis */
+        font-size: 1.1em;
     }
 }

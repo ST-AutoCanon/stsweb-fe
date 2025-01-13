@@ -4,6 +4,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 50px;
+    padding-bottom: 0px;
     background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -102,5 +103,78 @@
 
     .services-list li {
         width: 100%; /* Full width on smaller screens */
+    }
+}
+/* Media Query for 1366x768 screen size */
+@media screen and (min-width: 1380px) and (max-width: 1919px) {
+    .it-consulting-container {
+        padding: 75px; /* Reduced padding for medium screens */
+        gap: 15px;
+    }
+
+    .it-consulting-text {
+        margin-bottom: 90px; /* Adjust spacing for better alignment */
+    }
+
+    .it-consulting-text h1 {
+        font-size: 2.2em; /* Slightly smaller heading size */
+    }
+
+    .it-consulting-text h2 {
+        font-size: 1.4em;
+    }
+
+    .it-consulting-text p {
+        font-size: 1em; /* Reduced font size for readability */
+    }
+
+    .it-consulting-image {
+        width: 34%; /* Adjusted width for the image */
+    }
+
+    .services-list li {
+        width: 48%; /* Slightly reduced width for better fit */
+    }
+
+    .it-consulting-button {
+        padding: 10px 20px; /* Reduced button size */
+        font-size: 1em;
+    }
+}
+
+/* Media Query for 1920x1080 screen size */
+@media screen and (min-width: 1920px) {
+    .it-consulting-container {
+        padding: 60px; /* Larger padding for spacious layout */
+        gap: 25px;
+    }
+
+    .it-consulting-text {
+        margin-bottom: 120px; /* Increased spacing for larger screens */
+    }
+
+    .it-consulting-text h1 {
+        font-size: 2.8em; /* Increased heading size for better visual impact */
+    }
+
+    .it-consulting-text h2 {
+        font-size: 1.6em;
+    }
+
+    .it-consulting-text p {
+        font-size: 1.2em; /* Larger font size for readability */
+    }
+
+    .it-consulting-image {
+        width: 35%; /* Adjusted width for balance */
+    }
+
+    .services-list li {
+        width: 45%; /* Consistent width on larger screens */
+    }
+
+    .it-consulting-button {
+        padding: 15px 30px; /* Larger button size for impact */
+        font-size: 1.2em;
     }
 }

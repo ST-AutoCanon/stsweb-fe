@@ -13,7 +13,7 @@
   /* Left Section - Image */
   .consulting-services-image {
     position: relative;
-    width: 35%;
+    width: 65%;
     padding: 10px 0;
     margin-top: -20px;
   }
@@ -26,14 +26,14 @@
   
   /* Right Section - Content */
   .consulting-services-text {
-    width: 60%;
+    width: 75%;
     top:-40px;
   }
   
   .consulting-services-text h1 {
     font-size: 2em;
     color: #000;
-    margin-bottom: -30px;
+    margin-bottom: 10px;
   }
   
   .consulting-services-text p {

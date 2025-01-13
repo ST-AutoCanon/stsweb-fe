@@ -126,7 +126,7 @@
 
 /* Button hover state */
 .circular-item-new .circular-button-new:hover {
-  background-color: grey;
+  background-color: #EBEBEB;
 }
 
 /* Button when active */
@@ -135,6 +135,25 @@
   color: black;
   cursor: default;
 }
+
+
+.circular-button-new:hover {
+  transform: scale(1.2); /* Scale the button slightly */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+}
+
+.circular-button-new:hover img {
+  transform: scale(1.1); /* Scale the image slightly for extra effect */
+}
+
+.circular-button-new.reverse:hover {
+  transform: scale(1.1); /* Apply rotation for reverse buttons */
+}
+
+
+
+
+
 
 /* Images inside the buttons */
 .circular-item-new img {
@@ -153,7 +172,7 @@
 
 /* Page section for dynamic content */
 .page-section-new {
-  padding: 100px 40px; 
+  /* padding: 100px 40px; changed  */
   margin-top: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;

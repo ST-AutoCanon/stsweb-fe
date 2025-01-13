@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px;
+    padding: 90px;
     background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -13,10 +13,10 @@
 /* Left Section - Image */
 .chatbot-application-image {
     position: relative;
-    width: 35%;
+    width: 33%;
     order: 1; /* Place image on the left */
 
-    margin-top: 0;
+    margin-top: 30px;
 }
 
 .services-image {
@@ -29,7 +29,7 @@
 
 /* Right Section - Content */
 .chatbot-application-text {
-    width: 60%;
+    width: 62%;
     order: 2; /* Place content on the right */
    /* Add some padding to the text section for balance */
     margin-top: -20px;
@@ -102,5 +102,76 @@
 
     .services-list li {
         width: 100%;
+    }
+}
+
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .chatbot-application-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 90px;
+    }
+
+    .chatbot-application-image {
+        width: 30%;
+        margin-top: 70px;
+    }
+
+    .chatbot-application-text {
+        width: 63%;
+        margin-top: -10px;
+    }
+
+    .chatbot-application-text h1 {
+        font-size: 1.8rem;
+    }
+
+    .chatbot-application-text p {
+        font-size: 0.95em;
+    }
+
+    .services-list li {
+        width: 48%;
+    }
+
+    .chatbot-application-button {
+        font-size: 1em;
+        padding: 10px 18px;
+    }
+}
+
+/* Styles for Large Screens (1920px and Above) */
+@media (min-width: 1920px) {
+    .chatbot-application-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 100px;
+    }
+
+    .chatbot-application-image {
+        width: 40%;
+        margin-top: 0;
+    }
+
+    .chatbot-application-text {
+        width: 55%;
+        margin-top: 0;
+    }
+
+    .chatbot-application-text h1 {
+        font-size: 2.5rem;
+    }
+
+    .chatbot-application-text p {
+        font-size: 1.1rem;
+    }
+
+    .services-list li {
+        width: 42%;
+    }
+
+    .chatbot-application-button {
+        font-size: 1.1em;
+        padding: 15px 25px;
     }
 }

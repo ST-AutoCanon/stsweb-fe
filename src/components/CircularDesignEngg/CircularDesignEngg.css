@@ -106,7 +106,24 @@
   transition: background-color 0.3s ease;
   gap: 10px;
 }
+.circular-button-engg img {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease;
+}
 
+.circular-button-engg:hover {
+  transform: scale(1.2); /* Scale the button slightly */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+}
+
+.circular-button-engg:hover img {
+  transform: scale(1.1); /* Scale the image slightly for extra effect */
+}
+
+.circular-button-engg.reverse:hover {
+  transform: scale(1.2); /* Apply rotation for reverse buttons */
+}
 /* Reverse layout for buttons */
 .circular-button-engg.reverse {
   flex-direction: row;
@@ -119,12 +136,12 @@
 
 /* Button hover state */
 .circular-button-engg:hover {
-  background-color: grey;
+  background-color: #EBEBEB;
 }
 
 /* Button when active */
 .circular-button-engg.active-button-engg {
-  background-color: grey;
+  background-color: #EBEBEB;
   color: black;
   cursor: default;
 }
@@ -145,7 +162,7 @@
 
 /* Page section for dynamic content */
 .page-section-engg {
-  padding: 100px 40px; 
+  /* padding: 100px 40px;  */
   margin-top: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;

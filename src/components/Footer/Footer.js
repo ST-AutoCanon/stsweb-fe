@@ -84,7 +84,7 @@ const Footer = () => {
             
           <p>We Focus On Making </p>
           <p>The Best In All Sectors</p>
-              <button onClick={openModal}>FeedBack</button> {/* Trigger login form/modal on button click */}
+              <button onClick={openModal}>Feedback</button> {/* Trigger login form/modal on button click */}
            
           </div>
           
@@ -94,7 +94,7 @@ const Footer = () => {
           <a href="/about">About</a>
           <a href="/services">Services</a>
           <a href="/ReachUs">Reach Us</a>
-          <a href="/KnowMore">KnowMore</a>
+          <a href="/KnowMore">Know More</a>
         </div>
       </div>
 

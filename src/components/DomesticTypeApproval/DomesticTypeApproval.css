@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px;
+    padding: 100px;
     background-color: #fff; /* White background */
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -98,4 +98,59 @@
     border-radius: 8px;
   }
   }
-  
+  /* For 1366x768 screen size */
+@media (min-width: 1366px) and (max-width: 1366px) {
+  .domestic-type-approval-container {
+      padding: 80px; /* Adjust padding */
+  }
+
+  .domestic-type-approval-text {
+      width: 55%; /* Adjust width for text section */
+  }
+
+  .domestic-type-approval-image {
+      width: 37%; /* Adjust image width */
+  }
+
+  .services-list li {
+      width: 48%; /* Adjust width for services list */
+  }
+}
+
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+  .domestic-type-approval-container {
+      padding: 120px; /* Increase padding for larger screens */
+  }
+
+  .domestic-type-approval-text {
+      width: 58%; /* Adjust text section width */
+  }
+
+  .domestic-type-approval-image {
+      width: 38%; /* Adjust image width */
+  }
+
+  .services-list li {
+      width: 40%; /* Adjust list item width */
+  }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+  .domestic-type-approval-container {
+      padding: 100px; /* Set padding for this screen range */
+  }
+
+  .domestic-type-approval-text {
+      width: 59%; /* Adjust text width */
+  }
+
+  .domestic-type-approval-image {
+      width: 30%; /* Adjust image width */
+  }
+
+  .services-list li {
+      width: 44%; /* Adjust list item width */
+  }
+}

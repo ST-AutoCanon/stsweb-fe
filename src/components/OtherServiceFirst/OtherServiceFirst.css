@@ -49,7 +49,7 @@
         rgba(214, 215, 219, 0)
     );
     pointer-events: none;
-    left: 46%!important; /* Lean closer to the text section */
+    left: 48.5%!important; /* Lean closer to the text section */
     width: 3%; /* Thicker line */
     height: 150%; /* Extends the line significantly */
     top: -25%;

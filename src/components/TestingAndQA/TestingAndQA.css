@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px;
+    padding: 70px;
     background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -22,7 +22,7 @@
 /* Right Section - Image */
 .testing-qa-image {
     position: relative;
-    width: 35%;
+    width: 34%;
     order: 2; /* Place image on the right */
     padding: 10px 0;
     margin-top: 0;
@@ -91,4 +91,60 @@
    
 }
     
+}
+
+/* Media Query for 1366x768 screen size */
+@media screen and (min-width: 1380px) and (max-width: 1919px) {
+    .testing-qa-container {
+        padding: 100px; /* Reduced padding for medium screens */
+        gap: 15px;
+    }
+
+    .testing-qa-text {
+        margin-bottom: 80px; /* Adjust spacing for alignment */
+    }
+
+    .testing-qa-text h1 {
+        font-size: 1.8rem; /* Slightly smaller headline font size */
+    }
+
+    .testing-qa-text h2 {
+        font-size: 1.3rem; /* Adjusted font size */
+    }
+
+    .testing-qa-image {
+        width: 32%; /* Slightly increased image width for balance */
+    }
+
+    .services-list li {
+        font-size: 0.95rem; /* Adjusted list font size */
+    }
+}
+
+/* Media Query for 1920x1080 screen size */
+@media screen and (min-width: 1920px) {
+    .testing-qa-container {
+        padding: 80px; /* Increased padding for larger screens */
+        gap: 25px;
+    }
+
+    .testing-qa-text {
+        margin-bottom: 120px; /* Increased spacing for better layout */
+    }
+
+    .testing-qa-text h1 {
+        font-size: 2.2rem; /* Larger headline font size for emphasis */
+    }
+
+    .testing-qa-text h2 {
+        font-size: 1.7rem; /* Increased secondary headline size */
+    }
+
+    .testing-qa-image {
+        width: 32%; /* Slightly reduced image width for better proportion */
+    }
+
+    .services-list li {
+        font-size: 1.1rem; /* Larger font size for better readability */
+    }
 }

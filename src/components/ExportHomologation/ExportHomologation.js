@@ -6,7 +6,7 @@ const ExportHomologation = () => {
     <div className="export-homologation-container">
       {/* Left Section - Content */}
       <div className="export-homologation-text">
-        <h1>Export Homologation: ECE Certification</h1>
+        <h1>Export Homologation</h1>
         <p>
           At Sukalpa Tech Solutions, we empower businesses to unlock global opportunities with our Export Homologation services. 
           Focused on ECE (Economic Commission for Europe) Certification, we ensure your vehicles meet international standards, 

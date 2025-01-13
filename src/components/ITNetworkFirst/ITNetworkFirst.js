@@ -29,7 +29,7 @@ const ITNetworkFirst = () => {
 
         </div>
         <div className="ittext-section">
-          <h1>ITNetworkingServices</h1>
+          <h1>ITNetworking Services</h1>
           <p>Empowering Your Digital Transformation with Sukalpa Tech Expert IT Solutions</p>
         </div>
       

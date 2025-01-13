@@ -2,7 +2,7 @@
 .tooling-container {
   display: flex;
   gap: 20px;
-  padding: 50px;
+  padding: 70px;
   background-color: #f5f5f5;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -11,17 +11,13 @@
 /* Left Section - Image */
 .tooling-image {
   position: relative;
-  width: 35%;
+  width: 33%;
   order: 2; /* Place image on the left */
   padding: 10px 0;
   margin-top: 50px;
 }
 
-.services-image {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
+
 
 /* Right Section - Content */
 .tooling-text {
@@ -79,3 +75,42 @@
     width: 100%;
   }
 }
+
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+  .tooling-container {
+    padding: 80px; /* Increase padding for larger screens */
+  }
+
+  .tooling-image {
+    width: 30%; /* Adjust image width */
+  }
+
+  .tooling-text {
+    width: 62%; /* Adjust text width */
+  }
+
+  .services-list li {
+    width: 40%; /* Adjust width of list items */
+  }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+  .tooling-container {
+    padding: 90px; /* Set padding for this screen range */
+  }
+
+  .tooling-image {
+    width: 29%; /* Adjust image width */
+  }
+
+  .tooling-text {
+    width: 63%; /* Adjust text width */
+  }
+
+  .services-list li {
+    width: 44%; /* Adjust width of list items */
+  }
+}
+

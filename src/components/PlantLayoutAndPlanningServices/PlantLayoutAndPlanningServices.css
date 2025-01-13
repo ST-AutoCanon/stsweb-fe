@@ -81,3 +81,40 @@
         width: 100%;
     }
 }
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+    .plant-layout-planning-container {
+        padding: 50px; /* Adjust padding for larger screen */
+    }
+
+    .plant-layout-planning-image {
+        width: 25%; /* Adjust image width */
+    }
+
+    .plant-layout-planning-text {
+        width: 70%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 40%; /* Adjust width of list items */
+    }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .plant-layout-planning-container {
+        padding: 90px; /* Set padding for this screen range */
+    }
+
+    .plant-layout-planning-image {
+        width: 34%; /* Adjust image width */
+    }
+
+    .plant-layout-planning-text {
+        width: 65%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 45%; /* Adjust width of list items */
+    }
+}

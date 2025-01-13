@@ -3,7 +3,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 10px 0px;
   background-color: #001D4A;
   color: white;
   width: 100%;
@@ -44,6 +44,7 @@
   margin-left: 20px;
   padding: 10px 15px;
   border-radius: 5px;
+  white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -51,6 +52,7 @@
 .nav-links li:hover {
   background-color: #79C42B;
   color: white;
+  
 }
 
 .nav-links a {
@@ -68,6 +70,7 @@
   display: inline-flex;
   align-items: center;
   padding-right: 10px;
+  
   justify-content: flex-start;
 }
 
@@ -86,15 +89,16 @@
 .nav-links li.dropdown .dropdown-menu {
   display: none;
   position: absolute;
-  top: 100%;
+  top: 150%;
   left: 0;
   background-color: #001D4A;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.2);
   padding: 0;
   margin: 0;
   min-width: 200px;
   z-index: 1;
   list-style-type: none; 
+  
 }
 
 .nav-links li.dropdown .dropdown-menu.show {
@@ -102,8 +106,9 @@
 }
 
 .nav-links li.dropdown .dropdown-menu li {
-  padding: 10px 20px;
-  border-bottom: 1px solid #ffffff30;
+  padding: px 8px;
+  margin: 0;
+  border-bottom: 1px solid #ffffff30; 
 }
 
 .nav-links li.dropdown .dropdown-menu li:last-child {
@@ -119,6 +124,7 @@
 .nav-links li.dropdown .dropdown-menu li a:hover {
   background-color: #79C42B;
   color: white;
+  
 }
 
 /* Hamburger menu styles */
@@ -127,6 +133,7 @@
   flex-direction: column;
   cursor: pointer;
   z-index: 20;
+
 }
 
 .hamburger .line {
@@ -136,23 +143,31 @@
   margin: 3px 0;
   gap: 5px;
   border-radius: 15%;
+  z-index: 20;
 }
 
 /* Mobile-specific styles */
 @media (max-width: 768px) {
   .hamburger {
     display: flex;
+    
   }
-
+  
+  .navbar{
+    padding: none;
+    justify-content: space-evenly;
+    gap: 200px;
+    
+  }
   .nav-links {
     display: none;
     flex-direction: column;
     position: absolute;
-    top: 60px;
-    left: 50%;
+    top: 80px;
+    left: 60%;
     transform: translateX(-50%);
     background-color: #001D4A;
-    width: 80%;
+    width: 50%;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 999;
   }

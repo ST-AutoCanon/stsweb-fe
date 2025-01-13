@@ -138,8 +138,8 @@ input:focus {
 
 .login-close-button {
   position: absolute;
-  top: 160px;
-  left: 800px;
+  top: 23%;
+  left: 51%;
   right: 320px;/* Set a fixed distance from the right */
   background-color: transparent; /* Transparent background */
   border: none; /* Re3move default border */

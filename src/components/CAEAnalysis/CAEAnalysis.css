@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 50px;
+  padding: 80px;
   background-color: #fff; /* Set background to white */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -52,7 +52,7 @@
 /* Right Section - Image */
 .cae-analysis-image {
   position: relative;
-  width: 35%;
+  width: 32%;
   order: 2; /* Place image on the right */
   margin-top: 60px;
 }
@@ -115,4 +115,43 @@
   height: auto;
   border-radius: 8px;
 }
+}
+
+
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+  .cae-analysis-container {
+    padding: 100px; /* Increase padding for larger screens */
+  }
+
+  .cae-analysis-text {
+    width: 58%; /* Adjust width for content */
+  }
+
+  .cae-analysis-image {
+    width: 38%; /* Adjust image width */
+  }
+
+  .services-list li {
+    width: 40%; /* Adjust list item width */
+  }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+  .cae-analysis-container {
+    padding: 80px; /* Adjust padding */
+  }
+
+  .cae-analysis-text {
+    width: 59%; /* Adjust content width */
+  }
+
+  .cae-analysis-image {
+    width: 28%; /* Adjust image width */
+  }
+
+  .services-list li {
+    width: 44%; /* Adjust list item width */
+  }
 }

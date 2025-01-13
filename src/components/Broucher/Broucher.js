@@ -6,7 +6,7 @@ const Broucher = () => {
     {
       name: "COMPANY PROFILE",
       url: "/Broucherpdfs/SK-General Profile.pdf",
-      image: "./images/broucher1.png",
+      image: "./images/broucher3.png",
       topDescription: "Learn about our company\nvision and mission.",
       bottomDescription: "Detailed insights\n into our company\n values.",
     },
@@ -20,7 +20,7 @@ const Broucher = () => {
     {
       name: "COMMERTIAL VEHICLE CATALOG",
       url: "/Broucherpdfs/SK-CV Capabilities.pdf",
-      image: "./images/broucher3.png",
+      image: "./images/broucher1.png",
       topDescription: "Understand commertial \n vehicle catalog.",
       bottomDescription: "Empovering \nInnovation in commertial\n Vehicle Solutions",
     },

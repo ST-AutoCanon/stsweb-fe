@@ -47,11 +47,10 @@ const Navbar = () => {
     setIsModalOpen(true);  // Trigger modal open by updating state to true
   };
 
-  // Close Login modal
-  const closeModal = () => {
-    setIsModalOpen(false); // Trigger modal close by updating state to false
+  // Open Login modal (triggering the Login form)
+  const CloseModal = () => {
+    setIsModalOpen(false);  // Trigger modal open by updating state to true
   };
-
   return (
     <>
       <nav className="navbar">
@@ -124,7 +123,7 @@ const Navbar = () => {
               to="/KnowMore"
               onClick={(e) => handleNavClick("/KnowMore")}
             >
-              KnowMore
+              Know More
             </NavLink>
             <span className="dropdown-arrow" onClick={toggleKnowMoreDropdown}>
               <i className="fas fa-chevron-down"></i>
@@ -174,7 +173,7 @@ const Navbar = () => {
       </nav>
 
       {/* Show Login component in a modal-like fashion */}
-      {isModalOpen && <Login onClose={closeModal} />} {/* Render the Login modal when isModalOpen is true */}
+      {isModalOpen && <Login onClose={CloseModal} />} {/* Render the Login modal when isModalOpen is true */}
     </>
   );
 };

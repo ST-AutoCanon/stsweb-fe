@@ -62,7 +62,7 @@ const WebsiteDesign = () => {
       {/* Right Section - Image */}
       <div className="website-design-image">
         <img
-          src="./images/website.png"
+          src="./images/web5.png"
           alt="Website Design Services"
           className="services-image"
         />
