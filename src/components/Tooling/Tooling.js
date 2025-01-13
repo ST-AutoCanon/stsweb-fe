@@ -7,7 +7,7 @@ const Tooling = () => {
       {/* Left Section - Image */}
       <div className="tooling-image">
         <img
-          src="./images/tool3.png"
+          src="./images/tooling2.png"
           alt="Tooling Services"
           className="services-image"
         />

@@ -23,10 +23,10 @@ const MajorProjects = () => {
       imageUrl: "./images/majorproj3.png",
     },
     {
-      title: "Electric 2&3 Wheelers",
+      title: "Three Wheeler",
       description:
         "Styling/Product Design & Development, Sourcing, Proto Development, Coordination with testing agencies, Vehicle Testing & Validation, CMVR Certification",
-      imageUrl: "./images/majorproj4.png",
+      imageUrl: "./images/majorservice6.png",
     },
     {
       title: "Truk",

@@ -7,7 +7,7 @@ const KnowMore = () => {
   return (
     <div>
    <KnowMoreFirstPage />
-   <Gallery />
+   
     </div>
   );
 };

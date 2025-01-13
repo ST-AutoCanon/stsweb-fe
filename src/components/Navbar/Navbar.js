@@ -73,7 +73,7 @@ const Navbar = () => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/About" onClick={() => handleNavClick("/About")}>
+            <NavLink to="/About" onClick={() => handleNavClick("/mainabout")}>
               About
             </NavLink>
           </li>

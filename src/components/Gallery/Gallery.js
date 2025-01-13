@@ -69,7 +69,7 @@ const Gallery = () => {
           <p>
             {selectedImage !== null
               ? descriptions[selectedImage]
-              : "A glimpse of the joyous Diwali celebrations at the office,showcasing the vibrant teamwork, unity, and festive cheer among colleagues."}
+              : "A glimpse of the joyous  celebrations at the office,showcasing the vibrant teamwork, unity, and festive cheer among colleagues."}
           </p>
         </div>
       </div>

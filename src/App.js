@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./components/Home/Home";
-import ScrollToTop from "./components/ScrollTop/ScrollTop.js";
+import ScrollToTop from "./components/ScrollTop/ScrollToTop.js";
 import Services from "./components/Services/Services";
 import Homologation from "./components/Homologation/Homologation";
 import Footer from "./components/Footer/Footer";
@@ -61,7 +61,7 @@ function App() {
       <div className="App">
         {/* Navbar */}
         <Navbar />
-        
+        <ScrollToTop />
         {/* Routes */}
         <Routes>
           <Route path="/" element={<Home />} />

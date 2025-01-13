@@ -13,7 +13,7 @@
 /* Left Section - Image */
 .consulting-expertise-image {
     position: relative;
-    width: 45%;
+    width: 48%;
     order: 1; /* Place image on the left */
     margin-top: -10px;
 }
@@ -27,7 +27,7 @@
 /* Right Section - Content */
 .consulting-expertise-text {
     margin-top:-90px;
-    width: 100%;
+    width: 90%;
     margin-left: 60px;
     order: 2; /* Place content on the right */
 }
@@ -105,11 +105,13 @@
     }
 
     .consulting-expertise-text {
-        width: 60%; /* Adjust width for text section */
+        margin-top:-80px;
+        margin-right:40px;
+        width: 55%; /* Adjust width for text section */
     }
 
     .consulting-expertise-image {
-        width: 35%; /* Adjust width for image section */
+        width: 32%; /* Adjust width for image section */
     }
 
     .services-list li {
