@@ -1,13 +1,13 @@
 /* Main container */
 .website-design-container {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 50px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px;
+    background-color:#fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
 }
 
 /* Left Section - Image */
@@ -15,18 +15,22 @@
   position: relative;
   width: 35%;
   order: 1; /* Place image on the left */
+  margin-top: 0;
 }
 
 .services-image {
   width: 100%;
   height: auto;
   border-radius: 8px;
+  padding: 10px 0;
+ 
 }
 
 /* Right Section - Content */
 .website-design-text {
   width: 60%;
   order: 2; /* Place content on the right */
+  margin-top: -20px;
 }
 
 .website-design-text h1 {
@@ -35,12 +39,12 @@
   margin-bottom: 10px;
 }
 .website-design-text h2 {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #555;
   margin-bottom: 10px;
 }
 .website-design-text p {
-  font-size: 1em;
+  font-size: 0rem;
   color: #555;
   margin-bottom: 20px;
 }

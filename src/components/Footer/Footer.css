@@ -1,165 +1,301 @@
-/* General Footer Styling */
+/* Footer Styling */
+/* Footer Styling */
 .footer {
+
   background-color: #0d707e;
   color: white;
   padding: 20px 15px;
   width: 100%;
-  margin: 0;
+  margin: 0
+  background-color: #0f6679; /* Teal background */
+  color: #6bb9c7;
+  padding: 20px 10px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 5px;
+ 
 }
 
-/* Container for footer elements */
 .footer-container {
-  max-width: 1200px;
-  height:9vh;
-  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 1200px;
+  height:85px;
+  margin: 0 auto;
   flex-wrap: wrap;
-  gap: 0px;
+  
+  flex-direction: row; /* Make sure elements are in a row on desktop */
 }
 
+/* QR Code Section */
+.footer-logo {
+  margin-top: 10px;
+  text-align: center;
+  margin-left: -100px;
+}
 
-.scanner {
-  height: 60px;
-  width: 60px;
+.footer-logo img {
+  max-width: 200px;  /* Make the QR code smaller */
+  height: auto;
+  
+  margin-bottom: 5px;
+}
+
+/* Social Icons Section */
+.social-icons {
   display: flex;
-  gap: 20px;
+  gap: 25px;
+  justify-content: center;
+  margin-top: -20px;
+  margin-left:-60px;
+  
 }
+
+.social-icon {
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;  /* Circle width */
+  height: 50px; /* Circle height */
+  border: 2.5px solid #fff;  /* Thin white border */
+  border-radius: 50%;  /* Makes the border circular */
+  font-size: 12px;  /* Adjusted icon size */
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.social-icon:hover {
+  color: #28a745;  /* Green color on hover */
+  background-color: #fff; /* White background on hover */
+  border-color: #28a745;  /* Green border on hover */
+}
+.floginbtn button {
+  margin-right: -1700px;
+  padding: 12px 30px; /* Adjust spacing around text */
+  font-size: 1rem; /* Slightly larger text */
+  font-weight: bold; /* Make the text bold */
+  color: white; /* Text color */
+  background-color: #28a745; /* Green background */
+  border: none; /* Remove border */
+  border-radius: 8px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top:25px;
+}
+
+.floginbtn button:hover {
+  background-color: #218838; /* Darker green on hover */
+  transform: scale(1.05); /* Slight zoom-in effect */
+}
+
+.floginbtn button:active {
+  background-color: #1e7e34; /* Even darker green when clicked */
+  transform: scale(0.98); /* Slight shrink effect */
+}
+
+.floginbtn button:focus {
+  outline: 2px solid #28a745; /* Green outline for accessibility */
+  outline-offset: 4px; /* Space between outline and button */
+}
+floginbtn ul {
+  list-style: none; /* Remove bullets from the list */
+  margin: 0;
+  padding: 0;
+}
+
+.floginbtn  p{
+ font-size: large;
+ color: white;
+ font-weight: 700;
+ margin:0;
+ margin-right: -1700px;
+ 
+}
+
+
+
 /* Links Section */
 .footer-links {
-  list-style: none;
   display: flex;
-  gap: 30px;
-  padding: 0;
-  margin: 0;
+  gap: 20px;
+  margin-right:390px;
+  flex-wrap: wrap;
+  order: 1; /* This makes links come after the feedback section */
 }
 
-.footer-links li a {
-  color: white;
+.footer-links a {
+  margin-bottom: 40px;
   text-decoration: none;
-  font-size: 16px;
+  color: #fff;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
 }
 
-.footer-links li a:hover {
-  text-decoration: underline;
+.footer-links a:hover {
+  color: #28a745; /* Green hover effect */
 }
 
 /* Feedback Section */
 .footer-feedback {
-  max-width: 450px;
-  font-size: small;
-  text-align: right;
+  text-align: left;
+  max-width: 300px;
+  color: #fff;
+  font-size: 0.9rem;
+  order: 2; /* This places the feedback section before the links */
 }
 
 .footer-feedback p {
   margin: 5px 0;
+  
+  font-size: 1.0rem;
 }
 
 .feedback-button {
-  background-color: #4caf50;
-  color: white;
+  
+  padding: 10px 30px;
+  font-size: 0.7rem;
+  color: black;
+  background-color: #28a745; /* Green button */
   border: none;
-  padding: 5px 12px;
-  font-size: 12px;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+ 
 }
 
 .feedback-button:hover {
-  background-color: #45a049;
+  background-color: #218838; /* Darker green on hover */
 }
 
-/* Social Media Icons */
-.footer-social {
-  display: flex;
-  gap: 10px;
+/* Copyright Section */
+.footer-bottom {
+  margin-top: 40px;
+  font-size: 0.6rem;
+  margin-left: -40px;
+  color: #ccc;
 }
-
-.footer-social a {
-  color: white;
-  font-size: 15px;
-  text-decoration: none;
+.footer-slogan{
+  display: none;
 }
-
-.footer-social a:hover {
-  color: #4caf50;
+.social-icons2{
+  display: none;
 }
-
-/* Sticky Footer for Desktop View */
-
-/* Non-Sticky Footer for Mobile View */
+/* Mobile View */
 @media (max-width: 768px) {
   .footer {
-    width: 100%; /* Make sure footer takes full width */
-    height: 100px; /* Allow the footer to adjust its height based on content */
-    position: static; /* Footer naturally flows after the content */
-    margin-top: 20px; /* Add spacing from the content */
-    display: flex;
-    flex-direction: column; /* Stack all items vertically */
-    align-items: center; /* Center all items */
-    gap: 20px; /* Add space between sections */
-    padding: 20px; /* Optional padding for spacing */
+    padding: 10px;
+    text-align: center;
+    font-size: 0.9rem;
   }
 
-  /* Scanner - Position the scanner section vertically first */
-  .scanner {
-    display: flex;
-    justify-content: left;
-    align-items: left;
-    height: 50px;
-    width: 50px;
-    order: 1; /* First item */
-    margin-top: 10px; /* Add margin to give space from the top */
-    margin-left: 20px;
-    padding: 20px;
-  }
-
-  .scanner img {
-    height: 100%;
-    width: 100%;
-    object-fit: cover;
-    
-  }
-
-  /* Social Icons - Stack them vertically */
-  .footer-social {
-    display: flex;
-    flex-direction: column; /* Stack icons vertically */
-    align-items: right;
-    gap: 10px; /* Add space between icons */
-    margin-top: 30px;
-    order: 2; /* Position social icons after scanner */
-  }
-
-  .footer-social a {
-    font-size: 15px;
-    color: white;
-  }
-
-  .footer-social a:hover {
-    color: #4caf50;
-  }
-
-
-
-  /* Footer Links - Make sure links appear at the bottom */
-  .footer-links {
-    order: 5; /* Display links at the bottom */
-    display: flex;
-    flex-direction: column; /* Stack links vertically */
-    gap: 10px; /* Add space between links */
+  .footer-container {
+    flex-direction: column; /* Stack elements vertically */
     align-items: center;
+    height: 180px;
+    
+    margin: 0 auto;
   }
 
-  .footer-links li a {
-    font-size: 16px;
+  /* QR Code Section */
+  .footer-logo {
+    margin-top: 0;
+    text-align: center;
+    display: none;
+  }
+
+  .footer-logo img {
+    max-width: 150px;  /* Adjust QR code size for mobile */
+    height: auto;
+    margin-bottom: 10px;
+  }
+
+  /* Social Icons Section */
+  .social-icons {
+    display: flex;
+    gap: 15px;
+    margin-left :50px;
+    justify-content: center;
+    margin-top: 130px;
+    align-items: center;
+    margin-bottom: -50px;
+  }
+
+  .social-icon {
+    width: 60px;  /* Slightly bigger icons for easier tap */
+    height: 60px;
+    font-size: 14px;
+    border: 3px solid #fff;  /* Thin white border */
+
+  }
+
+  /* Links Section */
+  .footer-links {
+    display: none;
+    flex-direction: column;  /* Stack links vertically */
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
+  }
+
+  .footer-links a {
+    font-size: 1rem;
+    margin-bottom: 60px;
+  }
+
+  /* Feedback Section */
+  .footer-feedback {
+    text-align: center;
+    max-width: 90%;
+    margin-bottom: 60px;
+    font-size: 2.5rem;
+    margin-top: 40px;
+
+  }
+
+  .footer-feedback p {
+    margin: 5px 0;
+    margin-left:-300px; 
+    font-size: 1.5rem;
+  font-weight: 800; 
+  
+}
+
+  .feedback-button {
+    padding: 15px 95px;
+    font-size: 0.9rem;
+    background-color: #28a745;
     color: white;
-    text-decoration: none;
+    margin-top: 120px;
+    margin-left:-290px;
+
   }
 
-  .footer-links li a:hover {
-    text-decoration: underline;
+  .footer-bottom {
+    margin-top: 130px;
+    font-size: 0.7rem;
+    color: #ccc;
+    text-align: center;
+    margin-bottom: 70px;
+  }
+  .footer-bottom p{
+    
+    margin-right: -80px;
   }
 
+  .footer-slogan {
+    display: block; /* Show slogan on mobile */
+    font-size: 0.9rem;
+    color: #6bb9c7;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .social-icons2 {
+    display: block; /* Display additional social icons if any */
+    margin-top: 10px;
+    display: none;
+    justify-content: none;
+  }
 }

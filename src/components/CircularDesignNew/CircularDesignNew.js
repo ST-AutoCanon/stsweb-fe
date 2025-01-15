@@ -128,6 +128,7 @@ import SoftwareDevelopment from "../SoftwareDevelopment/SoftwareDevelopment";
 import ThreeDModeling from "../ThreeDModeling/ThreeDModeling";
 import WebsiteDesign from "../WebsiteDesign/WebsiteDesign";
 import TestingAndQA from "../TestingAndQA/TestingAndQA";
+import Log2 from "../../assets/images/log2.png"
 import "./CircularDesignNew.css";
 
 const CircularDesignNew = () => {
@@ -152,8 +153,8 @@ const CircularDesignNew = () => {
       content: <ChatbotApplication />,
       degree: isMobile ? 0 : -250,
       reverse: false,
-      offsetX: isMobile ? 70: 370,
-      offsetY: isMobile ? 40 : 90,
+      offsetX: isMobile ? 50: 370,
+      offsetY: isMobile ? 90 : 90,
       lineClass: "line-1-new",
     },
     {
@@ -162,8 +163,8 @@ const CircularDesignNew = () => {
       content: <ITConsulting />,
       degree: isMobile ? 300 : 30,
       reverse: false,
-      offsetX: isMobile ? 220 : 380,
-      offsetY: isMobile ? 310 : 200,
+      offsetX: isMobile ? 175 : 380,
+      offsetY: isMobile ? 320 : 200,
       lineClass: "line-2-new",
     },
     {
@@ -172,8 +173,8 @@ const CircularDesignNew = () => {
       content: <SoftwareDevelopment />,
       degree: isMobile ? 60 : 90,
       reverse: false,
-      offsetX: isMobile ? 160 : 370,
-      offsetY: isMobile ? 190 : 290,
+      offsetX: isMobile ? 120 : 370,
+      offsetY: isMobile ? 150 : 290,
       lineClass: "line-3-new",
     },
     {
@@ -182,8 +183,8 @@ const CircularDesignNew = () => {
       content: <ThreeDModeling />,
       degree: isMobile ? 180 : 150,
       reverse: true,
-      offsetX: isMobile ? 120 : 70,
-      offsetY: isMobile ? 180 : 200,
+      offsetX: isMobile ? 170 : 70,
+      offsetY: isMobile ? 190 : 200,
       lineClass: "line-4-new",
     },
     {
@@ -192,8 +193,8 @@ const CircularDesignNew = () => {
       content: <WebsiteDesign />,
       degree: isMobile ? 240 : 210,
       reverse: true,
-      offsetX: isMobile ? 80 : 140,
-      offsetY: isMobile ? 170 : 170,
+      offsetX: isMobile ? 100 : 140,
+      offsetY: isMobile ? 220 : 170,
       lineClass: "line-5-new",
     },
     {
@@ -202,8 +203,8 @@ const CircularDesignNew = () => {
       content: <TestingAndQA />,
       degree: isMobile ? 175 : 270,
       reverse: true,
-      offsetX: isMobile ? 160 : 30,
-      offsetY: isMobile ? 310 : 590,
+      offsetX: isMobile ? 190 : 30,
+      offsetY: isMobile ? 270 : 590,
       lineClass: "line-6-new",
     },
   ];
@@ -220,7 +221,9 @@ const CircularDesignNew = () => {
       <div className="circular-container-new">
         <div className="central-wrapper-new">
           <div className="central-image-new">
-            <img src="/images/CircularimageLogo.png" alt="Central Logo" />
+            {/* <img src="/images/newlogo1.png" alt="Central Logo" /> */}
+            <img src={Log2} alt="Central Logo" />
+
           </div>
         </div>
         {items.map((item, index) => (

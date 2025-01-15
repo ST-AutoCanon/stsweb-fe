@@ -4,27 +4,29 @@ import "./Broucher.css";
 const Broucher = () => {
   const brochures = [
     {
-      name: "Company Profile",
-      url: "/Broucherpdfs/STS Contents (1).pdf",
-      image: "./images/g1.jpg", // Replace with actual image URL
-      topDescription: "Learn about our company      vision and mission.", // Top description
-      bottomDescription: ["Detailed insights into","our company values."], // Bottom description
+      name: "COMPANY PROFILE",
+      url: "/Broucherpdfs/SK-General Profile.pdf",
+      image: "./images/Broucher3.jpg",
+      topDescription: "Learn about our company\nvision and mission.",
+      bottomDescription: "Detailed insights\n into our company\n values.",
     },
     {
-      name: "Product Catalog",
-      url: "/pdfs/product-catalog.pdf",
-      image: "./images/g1.jpg", // Replace with actual image URL
-      topDescription: "Explore our wide range of products.", // Top description
-      bottomDescription: "Get detailed specifications and features.", // Bottom description
+      name: "2/3 WHEELER CAPABILITIES",
+      url: "/Broucherpdfs/SK-2&3W Capabilities.pdf",
+      image: "./images/Broucher1.jpg",
+      topDescription: "Innovate solutions for 2&3 wheeler\n Design and Manufacturing.",
+      bottomDescription: "Get detailed \nspecifications\nand features.",
     },
     {
-      name: "Pricing Details",
-      url: "/pdfs/pricing-details.pdf",
-      image: "./images/g1.jpg", // Replace with actual image URL
-      topDescription: "Find our competitive pricing options.", // Top description
-      bottomDescription: "Transparent and flexible pricing plans.", // Bottom description
+      name: "COMMERTIAL VEHICLE CATALOG",
+      url: "/Broucherpdfs/SK-CV Capabilities.pdf",
+      image: "./images/Broucher2.jpg",
+      topDescription: "Understand commertial \n vehicle catalog.",
+      bottomDescription: "Empovering \nInnovation in commertial\n Vehicle Solutions",
     },
   ];
+
+  const backgroundColors = ["#0F6679", "#AC5C00", "#0091C6"]; // Define your card colors
 
   return (
     <div className="broucher-container">
@@ -33,21 +35,20 @@ const Broucher = () => {
       </div>
       <div className="broucher-cards">
         {brochures.map((brochure, index) => (
-          <div key={index} className="broucher-card">
+          <div
+            key={index}
+            className="broucher-card"
+            style={{ backgroundColor: backgroundColors[index % backgroundColors.length] }} // Dynamic background color
+          >
             {/* Top Description */}
             <div className="card-top-description">
-              {brochure.topDescription}
+              {brochure.topDescription.split("\n").map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
             </div>
             {/* Hexagon with Image */}
             <div className="hexagon">
               <img src={brochure.image} alt={brochure.name} />
-              <a
-    href="./Broucherpdfs/STS_Contents.pdf" /* Replace with the actual path to your PDF file */
-    className="broucherfirstpage-download-text"
-    download="STSContents.pdf" /* Optional: Set a default file name */
-  >
-    Download Here
-  </a>
             </div>
             {/* Brochure Info */}
             <div className="broucher-info">
@@ -55,13 +56,21 @@ const Broucher = () => {
             </div>
             {/* Bottom Description */}
             <div className="card-bottom-description">
-              {brochure.bottomDescription}
+              {brochure.bottomDescription.split("\n").map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
             </div>
-            
+            {/* Download Button */}
+            <a
+  href={brochure.url}
+  className="download-icon"
+  download={brochure.name + ".pdf"}
+>
+  <i className="fas fa-download"></i>
 
-            
-          </div>
+</a>
           
+          </div>
         ))}
       </div>
     </div>

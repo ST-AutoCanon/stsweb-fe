@@ -1,6 +1,5 @@
 import React from "react";
 import "./Reachusfirst.css"; // Updated CSS file name
-
 import ReachUs from "../ReachUs/ReachUs";
 
 // Details of Cards
@@ -22,10 +21,10 @@ const Reachusfirst = () => {
       {/* Container for ReachUsFirstPage */}
       <div className="reachusfirstpage-container">
         <div className="reachusfirstpage-image-section">
-          <img src="./images/m8.png" alt="About Us" className="reachusfirstpage-about-image" />
+          <img src="./images/Reachus.png" alt="About Us" className="reachusfirstpage-about-image" />
         </div>
         <div className="reachusfirstpage-text-section">
-          <h1>Other Services</h1>
+          <h1>Reach Us</h1>
           <p>See how Sukalpa Tech focuses on making the best in all sectors</p>
         </div>
       </div>

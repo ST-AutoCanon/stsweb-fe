@@ -27,10 +27,10 @@ const CircularDesignEngg = () => {
       text: "Styling Product Design",
       link: "styling-product-design",
       content: <StylingProductDesign />,
-      degree: isMobile ? 0 : -350,
+      degree: isMobile ? 5 : -350,
       reverse: false, // Image first, then text
-      offsetX: isMobile ? 70 : 370,
-      offsetY: isMobile ? 40 : 90,
+      offsetX: isMobile ? 40 : 370,
+      offsetY: isMobile ? 50 : 90,
       lineClass: "line-1-engg",
     },
     {
@@ -39,7 +39,7 @@ const CircularDesignEngg = () => {
       content: <CAEAnalysis />,
       degree: isMobile ? 300 : 30,
       reverse: false, // Image first, then text
-      offsetX: isMobile ? 220 : 380,
+      offsetX: isMobile ? 180 : 380,
       offsetY: isMobile ? 310 : 200,
       lineClass: "line-2-engg",
     },
@@ -47,10 +47,10 @@ const CircularDesignEngg = () => {
       text: "Tooling,jigs & Fixtures",
       link: "tooling",
       content: <Tooling />,
-      degree: isMobile ? 60 : 90,
+      degree: isMobile ? 56 : 90,
       reverse: false, // Image first, then text
-      offsetX: isMobile ? 150 : 390,
-      offsetY: isMobile ? 180 : 290,
+      offsetX: isMobile ? 120 : 390,
+      offsetY: isMobile ? 150 : 290,
       lineClass: "line-3-engg",
     },
     {
@@ -59,7 +59,7 @@ const CircularDesignEngg = () => {
       content: <ConsultingExpertise />,
       degree: isMobile ? 180 : 150,
       reverse: true, // Text first, then image
-      offsetX: isMobile ? 120 : 70,
+      offsetX: isMobile ? 160 : 70,
       offsetY: isMobile ? 180 : 200,
       lineClass: "line-4-engg",
     },
@@ -70,18 +70,17 @@ const CircularDesignEngg = () => {
       degree: isMobile ? 240 : 210,
       reverse: true, // Text first, then image
       offsetX: isMobile ? 80 : 80,
-      offsetY: isMobile ? 170 : 170,
+      offsetY: isMobile ? 190 : 170,
       lineClass: "line-5-engg",
     },
     {
       text: "Domestic Type Approval",
       link: "domestic-type-approval",
       content: <DomesticTypeApproval />,
-      degree: isMobile ? 175
-       : 270,
+      degree: isMobile ? 170: 270,
       reverse: true, // Text first, then image
-      offsetX: isMobile ? 140 : -30,
-      offsetY: isMobile ? 300 : 590,
+      offsetX: isMobile ? 150 : -30,
+      offsetY: isMobile ? 250 : 590,
       lineClass: "line-6-engg",
     },
   ];
@@ -99,7 +98,7 @@ const CircularDesignEngg = () => {
       <div className="circular-container-engg">
         <div className="central-wrapper-engg">
           <div className="central-image-engg">
-            <img src="/images/CircularimageLogo.png" alt="Central Logo" />
+            <img src="/images/log2.png" alt="Central Logo" />
           </div>
         </div>
         {items.map((item, index) => (

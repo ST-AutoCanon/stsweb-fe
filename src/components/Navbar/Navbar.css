@@ -30,7 +30,7 @@
   left: 0;
   right: 0;
   background-color: #001D4A;
-  padding: 14px 0;
+  padding: 8px 0;
   z-index: 10;
 }
 
@@ -38,11 +38,6 @@
 .nav-links.open {
   display: flex;
   margin-bottom: 0;
-}
-
-.loginbtn {
-  position: relative;
-  right: 0%;
 }
 
 /* Hamburger menu styles */
@@ -61,7 +56,6 @@
   gap: 5;
   border-radius: 15%;
 }
-
 
 /* Dropdown Menu Styling */
 .nav-links li.dropdown .dropdown-menu {
@@ -123,14 +117,11 @@
   transform: rotate(180deg);
 }
 
-
-
 /* Mobile-specific styles */
 @media (max-width: 768px) {
   .hamburger {
     display: flex; /* Show hamburger icon on mobile */
     margin-right: 15%;
-   
   }
 
   .nav-links {
@@ -140,8 +131,9 @@
   .nav-links.open {
     display: flex; /* Show menu when open class is added */
   }
+
   .dropdown-menu {
-  left: -20%;
+    left: -20%;
   }
 }
 
@@ -276,7 +268,6 @@
   color: white;
 }
 
-
 /* Mobile View */
 @media (max-width: 768px) {
   .nav-links {
@@ -307,8 +298,6 @@
   .hamburger {
     display: none; /* Hide hamburger in desktop view */
   }
-
-
 }
 
 /* Mobile View */
@@ -351,7 +340,6 @@
     align-items: center;   /* Vertically center the arrow and text */
     padding-right: 10px;    /* Add some space on the right side of the text for the arrow */
     justify-content: flex-start; /* Align items to the left */
-
   }
 
   .nav-links li.dropdown .dropdown-arrow {
@@ -398,12 +386,30 @@
     color: white;
     text-decoration: none;
     font-size: 1rem;
-        justify-content: flex-start; /* Align items to the left */
-
+    justify-content: flex-start; /* Align items to the left */
   }
 
   .nav-links li.dropdown .dropdown-menu li a:hover {
     background-color: #79C42B;
     color: white;
   }
+}
+
+/* Style for the Login button */
+.navbar button {
+  background-color: transparent; /* Remove default background */
+  color: white; /* White text color */
+  border: none; /* Remove border */
+  padding: 0px 0px; /* Consistent padding */
+  font-size: 1.2rem; /* Consistent font size */
+  border-radius: 5px; /* Rounded corners for the button */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+}
+
+.navbar button:hover {
+  background-color: #79C42B; /* Hover effect (green background) */
+  color: white; /* Text color changes on hover */
+  transform: scale(1.05); /* Slight zoom effect */
+
 }

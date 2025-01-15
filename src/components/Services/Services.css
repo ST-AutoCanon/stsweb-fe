@@ -1,12 +1,14 @@
 .services-container {
   padding: 20px;
+  background-color: #ddd;
 }
 
 .services-header {
-  text-align: center;
+  text-align: left;
   margin-bottom: 20px;
   font-size: 2rem;
   font-weight: bold;
+  
 }
 
 .services-grid {
@@ -24,44 +26,87 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
 }
 
-/* Image styling */
-.service-image {
+/* Sticky image styling */
+.sticky-card .service-image-container {
+  position: relative;
+}
+
+.sticky-card .sticky-image {
+  position: sticky;
+  top: 200px;
   width: 100%;
-  height: 350px;
-  object-fit: cover;
+  height: auto;
+  margin-top: -200px;
+  margin-bottom: 6px;
+}
+
+.moving-images {
+  position: absolute; /* Ensure it's absolutely positioned relative to the parent card */
+  bottom: 170px; /* Move the moving images slightly above the bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust horizontal alignment */
+  width: 100%; /* Optional: Set width for consistency */
+  display: flex;
+  justify-content: center;
+  pointer-events: none; /* Prevent interaction with the moving images */
+  transition: left 9.5s ease-in-out, opacity 5.5s ease-in-out; 
+  animation: moveImages 6s linear infinite; /* Animation for movement */
+}
+
+.moving-image {
+  width: 100px; /* Adjust size of the moving images */
+  height: auto;
+  margin-right: 10px;
+}
+
+/* Custom styles for specific images */
+
+
+.it-image {
+  width: 120px;
+  height: 120px;
+  border: 2px solid #ddd;
+  margin-top: -80px;
+}
+
+.engineering-image {
+  width: 140px;
+  height: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.other-image {
+  width: 130px;
+  height: 130px;
+  border: 2px solid #ccc;
+}
+
+
+
+/* Keyframes to move images from left to right */
+@keyframes moveImages {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-in {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Card content */
-.service-content {
-  padding: 20px;
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.service-subtitle {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #555;
-}
-
-.service-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 14px;
-}
-
-.service-description {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 80px; /* Added space below the description */
-  flex: 1;
-}
 
 /* Horizontal line above the button */
 .service-divider {
@@ -71,7 +116,9 @@
 
 /* Button styling */
 .service-button {
-  padding: 10px 20px;
+  margin-bottom: 10px;
+  padding: 10px 10px;
+  margin-left: 250px;
   background-color: white;
   color: #15801e;
   border: none;
@@ -79,7 +126,7 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
-  align-self: flex-end;
+  align-self: flex-start;
 }
 
 .service-button:hover {
@@ -126,49 +173,35 @@
 .back-button:hover {
   background-color: #0056b3;
 }
+
+.service-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
-  .services-container {
-    padding: 60px 30px; /* Less padding for smaller screens */
-  }
-
-  .services-header {
-    font-size: 1.5rem; /* Smaller header font size */
-    margin-bottom: 20px;
-  }
-
   .services-grid {
     grid-template-columns: 1fr; /* Single-column layout for mobile */
     gap: 15px; /* Smaller gaps between cards */
   }
 
   .service-card {
-    border-radius: 4px; /* Less rounding */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border-radius: 4px; /* Slightly less rounded corners */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* Softer shadow */
   }
 
   .service-image {
-    height: 200px; /* Smaller image height */
-  }
-
-  .service-title {
-    font-size: 16px;
-  }
-
-  .service-description {
-    font-size: 13px;
-    margin-bottom: 40px; /* Adjust spacing for mobile */
+    width: 100%;
+    height: auto; /* Maintain the aspect ratio */
+    object-fit: cover;
   }
 
   .service-button {
-    font-size: 12px;
-    padding: 8px 16px;
-  }
-
-  .service-detail-title {
-    font-size: 1.5rem;
-  }
-
-  .service-detail-description {
-    font-size: 1rem;
+    font-size: 12px; /* Smaller button text */
+    padding: 8px 16px; /* Smaller button size */
+    margin-left: 0; /* Center align button for mobile */
+    align-self: center; /* Adjust alignment for the button */
   }
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import "./ITNetworkFirst.css"; // You can rename this file later if necessary
 import CircularDesign from "../CircularDesignNew/CircularDesignNew";
+import ITService from "../../assets/images/ITService.png";
 
 
 // Details of Cards
@@ -21,19 +22,21 @@ const ITNetworkFirst = () => {
    <>
     <section className="ITNetworkFirst123">
       {/* Container for About */}
-      <div className="about-container">
+      <div className="itabout-container">
         <div className="image-section">
-          <img src="./images/m8.png" alt="About Us" className="about-image" />
+          {/* <img src="./images/ITfirstpage.png" alt="About Us" className="about-image" /> */}
+          <img src={ITService} alt="About Us" className="about-image" />
+
         </div>
-        <div className="text-section">
+        <div className="ittext-section">
           <h1>ITNetworkingServices</h1>
-          <p>See how Sukalpa Tech focuses on making the best in all sectors</p>
+          <p>Empowering Your Digital Transformation with Sukalpa Tech Expert IT Solutions</p>
         </div>
       
       </div>
-      
+      <div className="circular1">
       <CircularDesign />
-    
+      </div>
       </section>
      
       </> 

@@ -6,75 +6,62 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 50vh;
+  min-height: 60vh;
+  position: relative;
 }
 
 .header-section {
-  text-align: left;
-  margin-bottom: 40px;
-  margin-right: 50%;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .header-section h1 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #333;
-  margin-top: 60px;
-  margin-bottom:-20px;
-  
+  margin-bottom: 10px;
 }
 
 .content-section {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 100px;
-  width: 60%;
-  height:10%;
+  position: relative;
+  width: 100%;
+  height: 60vh;
 }
 
-.map-box,
+.map-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 130%;
+  overflow: hidden;
+  z-index:1;
+}
+
+.map-box iframe {
+  width: 100%;
+  height: 80%;
+  border: 0;
+}
+
 .form-box {
-  flex: 1;
-  background: #fff;
-  padding: 20px;
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.9); /* Transparent background */
+  padding: 12px; /* Reduced padding */
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  height: 40%;
-  width: 50%;
-}
-
-.map-section h3 {
-  margin-top:8px;
-  margin-bottom: 10px;
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #080303;
-}
-
-.map-section iframe {
-  width: 100%;
-  height: 350px;
-  border: 0;
-  border-radius: 10px;
-}
-
-.form-section p {
-  margin-bottom: 5px;
-  font-size: 1em;
-  color: #130808;
-}
-
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  margin-left:40px;
-
+  width: 320px; /* Smaller width */
+  height: 98%;
+  margin: auto;
+  text-align: left;
+  margin-top:10px;
+  margin-right:40px;
 }
 
 .contact-form label {
-  margin-top:10px;
-  font-size: 0.9em;
+  margin-top: 10px;
+  font-size: 0.85em; /* Slightly smaller font size */
   font-weight: bold;
   color: #333;
   
@@ -82,13 +69,13 @@
 
 .input-field,
 .textarea-field {
-  margin-top:0px;
-  width: 80%;
-  padding: 5px;
-  font-size: 1em;
+  margin-top: 5px;
+  width: 90%; /* Ensure fields stay full-width within the form */
+  padding: 7px; /* Reduced padding */
+  font-size: 0.9em; /* Slightly smaller font */
   border: 1px solid #ccc;
   border-radius: 5px;
-  
+  margin-right: 15px;
 }
 
 .textarea-field {
@@ -96,57 +83,56 @@
 }
 
 .send-button {
-  padding: 10px;
-  font-size: 1em;
+  width: 95%; /* Ensure fields stay full-width within the form */
+  height:30px;
+  font-size: 0.9em; /* Smaller button text */
   background-color: #28a745;
   color: #fff;
+  
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  width: 88%;
-  margin-top:10px;
+  margin-top: 10px;
 }
 
 .send-button:hover {
   background-color: #218838;
 }
 
-.success-message {
-  color: green;
-  font-weight: bold;
-}
-
+.success-message,
 .error-message {
-  color: red;
-  font-weight: bold;
+  font-size: 0.9em; /* Smaller font for messages */
 }
-
 
 /* Media Query for Mobile View */
+/* Mobile View - Form first, Map below */
 @media (max-width: 768px) {
-  .header-section h1 {
-    font-size: 1.2rem; /* Smaller font size for mobile */
-  }
-
   .content-section {
-    flex-direction: column; /* Stack content vertically */
-    gap: 20px;
-    width: 100%;
+    display: flex;
+    flex-direction: column-reverse; /* Reverse the order for mobile */
+    align-items: center;
   }
-
-  .map-box,
+  .reachus-container {
+    margin-top: 10px;
+    padding: 40px;
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 130vh;
+    position: relative;
+  }
+  
+  
   .form-box {
-    width: 90%; /* Full width for smaller screens */
+    width: 90%; /* Ensure form adjusts for smaller screens */
+    margin-bottom: -490px; /* Center form and add space below */
   }
 
-  .map-section iframe {
-    height: 200px; /* Further reduce height for mobile */
+  .map-box {
+    width: 100%; /* Adjust map width for smaller screens */
+    height: 60vh; /* Adjust height for better display */
   }
+}
 
-  .input-field,
-  .textarea-field {
-    width: 90%; /* Wider input fields for better usability */
-  }
- 
-
-  }

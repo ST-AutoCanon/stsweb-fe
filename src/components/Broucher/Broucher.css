@@ -1,170 +1,183 @@
 /* General Styles */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
+/* General Styles */
+;
+
 .broucher-container {
   font-family: Arial, sans-serif;
   padding: 20px;
   background-color: #f9f9f9;
   text-align: center;
-  margin-right:40px;
-  margin-left:40px;
+  margin: 0 auto;
+  
 }
 
 .broucher-header h1 {
   font-size: 32px;
-  color: #27c73cf1;
-  margin-bottom: 20px;
-  margin-left:40px;
+  color: #011103f1;
+  margin-bottom: 10px;
+  order:1;
+
 }
-.card-bottom-description{
-  margin-left: 100px;
-  font-size: 12px;
-} 
-.card-top-description{
-  margin-left: 100px;
-  font-size: 12px;
-} 
+
 .broucher-cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between; /* Space between cards */
-  gap: 5px; /* Gap between cards */
+  justify-content: space-between;
+  gap: 20px; /* Space between cards */
 }
 
 /* Brochure Card */
 .broucher-card {
-  position: relative;
-  background: linear-gradient(to right, #0fa19a 0%, rgba(9, 194, 194, 0.5) 50%, #ffffff 100%);
+  background: #AC5C00;
   border-radius: 12px;
-  width: 250px; /* Reduced width */
-  height: 250px; /* Reduced height */
+  width: 300px;
+  height: 400px;
   padding: 20px;
-  text-align: center;
-  box-shadow: 0 6px 12px rgba(30, 219, 233, 0.1);
-  transition: transform 0.3s ease;
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center-align content */
-  justify-content: space-between; /* Space between hexagon and button */
-
-
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 6px 12px rgba(30, 219, 233, 0.1);
+  transition: transform 0.3s ease;
+  font-family: 'Oswald', sans-serif;
 }
 
 .broucher-card:hover {
   transform: scale(1.05);
 }
 
-.broucherfirstpage-download-text {
-  position: absolute;
-  top: 50%; /* Center vertically */
-  left: 50%; /* Center horizontally */
-  transform: translate(-50%, -50%); /* Adjust to ensure perfect centering */
-  z-index: 3; /* Above the image */
+/* Top Description */
+.card-top-description {
+  font-size: 22px;
+  font-weight: 200;
   color: white;
-  background-color: rgba(25, 202, 193, 0.6); /* Semi-transparent background */
-  padding: 6px 6px;
-  border-radius: 5px;
-  font-size: 0.6em;
-  text-align: center;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background-color 0.3s ease, transform 0.2s;
+  text-align: left;
+  margin-top:20px;
+  font-family: 'Oswald', sans-serif;
 }
 
-.broucherfirstpage-download-text:hover {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: black;
-  transform: translate(-50%, -50%) scale(1.1); /* Add hover effect for emphasis */
-}
-
-/* Ensure the hexagon shape stays intact */
-.broucherfirstpage-image-section {
-  width: 60%; /* Adjust the width as needed */
-  height: auto; /* Adjust for image aspect ratio */
-  position: relative;
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); /* Hexagon shape */
-  overflow: hidden; /* Ensure the image stays inside the hexagon */
-}
-
-.broucherfirstpage-about-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Hexagon Centered */
+/* Hexagon Design */
+/* Hexagon Design */
 .hexagon {
-  position: relative;
-  width: 100px; /* Smaller hexagon */
-  height: 300px;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  overflow: hidden;
+  width: 180px;
+  height: 180px;
+  clip-path: polygon(
+    50% 0%, 
+    95% 22%, 
+    95% 78%, 
+    50% 100%, 
+    5% 78%, 
+    5% 22%
+  ); /* Smoothened edges by adjusting the percentages */
   background: #ffffff;
-  
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 2;
-  margin-top: 60px;
-  
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto;
+  margin-right: 5px;
+  border-radius: 105px; /* Adds smoothness to the edges */
 }
 
 .hexagon img {
-  position: absolute;
-  top: 0;
-  
-  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-/* Download Button Moved to Bottom-Right */
-.download-button {
-  position: relative;
-  align-self: flex-end; /* Move button to the right */
-  background-color: #65c76a;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 8px 16px;
-  transition: background-color 0.3s ease;
-  margin-top: auto; /* Push the button to the bottom */
-}
-
-.download-button:hover {
-  background-color: #03bbbb;
+  position: absolute;
+  top: 0;
+  left: 0;
+  
 }
 
 /* Brochure Info */
 .broucher-info h2 {
-  font-size: 17px;
-  margin: 10px 0;
-  color: #060e0d;
-  margin-left: 30px;
-}
-.card-bottom-description{
-  margin-left:120px;
+  font-size: 24px;
+  color: white;
+  text-align: left;
+  margin-top: -300px;
+  white-space: nowrap; /* Prevent the text from wrapping */
 }
 
-/* Mobile View: Stack cards vertically */
+
+/* Bottom Description */
+.card-bottom-description {
+  font-size: 22px;
+  font-weight: 200;
+  color: white;
+  text-align: left;
+  order:2;
+}
+
+/* Download Button */
+.download-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #dce7dc;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 40px;
+  padding: 10px 16px;
+  transition: background-color 0.3s ease;
+}
+.download-text {
+  margin-top: 25px;
+  font-size: 16px;
+  color: #ecf1ec; /* Text color */
+  font-weight: 300;
+  text-align: center;
+}
+.download-button:hover {
+  background-color: #50b9b9;
+}
+/* Download Button with Downward Arrow */
+.download-icon {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  color: #ecf1ec; /* Icon color */
+  font-size: 50px; /* Adjust the icon size */
+  transition: color 0.3s ease;
+}
+
+.download-icon:hover {
+  color: #0d8f3f; /* Icon color on hover */
+}
+
+/* Mobile View */
 @media (max-width: 768px) {
   .broucher-cards {
     flex-direction: column; /* Stack cards vertically */
-    align-items: center;    /* Center-align cards */
-    gap: 20px;              /* Space between stacked cards */
+    align-items: center;
+    gap: 20px;
+    padding: 10px;
   }
 
   .broucher-card {
-    width: 90%; /* Adjust width to fit smaller screens */
-    height: auto; /* Let height adjust based on content */
+    width: 90%; /* Adjust width for mobile */
+    padding: 15px;
+    text-align: center; /* Center-align text */
   }
 
-  .card-top-description,
+  .broucher-info h2,
+  .card-top-description {
+    text-align: center;
+  }
+
+  .hexagon {
+    margin: 15px auto; /* Center hexagon on mobile */
+    margin-right: 10px;
+  }
+
   .card-bottom-description {
-    margin-left: 0; /* Align text to default spacing for smaller screens */
-    text-align: center; /* Center-align descriptions for better readability */
+    text-align: left; /* Left-align bottom description */
+    margin-top: 10px;
+    width: 100%;
   }
 
   .download-button {
-    align-self: center; /* Center the button in mobile view */
+    align-self: flex-end; /* Align download button to the right */
+    margin-top: 10px;
   }
 }

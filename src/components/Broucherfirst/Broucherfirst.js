@@ -20,11 +20,11 @@ const Broucherfirst = () => {
       {/* Container for Broucher */}
       <div className="broucherfirstpage-container">
         <div className="broucherfirstpage-image-section">
-          <img src="./images/m8.png" alt="About Us" className="broucherfirstpage-about-image" />
+          <img src="./images/KnowMore.png" alt="About Us" className="broucherfirstpage-about-image" />
         </div>
         <div className="broucherfirstpage-text-section">
-          <h1>Other Services</h1>
-          <p>See how Sukalpa Tech focuses on making the best in all sectors</p>
+          <h1>Know More</h1>
+          <p>Our journey, our purpose—Knowmore about us</p>
         </div>
       </div>
       

@@ -46,7 +46,7 @@ const TestingAndQA = () => {
       {/* Right Section - Image */}
       <div className="testing-qa-image">
         <img
-          src="./images/CAEAnalysis.png"
+          src="./images/testingandqa.png"
           alt="Testing and QA Services"
           className="services-image"
         />

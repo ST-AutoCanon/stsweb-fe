@@ -35,13 +35,14 @@ main {
 .about123
 {
   padding-top: 90px;
-  padding-bottom: 70px;
+  padding-bottom: 0px;
 
 }
 
 .service123
  {
   padding-top: 50px;
+  padding-bottom: -40px;
 }
 
 .homologation123

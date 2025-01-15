@@ -4,10 +4,11 @@
     align-items: center;
     justify-content: space-between;
     padding: 50px;
-    background-color: white;
+    background-color:#fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     gap: 20px;
+    
 }
 
 /* Left Section - Image */
@@ -15,18 +16,19 @@
     position: relative;
     width: 35%;
     order: 2; /* Place image on the right (changed from order: 1) */
-}
-
-.services-image {
-    width: 100%;
+    margin-top: 0px;
+    width: 40%;
     height: auto;
     border-radius: 8px;
+    margin-top: 0;
 }
 
 /* Right Section - Content */
 .it-consulting-text {
     width: 60%;
     order: 1; /* Place content on the left (changed from order: 2) */
+    margin-top: -120px;
+    
 }
 
 .it-consulting-text h1 {

@@ -7,7 +7,7 @@ const ExportHomologation = () => {
       {/* Left Section - Image */}
       <div className="export-homologation-image">
         <img
-          src="./images/ConsultingService.png"
+          src="./images/exporthomologation.png"
           alt="Export Homologation Services"
           className="services-image"
         />
@@ -40,13 +40,7 @@ const ExportHomologation = () => {
           to achieve compliance faster and more effectively.
         </p>
 
-        <h2 className="sub-headline">Why Choose Sukalpa Tech?</h2>
-        <ul className="services-list">
-          <li>Comprehensive Export Homologation services tailored to your needs.</li>
-          <li>Expert support to meet global ECE Certification requirements.</li>
-          <li>Cutting-edge Auto-Canon solution for streamlined homologation.</li>
-          <li>Seamless entry into international markets with full regulatory compliance.</li>
-        </ul>
+       
       </div>
     </div>
   );

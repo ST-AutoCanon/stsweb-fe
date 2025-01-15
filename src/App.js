@@ -49,15 +49,17 @@ import PlantLayoutPlanningServices from "./components/PlantLayoutAndPlanningServ
 import Reachusfirst from "./components/Reachusfirst/Reachusfirst";
 import Broucher from "./components/Broucher/Broucher";
 import Gallery from "./components/Gallery/Gallery";
-
-
-
+import HomologationFirst from "./components/HomologationFirst/HomologationFirst";
+import MainAboutSecond from "./components/MainAboutSecond/MainAboutSecond.js";
+import KnowMoreFirstPage from "./components/KnowMoreFirstPage/KnowMoreFirstPage.js";
 import CircularDesignNew from "./components/CircularDesignNew/CircularDesignNew";
 import "./App.css";
 import Broucherfirst from "./components/Broucherfirst/Broucherfirst";
+import Feedbackform from "./components/Feedbackform/Feedbackform";
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
   return (
+    
     <Router>
       <div className="App">
         {/* Navbar */}
@@ -101,7 +103,9 @@ function App() {
           <Route path="/Gallery" element={<Gallery/>} />
           <Route path="/ReachUs" element={<ReachUs/>} />
           <Route path="/Reachusfirst" element={<Reachusfirst/>} />
-          
+          <Route path="/HomologationFirst" element={<HomologationFirst/>} />
+          <Route path="/Feedbackform" element={<Feedbackform/>} />
+          <Route path="/KnowMoreFirstPage" element={<KnowMoreFirstPage/>}/>
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}
@@ -115,7 +119,7 @@ function App() {
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
         {/* Footer */}
-    
+        {/* <HomologationFirst /> */}
         <Footer />
         
       </div>

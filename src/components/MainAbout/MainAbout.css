@@ -1,13 +1,13 @@
 /* Main container */
-.about-container {
-    display: flex;
-    height: 80%;
-    width: 100%;
-    overflow: hidden;
-    position: relative;
-    box-sizing: border-box; /* Ensure padding and borders don't overflow */
-    min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
-
+.mainabout-container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box; /* Ensure padding and borders don't overflow */
+  min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
+  margin-top:80px;
   }
   
   /* Image section */
@@ -17,7 +17,7 @@
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
   
-  .about-image {
+  .mainabout-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -25,7 +25,7 @@
   
   /* Text section */
   .text-section {
-    width: 85%;
+   width: 85%;
     background-color: #2FAAC6;
     color: white;
     display: flex;
@@ -35,10 +35,11 @@
     position: relative;
     clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%);
     margin-left: -6%;
+    
   }
   
   /* Diagonal shaded line */
-  .about-container::before {
+  .mainabout-container::before {
     content: "";
     position: absolute;
     /* Match the width of the image-section */
@@ -46,17 +47,17 @@
     z-index: 2;
     background: linear-gradient(
       to bottom right,
-      rgb(16, 176, 216),
+      #2FAAC6,
       rgba(214, 215, 219, 0)
     );
     
     pointer-events: none;
-    left: 40%; /* Lean closer to the text section */
-    width: 3%; /* Thicker line */
+    left: 46%; /* Lean closer to the text section */
+    width: 3.5%; /* Thicker line */
     height: 150%; /* Extends the line significantly */
     top: -25%;
     
-    transform: skewX(-10deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
+    transform: skewX(-8deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
 
   }
   
@@ -134,7 +135,7 @@
   margin-bottom: 5%;
 }
 ul li{
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   margin-left: 0px;
 }
 

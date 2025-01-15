@@ -21,13 +21,13 @@ const OtherServiceFirst = () => {
   return (
    <>
       {/* Container for About */}
-      <div className="about-container">
-        <div className="image-section">
-          <img src="./images/m8.png" alt="About Us" className="about-image" />
+      <div className="otherserviceabout-container">
+        <div className="otherserviceimage-section">
+          <img src="./images/4.png" alt="About Us" className="about-image" />
         </div>
-        <div className="text-section">
+        <div className="otherservicetext-section">
           <h1>Other Services</h1>
-          <p>See how Sukalpa Tech focuses on making the best in all sectors</p>
+          <p>Transforming Ideas into Impactful Solutions</p>
         </div>
       </div>
       {/* <EMobilitySolutions /> */}

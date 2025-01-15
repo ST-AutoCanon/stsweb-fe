@@ -110,18 +110,18 @@
 
 import React, { useState } from "react";
 import "./Homologation.css";
-
-const HomologationPage = () => {
+import homologationnew from "../../assets/images/Homologationnew.png";
+const Homologation = () => {
   const cards = [
     {
-      imgSrc: "./images/homologationnew.png",
+      imgSrc: "Homologationnew.png",
       title: "",
       description: "",
     },
     {
       title: "What is Homologation?",
       description:
-        "Homologation is the process of getting Government Approval by means of a Certificate which allows the Product to enter the targeted Market. The process starts with the initial assessment, followed by the list of tests according to standards and directives, until the compilation of validated technical reports that finally results in the approval.",
+        "Homologation Documentation Pre homologation Testing and validation certification",
       details:
         "Learn more about the importance and steps involved in Homologation.",
     },
@@ -212,5 +212,5 @@ const HomologationPage = () => {
   );
 };
 
-export default HomologationPage;
+export default Homologation;
 

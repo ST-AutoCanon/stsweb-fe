@@ -1,12 +1,13 @@
 /* Main container */
-.about-container {
+.engineeringabout-container {
     display: flex;
-    height: 80%;
+    height: -60%!important;
     width: 100%;
     overflow: hidden;
     position: relative;
     box-sizing: border-box; /* Ensure padding and borders don't overflow */
     min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
+    margin-top: 10px;
   }
   
   /* Image section */
@@ -16,16 +17,16 @@
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
   
-  .about-image {
+  .engineeringabout-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
   
   /* Text section */
-  .text-section {
+  .engineeringtext-section {
     width: 85%;
-    background-color: #2FAAC6;
+    background-color: #387EC8;
     color: white;
     display: flex;
     flex-direction: column;
@@ -37,7 +38,7 @@
   }
   
   /* Diagonal shaded line */
-  .about-container::before {
+  .engineeringabout-container::before {
     content: "";
     position: absolute;
     /* Match the width of the image-section */
@@ -45,29 +46,28 @@
     z-index: 2;
     background: linear-gradient(
       to bottom right,
-      rgb(16, 176, 216),
+      #387EC8,
       rgba(214, 215, 219, 0)
     );
     
     pointer-events: none;
-    left: 40%; /* Lean closer to the text section */
-    width: 3%; /* Thicker line */
+    left: 46.5%; /* Lean closer to the text section */
+    width: 3.5%; /* Thicker line */
     height: 150%; /* Extends the line significantly */
     top: -25%;
     
-    transform: skewX(-10deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
+    transform: skewX(-8deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
   }
   
-  .text-section h1 {
+  .engineeringtext-section h1 {
     font-size: 3em;
     margin-bottom: 10px;
     z-index: 3;
     font-family: Arial, Helvetica, sans-serif;
   }
   
-  .text-section p {
+  .engineeringtext-section p {
     font-size: 1.5em;
-    
     text-align: center;
     padding: 0 20px;
     z-index: 3;
