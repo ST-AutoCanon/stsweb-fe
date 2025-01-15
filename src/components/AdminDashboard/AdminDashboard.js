@@ -11,6 +11,7 @@ import { MdOutlineDashboard, MdOutlinePersonOutline, MdOutlineAssignmentInd, MdO
 
 import EmployeeDetails from "../EmployeeDetails/EmployeeDetails";
 import AdminQuery from "../EmployeeQueries/AdminQuery";
+import AddDepartment from "../AddDepartment/AddDepartment";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -76,13 +77,13 @@ const AdminDashboard = () => {
         <div className="header-title">Admin Dashboard</div>
         <div className="icon-buttons">
           <button className="icon-button">
-            <FaBell size={24} />
+            <FaBell size={22} />
           </button>
           <button className="icon-button">
-            <FaCalendarAlt size={24} />
+            <FaCalendarAlt size={22} />
           </button>
           <button className="icon-button" onClick={() => navigate('/login')}>
-            <FaPowerOff size={24} />
+            <FaPowerOff size={22} />
           </button>
         </div>
       </div>
@@ -186,8 +187,7 @@ const AdminDashboard = () => {
             </div>
           ) : currentView === "addDepartment" ? (
             <div className="add-department-container">
-              {/* Replace this with actual add department content */}
-              <h2>Add Department</h2>
+            <AddDepartment />
             </div>
           ) : currentView === "employeeQueries" ? (
             <div className="employee-queries-container">

@@ -1,0 +1,49 @@
+.add-department {
+    padding: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.add-department h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.add-department .department-list {
+    margin-bottom: 20px;
+    padding: 0;
+    list-style: none;
+    text-align: center;
+}
+
+.add-department .department-list li {
+    margin: 5px 0;
+    font-size: 18px;
+}
+
+.add-department form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.add-department input {
+    padding: 10px;
+    font-size: 16px;
+}
+
+.add-department button {
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.add-department .message {
+    margin-top: 10px;
+    text-align: center;
+    color: #ff0000;
+}

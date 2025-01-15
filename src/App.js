@@ -9,12 +9,13 @@ import About from "./components/About/About";
 import ReachUs from "./components/ReachUs/ReachUs";
 import KnowMore from "./components/KnowMore/KnowMore";
 import Login from "./components/Login/Login";
-import ResetPassword from './components/ResetPassword/ResetPassword';
-import AdminDashboard from './components/AdminDashboard/AdminDashboard';
-import EmployeeDashboard from './components/EmployeeDashboard/EmployeeDashboard';
-import EmployeeDetails from './components/EmployeeDetails/EmployeeDetails';
-import AdminQuery from './components/EmployeeQueries/AdminQuery';
-import EmployeeQuery from './components/EmployeeQueries/EmployeeQuery';
+import ResetPassword from "./components/ResetPassword/ResetPassword";
+import AdminDashboard from "./components/AdminDashboard/AdminDashboard";
+import EmployeeDashboard from "./components/EmployeeDashboard/EmployeeDashboard";
+import EmployeeDetails from "./components/EmployeeDetails/EmployeeDetails";
+import AdminQuery from "./components/EmployeeQueries/AdminQuery";
+import EmployeeQuery from "./components/EmployeeQueries/EmployeeQuery";
+import AddDepartment from "./components/AddDepartment/AddDepartment"
 import ITNetworkingServices from "./components/ITNetworkingServices/ITNetworkingServices";
 import OtherServices from "./components/OtherServices/OtherServices";
 import HomologationSupport from "./components/HomologationSupport/HomologationSupport1";
@@ -79,6 +80,7 @@ function App() {
           <Route path="/EmployeeDetails" element={<EmployeeDetails/>} />
           <Route path="/AdminQuery" element={<AdminQuery/>} />
           <Route path="/EmployeeQuery" element={<EmployeeQuery/>} />
+          <Route path="/AddDepartment" element={<AddDepartment/>} />
           <Route path="/MainAbout" element={<MainAbout />} />
           <Route path="/OtherServices" element={<OtherServices />} />
           <Route path="/ITNetworkFirst" element={<ITNetworkFirst/>}/>

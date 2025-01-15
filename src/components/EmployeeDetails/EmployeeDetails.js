@@ -4,6 +4,8 @@ import Modal from '../Modal/Modal';
 import './EmployeeDetails.css'; // Assuming your styles are in this file
 import { MdOutlineCalendarToday, MdOutlineEdit, MdDeleteOutline, MdOutlineCancel } from "react-icons/md";
 import { PiAsteriskSimpleBold } from "react-icons/pi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const departmentPositions = {
   Software: ['Senior Software Engineer', 'Software Test Engineer', 'Junior Software Engineer'],
@@ -40,6 +42,11 @@ const EmployeeDetails = () => {
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false); // State to show/hide the modal
   const [deleteEmployeeId, setDeleteEmployeeId] = useState(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showToDatePicker, setShowToDatePicker] = useState(false);
+
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const authToken = localStorage.getItem('authToken');
@@ -65,8 +72,15 @@ const EmployeeDetails = () => {
     const fetchEmployees = async () => {
       setIsLoading(true);
       try {
+        const formattedFromDate = fromDate
+          ? new Date(fromDate).toISOString().split('T')[0]
+          : '';
+        const formattedToDate = toDate
+          ? new Date(toDate).toISOString().split('T')[0]
+          : '';
+
         const response = await axios.get(
-          `http://localhost:5000/admin/employees?search=${searchTerm}`,
+          `http://localhost:5000/admin/employees?search=${searchTerm}&fromDate=${formattedFromDate}&toDate=${formattedToDate}`,
           {
             headers: {
               'x-api-key': API_KEY,
@@ -75,9 +89,9 @@ const EmployeeDetails = () => {
             },
           }
         );
-        // Check response structure and set employees
+
         if (response.data && response.data.message && response.data.message.data) {
-          setEmployees(response.data.message.data); // Use the "data" array from response
+          setEmployees(response.data.message.data);
         } else {
           setEmployees([]);
         }
@@ -87,9 +101,14 @@ const EmployeeDetails = () => {
         setIsLoading(false);
       }
     };
-  
+
     fetchEmployees();
-  }, [searchTerm]);
+  }, [searchTerm, fromDate, toDate]);
+
+  const handleDateChange = (date, type) => {
+    if (type === 'from') setFromDate(date);
+    if (type === 'to') setToDate(date);
+  };
   
 
   // Handle form input changes
@@ -330,10 +349,49 @@ const handleAddEmployee = async (e) => {
     <i className="fas fa-search search-icon"></i>
   </div>
 </div>
-<button className="calendar-button">
-  <MdOutlineCalendarToday className="calendar-icon" />
-  <span className="calendar-text">By Date</span>
-</button>
+<div className="calendar-buttons">
+  {/* FROM Button */}
+  <button
+    className="calendar-button"
+    onClick={() => setShowFromDatePicker(!showFromDatePicker)}
+  >
+    <MdOutlineCalendarToday className="calendar-icon" />
+    <span className="calendar-text">FROM</span>
+  </button>
+
+  {showFromDatePicker && (
+    <DatePicker
+      selected={fromDate ? new Date(fromDate) : null}
+      onChange={(date) => {
+        handleDateChange(date, 'from');
+        setShowFromDatePicker(false); // Close the calendar after selecting a date
+      }}
+      dateFormat="yyyy-MM-dd"
+      inline
+    />
+  )}
+
+  {/* TO Button */}
+  <button
+    className="calendar-button"
+    onClick={() => setShowToDatePicker(!showToDatePicker)}
+  >
+    <MdOutlineCalendarToday className="calendar-icon" />
+    <span className="calendar-text">TO</span>
+  </button>
+
+  {showToDatePicker && (
+    <DatePicker
+      selected={toDate ? new Date(toDate) : null}
+      onChange={(date) => {
+        handleDateChange(date, 'to');
+        setShowToDatePicker(false); // Close the calendar after selecting a date
+      }}
+      dateFormat="yyyy-MM-dd"
+      inline
+    />
+  )}
+</div>
 
       {/* Add Employee Button */}
       <div className="actions-container">
