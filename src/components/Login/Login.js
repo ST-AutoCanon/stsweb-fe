@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
@@ -59,12 +58,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!username || !password) {
       setErrorMessage('Username and password are required.');
       return;
     }
-
+  
     try {
       const response = await fetch('http://localhost:5000/login', {
         method: 'POST',
@@ -74,28 +73,29 @@ const Login = () => {
         },
         body: JSON.stringify({ email: username, password }),
       });
-
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
         setErrorMessage(data.message || 'Invalid credentials. Please try again.');
         return;
       }
-
+  
+      // Store necessary data in local storage
       localStorage.setItem('authToken', data.code.token);
       localStorage.setItem('userRole', data.code.role);
       localStorage.setItem('dashboardData', JSON.stringify(data.code.dashboard));
       localStorage.setItem('sessionStart', Date.now());
-
+  
       // Dynamically check role and redirect
       const roleToRouteMap = {
         Admin: '/AdminDashboard',
         Employee: '/EmployeeDashboard',
       };
-
-      const redirectRoute = roleToRouteMap[data.code.role] || 'EmployeeDashboard';
-
-      navigate(redirectRoute);
+  
+      const redirectRoute = roleToRouteMap[data.code.role] || '/EmployeeDashboard';
+      setIsModalOpen(false); // Close the modal after login
+      navigate(redirectRoute); // Redirect the user
     } catch (error) {
       console.error('Error logging in:', error);
       setErrorMessage('An unexpected error occurred. Please try again.');
@@ -405,116 +405,116 @@ export default Login;
 
 
 
-import React, { useState } from 'react';
-import './Login.css';
-import { useNavigate } from 'react-router-dom'; // React Router for navigation
+// import React, { useState } from 'react';
+// import './Login.css';
+// import { useNavigate } from 'react-router-dom'; // React Router for navigation
 
-const Login = ({ onClose }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+// const Login = ({ onClose }) => {
+//   const [username, setUsername] = useState('');
+//   const [password, setPassword] = useState('');
+//   const navigate = useNavigate();
 
-  // Function to close the modal and call the onClose function passed from parent
-  const closeModal = () => {
-    onClose();
-  };
+//   // Function to close the modal and call the onClose function passed from parent
+//   const closeModal = () => {
+//     onClose();
+//   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
 
-    try {
-      // Fetch all users from the JSON Server
-      const response = await fetch("http://localhost:5000/login", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3', // Add the required API key
-        },
-        body: JSON.stringify({
-            email: username,
-            password,
-        }),
-      });
+//     try {
+//       // Fetch all users from the JSON Server
+//       const response = await fetch("http://localhost:5000/login", {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'x-api-key': 'eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3', // Add the required API key
+//         },
+//         body: JSON.stringify({
+//             email: username,
+//             password,
+//         }),
+//       });
 
-      if (!response.ok) {
-        const errorDetails = await response.json();
-        console.error("Error:", errorDetails);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+//       if (!response.ok) {
+//         const errorDetails = await response.json();
+//         console.error("Error:", errorDetails);
+//         throw new Error(`HTTP error! status: ${response.status}`);
+//       }
       
-      // Assuming response.json() returns a user object
-      const user = await response.json();
+//       // Assuming response.json() returns a user object
+//       const user = await response.json();
 
-      // Check the user role and navigate accordingly
-      if (user) {
-        if (user.role === "employee") {
-          navigate("/EmployeePage"); // Redirect to employee page
-        } else if (user.role === "admin") {
-          navigate("/AdminPage"); // Redirect to admin page
-        }
-      } else {
-        alert("Invalid username or password");
-      }
-    } catch (error) {
-      console.error("Error logging in:", error);
-      alert("An error occurred. Please try again.");
-    }
-  };
+//       // Check the user role and navigate accordingly
+//       if (user) {
+//         if (user.role === "employee") {
+//           navigate("/EmployeePage"); // Redirect to employee page
+//         } else if (user.role === "admin") {
+//           navigate("/AdminPage"); // Redirect to admin page
+//         }
+//       } else {
+//         alert("Invalid username or password");
+//       }
+//     } catch (error) {
+//       console.error("Error logging in:", error);
+//       alert("An error occurred. Please try again.");
+//     }
+//   };
   
-  return (
-    <div className="login-page">
-      <div className="login-modal">
-        <div className="login-container">
-          <button className="login-close-button" onClick={closeModal}>
-            ×
-          </button>
-          <div className="login-image">
-            <img
-              src="./images/loginimage.png" // Replace with your actual image URL
-              alt="Login illustration"
-            />
-          </div>
-          <div className="login-form">
-            <form onSubmit={handleSubmit}>
-              <div className="login-logo">
-                <img
-                  src="./images/Loginlogo.png" // Replace with the path to your logo image
-                  alt="Logo"
-                  className="login-logo-img"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="username">User Name</label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                />
-              </div>
-              <div className="form-options">
-                <a href="#">Forgot Password?</a>
-              </div>
-              <button type="submit" className="btn-login">
-                Login
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className="login-page">
+//       <div className="login-modal">
+//         <div className="login-container">
+//           <button className="login-close-button" onClick={closeModal}>
+//             ×
+//           </button>
+//           <div className="login-image">
+//             <img
+//               src="./images/loginimage.png" // Replace with your actual image URL
+//               alt="Login illustration"
+//             />
+//           </div>
+//           <div className="login-form">
+//             <form onSubmit={handleSubmit}>
+//               <div className="login-logo">
+//                 <img
+//                   src="./images/Loginlogo.png" // Replace with the path to your logo image
+//                   alt="Logo"
+//                   className="login-logo-img"
+//                 />
+//               </div>
+//               <div className="form-group">
+//                 <label htmlFor="username">User Name</label>
+//                 <input
+//                   type="text"
+//                   id="username"
+//                   value={username}
+//                   onChange={(e) => setUsername(e.target.value)}
+//                   placeholder="Enter your username"
+//                 />
+//               </div>
+//               <div className="form-group">
+//                 <label htmlFor="password">Password</label>
+//                 <input
+//                   type="password"
+//                   id="password"
+//                   value={password}
+//                   onChange={(e) => setPassword(e.target.value)}
+//                   placeholder="Enter your password"
+//                 />
+//               </div>
+//               <div className="form-options">
+//                 <a href="#">Forgot Password?</a>
+//               </div>
+//               <button type="submit" className="btn-login">
+//                 Login
+//               </button>
+//             </form>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
-export default Login;
+// export default Login;
