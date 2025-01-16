@@ -212,3 +212,71 @@ body {
     background-color: #f5f7fa;
   }
   
+/* Remove hover effect on buttons */
+.icon-button:hover,
+.close-button:hover {
+  background: none;  /* No background on hover */
+  cursor: pointer;  /* Keep cursor pointer to show it's clickable */
+}
+
+/* Additional styles for the calendar container */
+.calendar-container {
+  position: absolute;
+  top: 50px; /* Adjust as needed */
+  right: 10px; /* Adjust as needed */
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 1000;
+  border-radius: 8px;
+}
+
+/* Styles for the close button */
+.close-button {
+  display: flex;
+  justify-content: flex-end;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+/* Remove focus outline for buttons */
+button:focus {
+  outline: none;
+}
+
+/* Change the color of the numbers in the calendar */
+.react-calendar__tile {
+  color: #333; /* Replace with your desired color */
+}
+
+/* Optional: Change the color for selected date */
+.react-calendar__tile--active {
+  background-color: #007bff; /* Replace with your desired background color */
+  color: white; /* Change text color when selected */
+}
+
+/* Optional: Change color of current date */
+.react-calendar__tile--now {
+  color: #ff6347; /* Replace with your desired color for today's date */
+  font-weight: bold; /* Optional: Make today's date bold */
+}
+
+/* Style the navigation buttons (arrows) */
+.react-calendar__navigation button {
+  background-color: transparent; /* Remove background */
+  color: #007bff; /* Change the color of the arrows */
+  border: none; /* Remove any border */
+  font-size: 20px; /* Make the arrows larger if needed */
+}
+
+/* Optional: Change color on hover */
+.react-calendar__navigation button:hover {
+  color: #0056b3; /* Darker color on hover */
+}
+
+/* Optional: Change color for disabled buttons (e.g., for the next/previous month if no more months) */
+.react-calendar__navigation button[disabled] {
+  color: #ccc; /* Light gray color for disabled buttons */
+}

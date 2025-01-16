@@ -1,14 +1,14 @@
 import React from 'react';
 import './Modal.css'; // Style this as needed
 
-const Modal = ({ className, title, isVisible, children, buttons }) => {
+const Modal = ({ className, customClass, title, isVisible, children, buttons }) => {
   if (!isVisible) return null;
 
   return (
-    <div className={`modal-overlay ${className ? className : ''}`}>
-      <div className={`modal-content ${className ? className : ''}`}>
-        {title && <h2 className="modal-title">{title}</h2>} {/* Optional title */}
-        <div>{children}</div> {/* Render children, which can be the form or confirmation message */}
+    <div className={`modal-overlay ${className || ''}`}>
+      <div className={`modal-content ${customClass || ''}`}>
+        {title && <h2 className="modal-title">{title}</h2>}
+        <div>{children}</div>
         {buttons && (
           <div className="modal-buttons">
             {buttons.map((button, index) => (

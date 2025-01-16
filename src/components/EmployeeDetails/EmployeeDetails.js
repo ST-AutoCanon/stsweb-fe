@@ -8,10 +8,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const departmentPositions = {
-  Software: ['Senior Software Engineer', 'Software Test Engineer', 'Junior Software Engineer'],
+  Software: ['Software Manager', 'Senior Software Engineer', 'Software Test Engineer', 'Junior Software Engineer'],
   Homologation: ['Homologation Specialist', 'Homologation Manager'],
-  Design: ['UI/UX Designer', 'Graphic Designer', 'Design Lead'],
-  Network: ['Network Engineer', 'System Administrator', 'Network Analyst'],
+  Design: ['UI/UX Designer', 'Graphic Designer', 'Design Manager'],
+  Network: ['Network Manager', 'Network Engineer', 'System Administrator', 'Network Analyst'],
   Finance: ['Finance Manager', 'Accountant', 'Financial Analyst'],
 };
 

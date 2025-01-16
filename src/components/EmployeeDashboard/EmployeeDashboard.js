@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import "./EmployeeDashboard.css";
+import LeaveRequest from "../LeaveRequest/LeaveRequest";
 
 import { FaBell, FaCalendarAlt, FaPowerOff } from 'react-icons/fa';
 import { MdOutlineDashboard, MdOutlinePersonOutline, MdOutlineAssignmentInd, MdOutlineEvent,
@@ -116,7 +117,7 @@ const EmployeeDashboard = () => {
             </a>
           </li>
           <li className={currentView === "leaveQueries" ? "active" : ""}>
-            <a href="#" onClick={() => handleSidebarClick("leaveQueries")}>
+            <a href="#" onClick={() => handleSidebarClick("leaveRequest")}>
             <MdOutlineCommentBank size={22} style={{ marginRight: "8px" }} />Leave Queries
             </a>
           </li>
@@ -176,6 +177,10 @@ const EmployeeDashboard = () => {
           ) : currentView === "employeeDetails" ? (
             <div className="employee-details-container">
             <h2>My Profile</h2>
+            </div>
+          ) : currentView === "leaveRequest" ? (
+            <div className="leave-request-container">
+            <LeaveRequest />
             </div>
           ) : currentView === "addDepartment" ? (
             <div className="add-department-container">
