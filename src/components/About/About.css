@@ -8,7 +8,14 @@
     background-color: #f8f8f8;
     gap: 30px;
   }
-
+  .About-header {
+    text-align: left;
+    margin-left: 5%;
+    margin-bottom: -60px;
+    font-size: 2rem;
+    font-weight: bold;
+    
+  }
 /*images of about page*/
   .img1
   {
@@ -59,7 +66,7 @@
     width: 100px;
     height: auto;
     border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: white;
   }
   .page-text
    {
@@ -86,12 +93,7 @@
    right: 20%;
    bottom: 30%;
   }
-  .page-text h1 
-  {
-    font-size: 2rem;
-    font:linear-gradient(#75C02F,#10677A,#FF4400)
-   
-  }
+  
 
   .page-text span {
     color: #10677A; /* Orange */
@@ -103,7 +105,7 @@
     color: 000000;
   }
   .page-text h1 {
-    font-size: 2.5rem;
+    font-size: 2.0rem!important;
     font-weight: bold;
     text-align: left;
     margin-top: -30px;
@@ -115,6 +117,8 @@
 {
   margin-top: 10px;
 }
+
+
 
 /* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {

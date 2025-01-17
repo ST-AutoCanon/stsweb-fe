@@ -52,7 +52,7 @@ const Footer = () => {
         </div>
         <div className="social-icons2">
           <a href="mailto:info@sukalpatech.com" className="social-icon2">
-            <FaEnvelope size={21} />
+            <FaEnvelope size={30} />
           </a>
           <a href="tel:9742134584" className="social-icon2">
             <FaPhone size={21} />
@@ -61,9 +61,6 @@ const Footer = () => {
             <FaLinkedin size={23} />
           </a>
         </div>
-
-
-        
 
         {/* Tagline Section */}
         <div className="footer-slogan">

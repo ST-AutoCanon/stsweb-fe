@@ -80,17 +80,26 @@
     .consulting-expertise-container {
         flex-direction: column; /* Stack items for smaller screens */
         align-items: center;
-        text-align: center;
+        text-align: left;
         gap: 20px;
     }
 
     .consulting-expertise-text {
-        width: 100%;
+        width: 280%;
+        margin-left:-20px;
+        margin-top:-50px ;
         order: 2; /* Maintain order for responsive layout */
     }
 
+    .consulting-expertise-text h1{
+        width: 130%;
+        margin-left:0px;
+        
+    }
+
     .consulting-expertise-image {
-        width: 100%;
+        width: 300%;
+        margin-top:20px;
         order: 1; /* Maintain order for responsive layout */
     }
 

@@ -13,7 +13,7 @@
 /* Left Section - Image */
 .chatbot-application-image {
     position: relative;
-    width: 33%;
+    width: 22%;
     order: 1; /* Place image on the left */
 
     margin-top: 30px;
@@ -32,7 +32,8 @@
     width: 62%;
     order: 2; /* Place content on the right */
    /* Add some padding to the text section for balance */
-    margin-top: -20px;
+    margin-top: -45px;
+    margin-right: 65px;
 }
 
 
@@ -85,18 +86,20 @@
 @media (max-width: 768px) {
     .chatbot-application-container {
         flex-direction: column; /* Stack items for smaller screens */
-        align-items: center;
-        text-align: center;
+        align-items: left;
+        text-align: left;
         gap: 20px;
     }
 
     .chatbot-application-text {
-        width: 100%;
+        width: 150%;
+        margin-right:10px;
         order: 2; /* Maintain order for responsive layout */
     }
 
     .chatbot-application-image {
-        width: 100%;
+        width: 150%;
+        margin-top:50px;
         order: 1; /* Maintain order for responsive layout */
     }
 

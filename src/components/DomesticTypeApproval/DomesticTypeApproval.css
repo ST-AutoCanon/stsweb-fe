@@ -68,12 +68,12 @@
     .domestic-type-approval-container {
       flex-direction: column; /* Stack items for smaller screens */
       align-items: center;
-      text-align: center;
+      text-align: left;
       gap: 20px;
     }
   
     .domestic-type-approval-text {
-      width: 100%;
+      width: 170%;
       order: 1; /* Maintain order for responsive layout */
     }
   
@@ -88,7 +88,7 @@
       /* Right Section - Image */
   .domestic-type-approval-image {
     position: relative;
-    width: 100%; /* Take up less space for the image */
+    width: 180%; /* Take up less space for the image */
     order: 1; /* Place image on the right */
   }
   

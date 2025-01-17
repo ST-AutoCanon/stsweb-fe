@@ -208,27 +208,27 @@
 /* Step 2: Pre-Homologation Process */
 .pre-homologation-process .step-title2 img {
   position: absolute;
-  left: -50px; /* Adjust horizontal position */
+  left: -45px; /* Adjust horizontal position */
   top: 25px; /* Adjust vertical position */
-  width: 45px; /* Adjust size */
+  width: 40px; /* Adjust size */
   height: auto;
 }
 
 /* Step 3: Documentation */
 .documentation .step-title3 img {
   position: absolute;
-  left: -40px; /* Adjust horizontal position */
+  left: -35px; /* Adjust horizontal position */
   top: 30px; /* Adjust vertical position */
-  width: 35px; /* Adjust size */
+  width: 25px; /* Adjust size */
   height: auto;
 }
 
 /* Step 4: Testing and Validation */
 .testing-validation .step-title4 img {
   position: absolute;
-  left: -60px; /* Adjust horizontal position */
+  left: -45px; /* Adjust horizontal position */
   top: 20px; /* Adjust vertical position */
-  width: 50px; /* Adjust size */
+  width: 35px; /* Adjust size */
   height: auto;
 }
 

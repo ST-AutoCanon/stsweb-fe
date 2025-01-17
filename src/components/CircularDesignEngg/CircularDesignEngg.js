@@ -6,6 +6,7 @@ import ConsultingExpertise from "../ConsultingExpertise/ConsultingExpertise ";
 import ExportHomologation from "../ExportHomologation/ExportHomologation";
 import DomesticTypeApproval from "../DomesticTypeApproval/DomesticTypeApproval";
 import "./CircularDesignEngg.css";
+import ITConsulting from "../ITConsulting/ITConsulting";
 
 const CircularDesignEngg = () => {
   const [activeSection, setActiveSection] = useState("styling-product-design");
@@ -27,10 +28,10 @@ const CircularDesignEngg = () => {
       text: "Styling Product Design",
       link: "styling-product-design",
       content: <StylingProductDesign />,
-      degree: isMobile ? 5 : -350,
+      degree: isMobile ? 5 : 385,
       reverse: false, // Image first, then text
-      offsetX: isMobile ? 40 : 370,
-      offsetY: isMobile ? 50 : 90,
+      offsetX: isMobile ? 45 :230,
+      offsetY: isMobile ? 45 : 30,
       lineClass: "line-1-engg",
     },
     {
@@ -69,7 +70,7 @@ const CircularDesignEngg = () => {
       content: <ExportHomologation />,
       degree: isMobile ? 240 : 210,
       reverse: true, // Text first, then image
-      offsetX: isMobile ? 80 : 80,
+      offsetX: isMobile ? 80 : 100,
       offsetY: isMobile ? 190 : 170,
       lineClass: "line-5-engg",
     },

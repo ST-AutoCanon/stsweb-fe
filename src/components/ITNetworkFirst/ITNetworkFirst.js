@@ -1,8 +1,7 @@
 import React from "react";
-import "./ITNetworkFirst.css"; // You can rename this file later if necessary
+import "./ITNetworkFirst.css"; // Updated CSS file path
 import CircularDesign from "../CircularDesignNew/CircularDesignNew";
 import ITService from "../../assets/images/ITService.png";
-
 
 // Details of Cards
 const ITNetworkFirst = () => {
@@ -19,28 +18,23 @@ const ITNetworkFirst = () => {
   ];
 
   return (
-   <>
-    <section className="ITNetworkFirst123">
-      {/* Container for About */}
-      <div className="itabout-container">
-        <div className="image-section">
-          {/* <img src="./images/ITfirstpage.png" alt="About Us" className="about-image" /> */}
-          <img src={ITService} alt="About Us" className="about-image" />
-
+    <>
+      <section className="itnetworkfirstpage-container">
+        {/* Container for About */}
+        <div className="itnetworkfirstpage-about-container">
+          <div className="itnetworkfirstpage-image-section">
+            <img src={ITService} alt="About Us" className="itnetworkfirstpage-about-image" />
+          </div>
+          <div className="itnetworkfirstpage-text-section">
+            <h1>ITNetworking Services</h1>
+            <p>Empowering Your Digital Transformation with Sukalpa Tech Expert IT Solutions</p>
+          </div>
         </div>
-        <div className="ittext-section">
-          <h1>ITNetworking Services</h1>
-          <p>Empowering Your Digital Transformation with Sukalpa Tech Expert IT Solutions</p>
+        <div className="itnetworkfirstpage-circular">
+          <CircularDesign />
         </div>
-      
-      </div>
-      <div className="circular1">
-      <CircularDesign />
-      </div>
       </section>
-     
-      </> 
-      
+    </>
   );
 };
 

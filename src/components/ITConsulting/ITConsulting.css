@@ -86,17 +86,19 @@
     .it-consulting-container {
         flex-direction: column; /* Stack items for smaller screens */
         align-items: center;
-        text-align: center;
+        text-align: left;
         gap: 20px;
         padding: 40px; /* Reduced padding for smaller screens */
     }
 
     .it-consulting-text {
+        margin-top:-40px;
         width: 100%;
         order: 2; /* Maintain order for responsive layout */
     }
 
     .it-consulting-image {
+        margin-top: 100px;
         width: 100%;
         order: 1; /* Maintain order for responsive layout */
     }

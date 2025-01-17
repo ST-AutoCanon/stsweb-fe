@@ -86,19 +86,16 @@
   .cae-analysis-container {
     flex-direction: column; /* Stack items for smaller screens */
     align-items: center;
-    text-align: center;
+    text-align: left;
     gap: 20px;
   }
 
   .cae-analysis-text {
-    width: 100%;
+    width: 145%;
     order: 1; /* Maintain order for responsive layout */
   }
 
-  .cae-analysis-image {
-    width: 100%;
-    order: 2; /* Maintain order for responsive layout */
-  }
+  
 
   .services-list li {
     width: 100%;
@@ -106,7 +103,8 @@
   /* Right Section - Image */
 .cae-analysis-image {
   position: relative;
-  width: 100%;
+  width: 150%;
+  margin-top:70px;
   order: 1; /* Place image on the right */
 }
 

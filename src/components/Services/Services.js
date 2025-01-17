@@ -264,7 +264,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
 import "./Services.css";
-import Service_BG8 from "../../assets/images/Service_BG8.png";
+import greybg from "../../assets/images/greybg.png";
 import card2image from "../../assets/images/card2image.png";
 import engineeringService from "../../assets/images/Engineeringservice1.png";
 import otherService from "../../assets/images/Otherservice1.png";
@@ -275,7 +275,7 @@ const Services = () => {
   // Reordered services array
   
   const services = [
-    { id: 4, image: Service_BG8, path: "/service-four", className: "sticky-image" },
+    { id: 4, image: greybg, path: "/service-four", className: "sticky-image" },
     { id: 1, image: card2image, path: "/ITNetworkFirst", className: "it-image" },
     { id: 2, image: engineeringService, path: "/EngineeringServiceFirst", className: "engineering-image" },
     { id: 3, image: otherService, path: "/OtherServiceFirst", className: "other-image" },

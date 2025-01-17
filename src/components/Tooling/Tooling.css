@@ -69,11 +69,16 @@
   }
 
   .tooling-image {
-    width: 100%;
+    width: 140%;
+    margin-left:-50px;
+    margin-top:70px;
+    order:1;
   }
 
   .tooling-text {
-    width: 100%;
+    width: 140%;
+    margin-left:-40px;
+    order:2;
   }
 }
 

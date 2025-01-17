@@ -4,6 +4,7 @@ import './About.css'; // Import the custom CSS file for styling
 const Page = () => {
   return (
     <section className="about123"> {/* Main section for the About page */}
+    <h2 className="About-header">About Us</h2>
       <div className="page-section"> {/* Container for all content */}
         
         {/* Section for displaying images */}
@@ -35,7 +36,7 @@ const Page = () => {
           
           {/* Main heading for the page */}
           <h1>
-            Engineering & Software Services <span>by SukalpaTech</span>
+          We Are Pioneers In Engineering & Software Services <span></span>
           </h1>
           
           {/* Paragraph describing the organization */}

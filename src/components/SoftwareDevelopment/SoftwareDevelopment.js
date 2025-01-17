@@ -19,19 +19,19 @@ const SoftwareDevelopment = () => {
         <p>We specialize in building, customizing, and maintaining software solutions that meet business needs:</p>
         <ul className="services-list">
           <li>
-            <strong>1. Software Products:</strong> Developing web, mobile, and enterprise applications.
+            <strong> Software Products:</strong> Developing web, mobile, and enterprise applications.
           </li>
           <li>
-            <strong>2. Customization & Integration:</strong> Tailoring software and integrating systems to improve processes.
+            <strong>Customization & Integration:</strong> Tailoring software and integrating systems to improve processes.
           </li>
           <li>
-            <strong>3. Testing & Quality Assurance:</strong> Ensuring functionality, security, and bug-free software.
+            <strong>Testing & Quality Assurance:</strong> Ensuring functionality, security, and bug-free software.
           </li>
           <li>
-            <strong>4. Maintenance & Updates:</strong> Ongoing support with patches, updates, and fixes.
+            <strong>Maintenance & Updates:</strong> Ongoing support with patches, updates, and fixes.
           </li>
           <li>
-            <strong>5. Business Process Support:</strong> Automating and enhancing business operations.
+            <strong>Business Process Support:</strong> Automating and enhancing business operations.
           </li>
         </ul>
         <h2>Key Features:</h2>

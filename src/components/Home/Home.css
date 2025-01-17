@@ -11,31 +11,32 @@
 }
 
 .hero-card {
-  position: absolute; 
-  top: 50%; 
+  position: absolute;
+  top: 50%;
   left: 20%;
-  transform: translate(-50%, -50%); 
-  width: 300px; 
+  transform: translate(-50%, -50%);
+  width: 300px;
   height: 300px;
-  background-color:#001D4A ; 
-  border-radius: 0px; 
+  background-color: #001D4A;
+  opacity: 100%;
+  border-radius: 0px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-.hero-card-title1
-{
+
+.hero-card-title1 {
   font-size: 20px;
-  
-  color:#77DD0D ; /* Dark text */
+  color: #77DD0D; /* Dark text */
   margin-bottom: 20px;
-  text-align:left;
+  text-align: left;
   padding: 2%;
 }
+
 .hero-card-title {
   font-size: 45px;
   font-weight: bold;
-  color: white; /* Dark text */
+  color: white;
   margin-bottom: 10px;
   text-align: left;
   margin-top: -10px;
@@ -43,18 +44,16 @@
 
 .hero-card-description {
   font-size: 18px;
-  color: white; /* Neutral text color */
+  color: white;
   margin-bottom: 90px;
   margin-left: -20px;
 }
 
-
 .learn-moree-btn {
-  background-color: #77DD0D; 
+  background-color: #77DD0D;
   color: white;
   padding: 10px 110px;
-  top:-10%;
-  
+  top: -10%;
   border-radius: 5px;
   font-weight: bold;
   border: none;
@@ -63,48 +62,11 @@
 }
 
 .learn-moree-btn:hover {
-  background-color: #005c00; /* Darker green on hover */
+  background-color: #005c00;
 }
 
-/* Scrolling Buttons Styling */
-.scrolling-buttons {
-  position: absolute;
-  margin-bottom: -100px;
-  display: flex;
-  gap: 15px;
-
- 
-   /* Position at the bottom of the page */
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Adjust position to align center */
- 
-  flex-direction: row; /* Stack buttons vertically */
-  /* Add spacing between the buttons */
-  
-  
-}
-/* 
 .scroll-btn {
-  width: 2px;
-  height: 2px;
-  background-color: #90f011;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.3s, opacity 0.3s;
-}
-
-.scroll-btn.active {
-  transform: scale(1.0);
-  opacity: 1;
-}
-
-.scroll-btn:hover {
-  transform: scale(1.2);
-  background-color: #007e01;
-} */
-.scroll-btn {
-  width: 20px !important; /* Ensure the size is applied */
+  width: 20px !important;
   height: 20px !important;
   background-color: #90f011;
   border-radius: 50%;
@@ -123,14 +85,74 @@
   background-color: #007e01 !important;
 }
 
+.scrolling-buttons {
+  position: absolute;
+  margin-bottom: -60px;
+  display: flex;
+  gap: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: row;
+}
+
+/* Dynamic Content Box */
+/* Dynamic Content Box */
+.dynamic-box {
+  position: absolute;
+  bottom: 15%;
+  left: 70.7%; /* Move box to the left side */
+  width: 300px;
+  background-color: #001D4A;
+  opacity:100%;
+  color: white;
+ 
+  padding: 20px;
+  border-radius: 10px;
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); */
+}
+.dynamic-box-1 {
+  background-color: #cbffef9e; /* Light red background */
+  color: #001D4A; /* Dark red text */
+}
+
+.dynamic-box-2 {
+  background-color: #1140da49; /* Light green background */
+  color: white;; /* Dark green text */
+}
+
+.dynamic-box-3 {
+  background-color: #020b0f5d; /* Light blue background */
+  color: white;; /* Dark blue text */
+}
+
+.dynamic-box-4 {
+  background-color: #dbdb296a; /* Light yellow background */
+  color: white;; /* Dark yellow text */
+}
+
+.box-content {
+  font-size: 25px;
+  line-height: 1.5;
+}
+
 .HomeServices{
   margin-top: -60px;
 }
 .HomeServices3{
   margin-bottom: -80px;
-  margin-top: -90px;
+  margin-top: -160px;
 }
 
+
+/* .box-content {
+  font-size: 16px;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  color: #f1f1f1;
+  line-height: 1.4;
+} */
+
+/* Mobile View */
 /* Mobile View of hero card */
 @media screen and (max-width: 1200px) {
   .hero-card {
@@ -195,6 +217,7 @@
 
   .learn-moree-btn {
     font-size: 14px;
+    font-weight: 200%;
     padding: 10px 115px;
     margin-top: 50px;
     margin-left:-20px ;
@@ -220,5 +243,46 @@
     .scroll-btn:hover {
       transform: scale(1.2);
     }
-  }}
+    @media (max-width: 768px) 
+    {
+      .dynamic-box {
+        display: none;
+        position: relative; /* Change from absolute to relative for better stacking */
+        bottom: 0; /* Reset bottom positioning */
+        left: 50%; /* Center horizontally */
+        transform: translateX(-50%); /* Adjust for centering */
+        width: 90%; /* Reduce width for smaller screens */
+        font-size: 18px; /* Adjust font size for readability */
+        padding: 15px; /* Reduce padding */
+        border-radius: 8px; /* Slightly reduce border radius */
+      }
+    
+      .dynamic-box-1,
+      .dynamic-box-2,
+      .dynamic-box-3,
+      .dynamic-box-4 {
+        font-size: 16px; /* Adjust font size for all box variations */
+      }
+    
+      .box-content {
+        font-size: 20px; /* Adjust content font size */
+        line-height: 1.4; /* Adjust line height */
+      }
+    
+      .HomeServices {
+        margin-top: -20px; /* Adjust margin for better spacing */
+      }
+    
+      .HomeServices3 {
+        margin-bottom: -40px; /* Adjust margin for better spacing */
+        margin-top: -60px; /* Adjust top margin */
+      }
+    }
+    
+
+    
+  
+  }
+  
+}
 

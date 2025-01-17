@@ -5,7 +5,6 @@ import KnowMore from "../../assets/images/KnowMore.png"
 import Gallery from "../Gallery/Gallery";
 import Broucher from "../Broucher/Broucher";
 
-
 const KnowMoreFirstPage = () => {
   const cardData = [
     { title: "Software Development", description: "We build reliable software solutions.", imgPath: "./images/logo.png" },
@@ -21,17 +20,17 @@ const KnowMoreFirstPage = () => {
 
   return (
     <>
-      <section className="KnowMoreFirstPage123">
-        <div className="knowmoreabout-container">
-          <div className="image-section">
-            <img src={KnowMore} alt="About Us" className="about-image" />
+      <section className="know-more-first-page">
+        <div className="know-more-about-container">
+          <div className="know-more-image-section">
+            <img src={KnowMore} alt="About Us" className="know-more-image" />
           </div>
-          <div className="text-section">
+          <div className="know-more-text-section">
             <h1>Know More </h1>
-            <p>Our journey, Our purpose-Knowmore about us. </p>
+            <p>Our journey, Our purpose - Know more about us.</p>
           </div>
         </div>
-        <div className="circular1">
+        <div className="circular-container">
           <Broucher />
           <Gallery />
         </div>

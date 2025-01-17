@@ -19,21 +19,21 @@ const OtherServiceFirst = () => {
   ];
 
   return (
-   <>
+    <>
       {/* Container for About */}
-      <div className="otherserviceabout-container">
-        <div className="otherserviceimage-section">
-          <img src="./images/4.png" alt="About Us" className="about-image" />
+      <div className="otherservicefirstpage-container">
+        <div className="otherservicefirstpage-image-section">
+          <img src="./images/4.png" alt="About Us" className="otherservicefirstpage-image" />
         </div>
-        <div className="otherservicetext-section">
+        <div className="otherservicefirstpage-text-section">
           <h1>Other Services</h1>
           <p>Transforming Ideas into Impactful Solutions</p>
         </div>
       </div>
       {/* <EMobilitySolutions /> */}
-      <StaffingAndTraining/>
-    <PlantLayoutPlanningServices/>
-   </> 
+      <StaffingAndTraining />
+      <PlantLayoutPlanningServices />
+    </>
   );
 };
 

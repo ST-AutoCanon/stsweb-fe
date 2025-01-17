@@ -70,23 +70,28 @@
     .testing-qa-container {
         flex-direction: column;
         align-items: center;
-        text-align: center;
+        text-align: left;
         gap: 20px;
     }
 
     .testing-qa-text {
+        width: 130%;
+        margin-top:-40px;
+    }
+    .testing-qa-text h1 {
         width: 100%;
     }
 
     /* Right Section - Image */
 .testing-qa-image {
     position: relative;
-    width: 100%;
+    margin-top:70px;
+    width: 130%;
     order: 0; /* Place image on the right */
 }
 
 .services-image {
-    width: 100%;
+    width: 290%;
     height: auto;
    
 }

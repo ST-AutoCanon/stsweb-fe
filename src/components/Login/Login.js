@@ -188,7 +188,7 @@ const Login = ({ onClose }) => {
           </button>
           <div className="login-image">
             <img
-              src="./images/loginimage.png" // Replace with your actual image URL
+              src="./images/homologation1.png" // Replace with your actual image URL
               alt="Login illustration"
             />
           </div>

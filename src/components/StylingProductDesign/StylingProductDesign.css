@@ -67,14 +67,18 @@ div.styling-product-design-text p {
         text-align: left; /* Align text to the left */
         gap: 20px;
         padding: 20px; /* Adjust padding for smaller screens */
+        padding-top:30px;
     }
 
     .styling-product-design-text {
         width: 100%;
         order: 2; /* Maintain order for responsive layout */
+        margin-bottom:30px;
+        margin-top:-60px
     }
 
     .styling-product-design-image {
+        margin-top:120px;
         width: 100%;
         order: 1; /* Maintain order for responsive layout */
     }

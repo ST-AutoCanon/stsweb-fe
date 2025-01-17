@@ -151,10 +151,10 @@ const CircularDesignNew = () => {
       text: "Chat Bot Application",
       link: "chatbot-application",
       content: <ChatbotApplication />,
-      degree: isMobile ? 0 : -250,
-      reverse: false,
-      offsetX: isMobile ? 50: 370,
-      offsetY: isMobile ? 90 : 90,
+      degree: isMobile ? 5 : 385,
+      reverse: false, // Image first, then text
+      offsetX: isMobile ? 40 :230,
+      offsetY: isMobile ? 75 : 30,
       lineClass: "line-1-new",
     },
     {

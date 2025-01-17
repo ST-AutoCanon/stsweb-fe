@@ -21,20 +21,18 @@ const MainAbout = () => {
 
   return (
     <>
-    {/*container for About*/}
-      <div className="mainabout-container">
-        <div className="image-section">
-          <img src="./images/Aboutus2.png" alt="About Us" className="about-image" />
+      {/*container for About*/}
+      <div className="aboutfirstpage-mainabout-container">
+        <div className="aboutfirstpage-image-section">
+          <img src="./images/Aboutus2.png" alt="About Us" className="aboutfirstpage-mainabout-image" />
         </div>
-        <div className="text-section">
+        <div className="aboutfirstpage-text-section">
           <h1>About Us</h1>
-          <p>Where Sukapa Tech Innovation Meets Perfection in Every Sector</p>
+          <p>Where Sukalpa Tech Innovation Meets Perfection in Every Sector</p>
         </div>
       </div>
-     
-    <MainAboutSecond/>
-    <MajorProjects />
-      
+      <MainAboutSecond />
+      <MajorProjects />
     </>
   );
 };

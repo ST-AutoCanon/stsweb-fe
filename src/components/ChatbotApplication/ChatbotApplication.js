@@ -24,27 +24,27 @@ const ChatbotApplication = () => {
         <ul className="services-list">
           <li>
             <strong> 24/7 Availability</strong>
-            <p>Always accessible, ensuring round-the-clock customer support.</p>
+            Always accessible, ensuring round-the-clock customer support.
           </li>
           <li>
             <strong> Instant Responses</strong>
-            <p>Quick answers for faster issue resolution and better user experience.</p>
+            Quick answers for faster issue resolution and better user experience.
           </li>
           <li>
             <strong> Scalability</strong>
-            <p>Handles multiple conversations simultaneously without extra resources.</p>
+            Handles multiple conversations simultaneously without extra resources.
           </li>
           <li>
             <strong> Cost Efficiency</strong>
-            <p>Reduces operational costs by automating repetitive tasks.</p>
+            Reduces operational costs by automating repetitive tasks.
           </li>
           <li>
             <strong> Lead Generation</strong>
-            <p>Qualifies leads and guides prospects through the sales funnel.</p>
+            Qualifies leads and guides prospects through the sales funnel.
           </li>
           <li>
             <strong> Seamless Integration</strong>
-            <p>Easily integrates with CRMs and business systems for enhanced functionality.</p>
+            Easily integrates with CRMs and business systems for enhanced functionality.
           </li>
   
 

@@ -91,17 +91,18 @@ div.export-homologation-text p {
     .export-homologation-container {
         flex-direction: column; /* Stack items for smaller screens */
         align-items: center;
-        text-align: center;
+        text-align: left;
         gap: 20px;
     }
 
     .export-homologation-text {
-        width: 100%;
+        margin-top:-60px;
+        width: 300%;
         order: 2; /* Maintain order for responsive layout */
     }
 
     .export-homologation-image {
-        width: 100%;
+        width: 300%;
         order: 1; /* Maintain order for responsive layout */
     }
 

@@ -61,45 +61,45 @@
 
 .line-1-new
 {
-  width: 52%!important;
+  width: 52.5%!important;
   transform: rotate(-50deg);
-  top: 290% !important;
-  left: -16%!important;
+  top: 300% !important;
+  right: 56%!important;
 }
 .line-2-new
 {
   top: 50%;
   left: -73%!important;
-  width: 75%!important;
+  width: 73%!important;
   transform: rotate(0deg);
 }
 .line-3-new
 {
-  top: 10%;
-  left: 5%;
-  width: 35%!important;
-  transform: rotate(240deg);
+  top: -5%;
+  left: 25%;
+  width: 43%!important;
+  transform: rotate(230deg);
 }
 .line-4-new
 {
   top: 50%;
-  left: 175%;
-  width: 73%!important;
+  left: 173%;
+  width: 71%!important;
   transform: rotate(180deg);
 }
 .line-5-new
 {
-  top: 290%;
-  left: 140%;
-  width: 65%!important;
-  transform: rotate(230deg);
+  top: 314%;
+  left: 130%;
+  width: 76%!important;
+  transform: rotate(225deg);
 }
 .line-6-new
 {
   top: -10%;
-  left: 82%;
-  width: 68%!important;
-  transform: rotate(320deg);
+  left: 74%;
+  width: 73%!important;
+  transform: rotate(321deg);
 }
 /* Button layout inside each circular item */
 .circular-button-new {
@@ -110,7 +110,7 @@
   border-radius: 50px;
   padding: 5px 10px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.1000s ease;
   gap: 10px; /* Space between image and text */
 }
 
@@ -126,12 +126,12 @@
 
 /* Button hover state */
 .circular-item-new .circular-button-new:hover {
-  background-color: #EBEBEB;
+  background-color: #ABE46C;
 }
 
 /* Button when active */
 .circular-button-new.active-button-new {
-  background-color: #EBEBEB;
+  background-color: #ABE46C;
   color: black;
   cursor: default;
 }
@@ -196,6 +196,7 @@
   .circular-container-new {
     width: 400px; /* Adjust container size for smaller screens */
     height: 400px;
+    padding-bottom: 30px;
   }
   .central-image-new img {
     width: 60%;

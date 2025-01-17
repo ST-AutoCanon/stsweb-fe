@@ -75,17 +75,24 @@
     .software-development-container {
         flex-direction: column; /* Stack items for smaller screens */
         align-items: center;
-        text-align: center;
+        text-align: left;
         gap: 20px;
     }
 
     .software-development-text {
-        width: 100%;
+        width: 130%;
+        margin-top:-30px;
+        order: 2; /* Maintain order for responsive layout */
+    }
+
+    .software-development-text h1 {
+        margin-top:20px;
+        width: 125%;
         order: 2; /* Maintain order for responsive layout */
     }
 
     .software-development-image {
-        width: 100%;
+        width: 130%;
         order: 1; /* Maintain order for responsive layout */
     }
 

@@ -7,18 +7,18 @@ const Gallery = () => {
   const [selectedSection, setSelectedSection] = useState(""); // To track which section the image is from
 
   const images = [
-    "./images/grp6.jpg",
-    "./images/grp7.jpg",
-    "./images/grp1.jpeg",
-    "./images/grp5.jpg",
+    "./images/a1.jpg",
+    "./images/a2.jpg",
+    "./images/a3.jpeg",
+    "./images/a3.jpg",
   ];
 
   const secondSectionImages = [
-    "./images/grp8.jpeg",
-    "./images/grp2.jpeg",
-    "./images/grp4.jpeg",
-    "./images/grp3.jpeg",
-    "./images/g5.jpg",
+    "./images/g8.jpeg",
+    "./images/g2.jpeg",
+    "./images/g4.jpeg",
+    "./images/g3.jpeg",
+    "./images/5.jpg",
   ];
 
   const descriptions = [
