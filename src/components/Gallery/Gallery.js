@@ -7,18 +7,18 @@ const Gallery = () => {
   const [selectedSection, setSelectedSection] = useState(""); // To track which section the image is from
 
   const images = [
-    "./images/a1.jpg",
-    "./images/a2.jpg",
-    "./images/a3.jpeg",
-    "./images/a3.jpg",
+    "./images/gallery2.jpg",
+    "./images/gallery4.jpg",
+    "./images/Atc2.png",
+    "./images/gallery6.jpg",
   ];
 
   const secondSectionImages = [
-    "./images/g8.jpeg",
-    "./images/g2.jpeg",
-    "./images/g4.jpeg",
-    "./images/g3.jpeg",
-    "./images/5.jpg",
+    "./images/gallery3.jpg",
+    "./images/s1.jpeg",
+    "./images/grp2.jpeg",
+    "./images/grp3.jpeg",
+    "./images/gallery8.jpg",
   ];
 
   const descriptions = [
@@ -65,11 +65,11 @@ const Gallery = () => {
         </div>
 
         <div className="info-section">
-          <h2>{selectedImage !== null ? "Selected Idea" : "Capturing Moments of Celebration"}</h2>
+          <h2>{selectedImage !== null ? "Selected Idea" : "Our Creative Vision and Innovation"}</h2>
           <p>
             {selectedImage !== null
               ? descriptions[selectedImage]
-              : "A glimpse of the joyous  celebrations at the office,showcasing the vibrant teamwork, unity, and festive cheer among colleagues."}
+              : "Explore Our collection of designs that represent our identity,and commitment to excellence.This represents the foundation of journey towards success."}
           </p>
         </div>
       </div>

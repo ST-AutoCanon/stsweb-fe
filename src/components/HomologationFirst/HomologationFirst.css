@@ -4,6 +4,7 @@
   background: linear-gradient(to bottom, #7AC127 , #0B5F80);
   color: white;
   padding: 70px;
+ 
 }
 
 /* Title Styles */
@@ -252,6 +253,7 @@
   .homologation-content {
     flex-direction: column;
     align-items: center;
+    
   }
   .homologation-title {
     text-align: center;

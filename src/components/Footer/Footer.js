@@ -90,8 +90,9 @@ const Footer = () => {
           <a href="/">Home</a>
           <a href="/about">About</a>
           <a href="/services">Services</a>
-          <a href="/ReachUs">Reach Us</a>
+          
           <a href="/KnowMore">Know More</a>
+          <a href="/ReachUs">Reach Us</a>
         </div>
       </div>
 

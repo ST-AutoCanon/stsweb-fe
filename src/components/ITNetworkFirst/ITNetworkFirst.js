@@ -26,7 +26,7 @@ const ITNetworkFirst = () => {
             <img src={ITService} alt="About Us" className="itnetworkfirstpage-about-image" />
           </div>
           <div className="itnetworkfirstpage-text-section">
-            <h1>ITNetworking Services</h1>
+            <h1>IT Services</h1>
             <p>Empowering Your Digital Transformation with Sukalpa Tech Expert IT Solutions</p>
           </div>
         </div>

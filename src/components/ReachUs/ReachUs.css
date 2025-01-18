@@ -85,11 +85,34 @@
   background-color: #218838;
 }
 
-/* Media Query for Mobile View */
+/* Mobile view */
 @media (max-width: 768px) {
+  .reachus-container {
+    flex-direction: column; /* Stack the form and map vertically */
+    align-items: center; /* Center the content */
+  }
+
+  .map-box {
+    margin-top: 10px; /* Reduced margin for mobile */
+    height: 200px; /* Reduce map height for mobile view */
+    width: 100%; /* Adjust map width */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Card effect for map */
+    border-radius: 10px; /* Rounded corners */
+    margin-bottom: 20px; /* Add some space below the map */
+  }
+
   .form-box {
-    width: 90%; /* Adjust form size for smaller screens */
-    margin-left: auto; /* Center form for mobile */
-    margin-right: auto;
+    width: 80%; /* Adjust width for mobile */
+    margin-top: -50px; /* Add margin top */
+  }
+
+  .form-box, .map-box {
+    border-radius: 10px; /* Apply rounded corners for cards */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Apply card shadow effect */
+  }
+
+  .form-box {
+    margin-top: 240px; /* Adjust top margin for the form */
+    margin-left:20px;
   }
 }

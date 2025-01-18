@@ -279,7 +279,7 @@ const Navbar = () => {
                   to="/ITNetworkingServices"
                   onClick={() => handleNavClick("/ITNetworkFirst")}
                 >
-                  IT Networking Services
+                  IT Services
                 </NavLink>
               </li>
               <li>

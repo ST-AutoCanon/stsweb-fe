@@ -116,13 +116,15 @@
     }
 
     .chatbot-application-image {
-        width: 30%;
-        margin-top: 70px;
+        width: 19%;
+        margin-top: 60px;
+        margin-left:50px;
     }
 
     .chatbot-application-text {
-        width: 63%;
+        width: 68%;
         margin-top: -10px;
+        
     }
 
     .chatbot-application-text h1 {

@@ -24,7 +24,7 @@ const MainAbout = () => {
       {/*container for About*/}
       <div className="aboutfirstpage-mainabout-container">
         <div className="aboutfirstpage-image-section">
-          <img src="./images/Aboutus2.png" alt="About Us" className="aboutfirstpage-mainabout-image" />
+          <img src="./images/Abt2.png" alt="About Us" className="aboutfirstpage-mainabout-image" />
         </div>
         <div className="aboutfirstpage-text-section">
           <h1>About Us</h1>

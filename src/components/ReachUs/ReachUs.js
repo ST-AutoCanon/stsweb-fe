@@ -61,7 +61,7 @@ const ReachUs = () => {
       <div className="content-section">
         <div className="map-box">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d959.3564869283788!2d74.48317102534428!3d15.886740550840509!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbf63e7aeb36afd%3A0x7d0244f3a88cdcd2!2sShree%20Annapurneshwari%20General%20Store&#39;s%20%26%20Home%20Products!5e0!3m2!1sen!2sin!4v1737139686819!5m2!1sen!2sin"
+            src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d854.6890485211676!2d74.48380473920943!3d15.88685653851927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTXCsDUzJzEyLjAiTiA3NMKwMjknMDMuOCJF!5e0!3m2!1sen!2sin!4v1734961256994!5m2!1sen!2sin"
             allowFullScreen=""
             loading="lazy"
             title="Office Location"
