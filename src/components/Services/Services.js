@@ -264,18 +264,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
 import "./Services.css";
-import greybg from "../../assets/images/greybg.png";
+import oursrvc from "../../assets/images/oursrvc.png";
 import card2image from "../../assets/images/card2image.png";
 import engineeringService from "../../assets/images/Engineeringservice1.png";
-import otherService from "../../assets/images/Otherservice1.png";
 
+import otherService from "../../assets/images/Otherservice1.png";
 const Services = () => {
   const navigate = useNavigate(); // Initialize useNavigate
 
   // Reordered services array
   
   const services = [
-    { id: 4, image: greybg, path: "/service-four", className: "sticky-image" },
+    { id: 4, image: oursrvc, path: "/service-four", className: "sticky-image" },
     { id: 1, image: card2image, path: "/ITNetworkFirst", className: "it-image" },
     { id: 2, image: engineeringService, path: "/EngineeringServiceFirst", className: "engineering-image" },
     { id: 3, image: otherService, path: "/OtherServiceFirst", className: "other-image" },

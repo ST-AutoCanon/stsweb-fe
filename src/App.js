@@ -101,6 +101,7 @@ function App() {
           <Route path="/HomologationFirst" element={<HomologationFirst/>} />
           <Route path="/Feedbackform" element={<Feedbackform/>} />
           <Route path="/KnowMoreFirstPage" element={<KnowMoreFirstPage/>}/>
+          <Route path="/Broucher" element={<Broucher/>}/>
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}

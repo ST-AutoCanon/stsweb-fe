@@ -5,31 +5,45 @@ import "./Footer.css";
 import { FaLinkedin, FaEnvelope, FaPhone } from 'react-icons/fa'; // LinkedIn and Email icons
 import FeedBack from '../Feedbackform/Feedbackform.js'
  
-const Footer = () => {
- const navigate = useNavigate(); // Hook for navigation
- const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for showing the popup
-  const handleFeedbackClick = (path) => {
-    setMenuOpen(false);
-    // setServicesDropdownOpen(false);
-    // setKnowMoreDropdownOpen(false);
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-      navigate(path);
-    }, 300);
-     // Navigate to Feedback form route
-  };
+// const Footer = () => {
+//  const navigate = useNavigate(); // Hook for navigation
+//  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for showing the popup
+//   const handleFeedbackClick = (path) => {
+//     setMenuOpen(false);
+//     // setServicesDropdownOpen(false);
+//     // setKnowMoreDropdownOpen(false);
+//     setTimeout(() => {
+//       window.scrollTo(0, 0);
+//       navigate(path);
+//     }, 300);
+//      // Navigate to Feedback form route
+//   };
    
-  // Open Login modal (triggering the Login form)
-  const openModal = () => {
-    setIsModalOpen(true);  // Trigger modal open by updating state to true
-  };
+//   // Open Login modal (triggering the Login form)
+//   const openModal = () => {
+//     setIsModalOpen(true);  // Trigger modal open by updating state to true
+//   };
 
-  // Close Login modal
-  const closeModal = () => {
-    setIsModalOpen(false); // Trigger modal close by updating state to false
-  };
+//   // Close Login modal
+//   const closeModal = () => {
+//     setIsModalOpen(false); // Trigger modal close by updating state to false
+//   };
  
+const Footer = () => {
+  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [modalKey, setModalKey] = useState(0); // Key to force remount the modal
 
+  // Open modal
+  const openModal = () => {
+    setModalKey((prevKey) => prevKey + 1); // Increment key to force remount
+    setIsModalOpen(true);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
   return (
     <footer className="footer">
       <div className="footer-container">

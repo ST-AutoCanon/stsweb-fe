@@ -51,7 +51,7 @@
 }
 .moving-images {
   position: absolute; /* Ensure it's absolutely positioned relative to the parent card */
-  bottom: 31%; /* Move the moving images slightly above the bottom */
+  bottom: 29%!important; /* Move the moving images slightly above the bottom */
   right: -8%; /* Center horizontally */
   
   transform: translateX(-50%); /* Adjust horizontal alignment */
@@ -255,6 +255,8 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjust column size */
     gap: 25px; /* Adjust gap for larger screens */
   }
+  
+
 
   .service-card {
     border-radius: 10px; /* Slightly more rounded corners for large screens */
@@ -280,6 +282,7 @@
   .service-detail-title {
     font-size: 2.5rem; /* Larger titles */
   }
+  
 
   .service-detail-description {
     font-size: 1.3rem; /* Larger description text */
@@ -292,15 +295,25 @@
 }
 
 
+    
+  
+
+  
+
 /* For larger screens (1366px and above) */
 @media (min-width: 1366px) {
   .moving-images {
-    bottom: 31%; /* Adjust position for larger screens */
+    bottom: 25%!important; /* Adjust position for larger screens */
     right: -5%; /* Reduce the offset on larger screens */
     width: 300%; /* Adjust width for consistent scaling */
     gap: 20%; /* Reduce gap for better alignment */
   }
 
+  .sticky-card .sticky-image {
+   
+    height: 78vh!important;
+ 
+  }
   .moving-image {
     width: 100px; /* Increase image size on larger screens */
     height: auto;
@@ -334,7 +347,12 @@
     margin-top: -70px;
   }
 
+  
+
 }
+
+
+
 
 
 /* For tablets (768px - 1024px) */
@@ -355,13 +373,15 @@
     width: 100px;
     height: 100px;
     margin-top: -50px;
+
   }
+ 
 }
 
 /* For mobile devices (up to 768px) */
 @media (max-width: 768px) {
   .moving-images {
-    bottom: 23%; /* Lower the images for smaller screens */
+    bottom: 23%!important; /* Lower the images for smaller screens */
     right: -10%;
     width: 250%;
     gap: 15%;

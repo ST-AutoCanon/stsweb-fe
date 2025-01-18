@@ -13,7 +13,7 @@
   
   /* Left Section - Content */
   .domestic-type-approval-text {
-    width: 60%; /* Take up more space for text */
+    width: 50%; /* Take up more space for text */
     order: 1; /* Place text on the left */
     margin-top: -35px;
   }
@@ -52,13 +52,14 @@
   /* Right Section - Image */
   .domestic-type-approval-image {
     position: relative;
-    width: 35%; /* Take up less space for the image */
+    width: 85%; /* Take up less space for the image */
+    height: 100%;
     order: 2; /* Place image on the right */
     margin-top:50px;
   }
   
   .services-image {
-    width: 100%;
+    width: 120%;
     height: auto;
     border-radius: 8px;
   }
@@ -114,6 +115,11 @@
 
   .services-list li {
       width: 48%; /* Adjust width for services list */
+  }
+  .services-image {
+    width: 110%;
+    height: auto;
+    border-radius: 8px;
   }
 }
 

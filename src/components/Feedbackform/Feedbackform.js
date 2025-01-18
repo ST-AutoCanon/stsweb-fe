@@ -41,7 +41,7 @@ const Feedbackform = ({ onClose }) => {
           <div className="feedback-success">
             <h2>Thank you for your feedback!</h2>
             <button onClick={handleClose} className="close-button">
-              Close
+            
             </button>
           </div>
         ) : (

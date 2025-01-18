@@ -7,7 +7,7 @@ const DomesticTypeApproval = () => {
       {/* Left Section - Image */}
       <div className="domestic-type-approval-image">
         <img
-          src="./images/domestic5.png"
+          src="./images/frame.png"
           alt="Domestic Type Approval Services"
           className="services-image"
         />

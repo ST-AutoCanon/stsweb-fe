@@ -315,8 +315,8 @@ const Navbar = () => {
             <ul className={`dropdown-menu ${knowMoreDropdownOpen ? "show" : ""}`}>
               <li>
                 <NavLink
-                  to="/KnowMoreFirstPage"
-                  onClick={() => handleNavClick("/KnowMoreFirstPage")}
+                  to="/Broucher"
+                  onClick={() => handleNavClick("/Broucher")}
                 >
                   Broucher
                 </NavLink>

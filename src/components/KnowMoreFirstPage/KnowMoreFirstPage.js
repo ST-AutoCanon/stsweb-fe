@@ -31,7 +31,9 @@ const KnowMoreFirstPage = () => {
           </div>
         </div>
         <div className="circular-container">
+          <div classname="Broucher123">
           <Broucher />
+          </div>
           <Gallery />
         </div>
       </section>

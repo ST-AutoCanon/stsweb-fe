@@ -10,7 +10,7 @@ const Gallery = () => {
     "./images/gallery2.jpg",
     "./images/gallery4.jpg",
     "./images/Atc2.png",
-    "./images/gallery6.jpg",
+    "./images/gallery9.jpg",
   ];
 
   const secondSectionImages = [
@@ -87,11 +87,7 @@ const Gallery = () => {
               alt={`Enlarged Image ${selectedImage + 1}`}
               className="modal-image"
             />
-            <p className="modal-description">
-              {selectedSection === "first"
-                ? descriptions[selectedImage]
-                : secondSectionDescriptions[selectedImage]}
-            </p>
+            
             <button className="modal-close" onClick={closeModal}>
               X
             </button>

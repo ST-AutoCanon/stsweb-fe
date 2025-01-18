@@ -913,10 +913,10 @@ const Home = () => {
   // ];
 
   const mobileImages = [
-    './images/banner_1.png',
-    './images/banner_2.png',
-    './images/banner_3.png',
-    './images/banner_4.png',
+    './images/bn1.png',
+   './images/bn2 (2).png',
+   './images/bn3 (3).png',
+   './images/bn4 (4).png',
   ];
 
   const images = isMobile ? mobileImages : desktopImages;
