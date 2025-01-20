@@ -58,11 +58,7 @@
     margin-top:50px;
   }
   
-  .services-image {
-    width: 120%;
-    height: auto;
-    border-radius: 8px;
-  }
+  
   
   /* Responsive Design */
   @media (max-width: 768px) {

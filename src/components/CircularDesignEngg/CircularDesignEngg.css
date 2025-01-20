@@ -122,7 +122,7 @@
 }
 
 .circular-button-engg.reverse:hover {
-  transform: scale(1.2); /* Apply rotation for reverse buttons */
+  transform: scale(1.1); /* Apply rotation for reverse buttons */
 }
 /* Reverse layout for buttons */
 .circular-button-engg.reverse {
@@ -191,8 +191,8 @@
   }
 
   .central-image-engg img {
-    width: 60%;
-    height: 60%;
+    width: 50%;
+    height:50%;
     border-radius: 50%;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
   }
@@ -200,8 +200,8 @@
 /* Central wrapper with dotted border */
 .central-wrapper-engg {
   position: absolute;
-  width: 100px; /* Slightly larger than the central image */
-  height: 100px;
+  width: 90px; /* Slightly larger than the central image */
+  height: 90px;
   border-radius: 50%; /* Makes the dotted border circular */
   border: 3px dotted #ddd; /* Creates the dotted border */
   display: flex;
@@ -214,12 +214,12 @@
   }
 
   .circular-button-engg {
-    padding: 5px 8px;
-    gap: 5px;
+    padding: 4px 4px;
+    gap: 3px;
   }
 
   .circular-item-engg p {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   /* Adjust the dotted lines connecting buttons */
@@ -231,9 +231,9 @@
 
   /* Line positions for smaller screens */
   .line-1-engg {
-    width: 33% !important;
+    width: 45% !important;
     transform: rotate(-55deg);
-    top: 210% !important;
+    top: 230% !important;
     left: 15% !important;
   }
   .line-2-engg {
@@ -243,27 +243,37 @@
     transform: rotate(0deg);
   }
   .line-3-engg {
-    top: 4%;
-    left: 25%;
-    width: 20% !important;
-    transform: rotate(240deg);
+    top: -5%;
+    left: 40%;
+    width: 32% !important;
+    transform: rotate(230deg);
   }
   .line-4-engg {
     top: 43%;
-    left: 115%;
-    width: 15% !important;
+    left: 125%;
+    width: 25% !important;
     transform: rotate(180deg);
   }
   .line-5-engg {
-    top: 210%;
+    top: 230%;
     left: 98%;
-    width: 37% !important;
+    width: 49% !important;
     transform: rotate(230deg);
   }
   .line-6-engg {
-    top: -5%;
-    left: 85%;
-    width: 15% !important;
+    top: -7%;
+    left: 70%;
+    width: 28% !important;
     transform: rotate(308deg);
+  }
+  .circular-button-engg:hover img {
+    transform: scale(0.9); /* Scale the image slightly for extra effect */
+  }
+  
+  .circular-button-engg.reverse:hover {
+    transform: scale(1.1); /* Apply rotation for reverse buttons */
+  }
+  .circular-button-engg:hover {
+    transform: scale(1.1); /* Apply rotation for reverse buttons */
   }
 }

@@ -883,9 +883,288 @@
 // export default Home;
 
 
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import Typewriter from 'typewriter-effect'; // Install via `npm install typewriter-effect`
+// import About from "../About/About";
+// import Services from '../Services/Services';
+// import HomologationFirst from '../HomologationFirst/HomologationFirst';
+// import './Home.css';
+// import H101 from '../../assets/images/H101.png';
+// import H106 from '../../assets/images/H106.png';
+// import Homepage4 from '../../assets/images/Homepage4.png';
+// import H105 from '../../assets/images/H105.png';
+
+// const desktopImages = [H101, H106, Homepage4, H105];
+
+
+// const Home = () => {
+//   const [currentIndex, setCurrentIndex] = useState(0);
+//   const [isTyping, setIsTyping] = useState(false);
+//   const [isPaused, setIsPaused] = useState(false);
+//   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+//   const navigate = useNavigate();
+
+//   // const desktopImages = [
+//   //   './images/H101.png',
+//   //   './images/H106.png',
+//   //   './images/homepage4.png',
+//   //   './images/H105.png',
+//   // ];
+
+//   const mobileImages = [
+//     './images/bn1.png',
+//    './images/bn2 (2).png',
+//    './images/bn3 (3).png',
+//    './images/bn4 (4).png',
+//   ];
+
+//   const images = isMobile ? mobileImages : desktopImages;
+
+//   const typewriterContents = [
+//     { text: 'At STS, we specialize in providing seamless turnkey solutions that handle every aspect of your project. From initial concept to final execution, we take care of all the details so you can focus on what matters most-growing your business.', duration: 16000 },
+//     { text: 'We offer custom-tailored CAE services to enhance product performance, durability, and efficiency, using advanced simulations to predict real-world behavior, minimize prototypes, reduce costs, and accelerate time-to-market.', duration: 16000 },
+//     { text: 'We specialize in delivering end-to-end 3-wheeler design solutions, offering custom branding, high-quality vehicle wraps, and expert installation to enhance visibility and drive your brand forward on the road.', duration: 15000 },
+//     { text: 'We support automotive activities, from product development to innovative software app creation.', duration: 8000 },
+//   ];
+
+//   // Update `isMobile` on window resize
+//   useEffect(() => {
+//     const handleResize = () => setIsMobile(window.innerWidth <= 768);
+//     window.addEventListener('resize', handleResize);
+
+//     return () => window.removeEventListener('resize', handleResize);
+//   }, []);
+
+//   // Slide transition logic
+//   useEffect(() => {
+//     if (isTyping || isPaused) return;
+
+//     const timeout = setTimeout(() => {
+//       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+//     }, typewriterContents[currentIndex].duration);
+
+//     return () => clearTimeout(timeout);
+//   }, [currentIndex, isTyping, isPaused, images.length]);
+
+//   // Handle manual slide change
+//   const handleScrollButtonClick = (index) => {
+//     setCurrentIndex(index);
+//     setIsPaused(false); // Resume auto-sliding
+//   };
+
+//   const handleLearnMoreClick = () => {
+//     navigate("/MainAbout");
+//   };
+
+//   return (
+//     <section className="home123">
+//       <div
+//         className="hero-image"
+//         style={{
+//           backgroundImage: `url(${images[currentIndex]})`,
+//           backgroundSize: 'cover',
+//           backgroundPosition: 'center',
+//           backgroundRepeat: 'no-repeat',
+//         }}
+//       >
+//         {/* Hero Card */}
+//         <div className="hero-card">
+//           <h1 className="hero-card-title1">Welcome to</h1>
+//           <h2 className="hero-card-title">Sukalpa Tech Solutions</h2>
+//           <p className="hero-card-description">Let us join to support you deserve</p>
+//           <button className="learn-moree-btn" onClick={handleLearnMoreClick}>
+//             Learn More
+//           </button>
+//         </div>
+
+//         {/* Dynamic Content Box */}
+//         <div className={`dynamic-box dynamic-box-${currentIndex + 1}`}>
+//           <div className="box-content">
+//             <Typewriter
+//               options={{
+//                 strings: [typewriterContents[currentIndex].text],
+//                 autoStart: true,
+//                 delay: 50,
+//                 onStart: () => setIsTyping(true),
+//                 onComplete: () => setIsTyping(false),
+//               }}
+//             />
+//           </div>
+//         </div>
+
+//         {/* Scrolling Buttons */}
+//         <div className="scrolling-buttons">
+//           {images.map((_, index) => (
+//             <button
+//               key={index}
+//               className={`scroll-btn ${index === currentIndex ? 'active' : ''}`}
+//               onClick={() => handleScrollButtonClick(index)}
+//             ></button>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* Additional Components */}
+//       <div className="HomeServices">
+//         <Services />
+//       </div>
+//       <div className="HomeServices1">
+//         <HomologationFirst />
+//       </div>
+//       <div className="HomeServices3">
+//         <About />
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Home;
+
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import Typewriter from 'typewriter-effect';
+// import About from "../About/About";
+// import Services from '../Services/Services';
+// import HomologationFirst from '../HomologationFirst/HomologationFirst';
+// import './Home.css';
+// import H101 from '../../assets/images/H101.png';
+// import H106 from '../../assets/images/H106.png';
+// import Homepage4 from '../../assets/images/Homepage4.png';
+// import H105 from '../../assets/images/H105.png';
+
+// const desktopImages = [H101, H106, Homepage4, H105];
+// const mobileImages = [
+//   './images/bn1.png',
+//   './images/bn2 (2).png',
+//   './images/bn3 (3).png',
+//   './images/bn4 (4).png',
+// ];
+
+// const typewriterContents = [
+//   { text: 'At STS, we specialize in providing seamless turnkey solutions that handle every aspect of your project. From initial concept to final execution, we take care of all the details so you can focus on what matters most-growing your business.', duration: 16000 },
+//   { text: 'We offer custom-tailored CAE services to enhance product performance, durability, and efficiency, using advanced simulations to predict real-world behavior, minimize prototypes, reduce costs, and accelerate time-to-market.', duration: 16000 },
+//   { text: 'We specialize in delivering end-to-end 3-wheeler design solutions, offering custom branding, high-quality vehicle wraps, and expert installation to enhance visibility and drive your brand forward on the road.', duration: 15000 },
+//   { text: 'We support automotive activities, from product development to innovative software app creation.', duration: 8000 },
+// ];
+
+// const Home = () => {
+//   const [currentIndex, setCurrentIndex] = useState(0);
+//   const [isTyping, setIsTyping] = useState(false);
+//   const [isPaused, setIsPaused] = useState(false);
+//   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+//   const navigate = useNavigate();
+
+//   const images = isMobile ? mobileImages : desktopImages;
+
+//   const getSlideDuration = () => {
+//     if (isMobile) {
+//       console.log('Mobile detected: Setting duration to 5000ms');
+//       return 1000; // Mobile duration
+//     }
+//     const desktopDuration = typewriterContents[currentIndex]?.duration || 10000;
+//     console.log(`Desktop detected: Setting duration to ${desktopDuration}ms`);
+//     return desktopDuration; // Desktop duration
+//   };
+
+//   useEffect(() => {
+//     const handleResize = () => {
+//       const mobileStatus = window.innerWidth <= 768;
+//       console.log(`Window resized. Is mobile: ${mobileStatus}`);
+//       setIsMobile(mobileStatus);
+//     };
+//     window.addEventListener('resize', handleResize);
+
+//     return () => window.removeEventListener('resize', handleResize);
+//   }, []);
+
+//   useEffect(() => {
+//     if (isTyping || isPaused) return;
+
+//     const duration = getSlideDuration();
+//     console.log(`Slide transition duration: ${duration}ms`);
+
+//     const timeout = setTimeout(() => {
+//       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+//       console.log(`Changing slide to index: ${(currentIndex + 1) % images.length}`);
+//     }, duration);
+
+//     return () => clearTimeout(timeout);
+//   }, [currentIndex, isTyping, isPaused, images.length, isMobile]);
+
+//   const handleScrollButtonClick = (index) => {
+//     console.log(`Manual slide change to index: ${index}`);
+//     setCurrentIndex(index);
+//     setIsPaused(false);
+//   };
+
+//   const handleLearnMoreClick = () => {
+//     navigate("/MainAbout");
+//   };
+
+//   return (
+//     <section className="home123">
+//       <div
+//         className="hero-image"
+//         style={{
+//           backgroundImage: `url(${images[currentIndex]})`,
+//           backgroundSize: 'cover',
+//           backgroundPosition: 'center',
+//           backgroundRepeat: 'no-repeat',
+//         }}
+//       >
+//         <div className="hero-card">
+//           <h1 className="hero-card-title1">Welcome to</h1>
+//           <h2 className="hero-card-title">Sukalpa Tech Solutions</h2>
+//           <p className="hero-card-description">Let us join to support you deserve</p>
+//           <button className="learn-moree-btn" onClick={handleLearnMoreClick}>
+//             Learn More
+//           </button>
+//         </div>
+
+//         <div className={`dynamic-box dynamic-box-${currentIndex + 1}`}>
+//           <div className="box-content">
+//             <Typewriter
+//               options={{
+//                 strings: [typewriterContents[currentIndex]?.text || ''],
+//                 autoStart: true,
+//                 delay: 50,
+//                 onStart: () => setIsTyping(true),
+//                 onComplete: () => setIsTyping(false),
+//               }}
+//             />
+//           </div>
+//         </div>
+
+//         <div className="scrolling-buttons">
+//           {images.map((_, index) => (
+//             <button
+//               key={index}
+//               className={`scroll-btn ${index === currentIndex ? 'active' : ''}`}
+//               onClick={() => handleScrollButtonClick(index)}
+//             ></button>
+//           ))}
+//         </div>
+//       </div>
+
+//       <div className="HomeServices">
+//         <Services />
+//       </div>
+//       <div className="HomeServices1">
+//         <HomologationFirst />
+//       </div>
+//       <div className="HomeServices3">
+//         <About />
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Home;
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Typewriter from 'typewriter-effect'; // Install via `npm install typewriter-effect`
+import Typewriter from 'typewriter-effect';
 import About from "../About/About";
 import Services from '../Services/Services';
 import HomologationFirst from '../HomologationFirst/HomologationFirst';
@@ -896,7 +1175,19 @@ import Homepage4 from '../../assets/images/Homepage4.png';
 import H105 from '../../assets/images/H105.png';
 
 const desktopImages = [H101, H106, Homepage4, H105];
+const mobileImages = [
+  './images/bn1.png',
+  './images/bn2 (2).png',
+  './images/bn3 (3).png',
+  './images/bn4 (4).png',
+];
 
+const typewriterContents = [
+  { text: 'At STS, we specialize in providing seamless turnkey solutions that handle every aspect of your project. From initial concept to final execution, we take care of all the details so you can focus on what matters most-growing your business.', duration: 16000 },
+  { text: 'We offer custom-tailored CAE services to enhance product performance, durability, and efficiency, using advanced simulations to predict real-world behavior, minimize prototypes, reduce costs, and accelerate time-to-market.', duration: 16000 },
+  { text: 'We specialize in delivering end-to-end 3-wheeler design solutions, offering custom branding, high-quality vehicle wraps, and expert installation to enhance visibility and drive your brand forward on the road.', duration: 15000 },
+  { text: 'We support automotive activities, from product development to innovative software app creation.', duration: 8000 },
+];
 
 const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -905,52 +1196,50 @@ const Home = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
 
-  // const desktopImages = [
-  //   './images/H101.png',
-  //   './images/H106.png',
-  //   './images/homepage4.png',
-  //   './images/H105.png',
-  // ];
-
-  const mobileImages = [
-    './images/bn1.png',
-   './images/bn2 (2).png',
-   './images/bn3 (3).png',
-   './images/bn4 (4).png',
-  ];
-
   const images = isMobile ? mobileImages : desktopImages;
 
-  const typewriterContents = [
-    { text: 'At STS, we specialize in providing seamless turnkey solutions that handle every aspect of your project. From initial concept to final execution, we take care of all the details so you can focus on what matters most-growing your business.', duration: 16000 },
-    { text: 'We offer custom-tailored CAE services to enhance product performance, durability, and efficiency, using advanced simulations to predict real-world behavior, minimize prototypes, reduce costs, and accelerate time-to-market.', duration: 16000 },
-    { text: 'We specialize in delivering end-to-end 3-wheeler design solutions, offering custom branding, high-quality vehicle wraps, and expert installation to enhance visibility and drive your brand forward on the road.', duration: 15000 },
-    { text: 'We support automotive activities, from product development to innovative software app creation.', duration: 8000 },
-  ];
+  const mobileDuration = 5000; // Fixed duration for mobile slides
+
+  const getSlideDuration = () => {
+    if (isMobile) {
+      console.log('Using mobile duration:', mobileDuration); // Debugging log
+      return mobileDuration;
+    }
+    const desktopDuration = typewriterContents[currentIndex]?.duration || 10000;
+    console.log('Using desktop duration:', desktopDuration); // Debugging log
+    return desktopDuration;
+  };
 
   // Update `isMobile` on window resize
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      console.log('Is mobile:', window.innerWidth <= 768); // Debugging log
+    };
     window.addEventListener('resize', handleResize);
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Slide transition logic
+  // Handle slide transitions
   useEffect(() => {
     if (isTyping || isPaused) return;
 
+    const duration = getSlideDuration(); // Determine the duration based on viewport
+    console.log(`Setting timeout for ${duration}ms`); // Debugging log
+
     const timeout = setTimeout(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, typewriterContents[currentIndex].duration);
+      console.log('Slide changed to index:', (currentIndex + 1) % images.length); // Debugging log
+    }, duration);
 
     return () => clearTimeout(timeout);
-  }, [currentIndex, isTyping, isPaused, images.length]);
+  }, [currentIndex, isTyping, isPaused, images.length, isMobile]);
 
-  // Handle manual slide change
   const handleScrollButtonClick = (index) => {
     setCurrentIndex(index);
-    setIsPaused(false); // Resume auto-sliding
+    setIsPaused(false);
+    console.log('Manual slide change to index:', index); // Debugging log
   };
 
   const handleLearnMoreClick = () => {
@@ -968,7 +1257,6 @@ const Home = () => {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        {/* Hero Card */}
         <div className="hero-card">
           <h1 className="hero-card-title1">Welcome to</h1>
           <h2 className="hero-card-title">Sukalpa Tech Solutions</h2>
@@ -978,12 +1266,11 @@ const Home = () => {
           </button>
         </div>
 
-        {/* Dynamic Content Box */}
         <div className={`dynamic-box dynamic-box-${currentIndex + 1}`}>
           <div className="box-content">
             <Typewriter
               options={{
-                strings: [typewriterContents[currentIndex].text],
+                strings: [typewriterContents[currentIndex]?.text || ''],
                 autoStart: true,
                 delay: 50,
                 onStart: () => setIsTyping(true),
@@ -993,7 +1280,6 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Scrolling Buttons */}
         <div className="scrolling-buttons">
           {images.map((_, index) => (
             <button
@@ -1005,7 +1291,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Additional Components */}
       <div className="HomeServices">
         <Services />
       </div>

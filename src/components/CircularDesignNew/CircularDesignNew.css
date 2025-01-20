@@ -215,6 +215,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-right: 15px;
 }
   .central-image-new
   {
@@ -231,6 +232,7 @@
   .central-image-new {
     width: 120px;
     height: 120px;
+    margin-right: 0px;
   }
 
   .circular-item-new {
@@ -238,12 +240,12 @@
   }
 
   .circular-button-new {
-    padding: 5px 8px;
-    gap: 5px;
+    padding: 4px 2px;
+    gap: 0px;
   }
 
   .circular-item-new p {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   /* Adjust the dotted lines connecting buttons */
@@ -256,43 +258,53 @@
 
 /*Line positions for smaller screens */
   .line-1-new {
-    width: 25% !important;
+    width: 35% !important;
     transform: rotate(-50deg);
-    top: 170% !important;
-    left: 10% !important;
+    top: 190% !important;
+    left: 20% !important;
   }
   .line-2-new {
     top: 40%;
-    left: -6% !important;
-    width: 7% !important;
+    left: -15% !important;
+    width: 15% !important;
     transform: rotate(0deg);
   }
   .line-3-new {
     top: -5%;
-    left: 25%;
-    width: 25% !important;
+    left: 30%;
+    width: 32% !important;
     transform: rotate(240deg);
   }
   .line-4-new {
     top: 43%;
-    left: 110%;
-    width: 12% !important;
+    left: 130%;
+    width: 29% !important;
     transform: rotate(180deg);
   }
   .line-5-new {
-    top: 175%;
-    left: 110%;
-    width: 34% !important;
+    top: 190%;
+    left: 100%;
+    width: 45% !important;
     transform: rotate(230deg);
   }
   .line-6-new {
     top: -5%;
-    left: 85%;
-    width: 45% !important;
+    left: 65%;
+    width: 57% !important;
     transform: rotate(308deg);
   }
 .circular-button-new
 {
   gap:1%;
+}
+.circular-button-new:hover img {
+  transform: scale(0.9); /* Scale the image slightly for extra effect */
+}
+
+.circular-button-new.reverse:hover {
+  transform: scale(1.1); /* Apply rotation for reverse buttons */
+}
+.circular-button-new:hover {
+  transform: scale(1.1); /* Apply rotation for reverse buttons */
 }
 }

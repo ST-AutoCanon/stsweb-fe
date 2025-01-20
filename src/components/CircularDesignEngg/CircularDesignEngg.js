@@ -60,7 +60,7 @@ const CircularDesignEngg = () => {
       content: <ConsultingExpertise />,
       degree: isMobile ? 180 : 150,
       reverse: true, // Text first, then image
-      offsetX: isMobile ? 160 : 70,
+      offsetX: isMobile ? 180 : 70,
       offsetY: isMobile ? 180 : 200,
       lineClass: "line-4-engg",
     },
@@ -70,7 +70,7 @@ const CircularDesignEngg = () => {
       content: <ExportHomologation />,
       degree: isMobile ? 240 : 210,
       reverse: true, // Text first, then image
-      offsetX: isMobile ? 80 : 100,
+      offsetX: isMobile ? 110 : 100,
       offsetY: isMobile ? 190 : 170,
       lineClass: "line-5-engg",
     },
@@ -80,7 +80,7 @@ const CircularDesignEngg = () => {
       content: <DomesticTypeApproval />,
       degree: isMobile ? 170: 270,
       reverse: true, // Text first, then image
-      offsetX: isMobile ? 150 : -30,
+      offsetX: isMobile ? 180 : -30,
       offsetY: isMobile ? 250 : 590,
       lineClass: "line-6-engg",
     },
