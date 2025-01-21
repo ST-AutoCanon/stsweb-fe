@@ -94,12 +94,13 @@
   .projects-grid {
     flex-direction: column; /* Stack the cards vertically */
     overflow-x: hidden; /* Remove horizontal scrolling */
-    padding-right: 0; /* Remove extra padding */
+    padding: 10%; /* Remove extra padding */
   }
 
   .project-card {
     flex: 0 0 auto; /* Reset flex property */
     width: 100%; /* Full width for mobile view */
+   
     margin-bottom: 20px; /* Add space between stacked cards */
   }
 

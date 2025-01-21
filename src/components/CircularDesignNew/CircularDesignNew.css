@@ -215,7 +215,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 15px;
+  margin-right: 30px;
 }
   .central-image-new
   {
@@ -265,32 +265,32 @@
   }
   .line-2-new {
     top: 40%;
-    left: -15% !important;
-    width: 15% !important;
+    left: -10% !important;
+    width: 10% !important;
     transform: rotate(0deg);
   }
   .line-3-new {
     top: -5%;
     left: 30%;
-    width: 32% !important;
+    width: 35% !important;
     transform: rotate(240deg);
   }
   .line-4-new {
     top: 43%;
-    left: 130%;
-    width: 29% !important;
+    left: 122%;
+    width: 23% !important;
     transform: rotate(180deg);
   }
   .line-5-new {
-    top: 190%;
-    left: 100%;
-    width: 45% !important;
+    top: 188%;
+    left: 96%;
+    width: 42% !important;
     transform: rotate(230deg);
   }
   .line-6-new {
     top: -5%;
     left: 65%;
-    width: 57% !important;
+    width: 51% !important;
     transform: rotate(308deg);
   }
 .circular-button-new

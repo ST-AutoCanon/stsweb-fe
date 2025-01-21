@@ -163,6 +163,14 @@ margin-top:100px;
     text-align: center; /* Center-align text */
   }
 
+  .broucher-header h1 {
+    font-size: 28px;
+    color: #011103f1;
+    margin-bottom: 10px;
+    order:1;
+  margin-left:5%;
+  margin-top:100px;
+  }
   .broucher-info h2,
   .card-top-description {
     text-align: center;
@@ -183,4 +191,9 @@ margin-top:100px;
     align-self: flex-end; /* Align download button to the right */
     margin-top: 10px;
   }
+  .broucher-info h2
+  {
+    font-size: 20px;
+  }
+ 
 }

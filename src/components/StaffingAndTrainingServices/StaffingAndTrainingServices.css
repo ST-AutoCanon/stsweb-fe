@@ -81,12 +81,12 @@
     .staffing-and-training-container {
         flex-direction: column; /* Stack items for smaller screens */
         align-items: center;
-        text-align: center;
+        text-align: start;
         gap: 20px;
     }
 
     .staffing-and-training-text {
-        width: 100%;
+        width: 80%;
         order: 2; /* Maintain order for responsive layout */
     }
 

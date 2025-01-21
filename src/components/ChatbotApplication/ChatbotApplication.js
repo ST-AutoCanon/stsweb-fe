@@ -20,30 +20,30 @@ const ChatbotApplication = () => {
           Sukalpa Tech Solutions offers rule-based and AI-driven chatbots to meet client needs, 
           enhancing customer support, sales, and automation.
         </p>
-        <p>Our chatbot services deliver the following key benefits:</p>
+        <h2>Our chatbot services deliver the following key benefits:</h2>
         <ul className="services-list">
           <li>
-            <strong> 24/7 Availability</strong>
+            <strong> 24/7 Availability:</strong>
             Always accessible, ensuring round-the-clock customer support.
           </li>
           <li>
-            <strong> Instant Responses</strong>
+            <strong> Instant Responses:</strong>
             Quick answers for faster issue resolution and better user experience.
           </li>
           <li>
-            <strong> Scalability</strong>
+            <strong> Scalability:</strong>
             Handles multiple conversations simultaneously without extra resources.
           </li>
           <li>
-            <strong> Cost Efficiency</strong>
+            <strong> Cost Efficiency:</strong>
             Reduces operational costs by automating repetitive tasks.
           </li>
           <li>
-            <strong> Lead Generation</strong>
+            <strong> Lead Generation:</strong>
             Qualifies leads and guides prospects through the sales funnel.
           </li>
           <li>
-            <strong> Seamless Integration</strong>
+            <strong> Seamless Integration:</strong>
             Easily integrates with CRMs and business systems for enhanced functionality.
           </li>
   

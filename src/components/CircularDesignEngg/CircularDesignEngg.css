@@ -66,8 +66,8 @@
 }
 .line-2-engg {
   top: 50%;
-  left: -73%!important;
-  width: 75%!important;
+  left: -123%!important;
+  width: 122%!important;
   transform: rotate(0deg);
 }
 .line-3-engg {
@@ -238,8 +238,8 @@
   }
   .line-2-engg {
     top: 40%;
-    left: -6% !important;
-    width: 5% !important;
+    left: -32% !important;
+    width: 35% !important;
     transform: rotate(0deg);
   }
   .line-3-engg {

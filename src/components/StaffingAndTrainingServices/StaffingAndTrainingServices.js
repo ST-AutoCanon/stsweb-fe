@@ -22,19 +22,19 @@ const StaffingAndTrainingServices = () => {
         </p>
         <ul className="services-list">
           <li>
-            <strong>1. Talent Acquisition:</strong> Identifying and recruiting top talent for your organization.
+            <strong> Talent Acquisition:</strong> Identifying and recruiting top talent for your organization.
           </li>
           <li>
-            <strong>2. Skill Development:</strong> Training programs tailored to bridge skills gaps.
+            <strong> Skill Development:</strong> Training programs tailored to bridge skills gaps.
           </li>
           <li>
-            <strong>3. Workforce Management:</strong> Strategic solutions to optimize team performance.
+            <strong> Workforce Management:</strong> Strategic solutions to optimize team performance.
           </li>
           <li>
-            <strong>4. Leadership Training:</strong> Building future-ready leaders through targeted training.
+            <strong> Leadership Training:</strong> Building future-ready leaders through targeted training.
           </li>
           <li>
-            <strong>5. Career Pathing:</strong> Helping employees align personal goals with organizational objectives.
+            <strong> Career Pathing:</strong> Helping employees align personal goals with organizational objectives.
           </li>
         </ul>
         <h2>Dynamic Training: Bridging Skills Gaps, Boosting Performance</h2>

@@ -35,12 +35,12 @@ const CircularDesignEngg = () => {
       lineClass: "line-1-engg",
     },
     {
-      text: "CAE Analysis",
+      text: "CAE ",
       link: "cae-analysis",
       content: <CAEAnalysis />,
       degree: isMobile ? 300 : 30,
       reverse: false, // Image first, then text
-      offsetX: isMobile ? 180 : 380,
+      offsetX: isMobile ? 195 : 380,
       offsetY: isMobile ? 310 : 200,
       lineClass: "line-2-engg",
     },

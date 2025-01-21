@@ -21,19 +21,19 @@ const PlantLayoutAndPlanningServices = () => {
         </p>
         <ul className="services-list">
           <li>
-            <strong>1. Space Optimization:</strong> Designing layouts that maximize space utilization.
+            <strong> Space Optimization:</strong> Designing layouts that maximize space utilization.
           </li>
           <li>
-            <strong>2. Workflow Enhancement:</strong> Streamlining processes for smooth production.
+            <strong> Workflow Enhancement:</strong> Streamlining processes for smooth production.
           </li>
           <li>
-            <strong>3. Safety Improvements:</strong> Ensuring compliance with safety standards.
+            <strong> Safety Improvements:</strong> Ensuring compliance with safety standards.
           </li>
           <li>
-            <strong>4. Waste Reduction:</strong> Identifying and eliminating inefficiencies.
+            <strong> Waste Reduction:</strong> Identifying and eliminating inefficiencies.
           </li>
           <li>
-            <strong>5. Equipment Placement:</strong> Strategic positioning to boost productivity.
+            <strong> Equipment Placement:</strong> Strategic positioning to boost productivity.
           </li>
         </ul>
         <h2>Maximize Your Production Efficiency</h2>

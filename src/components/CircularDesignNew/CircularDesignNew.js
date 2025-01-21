@@ -163,7 +163,7 @@ const CircularDesignNew = () => {
       content: <ITConsulting />,
       degree: isMobile ? 300 : 30,
       reverse: false,
-      offsetX: isMobile ? 175 : 380,
+      offsetX: isMobile ? 160 : 380,
       offsetY: isMobile ? 320 : 200,
       lineClass: "line-2-new",
     },

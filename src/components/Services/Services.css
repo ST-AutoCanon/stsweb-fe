@@ -60,22 +60,22 @@
   justify-content: center;
   pointer-events: none; /* Prevent interaction with the moving images */
   transition: transform 0s ease-in-out; 
-  animation: moveImages 12s linear infinite; /* Animation for movement */
-  gap: 25%;
+  animation: moveImages 10s linear infinite; /* Animation for movement */
+  gap: 35%;
   flex-shrink: 0;
 }
 
 
 .moving-image {
-  width: 100px; /* Adjust size of the moving images */
+  width: 120px; /* Adjust size of the moving images */
   height: auto;
   gap:25%;
   /* margin-right: 10px; */
 }
 .moving-image.active {
   left: 0;
-  opacity: 6;
-  z-index: 2;
+  opacity: 10;
+  z-index: 10;
 }
 
 .moving-image.inactive {

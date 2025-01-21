@@ -40,12 +40,12 @@
 .chatbot-application-text h1 {
     margin-top: 20px; /* Adjust heading margin to move it upwards */
   margin-bottom: 10px;
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: #333;
   text-align: left;
 }
-
-.chatbot-application-text p {
+.chatbot-application-text h2
+ {
     font-size: 1em;
     color: #555;
     margin-bottom: 20px;

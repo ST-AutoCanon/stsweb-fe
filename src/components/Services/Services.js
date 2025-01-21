@@ -289,16 +289,18 @@ const Services = () => {
   // State to manage the moving images
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = [
-    { src: "/images/car.png", duration: 5000,gap:2900 },
-    { src: "/images/auto.png", duration: 5000,gap:2900 },
-    { src: "/images/bus.png", duration: 5000,gap:2900 },
-    { src: "/images/autoauto.png", duration: 5000,gap:2900  },
-    { src: "/images/bikebike.png", duration: 5000,gap:2900  },
-    { src: "/images/lorry.png", duration: 5000,gap:2900  },
-    { src: "/images/car.png", duration: 5000,gap:2900 },
-    { src: "/images/auto.png", duration: 5000,gap:2900 },
+    { src: "/images/car.png", duration: 5000,gap:3100 },
+    { src: "/images/auto.png", duration: 5000,gap:3100 },
+    { src: "/images/bus.png", duration: 80000,gap:100 },
+    { src: "/images/autoauto.png", duration: 5000,gap:3100  },
+    { src: "/images/bikebike.png", duration: 2500,gap:3100  },
+    { src: "/images/lorry.png", duration: 5000,gap:3100  },
+    { src: "/images/car.png", duration: 5000,gap:3100 },
+    { src: "/images/auto.png", duration: 5000,gap:3100 },
+    { src: "/images/bikebike.png", duration: 5000,gap:100  },
   ];
 
+  
  
 
   useEffect(() => {

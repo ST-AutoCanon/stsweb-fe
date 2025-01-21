@@ -159,7 +159,7 @@
     width: 1100px;
     max-width: 350px;
     height: 200px;
-    padding: 60px 40px;
+    padding: 60px 20px;
     bottom: 10%; /* Move the card to the right by 10% */
     top:auto;
     left: 5%;
@@ -216,11 +216,13 @@
 /*mobile view of scrolling section*/
 
   .learn-moree-btn {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 200%;
     padding: 10px 115px;
+    height: 25%;
     margin-top: 50px;
     margin-left:-20px ;
+    z-index: 100%;
   }
 
   /* Scrolling Buttons Styling */

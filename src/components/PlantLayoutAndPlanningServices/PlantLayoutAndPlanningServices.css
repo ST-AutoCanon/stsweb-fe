@@ -63,18 +63,18 @@
     .plant-layout-planning-container {
         flex-direction: column; /* Stack items for smaller screens */
         align-items: center;
-        text-align: center;
+        text-align: start;
         gap: 20px;
     }
 
     .plant-layout-planning-text {
         width: 100%;
-        order: 1; /* Maintain order for responsive layout */
+        order: 2; /* Maintain order for responsive layout */
     }
 
     .plant-layout-planning-image {
         width: 100%;
-        order: 2; /* Maintain order for responsive layout */
+        order: 1; /* Maintain order for responsive layout */
     }
 
     .services-list li {

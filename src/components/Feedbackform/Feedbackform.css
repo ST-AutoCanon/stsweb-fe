@@ -97,7 +97,7 @@
 
 .star:hover,
 .star.filled:hover ~ .star {
-  color: #ffeb3b;
+  color: #ffc107;
 }
 
 .submit-button {
@@ -123,4 +123,42 @@
 .feedback-success h2 {
   margin-bottom: 20px;
   font-size: 1.5rem;
+}
+
+
+/* Mobile View (Responsive Design) */
+@media (max-width: 768px) {
+  .feedback-form-container {
+    height: auto;
+    width: 65%; /* Shrinks the form width for smaller screens */
+    padding: 20px; /* Adjusts padding for smaller screens */
+    gap: 10px; /* Reduce spacing between form elements */
+    margin-right: 10%;
+  }
+
+  .close-button {
+    font-size: 20px; /* Smaller close button */
+    top: 5px;
+    right: 5px;
+  }
+
+  .feedback-form h2 {
+    font-size: 1.25rem; /* Slightly smaller heading */
+    margin-bottom: 15px;
+  }
+
+  .feedback-form input,
+  .feedback-form textarea {
+    padding: 8px; /* Smaller padding */
+    font-size: 14px; /* Adjust font size for inputs and textarea */
+  }
+
+  .star {
+    font-size: 20px; /* Adjust star size */
+  }
+
+  .submit-button {
+    font-size: 14px; /* Smaller button text */
+    padding: 8px; /* Smaller padding */
+  }
 }
