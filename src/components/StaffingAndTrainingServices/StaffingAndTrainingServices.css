@@ -83,11 +83,13 @@
         align-items: center;
         text-align: start;
         gap: 20px;
+        
     }
 
     .staffing-and-training-text {
         width: 80%;
         order: 2; /* Maintain order for responsive layout */
+        margin-bottom:40px;
     }
 
     .staffing-and-training-image {

@@ -76,6 +76,7 @@
         flex-direction: column; /* Stack items for smaller screens */
         align-items: center;
         text-align: left;
+        padding-top:150px;
         gap: 20px;
     }
 

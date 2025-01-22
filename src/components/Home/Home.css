@@ -10,6 +10,15 @@
   align-items: center;
 }
 
+.hero-card-title3 {
+  font-size: 20px;
+  font-size: 15px;
+  
+  color:#77DD0D ; /* Dark text */
+  margin-bottom: 20px;
+  text-align:left;
+  padding: 2%
+}
 .hero-card {
   position: absolute;
   top: 50%;
@@ -159,7 +168,7 @@
     width: 1100px;
     max-width: 350px;
     height: 200px;
-    padding: 60px 20px;
+    padding: 80px 20px;
     bottom: 10%; /* Move the card to the right by 10% */
     top:auto;
     left: 5%;
@@ -179,12 +188,19 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 40%;
     
   }
   
-  .hero-card-title {
+
+  .hero-card-title3 {
     font-size: 20px;
+    font-size: 15px;
+    
+    color:#77DD0D ; /* Dark text */
+    margin-bottom: 20px;
+    text-align:left;
+    padding: 2%
   }
   .hero-card-title1
   {
@@ -272,19 +288,47 @@
       }
     
       .HomeServices {
-        margin-top: -90px; /* Adjust margin for better spacing */
+        margin-top: -230px; /* Adjust margin for better spacing */
       }
     
       .HomeServices3 {
         margin-bottom: -40px; /* Adjust margin for better spacing */
         margin-top: -100px; /* Adjust top margin */
       }
+    
+      .hero-card-title1 {
+       
+        margin-bottom: -50px;
+       
+      }
+      .hero-card {
+        position: absolute;
+        top: 65%;
+       padding-top:30px;
+       
+      }
+    
+      
+
+    .learn-moree-btn {
+      background-color: #77DD0D;
+      color: white;
+      padding: 10px 110px;
+      top: 0%;
+      border-radius: 5px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      margin-top:30px;
     }
     
-
+    .learn-moree-btn:hover {
+      background-color: #005c00;
+    }
     
-  
+    
+    }
   }
   
 }
-

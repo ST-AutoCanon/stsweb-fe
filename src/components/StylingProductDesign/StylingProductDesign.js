@@ -12,19 +12,19 @@ const StylingProductDesign = () => {
         </p>
         <ul className="services-list">
           <li>
-            <strong>Memorable Experiences:</strong> We craft products that focus on functionality while delivering memorable user experiences.
+            <strong>Memorable Experiences: </strong> We craft products that focus on functionality while delivering memorable user experiences.
           </li>
           <li>
-            <strong>Innovation with Precision:</strong> Combining creative styling with engineering expertise to exceed expectations.
+            <strong>Innovation with Precision: </strong> Combining creative styling with engineering expertise to exceed expectations.
           </li>
           <li>
-            <strong>Seamless Journey:</strong> Guiding you from ideation to the final product launch with attention to every detail.
+            <strong>Seamless Journey: </strong> Guiding you from ideation to the final product launch with attention to every detail.
           </li>
           <li>
-            <strong>Aesthetic & Functional:</strong> Emphasizing both form and performance to create market-dominating products.
+            <strong>Aesthetic & Functional: </strong> Emphasizing both form and performance to create market-dominating products.
           </li>
           <li>
-            <strong>Target Audience Focus:</strong> Products designed to resonate with your audience and stand out in the market.
+            <strong>Target Audience Focus: </strong> Products designed to resonate with your audience and stand out in the market.
           </li>
         </ul>
       </div>

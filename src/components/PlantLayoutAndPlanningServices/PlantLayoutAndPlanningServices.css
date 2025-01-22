@@ -70,6 +70,7 @@
     .plant-layout-planning-text {
         width: 100%;
         order: 2; /* Maintain order for responsive layout */
+        
     }
 
     .plant-layout-planning-image {

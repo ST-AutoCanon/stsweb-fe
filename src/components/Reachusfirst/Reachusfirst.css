@@ -9,6 +9,7 @@
   box-sizing: border-box; /* Ensure padding and borders don't overflow */
   min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
   margin-top:70px;
+
 }
 
 /* Image section */
@@ -132,3 +133,7 @@
       display: none; /* Hide the diagonal line in mobile view */
   }
 }
+
+
+
+

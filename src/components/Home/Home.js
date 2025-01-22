@@ -1305,6 +1305,7 @@
 // };
 
 // export default Home;
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Typewriter from 'typewriter-effect';
@@ -1319,10 +1320,10 @@ import H105 from '../../assets/images/H105.png';
 
 const desktopImages = [H101, H106, Homepage4, H105];
 const mobileImages = [
-  require('../../assets/images/bn1.png'),
-  require('../../assets/images/bn2.png'),
-  require('../../assets/images/bn3.png'),
-  require('../../assets/images/bn4.png'),
+  require('../../assets/images/hhh105.png'),
+  require('../../assets/images/hhh111.png'),
+  require('../../assets/images/hhh115.png'),
+  require('../../assets/images/hhh114.png'),
 ];
 
 const typewriterContents = [
@@ -1393,6 +1394,7 @@ const Home = () => {
 
   return (
     <section className="home123">
+      
       <div
         className="hero-image"
         style={{
@@ -1403,12 +1405,13 @@ const Home = () => {
         }}
       >
         <div className="hero-card">
-          <h1 className="hero-card-title1">Welcome to</h1>
+          <h1 className="hero-card-title3">Welcome to</h1>
           <h2 className="hero-card-title">Sukalpa Tech Solutions</h2>
           <p className="hero-card-description">Let us join to support you deserve</p>
           <button className="learn-moree-btn" onClick={handleLearnMoreClick}>
             Learn More
           </button>
+  
         </div>
 
         {/* Conditionally render Typewriter effect only for desktop */}
@@ -1438,7 +1441,7 @@ const Home = () => {
           ))}
         </div>
       </div>
-
+     
       <div className="HomeServices">
         <Services />
       </div>
@@ -1448,6 +1451,7 @@ const Home = () => {
       <div className="HomeServices3">
         <About />
       </div>
+
     </section>
   );
 };
