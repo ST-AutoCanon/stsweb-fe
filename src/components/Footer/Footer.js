@@ -1,34 +1,11 @@
-// import React from "react";
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // To handle navigation
 import "./Footer.css";
 import { FaLinkedin, FaEnvelope, FaPhone } from 'react-icons/fa'; // LinkedIn and Email icons
 import FeedBack from '../Feedbackform/Feedbackform.js'
  
-// const Footer = () => {
-//  const navigate = useNavigate(); // Hook for navigation
-//  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for showing the popup
-//   const handleFeedbackClick = (path) => {
-//     setMenuOpen(false);
-//     // setServicesDropdownOpen(false);
-//     // setKnowMoreDropdownOpen(false);
-//     setTimeout(() => {
-//       window.scrollTo(0, 0);
-//       navigate(path);
-//     }, 300);
-//      // Navigate to Feedback form route
-//   };
-   
-//   // Open Login modal (triggering the Login form)
-//   const openModal = () => {
-//     setIsModalOpen(true);  // Trigger modal open by updating state to true
-//   };
 
-//   // Close Login modal
-//   const closeModal = () => {
-//     setIsModalOpen(false); // Trigger modal close by updating state to false
-//   };
- 
 const Footer = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
@@ -49,7 +26,7 @@ const Footer = () => {
       <div className="footer-container">
         {/* QR Code Section */}
         <div className="footer-logo">
-          <img src="/images/scanner.png" alt="QR Code" />
+          <img src="/images/mapscanner1.jpeg" alt="QR Code" />
         </div>
 
         {/* Social Icons Section */}

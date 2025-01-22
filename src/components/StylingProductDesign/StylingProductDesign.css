@@ -30,9 +30,9 @@
 
 /* Right Section - Content */
 .styling-product-design-text {
-    width: 60%;
+    width: 65%;
     order: 2; /* Place content on the right */
-    margin-top: -90px;
+    margin-top: -90px
 }
 
 .styling-product-design-text h1 {
@@ -42,7 +42,7 @@
 }
 
 div.styling-product-design-text p {
-    font-size: 1em; /* Paragraph font size */
+    font-size: 1.2em;
     color: #555;
     margin-bottom: 20px;
 }
