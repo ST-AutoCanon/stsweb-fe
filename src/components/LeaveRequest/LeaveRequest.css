@@ -1,0 +1,115 @@
+.leave-request-container {
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    display: flex;
+    padding: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #00468C;
+    color: white;
+    padding: 20px;
+}
+
+.header h2 {
+    margin: 0;
+    text-align: left;
+    color: #FFFFFF;
+    flex-grow: 1;
+    padding-left: 30px;
+}
+
+.header .icon {
+    cursor: pointer;
+    font-size: 30px;
+    padding-right: 20px;
+} 
+
+.open-form-button {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  height: 34px;
+  width: 130px;
+  background-color: #79C42B;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 300;
+  text-decoration: underline;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.form {
+    display: grid; /* Keep the grid layout for the form */
+    grid-template-columns: 1fr 1fr 1fr; /* Three-column layout for form fields */
+    gap: 20px;
+    padding: 30px;
+    background-color: #E8E9EA;
+}
+
+.form div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form label {
+    font-weight: bold;
+    font-size: 14px; /* Consistent font size for labels */
+}
+
+.form input {
+    width: 100%; /* Full width of the parent container */
+    max-width: 300px; /* Limit the max width */
+    height: 40px; /* Set consistent height */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px; /* Font size for readability */
+    box-sizing: border-box; /* Include padding in width/height calculations */
+}
+
+.form select {
+    width: 100%; /* Full width of the parent container */
+    max-width: 300px; /* Limit the max width */
+    height: 40px; /* Set consistent height */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px; /* Font size for readability */
+    box-sizing: border-box; /* Include padding in width/height calculations */
+    margin-top: 5px;
+}
+
+.save, .cancel {
+    width: 100%;
+    background-color: #7AC142;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.cancel {
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 1px solid #7AC142;
+}
+
+.save:hover,
+.cancel:hover {
+    opacity: 0.9;
+}

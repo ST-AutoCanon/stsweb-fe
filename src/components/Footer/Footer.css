@@ -1,13 +1,19 @@
 /* Footer Styling */
 /* Footer Styling */
 .footer {
+
+  background-color: #0d707e;
+  color: white;
+  padding: 20px 15px;
+  width: 100%;
+  margin: 0;
   background-color: #0f6679; /* Teal background */
   color: #6bb9c7;
   padding: 20px 10px;
   font-family: Arial, sans-serif;
   text-align: center;
   margin-top: 5px;
-  
+ 
 }
 
 .footer-container {

@@ -10,8 +10,14 @@ import About from "./components/About/About";
 import ReachUs from "./components/ReachUs/ReachUs";
 import KnowMore from "./components/KnowMore/KnowMore";
 import Login from "./components/Login/Login";
-import AdminPage from "./components/AdminPage/AdminPage";
-import EmployeePage from "./components/EmployeePage/EmployeePage";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
+import AdminDashboard from "./components/AdminDashboard/AdminDashboard";
+import EmployeeDashboard from "./components/EmployeeDashboard/EmployeeDashboard";
+import EmployeeDetails from "./components/EmployeeDetails/EmployeeDetails";
+import AdminQuery from "./components/EmployeeQueries/AdminQuery";
+import EmployeeQuery from "./components/EmployeeQueries/EmployeeQuery";
+import AddDepartment from "./components/AddDepartment/AddDepartment"
+import LeaveRequest from "./components/LeaveRequest/LeaveRequest";
 import ITNetworkingServices from "./components/ITNetworkingServices/ITNetworkingServices";
 import OtherServices from "./components/OtherServices/OtherServices";
 import HomologationSupport from "./components/HomologationSupport/HomologationSupport1";
@@ -72,8 +78,14 @@ function App() {
           <Route path="/ReachUs" element={<ReachUs />} />
           <Route path="/KnowMore" element={<KnowMore />} />
           <Route path="/Login" element={<Login />} />
-          <Route path="/AdminPage" element={<AdminPage />} />
-          <Route path="/EmployeePage" element={<EmployeePage />} />
+          <Route path="/ResetPassword" element={<ResetPassword />} />
+          <Route path="/AdminDashboard" element={<AdminDashboard/>} />
+          <Route path="/EmployeeDashboard" element={<EmployeeDashboard/>} />
+          <Route path="/EmployeeDetails" element={<EmployeeDetails/>} />
+          <Route path="/AdminQuery" element={<AdminQuery/>} />
+          <Route path="/EmployeeQuery" element={<EmployeeQuery/>} />
+          <Route path="/AddDepartment" element={<AddDepartment/>} />
+          <Route path="/LeaveRequest" element={<LeaveRequest/>} />
           <Route path="/MainAbout" element={<MainAbout />} />
           <Route path="/OtherServices" element={<OtherServices />} />
           <Route path="/ITNetworkFirst" element={<ITNetworkFirst/>}/>

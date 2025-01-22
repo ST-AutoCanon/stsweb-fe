@@ -1,0 +1,397 @@
+/* Main Container */
+.employee-details-container {
+  padding: 10px;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Header Container */
+.header-container {
+  display: flex;
+  flex-direction: column; /* Change flex direction to column */
+  align-items: flex-start; /* Align items to the start horizontally */
+  justify-content: flex-start; /* Align items to the start vertically */
+  gap: 10px; /* Add spacing between the divs */
+  margin-bottom: 20px;
+}
+
+.header-title {
+  display: flex;
+  align-content: flex-start;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between; /* Distributes elements with equal space */
+  align-items: center; /* Align items vertically */
+  width: 100%;
+}
+
+.search-container {
+  display: flex;
+  align-items: center; /* Align label and input box inline */
+  gap: 10px; /* Space between "Search By" label and input */
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-radius: 5px;
+  padding: 0;
+  background-color: white;
+  width: 160px;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #333;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%; /* Adjust width as needed */
+}
+
+.search-input::placeholder {
+  color: #999;
+  font-size: 13px;
+}
+
+.calendar-buttons {
+  display: flex;
+  align-items: center; /* Align items vertically */
+  gap: 10px; /* Space between "Date From" and "To" groups */
+  height: 40px;
+}
+
+.calendar-input-group {
+  display: flex;
+  align-items: center; /* Align label and input inline */
+  gap: 5px; /* Space between label and input box */
+  flex-wrap: nowrap; /* Ensure label and input stay on the same row */
+}
+
+.calendar-label {
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap; /* Prevent the label from wrapping */
+  margin: 0;
+}
+
+.calendar-input-wrapper {
+  display: flex;
+  align-items: center; /* Align input and calendar icon inline */
+  height: 40px;
+}
+
+.custom-calendar-input {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.custom-calendar-input input {
+  width: 90px; /* Adjust width as needed */
+  padding: 0px 30px 0px 10px; /* Add padding for the icon */
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 40px;
+}
+
+.custom-calendar-input .calendar-icon {
+  position: absolute;
+  right: 10px;
+  color: #888;
+  cursor: pointer;
+}
+
+
+.search-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 15px;
+  border-radius: 5px;
+  background-color: #79C42B;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.search-icon {
+  margin-right: 5px;
+}
+
+/* Add New Employee Button */
+.add-employee-button {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 40px;
+  width: 170px;
+  background-color: #79C42B;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 300;
+  margin: 0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-employee-button .add-icon {
+  font-size: 30px;
+  margin-right: 5px;
+}
+
+/* Scrollable Table Container */
+.table-scroll-container {
+  max-height: 800px;
+  overflow-y: auto;
+  overflow-x: auto; 
+  margin: 20px 0;
+}
+
+/* Employee Table */
+.employee-table {
+  width: 100%;
+  margin: 20px 0;
+  border-collapse: collapse;
+}
+
+.employee-table th {
+  border: 2px solid #CCCBCE;
+  height: 48px;
+  background-color: #F2F2F2;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: left;
+  white-space: nowrap; /* Prevents wrapping of content */
+  overflow: hidden;    /* Ensures long content doesn't overflow */
+}
+
+.employee-table td {
+  border: 1px solid #CCCBCE;
+  padding: 8px;
+  text-align: left;
+  font-size: 12px;
+  color: #000000;
+}
+
+.employee-table tr {
+  background-color: #fff;
+}
+
+.employee-table th:nth-child(3), /* DOJ column header */
+.employee-table td:nth-child(3) { /* DOJ column cells */
+  min-width: 80px; /* Adjust width as needed */
+  text-align: left; /* Ensure proper alignment */
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+button.edit,
+button.delete {
+  padding: 0;
+  cursor: pointer;
+  font-size: 24px;
+  border: none;
+  border-radius: 5px;
+  color: white;
+}
+
+button.edit {
+  background-color: #fff;
+  color: #000000;
+}
+
+button.edit:hover {
+  background-color: #fff;
+}
+
+button.delete {
+  background-color: #fff;
+  color: #000000;
+}
+
+button.delete:hover {
+  background-color: #fff;
+}
+
+/* Employee Form */
+.employee-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #E8E9EA;
+  padding: 0;
+  border: 1px solid #ccc;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.form-header {
+  display: flex;
+  align-items: center; /* Vertically centers the items */
+  justify-content: space-between; /* Adds space between elements */
+  background-color: #00468C;
+  height: 8vh;
+  padding: 0;
+  margin: 0;
+}
+
+.asterisk {
+  color: #D2451E;
+  font-weight: bolder;
+  font-size: xx-small;
+  margin-bottom: 5px;
+}
+
+.form-header-title {
+  padding-left: 50px;
+  padding-top: 5px;
+  padding-bottom: 0;
+  margin: 0;
+  font-size: 25px;
+  color: #FFFFFF;
+}
+
+.cancel-icon {
+  padding-right: 40px;
+  padding-top: 10px;
+  font-size: 30px; /* Increase the size of the icon */
+  color: #FFFFFF;
+}
+
+.form-grid {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: repeat(3, minmax(200px, 1fr));
+  padding-left: 50px;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+}
+
+.form-group {
+  padding-bottom: 4px;
+  margin: 5px;
+}
+
+.form-grid input {
+  padding: 0.5rem;
+  border: 1px solid #CCCBCE;
+  border-radius: 5px;
+  width: 200px;
+  font-size: 14px;
+  margin-top: 5px;
+  background-color: #FFFFFF;
+}
+
+.form-grid input[type="file"] {
+  height: 18px;
+}
+
+.form-grid select {
+  padding: 0.5rem;
+  border: 1px solid #CCCBCE;
+  border-radius: 5px;
+  width: 220px;
+  font-size: 14px;
+  margin-top: 5px;
+  background-color: #FFFFFF;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.error {
+  color: #D2451E;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.button-group {
+  display: flex;
+  gap: 40px;
+  justify-content: flex-end; /* Aligns buttons to the right */
+  padding: 0;
+  margin-bottom: 3px;
+}
+
+.cancel-button {
+  background-color: transparent;
+  color: #000000;
+  border: 1px solid #7FBD2C;
+  width: 200px;
+}
+
+.save-employee-button {
+  background-color: #7FBD2C;
+  color: white;
+  border: none;
+  border: 1px solid #7FBD2C;
+  width: 200px;
+  margin-right: 8%;
+}
+
+/* Prevent default hover effects */
+.cancel-button:hover,
+.save-employee-button:hover {
+  background-color: initial;
+  color: initial;
+  border-color: initial;
+}
+
+/* Style for modal content */
+.confirm-deletion-modal .modal-content {
+  padding: 30px;
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  justify-content: center; /* Vertically center the content */
+  align-items: center; /* Horizontally center the content */
+  text-align: center; /* Optional: to center text inside the modal */
+}
+
+/* Ensure buttons are properly spaced out */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between; /* Space out the buttons */
+  gap: 20px;
+  width: 50%;
+}
+
+/* Styling for the cancel button */
+.modal-cancel-button {
+  background-color: #999;
+  color: #000000;
+}
+
+/* Styling for the delete button */
+.modal-delete-button {
+  background-color: #D2451E;
+  color: #000000;
+}
+
+.modal-delete-button:hover {
+  background-color: #999;
+}
