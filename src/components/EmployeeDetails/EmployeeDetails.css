@@ -10,108 +10,128 @@
 /* Header Container */
 .header-container {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column; /* Change flex direction to column */
+  align-items: flex-start; /* Align items to the start horizontally */
+  justify-content: flex-start; /* Align items to the start vertically */
+  gap: 10px; /* Add spacing between the divs */
   margin-bottom: 20px;
 }
 
-.search-container {
-  margin-left: 260px;
-}
-
-.search-input {
-  padding: 0;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.calendar-button {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: #000000;
-  cursor: pointer;
-  margin-left: 0;
-}
-
-.actions-container {
-  width: 170px;
-  margin: 0;
-}
-
 .header-title {
-  font-size: 16px;
+  display: flex;
+  align-content: flex-start;
+  font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
 }
 
-/* Search Box */
+.header-content {
+  display: flex;
+  justify-content: space-between; /* Distributes elements with equal space */
+  align-items: center; /* Align items vertically */
+  width: 100%;
+}
+
+.search-container {
+  display: flex;
+  align-items: center; /* Align label and input box inline */
+  gap: 10px; /* Space between "Search By" label and input */
+}
+
 .search-box {
   display: flex;
   align-items: center;
-  position: relative;
-  width: 200px;
-  height: 34px;
-  border-radius: 20px;
-  padding: 0 10px;
+  height: 40px;
+  border-radius: 5px;
+  padding: 0;
   background-color: white;
-}
-
-.search-icon {
-  color: #aaa;
-  font-size: 16px;
+  width: 160px;
 }
 
 .search-input {
   border: none;
   outline: none;
-  font-size: 12px;
+  font-size: 14px;
   color: #333;
-  padding: 2px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%; /* Adjust width as needed */
 }
 
 .search-input::placeholder {
   color: #999;
   font-size: 13px;
-  text-decoration: underline;
 }
 
 .calendar-buttons {
   display: flex;
-  align-items: center;
+  align-items: center; /* Align items vertically */
+  gap: 10px; /* Space between "Date From" and "To" groups */
+  height: 40px;
 }
 
-.calendar-button {
-  padding: 0;
+.calendar-input-group {
+  display: flex;
+  align-items: center; /* Align label and input inline */
+  gap: 5px; /* Space between label and input box */
+  flex-wrap: nowrap; /* Ensure label and input stay on the same row */
+}
+
+.calendar-label {
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap; /* Prevent the label from wrapping */
   margin: 0;
-  width: 60px;
-  height: 30px;
+}
+
+.calendar-input-wrapper {
+  display: flex;
+  align-items: center; /* Align input and calendar icon inline */
+  height: 40px;
+}
+
+.custom-calendar-input {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.custom-calendar-input input {
+  width: 90px; /* Adjust width as needed */
+  padding: 0px 30px 0px 10px; /* Add padding for the icon */
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 40px;
+}
+
+.custom-calendar-input .calendar-icon {
+  position: absolute;
+  right: 10px;
+  color: #888;
+  cursor: pointer;
+}
+
+
+.search-text {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background-color: #E8E9EA;
+  height: 40px;
+  padding: 0 15px;
   border-radius: 5px;
+  background-color: #79C42B;
+  color: white;
+  border: none;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.calendar-icon {
-  font-size: 15px; /* Adjust the icon size */
-  color: #333; /* Optional: Customize the icon color */
-}
-
-.calendar-text {
-  font-size: 10px; /* Customize the font size */
-  color: #333; /* Optional: Customize the text color */
-  text-decoration: underline;
-}
-
-.calendar-button:hover {
-  background-color: #E8E9EA;
-  border-color: #bbb;
+.search-icon {
+  margin-right: 5px;
 }
 
 /* Add New Employee Button */
@@ -119,10 +139,10 @@
   display: flex;
   align-items: center;
   padding: 0 12px;
-  height: 34px;
+  height: 40px;
   width: 170px;
   background-color: #79C42B;
-  color: #000000;
+  color: #FFFFFF;
   font-size: 14px;
   font-weight: 300;
   margin: 0;
@@ -135,11 +155,6 @@
 .add-employee-button .add-icon {
   font-size: 30px;
   margin-right: 5px;
-  text-decoration: none; /* Ensure no underline on the icon */
-}
-
-.add-employee-button span {
-  text-decoration: underline; /* Apply underline only to the text */
 }
 
 /* Scrollable Table Container */
@@ -237,7 +252,9 @@ button.delete:hover {
   align-items: center; /* Vertically centers the items */
   justify-content: space-between; /* Adds space between elements */
   background-color: #00468C;
-  height: 10vh;
+  height: 8vh;
+  padding: 0;
+  margin: 0;
 }
 
 .asterisk {
@@ -249,7 +266,9 @@ button.delete:hover {
 
 .form-header-title {
   padding-left: 50px;
-  padding-top: 10px;
+  padding-top: 5px;
+  padding-bottom: 0;
+  margin: 0;
   font-size: 25px;
   color: #FFFFFF;
 }
@@ -263,15 +282,17 @@ button.delete:hover {
 
 .form-grid {
   display: grid;
+  justify-content: center;
   grid-template-columns: repeat(3, minmax(200px, 1fr));
-  padding-left: 30px;
+  padding-left: 50px;
   padding-top: 0;
   padding-bottom: 0;
   margin: 0;
 }
 
 .form-group {
-  padding-bottom: 8px;
+  padding-bottom: 4px;
+  margin: 5px;
 }
 
 .form-grid input {
@@ -285,7 +306,7 @@ button.delete:hover {
 }
 
 .form-grid input[type="file"] {
-  height: 20px;
+  height: 18px;
 }
 
 .form-grid select {
@@ -314,6 +335,7 @@ button.delete:hover {
   gap: 40px;
   justify-content: flex-end; /* Aligns buttons to the right */
   padding: 0;
+  margin-bottom: 3px;
 }
 
 .cancel-button {

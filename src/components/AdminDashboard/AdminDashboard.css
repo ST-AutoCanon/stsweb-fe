@@ -122,7 +122,7 @@ body {
     cursor: pointer;
     margin: 28px 0 0 0;
     border: 1px solid #E8E9EA;
-    border-radius: 10px;
+    border-radius: 10px 0 0 10px;
     box-sizing: border-box;
     width: 100%;
   }

@@ -12,7 +12,9 @@ import { MdOutlineDashboard, MdOutlinePersonOutline, MdOutlineAssignmentInd, MdO
 import EmployeeDetails from "../EmployeeDetails/EmployeeDetails";
 import AdminQuery from "../EmployeeQueries/AdminQuery";
 import AddDepartment from "../AddDepartment/AddDepartment";
-
+import maleAvatar from "../../assets/images/male-avatar.png";
+import femaleAvatar from "../../assets/images/female-avatar.png";
+  
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState("");
@@ -80,6 +82,8 @@ const AdminDashboard = () => {
     return <div>Loading or no data available. Please log in again.</div>;
   }
 
+  const avatarImage = dashboardData.gender === "Male" ? maleAvatar : femaleAvatar;
+
 
   return (
     <div className="dashboard-container">
@@ -114,9 +118,13 @@ const AdminDashboard = () => {
       <div className="dashboard-body">
   <div className="sidebar">
     <div className="user-profile">
-      <img src="user-image.jpg" alt="User Profile" className="user-image" />
+        <img 
+        src={avatarImage} 
+        alt="User Profile" 
+        className="user-image" 
+        />
         <p className="user-name">{dashboardData.name}</p>
-        <p className="user-position">{dashboardData.position}</p>
+        <p className="user-position">{userRole === "Admin" ? "Admin" : dashboardData.position}</p>
     </div>
         <ul>
           <li className={currentView === "dashboard" ? "active" : ""}>

@@ -1,57 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import './EmployeeQuery.css';
-import {jwtDecode} from 'jwt-decode';  // Import jwt-decode to decode the JWT
 
-const EmployeeQuery = () => {
+const EmployeeQueries = () => {
   const [message, setMessage] = useState('');
-  const [queries, setQueries] = useState([]);
+  const [threads, setThreads] = useState([]);
   const [error, setError] = useState(null);
   const API_KEY = process.env.REACT_APP_API_KEY;
   const authToken = localStorage.getItem('authToken');
+  const employeeData = JSON.parse(localStorage.getItem('dashboardData'));
+  const senderId = employeeData?.employeeId;
+  const departmentId = employeeData?.department_id;
+  const recipientId = 'ADM001'; // Example recipient (Admin ID); replace with dynamic logic if needed.
 
-  // Decode the token to get sender_id
-  const senderId = authToken ? jwtDecode(authToken).sender_id : null;
-
-  useEffect(() => {
-    if (!senderId) {
-      setError('User not logged in');
-      return;
-    }
-
-    // Fetch queries for the logged-in employee (sender_id)
-    const fetchQueries = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/employee/${senderId}`, {
-          headers: {
-            'x-api-key': API_KEY,
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch queries');
-        }
-
-        const data = await response.json();
-        setQueries(data); // Store fetched queries
-      } catch (err) {
-        console.error('Error fetching queries:', err);
-        setError('Unable to load queries. Please try again later.');
-      }
-    };
-
-    fetchQueries();
-  }, [senderId, authToken]);
-
-  const submitQuery = async () => {
+  // Fetch threads from the server
+  const fetchThreads = async () => {
     if (!senderId) {
       setError('User not logged in');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/addquery', {
+      const response = await fetch(`http://localhost:5000/threads`, {
+        headers: {
+          'x-api-key': API_KEY,
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch threads');
+      }
+
+      const data = await response.json();
+      setThreads(data.data || []); // Adjust based on the API response structure
+    } catch (err) {
+      console.error('Error fetching threads:', err);
+      setError('Unable to load threads. Please try again later.');
+    }
+  };
+
+  // Start a new thread
+  const startThread = async () => {
+    if (!senderId || !departmentId || !message) {
+      setError('All fields are required.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/threads', {
         method: 'POST',
         headers: {
           'x-api-key': API_KEY,
@@ -59,53 +56,105 @@ const EmployeeQuery = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sender_id: senderId, // Use the decoded sender_id
-          department: 'Software Development',
-          question: message, // Store the message as the question
+          sender_id: senderId,
+          recipient_id: recipientId,
+          department_id: departmentId,
+          question: message,
         }),
       });
 
-      const data = await response.json();
-      alert(data.message); // Alert message after submitting
+      if (!response.ok) {
+        throw new Error('Failed to start thread');
+      }
 
-      // Optionally, refetch queries to show the newly submitted query
-      fetchQueries();
+      const data = await response.json();
+      alert(data.message); // Alert success message
+      setMessage(''); // Clear the input field
+      fetchThreads(); // Refetch threads to update the list
     } catch (err) {
-      console.error('Error submitting query:', err);
-      alert('Failed to submit query. Please try again later.');
+      console.error('Error starting thread:', err);
+      alert('Failed to start thread. Please try again later.');
     }
   };
+
+  // Add a message to an existing thread
+  const addMessage = async (threadId) => {
+    if (!senderId || !message) {
+      setError('Message cannot be empty.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/threads/${threadId}/messages`, {
+        method: 'POST',
+        headers: {
+          'x-api-key': API_KEY,
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          thread_id: threadId,
+          sender_id: senderId,
+          sender_role: 'employee', // This could be dynamic, but it's hardcoded for now
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add message');
+      }
+
+      const data = await response.json();
+      alert(data.message); // Alert success message
+      setMessage(''); // Clear the input field
+      fetchThreads(); // Refetch threads to update the list
+    } catch (err) {
+      console.error('Error adding message:', err);
+      alert('Failed to add message. Please try again later.');
+    }
+  };
+
+  useEffect(() => {
+    fetchThreads();
+  }, [senderId]); // Re-fetch threads if senderId changes
 
   return (
     <div className="employee-query">
       <h1>Do you have any Query?</h1>
 
-      {error && <p className="error-message">{error}</p>} {/* Display error if any */}
-      
+      {error && <p className="error-message">{error}</p>}
+
       <textarea
         placeholder="Write your query here..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
       ></textarea>
-      <button onClick={submitQuery}>Submit</button>
+      <button onClick={startThread}>Start Thread</button>
 
-      <h2>Your Previous Queries</h2>
+      <h2>Your Threads</h2>
       <ul>
-        {queries.length > 0 ? (
-          queries.map((query) => (
-            <li key={query.id}>
-              <p><strong>Question:</strong> {query.question}</p>
-              <p><strong>Department:</strong> {query.department}</p>
-              <p><strong>Date:</strong> {new Date(query.created_at).toLocaleString()}</p>
-              <p><strong>Reply:</strong> {query.reply || 'No reply yet'}</p>
+        {threads.length > 0 ? (
+          threads.map((thread) => (
+            <li key={thread.thread_id}>
+              <p><strong>Thread ID:</strong> {thread.thread_id}</p>
+              <p><strong>Last Message:</strong> {thread.last_message || 'No messages yet'}</p>
+              <p><strong>Status:</strong> {thread.status}</p>
+              <p><strong>Feedback:</strong> {thread.feedback || 'No feedback given'}</p>
+              
+              <textarea
+                placeholder="Add a message to this thread..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              ></textarea>
+              <button onClick={() => addMessage(thread.thread_id)}>Reply</button>
             </li>
           ))
         ) : (
-          <p>No queries found.</p>
+          <p>No threads found.</p>
         )}
       </ul>
     </div>
   );
 };
 
-export default EmployeeQuery;
+export default EmployeeQueries;

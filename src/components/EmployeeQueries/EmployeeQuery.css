@@ -1,44 +1,127 @@
 .employee-query {
-    margin-top: 200px;
-    margin-left: 200px;
-    max-width: 600px;
-    font-family: Arial, sans-serif;
-    text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.textarea {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  margin-bottom: 20px;
+}
+
+.button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #45a049;
+}
+
+.error-message {
+  color: red;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.li {
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.li p {
+  font-size: 1rem;
+  color: #333;
+  margin: 5px 0;
+}
+
+.li textarea {
+  width: 100%;
+  height: 60px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  margin-top: 10px;
+}
+
+.button {
+  margin-top: 10px;
+  background-color: #007bff;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+
+.li p strong {
+  color: #007bff;
+}
+
+.li p:last-child {
+  margin-bottom: 0;
+}
+
+@media screen and (max-width: 768px) {
+  .employee-query {
+    padding: 15px;
   }
-  
-  .employee-query h1 {
-    color: #333;
-    margin-bottom: 20px;
+
+  h1 {
+    font-size: 1.5rem;
   }
-  
-  .employee-query textarea {
-    width: 100%;
-    height: 150px;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-    font-family: Arial, sans-serif;
+
+  h2 {
+    font-size: 1.2rem;
   }
-  
-  .employee-query textarea:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+
+  textarea {
+    font-size: 0.9rem;
   }
-  
-  .employee-query button {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+
+  button {
+    font-size: 0.9rem;
+    padding: 8px 16px;
   }
-  
-  .employee-query button:hover {
-    background-color: #0056b3;
-  }
-  
+}

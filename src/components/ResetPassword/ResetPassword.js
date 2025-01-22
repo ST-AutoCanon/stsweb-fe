@@ -72,6 +72,7 @@ const ResetPassword = () => {
   };
 
   return (
+    <div className="body">
     <div className="reset-password-container">
       <h2>Reset Your Password</h2>
       {success ? (
@@ -108,6 +109,7 @@ const ResetPassword = () => {
           {isLoading ? 'Resetting...' : 'Reset Password'}
         </button>
       </form>
+    </div>
     </div>
   );
 };

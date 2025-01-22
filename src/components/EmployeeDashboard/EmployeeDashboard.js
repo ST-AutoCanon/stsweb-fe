@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import "./EmployeeDashboard.css";
 import LeaveRequest from "../LeaveRequest/LeaveRequest";
+import EmployeeQuery from "../EmployeeQueries/EmployeeQuery";
 
 import { FaBell, FaCalendarAlt, FaPowerOff } from 'react-icons/fa';
 import { MdOutlineDashboard, MdOutlinePersonOutline, MdOutlineAssignmentInd, MdOutlineEvent,
          MdOutlineFactCheck, MdOutlineCommentBank, MdOutlineEmojiEvents, MdOutlineContactPhone,
          MdOutlineAssignment, MdOutlineDescription, MdOutlineSportsHandball } from 'react-icons/md';
+import maleAvatar from "../../assets/images/male-avatar.png";
+import femaleAvatar from "../../assets/images/female-avatar.png";
 
 const EmployeeDashboard = () => {
   const navigate = useNavigate();
@@ -66,6 +69,8 @@ const EmployeeDashboard = () => {
     return <div>Loading or no data available. Please log in again.</div>;
   }
 
+  const avatarImage = dashboardData.gender === "Male" ? maleAvatar : femaleAvatar;
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -86,7 +91,11 @@ const EmployeeDashboard = () => {
       <div className="dashboard-body">
   <div className="sidebar">
     <div className="user-profile">
-      <img src="user-image.jpg" alt="User Profile" className="user-image" />
+    <img 
+        src={avatarImage} 
+        alt="User Profile" 
+        className="user-image" 
+        />
         <p className="user-name">{dashboardData.name}</p>
         <p className="user-position">{dashboardData.position}</p>
     </div>
@@ -99,11 +108,6 @@ const EmployeeDashboard = () => {
           <li className={currentView === "employeeDetails" ? "active" : ""}>
             <a href="#" onClick={() => handleSidebarClick("employeeDetails")}>
               <MdOutlinePersonOutline size={22} style={{ marginRight: "8px" }} />Employee Details
-            </a>
-          </li>
-          <li className={currentView === "addDepartment" ? "active" : ""}>
-            <a href="#" onClick={() => handleSidebarClick("addDepartment")}>
-              <MdOutlineAssignmentInd size={22} style={{ marginRight: "8px" }} />Add Department
             </a>
           </li>
           <li className={currentView === "updateProjects" ? "active" : ""}>
@@ -182,21 +186,16 @@ const EmployeeDashboard = () => {
             <div className="leave-request-container">
             <LeaveRequest />
             </div>
-          ) : currentView === "addDepartment" ? (
-            <div className="add-department-container">
-              {/* Replace this with actual add department content */}
-              <h2>Add Department</h2>
-            </div>
           ) : currentView === "employeeQueries" ? (
             <div className="employee-queries-container">
               {/* Replace this with actual add department content */}
-              <AdminQuery />
+              <EmployeeQuery />
             </div>
           ) : null}
         </div>
       </div>
     </div>
-  );
+  ); 
 };
 
 export default EmployeeDashboard;

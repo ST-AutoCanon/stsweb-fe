@@ -8,11 +8,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const departmentPositions = {
-  Software: ['Software Manager', 'Senior Software Engineer', 'Software Test Engineer', 'Junior Software Engineer'],
-  Homologation: ['Homologation Specialist', 'Homologation Manager'],
-  Design: ['UI/UX Designer', 'Graphic Designer', 'Design Manager'],
-  Network: ['Network Manager', 'Network Engineer', 'System Administrator', 'Network Analyst'],
+  Software: ['Software Manager', 'Senior Software Engineer', 'Associate Software Engineer', 'Senior Test Engineer', 'Test Engineer', 'Senior Network Engineer', 'Network Engineer', 'Technical Engineer'],
+  Homologation: ['Homologation Specialist', 'Homologation Manager', 'Homologation Engineer',],
+  Design: ['Senior Design Engineer', 'Design Engineer', 'Design Lead', 'Design Manager'],
   Finance: ['Finance Manager', 'Accountant', 'Financial Analyst'],
+  HR: ['HR Specialist', 'HR Manager'],
 };
 
 const EmployeeDetails = () => {
@@ -25,8 +25,14 @@ const EmployeeDetails = () => {
     last_name: '',
     dob: '',
     email: '',
+    father_name: '',
+    mother_name: '', 
     aadhaar_number: '',
     pan_number: '',
+    phone_number: '',
+    gender: '',
+    marital_status: '',
+    spouse_name: '',
     address: '',
     phone_number: '',
     father_name: '',
@@ -68,103 +74,118 @@ const EmployeeDetails = () => {
   }, [formData]);
 
   // Fetch all employees or search results based on the search term
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      setIsLoading(true);
-      try {
-        const formattedFromDate = fromDate
-          ? new Date(fromDate).toISOString().split('T')[0]
-          : '';
-        const formattedToDate = toDate
-          ? new Date(toDate).toISOString().split('T')[0]
-          : '';
+  const fetchEmployees = async () => {
+    setIsLoading(true);
+    try {
+      let apiUrl = `http://localhost:5000/admin/employees`; // Base URL
+      const params = [];
 
-        const response = await axios.get(
-          `http://localhost:5000/admin/employees?search=${searchTerm}&fromDate=${formattedFromDate}&toDate=${formattedToDate}`,
-          {
-            headers: {
-              'x-api-key': API_KEY,
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-
-        if (response.data && response.data.message && response.data.message.data) {
-          setEmployees(response.data.message.data);
-        } else {
-          setEmployees([]);
-        }
-      } catch (err) {
-        setError('Failed to fetch employees. Please try again.');
-      } finally {
-        setIsLoading(false);
+      // Add searchTerm if available
+      if (searchTerm) {
+        params.push(`search=${encodeURIComponent(searchTerm)}`);
       }
-    };
 
+      // Add fromDate and toDate only when search button is clicked
+      if (fromDate) {
+        params.push(`fromDate=${fromDate.toISOString().split('T')[0]}`);
+      }
+      if (toDate) {
+        params.push(`toDate=${toDate.toISOString().split('T')[0]}`);
+      }
+
+      if (params.length > 0) {
+        apiUrl += `?${params.join('&')}`;
+      }
+
+      const response = await axios.get(apiUrl, {
+        headers: {
+          'x-api-key': API_KEY,
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.data && response.data.message && response.data.message.data) {
+        setEmployees(response.data.message.data);
+      } else {
+        setEmployees([]);
+      }
+    } catch (err) {
+      setError('Failed to fetch employees. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchEmployees();
-  }, [searchTerm, fromDate, toDate]);
+  }, [searchTerm]); // Only refetch when search term changes
 
-  const handleDateChange = (date, type) => {
-    if (type === 'from') setFromDate(date);
-    if (type === 'to') setToDate(date);
+  // Function to handle search button click
+  const handleSearchClick = () => {
+    fetchEmployees(); // Call fetchEmployees when search button is clicked
   };
   
 
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Reset position if department changes
-    if (name === 'department') {
-      setFormData({ ...formData, [name]: value, position: '' });
+  
+    if (name === 'role') {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value,
+        department: value === 'Admin' ? '' : prevState.department, // Clear department if role is Admin
+        position: value.includes('Manager') ? '' : prevState.position, // Clear position if role includes "Manager"
+      }));
+    } else if (name === 'department') {
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value,
+        position: '', // Clear position when department changes
+      }));
+    } else if (name === 'gender') {
+      // Ensure valid gender values are set
+      const validGenders = ['Male', 'Female', 'Other'];
+      if (validGenders.includes(value.trim())) {
+        setFormData((prevState) => ({
+          ...prevState,
+          [name]: value.trim(), // Update gender only if valid
+        }));
+      } else {
+        alert('Invalid gender value selected.');
+      }
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
     }
   };
+  
 
-  // Validation functions
-const validateText = (value) => /^[A-Za-z\s]+$/.test(value); // Only alphabets and spaces
-const validateNumbers = (value) => /^\d+$/.test(value); // Only numbers
-const validatePAN = (value) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value); // Specific PAN format
-const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); // Email format
+// Date of birth validation (18 years before current date)
+const validateDOB = (dob) => {
+  const today = new Date();
+  const birthDate = new Date(dob);
+  const age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const dayDiff = today.getDate() - birthDate.getDate();
+
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    return age - 1;
+  }
+  return age;
+};
 
 const handleAddEmployee = async (e) => {
   e.preventDefault();
   setIsLoading(true);
 
-  // Input validation
-  if (!validateText(formData.first_name)) {
-    alert('First name should only contain alphabets.');
-    setIsLoading(false);
-    return;
-  }
-
-  if (!validateText(formData.last_name)) {
-    alert('Last name should only contain alphabets.');
-    setIsLoading(false);
-    return;
-  }
-
-  if (!validateNumbers(formData.phone_number)) {
-    alert('Phone number should contain only digits.');
-    setIsLoading(false);
-    return;
-  }
-
-  if (!validateNumbers(formData.aadhaar_number)) {
-    alert('Aadhaar number should contain only digits.');
-    setIsLoading(false);
-    return;
-  }
-
-  if (!validatePAN(formData.pan_number)) {
-    alert('PAN number is not valid. It should be in the format ABCDE1234F.');
-    setIsLoading(false);
-    return;
-  }
-
-  if (!validateEmail(formData.email)) {
-    alert('Email format is not valid.');
+  // Validate Date of Birth (18 years old)
+  const age = validateDOB(formData.dob);
+  if (age < 18) {
+    alert('Employee must be at least 18 years old.');
     setIsLoading(false);
     return;
   }
@@ -186,19 +207,25 @@ const handleAddEmployee = async (e) => {
     setFormData({
       first_name: '',
       last_name: '',
-      father_name: '',
-      mother_name: '',
       dob: '',
       email: '',
+      father_name: '',
+      mother_name: '', 
       aadhaar_number: '',
       pan_number: '',
+      phone_number: '',
+      gender: '',
+      marital_status: '',
+      spouse_name: '',
       address: '',
       phone_number: '',
+      father_name: '',
+      mother_name: '',
       department: '',
       position: '',
       salary: '',
       photo: null,
-    });
+      });
 
     setFormModalVisible(false); // Hide form after adding employee
     alert('Employee added successfully. A password reset email has been sent.');
@@ -234,17 +261,20 @@ const handleAddEmployee = async (e) => {
         last_name: employee.last_name || '',
         dob: employee.dob || '',
         email: employee.email || '',
-        aadhaar_number: employee.aadhaar_number || '',
-        pan_number: employee.pan_number || '',
-        address: employee.address || '',
-        phone_number: employee.phone_number || '',
         father_name: employee.father_name || '',
         mother_name: employee.mother_name || '',
+        aadhaar_number: employee.aadhaar_number || '',
+        pan_number: employee.pan_number || '',
+        phone_number: employee.phone_number || '',
+        gender: employee.gender || '',
+        marital_status: employee.marital_status || '',
+        spouse_name: employee.spouse_name || '',
+        address: employee.address || '',
+        role: employee.role || '',
         department: employee.department || '',
         position: employee.position || '',
         salary: employee.salary || '',
         photo: employee.photo_url || null,
-        role: employee.role || '',
       });
       console.log(employee.dob);
       setEditModalVisible(true); // Set edit mode to true
@@ -292,7 +322,6 @@ const handleAddEmployee = async (e) => {
   };
   
   
-
   // Handle delete employee action
   const handleDeleteEmployee = async () => {
     if (!deleteEmployeeId) return;
@@ -317,82 +346,77 @@ const handleAddEmployee = async (e) => {
   return (
     <div className="employee-details-container">
       <div class="header-container">
-      <h2 class="header-title">Employee Details</h2>
-      <Modal
-        className="confirm-deletion-modal"
-        isVisible={modalVisible}
-        buttons={[
-        {
-        label: 'Cancel',
-        onClick: () => setModalVisible(false),
-        className: 'modal-cancel-button',
-        },
-        {
-        label: 'Delete',
-        onClick: handleDeleteEmployee,
-        className: 'modal-delete-button',
-        }, ]}>
-        <h2 className="header-title">Confirm Deletion</h2>
-        <p>Are you sure you want to delete this employee?</p>
-      </Modal>
-
+        <h2 class="header-title">Employee Details</h2>
+      <div class="header-content">
       {/* Search Employee */}
-      <div class="search-container">
-  <div class="search-box">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="by Name, Email ID or Dept"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-    />
-    <i className="fas fa-search search-icon"></i>
-  </div>
-</div>
-<div className="calendar-buttons">
-  {/* FROM Button */}
-  <button
-    className="calendar-button"
-    onClick={() => setShowFromDatePicker(!showFromDatePicker)}
-  >
-    <MdOutlineCalendarToday className="calendar-icon" />
-    <span className="calendar-text">FROM</span>
-  </button>
+      <div className="search-container">
+        <label>Search by</label>
+        <div className="search-box">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Name, EmpID, Email, Dept"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)} // Update search term as user types
+          />
+        </div>
+      </div>
 
-  {showFromDatePicker && (
-    <DatePicker
-      selected={fromDate ? new Date(fromDate) : null}
-      onChange={(date) => {
-        handleDateChange(date, 'from');
-        setShowFromDatePicker(false); // Close the calendar after selecting a date
-      }}
-      dateFormat="yyyy-MM-dd"
-      inline
-    />
-  )}
+      {/* Date Range Filters */}
+      <div className="calendar-buttons">
+        {/* Date From Input Group */}
+        <div className="calendar-input-group">
+          <label className="calendar-label">Date From</label>
+          <div className="calendar-input-wrapper">
+            <DatePicker
+              selected={fromDate}
+              onChange={(date) => setFromDate(date)} // Set the fromDate
+              dateFormat="yyyy-MM-dd"
+              customInput={
+                <div className="custom-calendar-input">
+                  <input
+                    type="text"
+                    value={fromDate ? fromDate.toISOString().split('T')[0] : ''}
+                    readOnly
+                    placeholder="Select Date"
+                  />
+                  <MdOutlineCalendarToday className="calendar-icon" />
+                </div>
+              }
+            />
+          </div>
+        </div>
 
-  {/* TO Button */}
-  <button
-    className="calendar-button"
-    onClick={() => setShowToDatePicker(!showToDatePicker)}
-  >
-    <MdOutlineCalendarToday className="calendar-icon" />
-    <span className="calendar-text">TO</span>
-  </button>
+        {/* Date To Input Group */}
+        <div className="calendar-input-group">
+          <label className="calendar-label">To</label>
+          <div className="calendar-input-wrapper">
+            <DatePicker
+              selected={toDate}
+              onChange={(date) => setToDate(date)} // Set the toDate
+              dateFormat="yyyy-MM-dd"
+              customInput={
+                <div className="custom-calendar-input">
+                  <input
+                    type="text"
+                    value={toDate ? toDate.toISOString().split('T')[0] : ''}
+                    readOnly
+                    placeholder="Select Date"
+                  />
+                  <MdOutlineCalendarToday className="calendar-icon" />
+                </div>
+              }
+            />
+          </div>
+        </div>
+      </div>
 
-  {showToDatePicker && (
-    <DatePicker
-      selected={toDate ? new Date(toDate) : null}
-      onChange={(date) => {
-        handleDateChange(date, 'to');
-        setShowToDatePicker(false); // Close the calendar after selecting a date
-      }}
-      dateFormat="yyyy-MM-dd"
-      inline
-    />
-  )}
-</div>
-
+      {/* Search Button */}
+      <div>
+        <button className="search-text" onClick={handleSearchClick}>
+          <i className="fas fa-search search-icon"></i> Search
+        </button>
+      </div>
       {/* Add Employee Button */}
       <div className="actions-container">
       <button onClick={() => {
@@ -412,17 +436,18 @@ const handleAddEmployee = async (e) => {
         salary: '',
         photo: null,
       }); // Reset form data
-      setFormModalVisible(true); // Show the form modal
-    }} className="add-employee-button">
+      setFormModalVisible(true);}} 
+        className="add-employee-button">
         <i className="add-icon">+</i>
         <span>Add New Employee</span>
         </button>
       </div>
       </div>
-{/* Add Employee Form */}
-{isFormModalVisible && (
-  <Modal isVisible={isFormModalVisible} buttons={[]}>
-  <form className="employee-form" onSubmit={handleAddEmployee}>
+    </div>
+    {/* Add Employee Form */}
+    {isFormModalVisible && (
+    <Modal isVisible={isFormModalVisible} buttons={[]}>
+    <form className="employee-form" onSubmit={handleAddEmployee}>
     <div className="form-header">
     <h3 class="form-header-title">Add New Employee</h3>
     <MdOutlineCancel className="cancel-icon" onClick={() => setFormModalVisible(false)} />
@@ -435,6 +460,9 @@ const handleAddEmployee = async (e) => {
           name="first_name"
           value={formData.first_name || ''}
           onChange={handleInputChange}
+          pattern="[A-Za-z\s]+"
+          title="First name should only contain alphabets."
+          placeholder='John'
           required
         />
       </div>
@@ -445,6 +473,9 @@ const handleAddEmployee = async (e) => {
           name="last_name"
           value={formData.last_name || ''}
           onChange={handleInputChange}
+          pattern="[A-Za-z\s]+"
+          title="Last name should only contain alphabets."
+          placeholder='Doe'
           required
         />
       </div>
@@ -465,6 +496,9 @@ const handleAddEmployee = async (e) => {
           name="email"
           value={formData.email || ''}
           onChange={handleInputChange}
+          pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+          title="Please enter a valid email address (e.g., user@example.com)."
+          placeholder='john.doe@gmail.com'
           required
         />
       </div>
@@ -475,6 +509,8 @@ const handleAddEmployee = async (e) => {
           name="father_name"
           value={formData.father_name || ''}
           onChange={handleInputChange}
+          pattern="[A-Za-z\s]+"
+          placeholder='Robert'
         />
       </div>
       <div className="form-group">
@@ -484,6 +520,8 @@ const handleAddEmployee = async (e) => {
           name="mother_name"
           value={formData.mother_name || ''}
           onChange={handleInputChange}
+          pattern="[A-Za-z\s]+"
+          placeholder='Julie'
         />
       </div>
       <div className="form-group">
@@ -493,6 +531,9 @@ const handleAddEmployee = async (e) => {
           name="aadhaar_number"
           value={formData.aadhaar_number || ''}
           onChange={handleInputChange}
+          pattern="^\d{12}$"
+          title="Aadhaar number must contain exactly 12 digits."
+          placeholder='984567345465'
           required
         />
       </div>
@@ -503,19 +544,79 @@ const handleAddEmployee = async (e) => {
           name="pan_number"
           value={formData.pan_number || ''}
           onChange={handleInputChange}
+          pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
+          title="Please enter a valid pan number (e.g., ABCDE1234F)."
+          placeholder='ABCDE1234F'
           required
         />
       </div>
       <div className="form-group">
-        <label>Phone<PiAsteriskSimpleBold className="asterisk"/></label>
+        <label>Mobile<PiAsteriskSimpleBold className="asterisk"/></label>
         <input
-          type="tel"
+          type="text"
           name="phone_number"
           value={formData.phone_number || ''}
           onChange={handleInputChange}
+          pattern="^\d{10}$"
+          title="mobile number must contain 10 digits."
+          placeholder='+91 8976345687'
           required
         />
       </div>
+      <div className="form-group">
+  <label>Gender<PiAsteriskSimpleBold className="asterisk" /></label>
+  <select
+    name="gender"
+    value={formData.gender || ''}
+    onChange={handleInputChange}
+    required
+  >
+    <option value="">Select Gender</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Marital Status<PiAsteriskSimpleBold className="asterisk" /></label>
+  <select
+    name="marital_status"
+    value={formData.marital_status || ''}
+    onChange={(e) => {
+      handleInputChange(e);
+      if (e.target.value === 'Unmarried') {
+        setFormData((prevState) => ({
+          ...prevState,
+          spouse_name: 'NA', // Default to NA for Unmarried
+        }));
+      } else {
+        setFormData((prevState) => ({
+          ...prevState,
+          spouse_name: '', // Clear spouse_name for Married
+        }));
+      }
+    }}
+    required
+  >
+    <option value="">Select Marital Status</option>
+    <option value="Married">Married</option>
+    <option value="Unmarried">Unmarried</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Spouse Name</label>
+  <input
+    type="text"
+    name="spouse_name"
+    value={formData.spouse_name || ''}
+    onChange={handleInputChange}
+    disabled={formData.marital_status === 'Unmarried'}
+    placeholder={formData.marital_status === 'Unmarried' ? 'NA' : 'Enter Spouse Name'}
+    required
+  />
+</div>
       <div className="form-group">
         <label>Address</label>
         <input
@@ -523,39 +624,70 @@ const handleAddEmployee = async (e) => {
           name="address"
           value={formData.address || ''}
           onChange={handleInputChange}
+          placeholder='123 Street, City, State, Country'
         />
       </div>
       <div className="form-group">
-        <label>Department</label>
-        <select
-          name="department"
-          value={formData.department}
-          onChange={handleInputChange}>
-          <option value="">Select Department</option>
-          {Object.keys(departmentPositions).map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="form-group">
-        <label>Position</label>
-        <select
-          name="position"
-          value={formData.position}
-          onChange={handleInputChange}
-          disabled={!formData.department} // Disable if no department selected
-        >
-          <option value="">Select Position</option>
-          {formData.department &&
-            departmentPositions[formData.department].map((pos) => (
+  <label>Role</label>
+  <select
+    name="role"
+    value={formData.role || ''}
+    onChange={handleInputChange}
+    required
+  >
+    <option value="">Select Role</option>
+    <option value="Admin">Admin</option>
+    <option value="Employee">Employee</option>
+    <option value="Project Manager">Project Manager</option>
+    <option value="HR/Finance Manager">HR/Finance Manager</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Department</label>
+  <select
+    name="department"
+    value={formData.department || ''}
+    onChange={handleInputChange}
+    disabled={formData.role === 'Admin'} // Admin role doesn't need a department
+  >
+    <option value="">Select Department</option>
+    {Object.keys(departmentPositions).map((dept) => (
+      <option key={dept} value={dept}>
+        {dept}
+      </option>
+    ))}
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Position</label>
+  <select
+    name="position"
+    value={formData.position || ''}
+    onChange={handleInputChange}
+    disabled={!formData.department && formData.role === 'Admin'} // Disable if no department for non-admin roles
+  >
+    <option value="">Select Position</option>
+    {formData.department &&
+      (formData.role.toLowerCase().includes('manager')
+        ? departmentPositions[formData.department]
+            ?.filter((pos) => pos.toLowerCase().includes('manager')) // Filter manager positions for Manager roles
+            .map((pos) => (
               <option key={pos} value={pos}>
                 {pos}
               </option>
-            ))}
-        </select>
-      </div>
+            ))
+        : departmentPositions[formData.department]
+            ?.filter((pos) => !pos.toLowerCase().includes('manager')) // Exclude manager positions for non-manager roles
+            .map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
+              </option>
+            )))}
+  </select>
+</div>
+
       <div className="form-group">
         <label>Salary [ CTC ]</label>
         <input
@@ -563,21 +695,8 @@ const handleAddEmployee = async (e) => {
           name="salary"
           value={formData.salary || ''}
           onChange={handleInputChange}
+          placeholder='00000.00'
         />
-      </div>
-      <div className="form-group">
-        <label>Role</label>
-        <select
-          name="role"
-          value={formData.role || ''}
-          onChange={handleInputChange}
-          required>
-          <option value="">Select Role</option>
-          <option value="Admin">Admin</option>
-          <option value="Employee">Employee</option>
-          <option value="Project Manager">Project Manager</option>
-          <option value="Finance Manager">Finance Manager</option>
-        </select>
       </div>
       <div className="form-group">
         <label>Photo</label>
@@ -614,32 +733,30 @@ const handleAddEmployee = async (e) => {
       <div className="form-grid">
         {/* First Name */}
         <div className="form-group">
-          <label>
-            First Name <PiAsteriskSimpleBold className="asterisk" />
-          </label>
-          <input
-            type="text"
-            name="first_name"
-            value={formData.first_name || ''}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        {/* Last Name */}
-        <div className="form-group">
-          <label>
-            Last Name <PiAsteriskSimpleBold className="asterisk" />
-          </label>
-          <input
-            type="text"
-            name="last_name"
-            value={formData.last_name || ''}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        {/* Date of Birth */}
-        <div className="form-group">
+        <label>First Name<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <input
+          type="text"
+          name="first_name"
+          value={formData.first_name || ''}
+          onChange={handleInputChange}
+          pattern="[A-Za-z\s]+"
+          title="First name should only contain alphabets."
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>Last Name<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <input
+          type="text"
+          name="last_name"
+          value={formData.last_name || ''}
+          onChange={handleInputChange}
+          pattern="[A-Za-z\s]+"
+          title="Last name should only contain alphabets."
+          required
+        />
+      </div>
+      <div className="form-group">
           <label>
             Date of Birth <PiAsteriskSimpleBold className="asterisk" />
           </label>
@@ -651,152 +768,213 @@ const handleAddEmployee = async (e) => {
             required
           />
         </div>
-        {/* Email */}
-        <div className="form-group">
-          <label>
-            Email <PiAsteriskSimpleBold className="asterisk" />
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email || ''}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        {/* Father Name */}
-        <div className="form-group">
-          <label>Father Name</label>
-          <input
-            type="text"
-            name="father_name"
-            value={formData.father_name || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        {/* Mother Name */}
-        <div className="form-group">
-          <label>Mother Name</label>
-          <input
-            type="text"
-            name="mother_name"
-            value={formData.mother_name || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        {/* Aadhaar Number */}
-        <div className="form-group">
-          <label>
-            Aadhaar No <PiAsteriskSimpleBold className="asterisk" />
-          </label>
-          <input
-            type="text"
-            name="aadhaar_number"
-            value={formData.aadhaar_number || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        {/* PAN Number */}
-        <div className="form-group">
-          <label>PAN</label>
-          <input
-            type="text"
-            name="pan_number"
-            value={formData.pan_number || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        {/* Phone Number */}
-        <div className="form-group">
-          <label>Phone</label>
-          <input
-            type="tel"
-            name="phone_number"
-            value={formData.phone_number || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        {/* Address */}
-        <div className="form-group">
-          <label>Address</label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        {/* Department */}
-        <div className="form-group">
-          <label>Department</label>
-          <select
-            name="department"
-            value={formData.department || ''}
-            onChange={handleInputChange}
-          >
-            <option value="">Select Department</option>
-            {Object.keys(departmentPositions).map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
+      <div className="form-group">
+        <label>Email<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email || ''}
+          onChange={handleInputChange}
+          pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+          title="Please enter a valid email address (e.g., user@example.com)."
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>Father Name</label>
+        <input
+          type="text"
+          name="father_name"
+          value={formData.father_name || ''}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className="form-group">
+        <label>Mother Name</label>
+        <input
+          type="text"
+          name="mother_name"
+          value={formData.mother_name || ''}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className="form-group">
+        <label>Aadhaar No<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <input
+          type="text"
+          name="aadhaar_number"
+          value={formData.aadhaar_number || ''}
+          onChange={handleInputChange}
+          pattern="^\d{12}$"
+          title="Aadhaar number must contain exactly 12 digits."
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>PAN<PiAsteriskSimpleBold className="asterisk"/></label>
+        <input
+          type="text"
+          name="pan_number"
+          value={formData.pan_number || ''}
+          onChange={handleInputChange}
+          pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
+          title="Please enter a valid pan number (e.g., ABCDE1234F)."
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>Mobile<PiAsteriskSimpleBold className="asterisk"/></label>
+        <input
+          type="text"
+          name="phone_number"
+          value={formData.phone_number || ''}
+          onChange={handleInputChange}
+          pattern="\d+"
+          title="mobile number must contain exactly 10 digits."
+          required
+        />
+      </div>
+      <div className="form-group">
+  <label>Gender<PiAsteriskSimpleBold className="asterisk" /></label>
+  <select
+    name="gender"
+    value={formData.gender || ''}
+    onChange={handleInputChange}
+    required
+  >
+    <option value="">Select Gender</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Marital Status<PiAsteriskSimpleBold className="asterisk" /></label>
+  <select
+    name="marital_status"
+    value={formData.marital_status || ''}
+    onChange={(e) => {
+      handleInputChange(e);
+      if (e.target.value === 'Unmarried') {
+        setFormData((prevState) => ({
+          ...prevState,
+          spouse_name: 'NA', // Default to NA for Unmarried
+        }));
+      } else {
+        setFormData((prevState) => ({
+          ...prevState,
+          spouse_name: '', // Clear spouse_name for Married
+        }));
+      }
+    }}
+    required
+  >
+    <option value="">Select Marital Status</option>
+    <option value="Married">Married</option>
+    <option value="Unmarried">Unmarried</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Spouse Name</label>
+  <input
+    type="text"
+    name="spouse_name"
+    value={formData.spouse_name || ''}
+    onChange={handleInputChange}
+    disabled={formData.marital_status === 'Unmarried'}
+    placeholder={formData.marital_status === 'Unmarried' ? 'NA' : 'Enter Spouse Name'}
+    required
+  />
+</div>
+      <div className="form-group">
+        <label>Address</label>
+        <input
+          type="text"
+          name="address"
+          value={formData.address || ''}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className="form-group">
+  <label>Role</label>
+  <select
+    name="role"
+    value={formData.role || ''}
+    onChange={handleInputChange}
+    required
+  >
+    <option value="">Select Role</option>
+    <option value="Admin">Admin</option>
+    <option value="Employee">Employee</option>
+    <option value="Project Manager">Project Manager</option>
+    <option value="HR/Finance Manager">HR/Finance Manager</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Department</label>
+  <select
+    name="department"
+    value={formData.department || ''}
+    onChange={handleInputChange}
+    disabled={formData.role === 'Admin'} // Admin role doesn't need a department
+  >
+    <option value="">Select Department</option>
+    {Object.keys(departmentPositions).map((dept) => (
+      <option key={dept} value={dept}>
+        {dept}
+      </option>
+    ))}
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Position</label>
+  <select
+    name="position"
+    value={formData.position || ''}
+    onChange={handleInputChange}
+    disabled={!formData.department && formData.role === 'Admin'} // Disable if no department for non-admin roles
+  >
+    <option value="">Select Position</option>
+    {formData.department &&
+      (formData.role.toLowerCase().includes('manager')
+        ? departmentPositions[formData.department]
+            ?.filter((pos) => pos.toLowerCase().includes('manager')) // Filter manager positions for Manager roles
+            .map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
               </option>
-            ))}
-          </select>
-        </div>
-        {/* Position */}
-        <div className="form-group">
-          <label>Position</label>
-          <select
-            name="position"
-            value={formData.position || ''}
-            onChange={handleInputChange}
-            disabled={!formData.department}
-          >
-            <option value="">Select Position</option>
-            {formData.department &&
-              departmentPositions[formData.department].map((pos) => (
-                <option key={pos} value={pos}>
-                  {pos}
-                </option>
-              ))}
-          </select>
-        </div>
-        {/* Salary */}
-        <div className="form-group">
-          <label>Salary [CTC]</label>
-          <input
-            type="number"
-            name="salary"
-            value={formData.salary || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        {/* Role */}
-        <div className="form-group">
-          <label>Role</label>
-          <select
-            name="role"
-            value={formData.role || ''}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">Select Role</option>
-            <option value="Admin">Admin</option>
-            <option value="Employee">Employee</option>
-            <option value="Project Manager">Project Manager</option>
-            <option value="Finance Manager">Finance Manager</option>
-          </select>
-        </div>
-        {/* Photo */}
-        <div className="form-group">
-          <label>Photo</label>
-          <input
-            type="file"
-            name="photo"
-            onChange={(e) =>
-              setFormData({ ...formData, photo: e.target.files[0] })
-            }
-          />
-        </div>
+            ))
+        : departmentPositions[formData.department]
+            ?.filter((pos) => !pos.toLowerCase().includes('manager')) // Exclude manager positions for non-manager roles
+            .map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
+              </option>
+            )))}
+  </select>
+</div>
+
+      <div className="form-group">
+        <label>Salary [ CTC ]</label>
+        <input
+          type="number"
+          name="salary"
+          value={formData.salary || ''}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className="form-group">
+        <label>Photo</label>
+        <input
+          type="file"
+          name="photo"
+          onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+        />
+      </div>
       </div>
       {/* Button Group */}
       <div className="button-group">
@@ -815,6 +993,23 @@ const handleAddEmployee = async (e) => {
     </form>
   </Modal>
 )}
+      <Modal
+        className="confirm-deletion-modal"
+        isVisible={modalVisible}
+        buttons={[
+        {
+        label: 'Cancel',
+        onClick: () => setModalVisible(false),
+        className: 'modal-cancel-button',
+        },
+        {
+        label: 'Delete',
+        onClick: handleDeleteEmployee,
+        className: 'modal-delete-button',
+        }, ]}>
+        <h2 className="header-title">Confirm Deletion</h2>
+        <p>Are you sure you want to delete this employee?</p>
+      </Modal>
 
       {/* Display Error Message */}
       {error && <div className="error">{error}</div>}
@@ -842,7 +1037,7 @@ const handleAddEmployee = async (e) => {
   <tbody>
   {employees.length === 0 ? (
     <tr>
-      <td colSpan="8">No employees found</td>
+      <td colSpan="10">No employees found</td>
     </tr>
       ) : (
     employees.map((employee) => (
@@ -873,8 +1068,7 @@ const handleAddEmployee = async (e) => {
           </div>
         </td>
       </tr>
-       ))
-      )}
+      )))}
       </tbody>
     </table>
     </div>
