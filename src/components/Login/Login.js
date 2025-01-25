@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './Login.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // React Router for navigation
 
-const Login = () => {
+const Login = ({ onClose }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(true); // Manage modal state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,10 +21,12 @@ const Login = () => {
     }
   }, [navigate]);
 
-  // Function to close the modal
+  // Function to close the modal and call the onClose function passed from parent
   const closeModal = () => {
-    setIsModalOpen(true);
-    navigate('/About');
+    setIsModalOpen(false); // Update modal state
+    if (onClose) {
+      onClose(); // Call the onClose function if provided
+    }
   };
 
   const handleForgotPassword = async () => {
@@ -32,7 +34,7 @@ const Login = () => {
       alert('Email ID is required to reset the password.');
       return;
     }
-  
+
     try {
       const response = await fetch('http://localhost:5000/forgot-password', {
         method: 'POST',
@@ -42,9 +44,9 @@ const Login = () => {
         },
         body: JSON.stringify({ email: username }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         alert('Password reset email sent successfully!');
       } else {
@@ -58,7 +60,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!username || !password) {
       setErrorMessage('Username and password are required.');
       return;
@@ -73,53 +75,59 @@ const Login = () => {
         },
         body: JSON.stringify({ email: username, password }),
       });
-  
+
       const data = await response.json();
-  
+      console.log("data",data)
+
       if (!response.ok) {
         setErrorMessage(data.message || 'Invalid credentials. Please try again.');
         return;
       }
-  
+
       // Store necessary data in local storage
-      localStorage.setItem('authToken', data.code.token);
-      localStorage.setItem('userRole', data.code.role);
-      localStorage.setItem('dashboardData', JSON.stringify(data.code.dashboard));
+      localStorage.setItem('authToken', data.message.token);
+      localStorage.setItem('userRole', data.message.role);
+      localStorage.setItem('dashboardData', JSON.stringify(data.message.dashboard));
       localStorage.setItem('sessionStart', Date.now());
-  
+
       // Dynamically check role and redirect
       const roleToRouteMap = {
         Admin: '/AdminDashboard',
         Employee: '/EmployeeDashboard',
       };
-  
-      const redirectRoute = roleToRouteMap[data.code.role] || '/EmployeeDashboard';
-      setIsModalOpen(false); // Close the modal after login
+
+      const redirectRoute = roleToRouteMap[data.message.role] || '/EmployeeDashboard';
+      closeModal(); // Close the modal after login
       navigate(redirectRoute); // Redirect the user
     } catch (error) {
       console.error('Error logging in:', error);
       setErrorMessage('An unexpected error occurred. Please try again.');
     }
   };
-  
+
   return (
-    isModalOpen && (
-      // Render only if the modal is open
+    isModalOpen && ( // Render modal only if it's open
       <div className="login-page">
         <div className="login-modal">
           <div className="login-container">
-            <button className="close-button" onClick={closeModal}>
+            <button className="login-close-button" onClick={closeModal}>
               ×
             </button>
             <div className="login-image">
               <img
-                src="./images/home2.png" // Replace with your actual image URL
+                src="./images/ITService.png" // Replace with your actual image URL
                 alt="Login illustration"
               />
             </div>
             <div className="login-form">
               <form onSubmit={handleSubmit}>
-                <h2>Login</h2>
+                <div className="login-logo">
+                  <img
+                    src="./images/Loginlogo.png" // Replace with the path to your logo image
+                    alt="Logo"
+                    className="login-logo-img"
+                  />
+                </div>
                 <div className="form-group">
                   <label htmlFor="username">User Name</label>
                   <input
@@ -141,13 +149,7 @@ const Login = () => {
                   />
                 </div>
                 <div className="form-options">
-                <button
-                    type="button"
-                    className="forgot-password-link"
-                    onClick={handleForgotPassword}
-                  >
-                    Forgot Password?
-                  </button>
+                  <a href="#">Forgot Password?</a>
                 </div>
                 <button type="submit" className="btn-login">
                   Login

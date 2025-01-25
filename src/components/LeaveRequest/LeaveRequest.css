@@ -7,7 +7,13 @@
     display: flex;
     padding: 0;
 }
-
+.modal-content {
+    background-color: transparent;
+    padding: 20px; 
+    border-radius: 10px;
+    box-shadow: none;
+  }
+  
 .header {
     display: flex;
     justify-content: space-between;
@@ -112,4 +118,41 @@
 .save:hover,
 .cancel:hover {
     opacity: 0.9;
+}
+
+/* Leave requests table styling */
+.leave-requests {
+    margin-top: 20px;
+}
+
+.leave-requests h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table th,
+table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
 }

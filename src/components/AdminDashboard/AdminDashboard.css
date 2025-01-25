@@ -1,4 +1,4 @@
-body {
+.body-dashboard {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
@@ -178,20 +178,20 @@ body {
   }
   
   
-  .card {
+  .dashboard-grid .card {
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 15px;
   }
   
-  .card h2 {
+  .dashboard-grid .card h2 {
     font-size: 1.2rem;
     color: #34495e;
     margin-bottom: 10px;
   }
   
-  .card p {
+  .dashboard-grid .card p {
     font-size: 0.9rem;
     color: #7f8c8d;
   }
@@ -242,7 +242,7 @@ body {
 }
 
 /* Remove focus outline for buttons */
-button:focus {
+.button:focus {
   outline: none;
 }
 

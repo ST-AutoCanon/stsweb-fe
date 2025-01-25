@@ -11,6 +11,7 @@ import { MdOutlineDashboard, MdOutlinePersonOutline, MdOutlineAssignmentInd, MdO
 
 import EmployeeDetails from "../EmployeeDetails/EmployeeDetails";
 import AdminQuery from "../EmployeeQueries/AdminQuery";
+import LeaveQueries from "../LeaveQueries/Admin"
 import AddDepartment from "../AddDepartment/AddDepartment";
 import maleAvatar from "../../assets/images/male-avatar.png";
 import femaleAvatar from "../../assets/images/female-avatar.png";
@@ -86,6 +87,7 @@ const AdminDashboard = () => {
 
 
   return (
+    <div className="body-dashboard">
     <div className="dashboard-container">
     <div className="dashboard-header">
       <div className="header-title">Admin Dashboard</div>
@@ -220,6 +222,11 @@ const AdminDashboard = () => {
             <div className="add-department-container">
             <AddDepartment />
             </div>
+          )
+          : currentView === "leaveQueries" ? (
+            <div className="leave-queries-container">
+            <LeaveQueries />
+            </div>
           ) : currentView === "employeeQueries" ? (
             <div className="employee-queries-container">
               {/* Replace this with actual add department content */}
@@ -228,6 +235,7 @@ const AdminDashboard = () => {
           ) : null}
         </div>
       </div>
+    </div>
     </div>
   );
 };

@@ -18,6 +18,7 @@ import AdminQuery from "./components/EmployeeQueries/AdminQuery";
 import EmployeeQuery from "./components/EmployeeQueries/EmployeeQuery";
 import AddDepartment from "./components/AddDepartment/AddDepartment"
 import LeaveRequest from "./components/LeaveRequest/LeaveRequest";
+import LeaveQueries from "./components/LeaveQueries/Admin.js";
 import ITNetworkingServices from "./components/ITNetworkingServices/ITNetworkingServices";
 import OtherServices from "./components/OtherServices/OtherServices";
 import HomologationSupport from "./components/HomologationSupport/HomologationSupport1";
@@ -86,6 +87,7 @@ function App() {
           <Route path="/EmployeeQuery" element={<EmployeeQuery/>} />
           <Route path="/AddDepartment" element={<AddDepartment/>} />
           <Route path="/LeaveRequest" element={<LeaveRequest/>} />
+          <Route path="/LeaveQueries" element={<LeaveQueries/>} />
           <Route path="/MainAbout" element={<MainAbout />} />
           <Route path="/OtherServices" element={<OtherServices />} />
           <Route path="/ITNetworkFirst" element={<ITNetworkFirst/>}/>

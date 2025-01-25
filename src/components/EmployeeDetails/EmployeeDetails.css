@@ -174,9 +174,8 @@
 
 .employee-table th {
   border: 2px solid #CCCBCE;
-  height: 48px;
   background-color: #F2F2F2;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   text-align: left;
   white-space: nowrap; /* Prevents wrapping of content */
@@ -197,7 +196,7 @@
 
 .employee-table th:nth-child(3), /* DOJ column header */
 .employee-table td:nth-child(3) { /* DOJ column cells */
-  min-width: 80px; /* Adjust width as needed */
+  min-width: 65px; /* Adjust width as needed */
   text-align: left; /* Ensure proper alignment */
 }
 
@@ -233,6 +232,7 @@ button.delete {
 button.delete:hover {
   background-color: #fff;
 }
+
 
 /* Employee Form */
 .employee-form {
@@ -332,10 +332,10 @@ button.delete:hover {
 
 .button-group {
   display: flex;
-  gap: 40px;
+  gap: 50px;
   justify-content: flex-end; /* Aligns buttons to the right */
   padding: 0;
-  margin-bottom: 3px;
+  margin-bottom: 10px;
 }
 
 .cancel-button {
@@ -343,6 +343,7 @@ button.delete:hover {
   color: #000000;
   border: 1px solid #7FBD2C;
   width: 200px;
+  padding: 10px;
 }
 
 .save-employee-button {
@@ -352,6 +353,7 @@ button.delete:hover {
   border: 1px solid #7FBD2C;
   width: 200px;
   margin-right: 8%;
+  padding: 10px;
 }
 
 /* Prevent default hover effects */
@@ -364,6 +366,9 @@ button.delete:hover {
 
 /* Style for modal content */
 .confirm-deletion-modal .modal-content {
+  background-color: #ccc;
+  width: 500px;
+  height: 300px;
   padding: 30px;
   display: flex;
   flex-direction: column; /* Stack content vertically */

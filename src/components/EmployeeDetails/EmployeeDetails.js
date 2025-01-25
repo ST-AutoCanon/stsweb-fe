@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../Modal/Modal';
-import './EmployeeDetails.css'; // Assuming your styles are in this file
+import './EmployeeDetails.css';
 import { MdOutlineCalendarToday, MdOutlineEdit, MdDeleteOutline, MdOutlineCancel } from "react-icons/md";
 import { PiAsteriskSimpleBold } from "react-icons/pi";
 import DatePicker from "react-datepicker";
@@ -639,7 +639,7 @@ const handleAddEmployee = async (e) => {
     <option value="Admin">Admin</option>
     <option value="Employee">Employee</option>
     <option value="Project Manager">Project Manager</option>
-    <option value="HR/Finance Manager">HR/Finance Manager</option>
+    <option value="Manager">Manager</option>
   </select>
 </div>
 
@@ -909,7 +909,7 @@ const handleAddEmployee = async (e) => {
     <option value="Admin">Admin</option>
     <option value="Employee">Employee</option>
     <option value="Project Manager">Project Manager</option>
-    <option value="HR/Finance Manager">HR/Finance Manager</option>
+    <option value="Manager">Manager</option>
   </select>
 </div>
 
@@ -1027,7 +1027,6 @@ const handleAddEmployee = async (e) => {
         <th>DOJ</th>
         <th>Email ID</th>
         <th>Contact</th>
-        <th>Level</th>
         <th>Department</th>
         <th>Designation</th>
         <th>Salary</th>
@@ -1053,7 +1052,6 @@ const handleAddEmployee = async (e) => {
         </td>
         <td>{employee.email}</td>
         <td>{employee.phone_number}</td>
-        <td>{employee.level}</td>
         <td>{employee.department}</td>
         <td>{employee.position}</td>
         <td>{employee.salary}</td>

@@ -72,6 +72,7 @@ const EmployeeDashboard = () => {
   const avatarImage = dashboardData.gender === "Male" ? maleAvatar : femaleAvatar;
 
   return (
+    <div className="body-dashboard">
     <div className="dashboard-container">
       <div className="dashboard-header">
         <div className="header-title">Employee Dashboard</div>
@@ -194,6 +195,7 @@ const EmployeeDashboard = () => {
           ) : null}
         </div>
       </div>
+    </div>
     </div>
   ); 
 };
