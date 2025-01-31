@@ -54,12 +54,17 @@ import Reachusfirst from "./components/Reachusfirst/Reachusfirst";
 import Broucher from "./components/Broucher/Broucher";
 import Gallery from "./components/Gallery/Gallery";
 import HomologationFirst from "./components/HomologationFirst/HomologationFirst";
-import MainAboutSecond from "./components/MainAboutSecond/MainAboutSecond.js";
 import KnowMoreFirstPage from "./components/KnowMoreFirstPage/KnowMoreFirstPage.js";
 import CircularDesignNew from "./components/CircularDesignNew/CircularDesignNew";
 import "./App.css";
 import Broucherfirst from "./components/Broucherfirst/Broucherfirst";
 import Feedbackform from "./components/Feedbackform/Feedbackform";
+
+import Dashboad from "./components/Dashboard/Dashboard.js";
+import Sidebar from "./components/Dashboard/Sidebar.js";
+import Topbar from "./components/Dashboard/Topbar.js";
+
+
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
   return (
@@ -116,6 +121,10 @@ function App() {
           <Route path="/Feedbackform" element={<Feedbackform/>} />
           <Route path="/KnowMoreFirstPage" element={<KnowMoreFirstPage/>}/>
           <Route path="/Broucher" element={<Broucher/>}/>
+          <Route path="/Dashboard" element={<Dashboad/>}/>
+          <Route path="/Sidebar" element={<Sidebar/>}/>
+          <Route path="/Topbar" element={<Topbar/>}/>
+
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}
