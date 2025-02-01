@@ -11,14 +11,12 @@ import ReachUs from "./components/ReachUs/ReachUs";
 import KnowMore from "./components/KnowMore/KnowMore";
 import Login from "./components/Login/Login";
 import ResetPassword from "./components/ResetPassword/ResetPassword";
-import AdminDashboard from "./components/AdminDashboard/AdminDashboard";
-import EmployeeDashboard from "./components/EmployeeDashboard/EmployeeDashboard";
 import EmployeeDetails from "./components/EmployeeDetails/EmployeeDetails";
 import AdminQuery from "./components/EmployeeQueries/AdminQuery";
 import EmployeeQuery from "./components/EmployeeQueries/EmployeeQuery";
 import AddDepartment from "./components/AddDepartment/AddDepartment"
-import LeaveRequest from "./components/LeaveRequest/LeaveRequest";
-// import LeaveQueries from "./components/LeaveQueries/Admin.js";
+import LeaveRequest from "./components/LeaveQueries/LeaveRequest";
+import LeaveQueries from "./components/LeaveQueries/Admin";
 import ITNetworkingServices from "./components/ITNetworkingServices/ITNetworkingServices";
 import OtherServices from "./components/OtherServices/OtherServices";
 import HomologationSupport from "./components/HomologationSupport/HomologationSupport1";
@@ -37,7 +35,6 @@ import OtherServiceFirst from './components/OtherServiceFirst/OtherServiceFirst'
 import MyDashboard from "./components/MyDashboard/MyDashboard";
 import UpdateProjects from "./components/UpdateProjects/UpdateProjects";
 import AttendanceMgmt from "./components/AttendanceMgmt/AttendanceMgmt";
-import LeaveQueries from "./components/LeaveQueries/LeaveQueries";
 import Performance from "./components/Performance/Performance";
 import PayrollSummary from "./components/PayrollSummary/PayrollSummary";
 import RequestLetter from "./components/RequestLetter/RequestLetter";
@@ -96,27 +93,16 @@ function App() {
           <Route path="/ReachUs" element={<ReachUs />} />
           <Route path="/KnowMore" element={<KnowMore />} />
           <Route path="/Login" element={<Login />} />
-
-
-
-
           <Route path="/myDashboard" element={<MyDashboard />} />
-        <Route path="/updateProjects" element={<UpdateProjects />} />
-        <Route path="/attendanceMgmt" element={<AttendanceMgmt />} />
-        <Route path="/leaveQueries" element={<LeaveQueries />} />
-        <Route path="/performance" element={<Performance />} />
-        <Route path="/payrollSummary" element={<PayrollSummary />} />
-        <Route path="/requestLetter" element={<RequestLetter />} />
-        <Route path="/holidayDetails" element={<HolidayDetails />} />
-        <Route path="/teamEvents" element={<TeamEvents />} />
-        <Route path="/employeeQueries" element={<EmployeeQueries />} />
-
-
-
-
+          <Route path="/updateProjects" element={<UpdateProjects />} />
+          <Route path="/attendanceMgmt" element={<AttendanceMgmt />} />
+          <Route path="/performance" element={<Performance />} />
+          <Route path="/payrollSummary" element={<PayrollSummary />} />
+          <Route path="/requestLetter" element={<RequestLetter />} />
+          <Route path="/holidayDetails" element={<HolidayDetails />} />
+          <Route path="/teamEvents" element={<TeamEvents />} />
+          <Route path="/employeeQueries" element={<EmployeeQueries />} />
           <Route path="/ResetPassword" element={<ResetPassword />} />
-          <Route path="/AdminDashboard" element={<AdminDashboard/>} />
-          <Route path="/EmployeeDashboard" element={<EmployeeDashboard/>} />
           <Route path="/EmployeeDetails" element={<EmployeeDetails/>} />
           <Route path="/AdminQuery" element={<AdminQuery/>} />
           <Route path="/EmployeeQuery" element={<EmployeeQuery/>} />
@@ -154,7 +140,6 @@ function App() {
           <Route path="/Dashboard" element={<Dashboad/>}/>
           <Route path="/Sidebar" element={<Sidebar/>}/>
           <Route path="/Topbar" element={<Topbar/>}/>
-
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}
