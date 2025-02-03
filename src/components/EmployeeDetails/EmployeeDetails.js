@@ -3,7 +3,6 @@ import axios from 'axios';
 import Modal from '../Modal/Modal';
 import './EmployeeDetails.css';
 import { MdOutlineCalendarToday, MdOutlineEdit, MdDeleteOutline, MdOutlineCancel } from "react-icons/md";
-import { PiAsteriskSimpleBold } from "react-icons/pi";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -409,14 +408,13 @@ const handleAddEmployee = async (e) => {
             />
           </div>
         </div>
-      </div>
-
-      {/* Search Button */}
-      <div>
+        <div className='button-search'>
         <button className="search-text" onClick={handleSearchClick}>
           <i className="fas fa-search search-icon"></i> Search
         </button>
       </div>
+      </div>
+      
       {/* Add Employee Button */}
       <div className="actions-container">
       <button onClick={() => {
@@ -446,7 +444,7 @@ const handleAddEmployee = async (e) => {
     </div>
     {/* Add Employee Form */}
     {isFormModalVisible && (
-    <Modal isVisible={isFormModalVisible} buttons={[]}>
+    <Modal className="empform-modal" isVisible={isFormModalVisible} buttons={[]}>
     <form className="employee-form" onSubmit={handleAddEmployee}>
     <div className="form-header">
     <h3 class="form-header-title">Add New Employee</h3>
@@ -454,7 +452,7 @@ const handleAddEmployee = async (e) => {
     </div>
     <div className="form-grid">
       <div className="form-group">
-        <label>First Name<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>First Name<span className="required">*</span></label>
         <input
           type="text"
           name="first_name"
@@ -467,7 +465,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Last Name<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>Last Name<span className="required">*</span></label>
         <input
           type="text"
           name="last_name"
@@ -480,7 +478,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Date of Birth<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>Date of Birth<span className="required">*</span></label>
         <input
           type="date"
           name="dob"
@@ -490,7 +488,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Email<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>Email<span className="required">*</span></label>
         <input
           type="email"
           name="email"
@@ -525,7 +523,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Aadhaar No<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>Aadhaar No<span className="required">*</span></label>
         <input
           type="text"
           name="aadhaar_number"
@@ -538,7 +536,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>PAN<PiAsteriskSimpleBold className="asterisk"/></label>
+        <label>PAN<span className="required">*</span></label>
         <input
           type="text"
           name="pan_number"
@@ -551,7 +549,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Mobile<PiAsteriskSimpleBold className="asterisk"/></label>
+        <label>Mobile<span className="required">*</span></label>
         <input
           type="text"
           name="phone_number"
@@ -564,7 +562,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-  <label>Gender<PiAsteriskSimpleBold className="asterisk" /></label>
+  <label>Gender<span className="required">*</span></label>
   <select
     name="gender"
     value={formData.gender || ''}
@@ -579,7 +577,7 @@ const handleAddEmployee = async (e) => {
 </div>
 
 <div className="form-group">
-  <label>Marital Status<PiAsteriskSimpleBold className="asterisk" /></label>
+  <label>Marital Status<span className="required">*</span></label>
   <select
     name="marital_status"
     value={formData.marital_status || ''}
@@ -628,7 +626,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-  <label>Role</label>
+  <label>Role<span className="required">*</span></label>
   <select
     name="role"
     value={formData.role || ''}
@@ -718,7 +716,7 @@ const handleAddEmployee = async (e) => {
 
 {/* Edit Employee Form */}
 {isEditModalVisible && (
-  <Modal isVisible={isEditModalVisible} buttons={[]}>
+  <Modal className="empform-modal" isVisible={isEditModalVisible} buttons={[]}>
     <form
       className="employee-form"
       onSubmit={handleUpdateEmployee} // Ensure this function matches the update action
@@ -733,7 +731,7 @@ const handleAddEmployee = async (e) => {
       <div className="form-grid">
         {/* First Name */}
         <div className="form-group">
-        <label>First Name<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>First Name<span className="required">*</span></label>
         <input
           type="text"
           name="first_name"
@@ -745,7 +743,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Last Name<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>Last Name<span className="required">*</span></label>
         <input
           type="text"
           name="last_name"
@@ -758,7 +756,7 @@ const handleAddEmployee = async (e) => {
       </div>
       <div className="form-group">
           <label>
-            Date of Birth <PiAsteriskSimpleBold className="asterisk" />
+            Date of Birth<span className="required">*</span>
           </label>
           <input
             type="date"
@@ -769,7 +767,7 @@ const handleAddEmployee = async (e) => {
           />
         </div>
       <div className="form-group">
-        <label>Email<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>Email<span className="required">*</span></label>
         <input
           type="email"
           name="email"
@@ -799,7 +797,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Aadhaar No<PiAsteriskSimpleBold className="asterisk"/> </label>
+        <label>Aadhaar No<span className="required">*</span></label>
         <input
           type="text"
           name="aadhaar_number"
@@ -811,7 +809,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>PAN<PiAsteriskSimpleBold className="asterisk"/></label>
+        <label>PAN<span className="required">*</span></label>
         <input
           type="text"
           name="pan_number"
@@ -823,7 +821,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Mobile<PiAsteriskSimpleBold className="asterisk"/></label>
+        <label>Mobile<span className="required">*</span></label>
         <input
           type="text"
           name="phone_number"
@@ -835,7 +833,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-  <label>Gender<PiAsteriskSimpleBold className="asterisk" /></label>
+  <label>Gender<span className="required">*</span></label>
   <select
     name="gender"
     value={formData.gender || ''}
@@ -850,7 +848,7 @@ const handleAddEmployee = async (e) => {
 </div>
 
 <div className="form-group">
-  <label>Marital Status<PiAsteriskSimpleBold className="asterisk" /></label>
+  <label>Marital Status<span className="required">*</span></label>
   <select
     name="marital_status"
     value={formData.marital_status || ''}
@@ -898,7 +896,7 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-  <label>Role</label>
+  <label>Role<span className="required">*</span></label>
   <select
     name="role"
     value={formData.role || ''}
@@ -1007,7 +1005,7 @@ const handleAddEmployee = async (e) => {
         onClick: handleDeleteEmployee,
         className: 'modal-delete-button',
         }, ]}>
-        <h2 className="header-title">Confirm Deletion</h2>
+        <h2 className="delete-header">Confirm Deletion</h2>
         <p>Are you sure you want to delete this employee?</p>
       </Modal>
 

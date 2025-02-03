@@ -153,7 +153,7 @@ const Navbar = () => {
               ReachUs
             </NavLink>
           </li>
-
+          
           <li>
             <a
               href="https://auto-canon.in/" // Replace with your desired product URL

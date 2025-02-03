@@ -1,0 +1,72 @@
+/* Dashboard container */
+.dashboard {
+  display: flex;
+ 
+  flex-direction: column; /* Topbar on top, Sidebar + Content below */
+  height: 100%; /* Full viewport height */
+  overflow: hidden; /* Prevent scrollbars outside the layout */
+}
+
+/* Topbar styles */
+
+.conentcontainerdeisgn{
+  background-color: #E8E9EA;
+}
+
+/* Content container (Sidebar + Main Content) */
+.content-container {
+  display: flex;
+  border-radius: 5px;
+ 
+  background-color: #E8E9EA;
+  flex: 1; /* Fills the remaining space below the Topbar */
+  margin-top: 1%; /* Push Sidebar and Main Content below the Topbar */
+  overflow: hidden; /* Prevents overflow in the layout */
+}
+
+/* Sidebar styles */
+.sidebar {
+  
+  width: 250px; /* Fixed width */
+  background-color: white;
+  overflow-y: auto; /* Sidebar scrolls if content overflows */
+  
+  /* height: calc(100vh - 60px); Full height minus Topbar height */
+  position: sticky; /* Sticks in place during scrolling */
+  top: 0px; /* Push below the Topbar */
+  margin-top:0;
+  z-index: 1; /* Keep Sidebar below the Topbar */
+}
+
+/* Main content styles */
+.main-content {
+  flex: 1; /* Main content takes the remaining space */
+  /* overflow-y: auto; Enable scrolling for the main content */
+  background-color: #E8E9EA;
+ 
+  height: calc(100vh - 60px); /* Full height minus Topbar height */
+  box-sizing: border-box; /* Include padding in width/height */
+}
+
+.main-content h1{
+  
+  background-color: #E8E9EA;
+ 
+}
+
+.Dashboarddesign
+{
+  height:150vh;
+  padding: 20px;
+  padding-top:10px;
+ border-radius: 5px;
+  background-color: white;
+}
+.Dashboard123
+{
+
+  height: auto;
+  margin-top: 6%;
+ padding: 20px;
+  background-color:#E8E9EA;
+}
