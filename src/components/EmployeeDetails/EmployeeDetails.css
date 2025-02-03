@@ -175,7 +175,7 @@
 
 /* Scrollable Table Container */
 .table-scroll-container {
-  max-height: 800px;
+  max-height: 700px;
   overflow-y: auto;
   overflow-x: auto; 
   margin: 20px 0;
@@ -301,7 +301,7 @@ button.delete:hover {
 /* Form Inputs */
 .form-grid input{
   padding: 1%;
-  border: 0.2vw solid #CCCBCE;
+  border: 1px solid #CCCBCE;
   border-radius: 5px;
   width: 80%; /* Adjusts dynamically */
   font-size: 1vw;
@@ -310,7 +310,7 @@ button.delete:hover {
 
 .form-grid select {
   padding: 1%;
-  border: 0.2vw solid #CCCBCE;
+  border: 1px solid #CCCBCE;
   border-radius: 5px;
   width: 84%; /* Adjusts dynamically */
   font-size: 1vw;
@@ -363,7 +363,7 @@ button.delete:hover {
 /* Prevent default hover effects */
 .cancel-button:hover,
 .save-employee-button:hover {
-  background-color: initial;
+  background-color: #79C42B;
   color: initial;
   border-color: initial;
 }
