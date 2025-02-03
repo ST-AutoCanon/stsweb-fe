@@ -39,23 +39,25 @@ white-space: nowrap; /* Prevent content from wrapping */
 .date-filter {
 display: flex;
 align-items: center;
-gap: 10px;
+gap: 20px;
 }
 
 .date-filter label {
+  font-size: medium;
+  font-weight: bold;
 margin: 0px;
 }
 
 /* Ensure date inputs adjust their width */
 .date-filter input {
-width: 110px; /* Restrict maximum width */
+max-width: 150px; /* Restrict maximum width */
 }
 
 /* Ensure search bar adjusts */
 .search-bar {
 display: flex;
 align-items: center;
-gap: 10px;
+gap: 20px;
 white-space: nowrap;
 margin: 0px;
 padding: 0px;
@@ -63,28 +65,20 @@ padding: 0px;
 
 /* Search button alignment */
 .search-button {
-  flex-shrink: 0;
-  white-space: nowrap;
-  width: 100px;
-  height: 39px;
-  margin-top: 1px;
-  background-color: #29548B; /* Initial background color */
-  border-radius: 5px; /* Curved corners */
-  color: white; /* White text */
-  border: none; /* Remove border */
-  font-size: 16px; /* Font size */
-  cursor: pointer; /* Pointer cursor on hover */
-  transition: background-color 0s ease; /* Smooth transition for background color */
+  padding: 1%;
+  margin-left: 2%;
+  font-size: medium;
+  cursor: pointer;
+  width: 10%;
+  background-color: #00468C;
+  color: white;
+  border: none;
+  border-radius: 5px;
 }
-
-.search-button:hover {
-  background-color: #4CAF50; /* Green background on hover */
-}
-
 
 
 .search-bar label {
-font-size: 16px;
+font-size: medium;
 font-weight: bold; /* Optional: Make the label more prominent */
 white-space: nowrap; /* Ensure the label stays on one line */
 margin: 0px;
@@ -94,7 +88,7 @@ margin: 0px;
 .search-bar input {
 flex: 1; /* Allow the input to take available space */
 padding: 8px;
-font-size: 16px;
+font-size: medium;
 border: 1px solid #ccc;
 border-radius: 4px;
 width: 160px;
@@ -124,39 +118,38 @@ margin: 20px 0;
 }
 
 /* Ensure table fits within the container */
-.table {
+.leave-table {
 width: 100%;
 border-collapse: collapse;
 margin-top: 10px;
 }
 
-.table th,
-.table td {
+.leave-table td {
 padding: 10px;
 text-align: left;
 border: 1px solid #ddd;
-font-size: 12px;
+font-size: medium;
 background-color: #FFFFFF;
 }
 
-.table th:nth-child(8),
-.table td:nth-child(8) { 
+.leave-table th:nth-child(8),
+.leave-table td:nth-child(8) { 
 min-width: 50px; 
-text-align: left; 
+text-align: center; 
 }
 
-.table th {
+.leave-table th {
 border: 2px solid #CCCBCE;
 height: 48px;
 background-color: #F2F2F2;
-font-size: 12px;
+font-size: medium;
 font-weight: bold;
-text-align: left;
+text-align: center;
 white-space: nowrap; /* Prevents wrapping of content */
 overflow: hidden;    /* Ensures long content doesn't overflow */
 }
 
-.table tr:hover {
+.leave-table tr:hover {
 background-color: #f1f1f1;
 }
 
@@ -181,27 +174,31 @@ padding: 8px;
 
 /* Colors based on status */
 .status-dropdown {
-color: #555;
+color: #000;
 border-color: #ccc;
 
 }
 
 .status-dropdown option[value="Approved"],
 .status-dropdown[value="Approved"] {
-border-color: #7BA100;
+background-color: #7BA100;
+color: #000;
 }
 
 .status-approved {
-border-color: #7BA100;
+background-color: #7BA100;
+color: #000;
 }
 
 .status-dropdown option[value="Rejected"],
 .status-dropdown[value="Rejected"] {
-border-color: #DE2121;
+background-color: #9a080d;
+color: #000;
 }
 
 .status-rejected {
-border-color: #DE2121;
+background-color: #9a080d;
+color: #000;
 }
 
 /* Update button */
@@ -243,6 +240,14 @@ font-size: 14px;
 border: 2px solid #ccc;
 border-radius: 4px;
 margin: 0px;
+}
+
+.disabled-button {
+  background-color: #d3d3d3 !important; /* Light gray */
+  color: #555 !important; /* Darker gray for text */
+  cursor: not-allowed !important; /* Prevent clicking */
+  pointer-events: none !important; /* Disable all events */
+  border: none !important;
 }
 
 

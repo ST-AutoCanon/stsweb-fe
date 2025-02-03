@@ -58,7 +58,8 @@ import AddDepartment from "../AddDepartment/AddDepartment";
 // import MyDashboard from "../MyDashboard/MyDashboard";
 // import UpdateProjects from "../UpdateProjects/UpdateProjects";
 // import AttendanceMgmt from "../AttendanceMgmt/AttendanceMgmt";
-// import LeaveQueries from "../LeaveQueries/LeaveQueries";
+import LeaveQueries from "../LeaveQueries/Admin";
+import LeaveRequest from "../LeaveQueries/LeaveRequest";
 // import Performance from "../Performance/Performance";
 // import PayrollSummary from "../PayrollSummary/PayrollSummary";
 // import RequestLetter from "../RequestLetter/RequestLetter";
@@ -83,6 +84,7 @@ const Sidebar = ({ setActiveContent }) => {
   }, []);
 
   const handleMenuClick = (item) => {
+    const userRole = localStorage.getItem("userRole") || "Role";
     // Dynamically map path to content
     switch (item.path) {
       case "/dashboard":
@@ -100,9 +102,16 @@ const Sidebar = ({ setActiveContent }) => {
       case "/attendanceMgmt":
         setActiveContent(<p>Attendance Management content goes here.</p>);
         break;
-      case "/leaveQueries":
-        setActiveContent(<p>Leave Queries content goes here.</p>);
-        break;
+        case "/leaveQueries":
+          // Display LeaveRequest for employees and LeaveQueries for admins
+          if (userRole === "Employee") {
+            setActiveContent(<LeaveRequest />);
+          } else if (userRole === "Admin") {
+            setActiveContent(<LeaveQueries />);
+          } else {
+            setActiveContent(<p>Not found</p>);
+          }
+          break;
       case "/performance":
         setActiveContent(<p>Performance content goes here.</p>);
         break;
