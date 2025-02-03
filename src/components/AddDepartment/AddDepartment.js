@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './AddDepartment.css';
 
 const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem('authToken');
+const authToken = localStorage.getItem('authToken');
 
 const AddDepartment = () => {
     const [name, setName] = useState('');
@@ -31,7 +31,6 @@ const AddDepartment = () => {
             setMessage('An error occurred');
         }
     };
-    
 
     useEffect(() => {
         fetchDepartments();
@@ -51,7 +50,7 @@ const AddDepartment = () => {
                     'x-api-key': API_KEY,
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authToken}`,
-                  },
+                },
                 body: JSON.stringify({ name }),
             });
 
@@ -70,28 +69,44 @@ const AddDepartment = () => {
     };
 
     return (
-        <div className="add-department">
-            <h2>Departments</h2>
-            <ul className="department-list">
-                {departments.length > 0 ? (
-                    departments.map((dept) => (
-                        <li key={dept.id}>{dept.name}</li>
-                    ))
-                ) : (
-                    <p>No departments found</p>
-                )}
-            </ul>
-            <h2>Add Department</h2>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Department Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
-                <button type="submit">Add</button>
-            </form>
-            {message && <p className="message">{message}</p>}
+        <div className="department-container">
+            <div className="add-department">
+                <div className="header">
+                    <h2>Manage Departments</h2>
+                    <p>Add, view, and manage all departments efficiently</p>
+                </div>
+
+                <div className="department-section">
+                    <h3>Existing Departments</h3>
+                    <div className="department-list">
+                        {departments.length > 0 ? (
+                            departments.map((dept) => (
+                                <div key={dept.id} className="department-card">
+                                    <span>{dept.name}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <p>No departments found</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="form-section">
+                    <h3>Add New Department</h3>
+                    <form onSubmit={handleSubmit}>
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                placeholder="Enter Department Name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                            />
+                            <button className='add-button' type="submit">Add</button>
+                        </div>
+                    </form>
+                    {message && <p className="message">{message}</p>}
+                </div>
+            </div>
         </div>
     );
 };
