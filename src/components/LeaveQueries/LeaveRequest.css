@@ -1,0 +1,271 @@
+/* General Container */
+.leave-request-container {
+    padding: 0%;
+    margin: 0%;
+}
+
+.leave-container {
+    width: 90%;
+    margin: 0 5%;
+    padding: 0%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Header */
+.leave-header {
+    width: 100%;
+    margin: 2%;
+    font-size: large;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Filters Section */
+.leave-filters {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    gap: 2%;
+    margin-bottom: 2%;
+}
+
+.leave-filters label {
+    font-size: medium;
+}
+
+/* Date Inputs */
+.date-filter-input {
+    margin: 2% 0;
+    padding: 1%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 15%;
+    font-size: large;
+}
+
+/* Buttons */
+.filter-button, .leave-form-button {
+    margin-left: auto;
+    padding: 1%;
+    font-size: 100%;
+    cursor: pointer;
+    width: 15%;
+    background-color: #00468C;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.filter-button:hover, .leave-form-button:hover {
+    background-color: #003366;
+    opacity: 0.9;
+}
+
+/* Modal */
+.leave-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.leave-modal-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #7b7a7a;
+    max-height: 84vh;
+    width: 60%;
+    padding: 0%;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Form */
+.leave-form {
+    display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #E8E9EA;
+  padding: 0;
+  border: 1px solid #ccc;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.leave-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    background-color: #00468C;
+    padding: 1% 2%;
+}
+
+.leave-form-header h2 {
+    margin: 1%;
+    text-align: left;
+    color: #FFFFFF;
+}
+
+.leave-form-header .icon {
+    cursor: pointer;
+    font-size: 150%;
+} 
+
+.leave-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(30%, 1fr));
+    gap: 2%;
+    padding: 2%;
+    margin: 0;
+}
+
+.leave-form-group {
+    margin-top: 2%;
+    padding: 5%;
+}
+
+.leave-form label {
+    display: block;
+    margin-bottom: 2%;
+    font-size: medium;
+    font-weight: bold;
+}
+
+.leave-form input{
+    padding: 5%;
+    margin: 2%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 80%;
+    font-size: large;
+} 
+
+.leave-form select {
+    padding: 5%;
+    margin: 2%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 80%;
+    font-size: medium;
+}
+
+.leave-form label:after {
+    content: ' *';
+    color: red;
+    font-size: large;
+}
+
+/* Buttons - Bottom Right */
+.leave-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10%;
+    padding: 5%;
+    grid-column: span 3;
+}
+
+/* Save Button */
+.leave-save {
+    background-color: #7AC142;
+    color: white;
+    font-size: medium;
+    padding: 1%;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.3s;
+    width: 25%;
+}
+
+/* Cancel Button */
+.leave-cancel {
+    border: 1px solid #7AC142;
+    background-color: white;
+    color: #7AC142;
+    font-size: medium;
+    padding: 1%;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.3s;
+    width: 25%;
+}
+
+.leave-save:hover {
+    background-color: #69a535;
+}
+
+.leave-cancel:hover {
+    background-color: #f2f2f2;
+}
+
+/* Table Container */
+.leave-request-table {
+    max-height: 80%;
+    overflow-y: auto;
+    overflow-x: auto;
+    margin: 2% 0;
+    width: 100%;
+}
+
+.leave-requests {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Table */
+.leave-requests th {
+    border: 2px solid #CCCBCE;
+    height: 5%;
+    padding: 1%;
+    background-color: #F2F2F2;
+    font-size: medium;
+    font-weight: bold;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.leave-requests td {
+    border: 1px solid #CCCBCE;
+    padding: 1%;
+    text-align: center;
+    font-size: medium;
+    color: #000000;
+}
+
+.leave-requests tr {
+    background-color: #fff;
+}
+
+/* Edit & Delete Buttons */
+.button-edit {
+    font-size: x-large;
+    margin-right: 5%;
+}
+
+.button-delete {
+    font-size: x-large;
+}
+
+/* Disabled Buttons */
+.button-disabled {
+    color: lightgray !important;
+    pointer-events: none; /* Prevent clicks */
+    cursor: not-allowed;
+}
