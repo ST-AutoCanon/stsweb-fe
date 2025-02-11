@@ -16,7 +16,6 @@ import AdminQuery from "./components/EmployeeQueries/AdminQuery";
 import EmployeeQuery from "./components/EmployeeQueries/EmployeeQuery";
 import AddDepartment from "./components/AddDepartment/AddDepartment"
 import LeaveRequest from "./components/LeaveQueries/LeaveRequest";
-import LeaveRequest from "./components/LeaveRequest/LeaveRequest";
 import LeaveQueries from "./components/LeaveQueries/Admin";
 import ITNetworkingServices from "./components/ITNetworkingServices/ITNetworkingServices";
 import OtherServices from "./components/OtherServices/OtherServices";
