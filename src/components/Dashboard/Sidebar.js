@@ -1,60 +1,10 @@
-// import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
-// import "./Sidebar.css";
-// import * as MdIcons from "react-icons/md"; // Import all Material icons dynamically
-
-// const Sidebar = ({ setActiveContent }) => {
-//   const navigate = useNavigate();
-//   const [menuItems, setMenuItems] = useState([]); // Default empty array
-
-//   useEffect(() => {
-//     const storedData = localStorage.getItem("sidebarMenu");
-//     if (storedData) {
-//       try {
-//         const parsedData = JSON.parse(storedData);
-//         setMenuItems(parsedData || []); // FIXED: No need for .sidebarMenu
-//       } catch (error) {
-//         console.error("Error parsing sidebar menu:", error);
-//         setMenuItems([]); // Fallback to empty array
-//       }
-//     }
-//   }, []);
-
-//   const handleMenuClick = (item) => {
-//     setActiveContent(item.label);
-//     navigate(item.path);
-//   };
-
-//   return (
-//     <div className="sidebar">
-//       <ul>
-//         {menuItems.length > 0 ? (
-//           menuItems.map((item, index) => {
-//             const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard; // Default icon
-//             return (
-//               <li key={index} onClick={() => handleMenuClick(item)}>
-//                 <span className="icon"><IconComponent /></span>
-//                 <span className="menu-text">{item.label}</span>
-//               </li>
-//             );
-//           })
-//         ) : (
-//           <p className="no-menu">No menu items available</p>
-//         )}
-//       </ul>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;
-
-
-
 import React, { useState, useEffect } from "react";
 import "./Sidebar.css";
-import * as MdIcons from "react-icons/md"; // Import all Material icons dynamically
+import * as MdIcons from "react-icons/md";
 import EmployeeDetails from "../EmployeeDetails/EmployeeDetails";
 import AddDepartment from "../AddDepartment/AddDepartment";
+import AdminQuery from "../EmployeeQueries/AdminQuery";
+import EmployeeQuery from "../EmployeeQueries/EmployeeQuery";
 // import MyDashboard from "../MyDashboard/MyDashboard";
 // import UpdateProjects from "../UpdateProjects/UpdateProjects";
 // import AttendanceMgmt from "../AttendanceMgmt/AttendanceMgmt";
@@ -65,7 +15,6 @@ import LeaveRequest from "../LeaveQueries/LeaveRequest";
 // import RequestLetter from "../RequestLetter/RequestLetter";
 // import HolidayDetails from "../HolidayDetails/HolidayDetails";
 // import TeamEvents from "../TeamEvents/TeamEvents";
-// import EmployeeQueries from "../EmployeeQueries/EmployeeQueries";
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]); // Default empty array
@@ -127,9 +76,13 @@ const Sidebar = ({ setActiveContent }) => {
       case "/teamEvents":
         setActiveContent(<p>Team Events content goes here.</p>);
         break;
-      case "/employeeQueries":
-        setActiveContent(<p>Employee Queries content goes here.</p>);
-        break;
+        case "/employeeQueries":
+          if (userRole === "Admin") {
+            setActiveContent(<AdminQuery />);
+          } else {
+            setActiveContent(<EmployeeQuery />);
+          }
+          break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }

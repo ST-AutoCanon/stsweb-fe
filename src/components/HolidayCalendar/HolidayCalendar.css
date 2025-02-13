@@ -1,0 +1,68 @@
+.calendar-container {
+    width: 250px;
+    text-align: center;
+    background: #00468C;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.react-calendar {
+    background: #E8E9EA;
+}
+
+.react-calendar__navigation__label {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* Hide the year in the header */
+.react-calendar__navigation__label {
+    pointer-events: none;
+}
+
+/* ✅ Holiday indicator dot */
+.holiday-dot {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+}
+
+/* ✅ Holiday color styles */
+.govt-holiday .holiday-dot {
+    background-color: rgb(252, 79, 79);
+}
+
+.company-holiday .holiday-dot {
+    background-color: rgb(144, 144, 253);
+}
+
+/* Ensure date number is above dot */
+.react-calendar__tile {
+    position: relative;
+}
+
+.react-calendar__tile abbr {
+    position: relative;
+    z-index: 2;
+    color: #000;
+    font-weight: bold;
+}
+
+/* ✅ Tooltip styling */
+.react-tooltip {
+    z-index: 9999 !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    color: white !important;
+    padding: 6px 10px !important;
+    border-radius: 5px !important;
+    font-size: 14px !important;
+}

@@ -40,7 +40,7 @@ const Admin = () => {
         to_date: toDate,
       }).toString();
 
-      const response = await fetch(`http://localhost:5000/admin/leave?${query}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/admin/leave?${query}`, {
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const Admin = () => {
       const update = statusUpdates[leaveId];
       if (!update) return;
 
-      const response = await fetch(`http://localhost:5000/admin/leave/${leaveId}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/admin/leave/${leaveId}`, {
         method: "PUT",
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
@@ -129,11 +129,10 @@ const Admin = () => {
       <div className="filters">
         {/* Status Filter */}
         <div className="status-filter">
+        <label>Status Filter</label>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Status Filter</option>
+            onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
             <option value="pending">Pending</option>
@@ -177,6 +176,7 @@ const Admin = () => {
               <tr>
                 <th>Emp ID</th>
                 <th>Emp Name</th>
+                <th>Leave Type</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Reason</th> 
@@ -207,6 +207,7 @@ return (
     <tr key={query.leave_id} className={isAlreadyUpdated ? "row-updated" : ""}>
         <td>{query.employee_id}</td>
         <td>{query.name}</td>
+        <td>{query.leave_type}</td>
         <td>{formatDate(query.start_date)}</td>
         <td>{formatDate(query.end_date)}</td>
         <td>{query.reason}</td>
