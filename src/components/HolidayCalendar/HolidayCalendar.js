@@ -20,7 +20,7 @@ const HolidayCalendar = ({ closeCalendar }) => {
     };
 
     useEffect(() => {
-        axios.get("http://localhost:5000/holidays", { headers })
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/holidays`, { headers })
             .then(response => {
                 setHolidays(response.data);
                 localStorage.setItem("holidays", JSON.stringify(response.data));
