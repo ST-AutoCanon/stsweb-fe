@@ -1,0 +1,55 @@
+.total-employees {
+  width: 250px; /* Fixed width */
+    height: 320px; /* Fixed height */
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.total-employees h3 {
+  font-size: 20px; /* Font size for the title */
+  font-weight: bold;
+  color: #0a0a0a; /* Dark color for title */
+  text-align: center;
+  margin-top: 0px; /* Spacing below the title */
+  padding-top: 0;
+}
+
+.admindashtotalemployee-chart {
+  width: 100%; /* Full width for the chart */
+  height: 250px; /* Fixed height for the chart */
+  display: flex;
+  justify-content: center; /* Center chart horizontally */
+  align-items: center; /* Center chart vertically */
+  background: white; /* Light background for the chart area */
+  border-radius: 8px; /* Rounded corners for the chart */
+  
+}
+
+.total-employees .legend-container {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center the legend items */
+  gap: 15px;
+}
+
+.total-employees .legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px; /* Small font size for legend items */
+}
+
+.total-employees .legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%; /* Circular color legend */
+  margin-right: 5px; /* Spacing between the color circle and text */
+}

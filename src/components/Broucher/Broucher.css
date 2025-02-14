@@ -1,0 +1,199 @@
+/* General Styles */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
+/* General Styles */
+;
+
+.broucher-container {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: hsl(0, 0%, 98%);
+  text-align: center;
+  margin: 0 auto;
+ 
+}
+
+.broucher-header h1 {
+  font-size: 32px;
+  color: #011103f1;
+  margin-bottom: 10px;
+  order:1;
+margin-left:5%;
+margin-top:100px;
+}
+
+.broucher-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px; /* Space between cards */
+  margin-left: 5%;
+  margin-right:5%;
+  margin-bottom:30px;
+}
+/* Brochure Card */
+.broucher-card {
+  background: #AC5C00;
+  border-radius: 12px;
+  width: 300px;
+  height: 400px;
+  padding: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 6px 12px rgba(30, 219, 233, 0.1);
+  transition: transform 0.3s ease;
+  font-family: 'Oswald', sans-serif;
+}
+
+.broucher-card:hover {
+  transform: scale(1.05);
+}
+
+/* Top Description */
+.card-top-description {
+  font-size: 22px;
+  font-weight: 200;
+  color: white;
+  text-align: left;
+  margin-top:20px;
+  font-family: 'Oswald', sans-serif;
+}
+
+/* Hexagon Design */
+/* Hexagon Design */
+.hexagon {
+  width: 180px;
+  height: 180px;
+  clip-path: polygon(
+    50% 0%, 
+    95% 22%, 
+    95% 78%, 
+    50% 100%, 
+    5% 78%, 
+    5% 22%
+  ); /* Smoothened edges by adjusting the percentages */
+  background: #ffffff;
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto;
+  margin-right: 5px;
+  border-radius: 105px; /* Adds smoothness to the edges */
+}
+
+.hexagon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  
+}
+
+/* Brochure Info */
+.broucher-info h2 {
+  font-size: 24px;
+  color: white;
+  text-align: left;
+  margin-top: -300px;
+  white-space: nowrap; /* Prevent the text from wrapping */
+}
+
+
+/* Bottom Description */
+.card-bottom-description {
+  font-size: 22px;
+  font-weight: 200;
+  color: white;
+  text-align: left;
+  order:2;
+}
+
+/* Download Button */
+.download-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #dce7dc;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 40px;
+  padding: 10px 16px;
+  transition: background-color 0.3s ease;
+}
+.download-text {
+  margin-top: 25px;
+  font-size: 16px;
+  color: #ecf1ec; /* Text color */
+  font-weight: 300;
+  text-align: center;
+}
+.download-button:hover {
+  background-color: #50b9b9;
+}
+/* Download Button with Downward Arrow */
+.download-icon {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  color: #ecf1ec; /* Icon color */
+  font-size: 50px; /* Adjust the icon size */
+  transition: color 0.3s ease;
+}
+
+.download-icon:hover {
+  color: #0d8f3f; /* Icon color on hover */
+}
+
+/* Mobile View */
+@media (max-width: 768px) {
+  .broucher-cards {
+    flex-direction: column; /* Stack cards vertically */
+    align-items: center;
+    gap: 20px;
+    padding: 10px;
+  }
+
+  .broucher-card {
+    width: 90%; /* Adjust width for mobile */
+    padding: 15px;
+    text-align: center; /* Center-align text */
+  }
+
+  .broucher-header h1 {
+    font-size: 28px;
+    color: #011103f1;
+    margin-bottom: 10px;
+    order:1;
+  margin-left:5%;
+  margin-top:100px;
+  }
+  .broucher-info h2,
+  .card-top-description {
+    text-align: center;
+  }
+
+  .hexagon {
+    margin: 15px auto; /* Center hexagon on mobile */
+    margin-right: 10px;
+  }
+
+  .card-bottom-description {
+    text-align: left; /* Left-align bottom description */
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .download-button {
+    align-self: flex-end; /* Align download button to the right */
+    margin-top: 10px;
+  }
+  .broucher-info h2
+  {
+    font-size: 20px;
+  }
+ 
+}

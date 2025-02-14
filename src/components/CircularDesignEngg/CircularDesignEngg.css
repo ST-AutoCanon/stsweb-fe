@@ -1,0 +1,279 @@
+/* Container for the circular layout */
+.circular-container-engg {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+/* Central wrapper with dotted border */
+.central-wrapper-engg {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 3px dotted #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Central image inside the circle */
+.central-image-engg {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.central-image-engg img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Individual circular item */
+.circular-item-engg {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  transform-origin: center;
+}
+/* Dotted line connecting the central image to the button */
+.line-engg {
+  position: absolute;
+  width: 120px !important;
+  height: 0.15px !important;
+  background: transparent;
+  border-top: 2px dashed #000 !important;
+  transform-origin: left;
+}
+
+/* Specific line positions */
+.line-1-engg {
+  width: 50%!important;
+  transform: rotate(-50deg);
+  top: 290% !important;
+  right: 56%!important;
+}
+.line-2-engg {
+  top: 50%;
+  left: -123%!important;
+  width: 122%!important;
+  transform: rotate(0deg);
+}
+.line-3-engg {
+  top: 0%;
+  left: 20%;
+  width: 47%!important;
+  transform: rotate(230deg);
+}
+.line-4-engg {
+  top: 50%;
+  left: 188%;
+  width: 87%!important;
+  transform: rotate(180deg);
+}
+.line-5-engg {
+  top: 315%;
+  left: 128%;
+  width: 66%!important;
+  transform: rotate(223deg);
+}
+.line-6-engg {
+  top: -10%;
+  left: 78%;
+  width: 47%!important;
+  transform: rotate(320deg);
+}
+/* Button layout inside each circular item */
+.circular-button-engg {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid black;
+  border-radius: 50px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  gap: 10px;
+}
+.circular-button-engg img {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.100s ease;
+}
+
+.circular-button-engg:hover {
+  transform: scale(1.2); /* Scale the button slightly */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+}
+
+.circular-button-engg:hover img {
+  transform: scale(1.1); /* Scale the image slightly for extra effect */
+}
+
+.circular-button-engg.reverse:hover {
+  transform: scale(1.1); /* Apply rotation for reverse buttons */
+}
+/* Reverse layout for buttons */
+.circular-button-engg.reverse {
+  flex-direction: row;
+}
+
+.circular-button-engg.reverse img {
+  margin-right: 0;
+  margin-left: 5px;
+}
+
+/* Button hover state */
+.circular-button-engg:hover {
+  background-color: #ABE46C;
+}
+
+/* Button when active */
+.circular-button-engg.active-button-engg {
+  background-color: #ABE46C;
+  color: black;
+  cursor: default;
+}
+
+/* Images inside the buttons */
+.circular-item-engg img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+/* Text inside the button */
+.circular-item-engg p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Page section for dynamic content */
+.page-section-engg {
+  /* padding: 100px 40px;  */
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  margin-bottom: -50px;
+  margin-top: -80px;
+}
+
+.page-section-engg h2 {
+  font-size: 1.8em;
+  margin-bottom: 20px;
+}
+
+.page-section-engg p {
+  font-size: 1.2em;
+  color: #555;
+}
+
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .circular-container-engg {
+    width: 400px; /* Adjust container size for smaller screens */
+    height: 400px;
+    padding-bottom: 30px;
+  }
+
+  .central-image-engg img {
+    width: 50%;
+    height:50%;
+    border-radius: 50%;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+
+/* Central wrapper with dotted border */
+.central-wrapper-engg {
+  position: absolute;
+  width: 90px; /* Slightly larger than the central image */
+  height: 90px;
+  border-radius: 50%; /* Makes the dotted border circular */
+  border: 3px dotted #ddd; /* Creates the dotted border */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+  .circular-item-engg {
+    transform-origin: center;
+  }
+
+  .circular-button-engg {
+    padding: 4px 4px;
+    gap: 3px;
+  }
+
+  .circular-item-engg p {
+    font-size: 10px;
+  }
+
+  /* Adjust the dotted lines connecting buttons */
+  .line-engg {
+    width: 60px !important;
+    height: 0.1px !important;
+    border-top: 1px dashed #000 !important;
+  }
+
+  /* Line positions for smaller screens */
+  .line-1-engg {
+    width: 45% !important;
+    transform: rotate(-55deg);
+    top: 230% !important;
+    left: 15% !important;
+  }
+  .line-2-engg {
+    top: 40%;
+    left: -32% !important;
+    width: 35% !important;
+    transform: rotate(0deg);
+  }
+  .line-3-engg {
+    top: -5%;
+    left: 40%;
+    width: 32% !important;
+    transform: rotate(230deg);
+  }
+  .line-4-engg {
+    top: 43%;
+    left: 125%;
+    width: 25% !important;
+    transform: rotate(180deg);
+  }
+  .line-5-engg {
+    top: 230%;
+    left: 98%;
+    width: 49% !important;
+    transform: rotate(230deg);
+  }
+  .line-6-engg {
+    top: -7%;
+    left: 70%;
+    width: 28% !important;
+    transform: rotate(308deg);
+  }
+  .circular-button-engg:hover img {
+    transform: scale(0.9); /* Scale the image slightly for extra effect */
+  }
+  
+  .circular-button-engg.reverse:hover {
+    transform: scale(1.1); /* Apply rotation for reverse buttons */
+  }
+  .circular-button-engg:hover {
+    transform: scale(1.1); /* Apply rotation for reverse buttons */
+  }
+}

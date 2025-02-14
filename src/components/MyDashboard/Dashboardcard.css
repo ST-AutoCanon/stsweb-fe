@@ -1,0 +1,54 @@
+.dashboard-card-containers {
+  width: 100%;
+  display: flex;
+  flex-direction: row; /* Align cards in a row */
+  /* Spacing between cards */
+  justify-content: center; /* Center cards */
+  flex-wrap: nowrap; /* Prevent wrapping */
+  gap:0px;
+  overflow-x: auto; /* Allows scrolling if too many cards */
+  
+}
+
+.card {
+  background: white;
+  
+  border-radius: 10px;
+  margin:10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  width: 250px; /* Adjust width */
+  display: flex;
+  gap:20px;
+  flex-direction: row; /* Align icon and content in a row */
+  align-items: center; /* Vertically align icon and text */
+}
+
+.icon {
+  font-size: 2.0rem;
+  margin-right:10px;/* Space between icon and text */
+}
+
+.custom-icon {
+  width: 50px;
+  height: 50px;
+   /* Space between icon and text */
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  
+}
+
+.value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #3498db;
+  
+}
+
+.label {
+  font-size: 0.7rem;
+  color: #555;
+}

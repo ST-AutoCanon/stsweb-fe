@@ -1,0 +1,64 @@
+/* Main container for major services */
+.major-services-container {
+  text-align: center;
+  background-color: #3fa9c3;
+  color: white;
+  padding: 20px;
+}
+.major-services-container h2{
+  color: white;
+  font-size: 30px;
+}
+/* Wrapper for all service sections */
+.major-services {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+/* Individual service sections */
+.major-services-section {
+  width: 45%;
+}
+
+/* Service section headings */
+.major-services-section h3 {
+  padding-bottom: 10px;
+  font-size:30px;
+  margin-left: -75%;
+}
+
+/* Unordered list of services */
+.major-services-section ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  text-align: left;
+  font-size: 20px;
+}
+
+/* List items */
+.major-services-section li {
+  margin: 5px 0;
+}
+
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+  .major-services {
+    flex-direction: column; /* Stack the sections vertically */
+    align-items: center; /* Center align items */
+  }
+
+  .major-services-section {
+    width: 90%; /* Make each section take most of the width */
+    margin-bottom: 20px; /* Add space between sections */
+  }
+
+  .major-services-section h3 {
+    margin-left: 0; /* Reset left margin for better alignment */
+    text-align: center; /* Center the heading */
+  }
+
+  .major-services-section ul {
+    padding-left: 15px; /* Reduce padding for smaller screens */
+  }
+}

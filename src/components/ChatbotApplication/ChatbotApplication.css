@@ -1,0 +1,182 @@
+/* Main container */
+.chatbot-application-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 90px;
+    background-color:#fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+/* Left Section - Image */
+.chatbot-application-image {
+    position: relative;
+    width: 22%;
+    order: 1; /* Place image on the left */
+
+    margin-top: 30px;
+}
+
+.services-image {
+    width: 100%;
+    height: 50%;
+    border-radius: 8px;
+    margin: 0; /* Remove any default margin on the image */
+    display: block; /* Ensure the image behaves as a block element */
+}
+
+/* Right Section - Content */
+.chatbot-application-text {
+    width: 62%;
+    order: 2; /* Place content on the right */
+   /* Add some padding to the text section for balance */
+    margin-top: -45px;
+    margin-right: 65px;
+}
+
+
+.chatbot-application-text h1 {
+    margin-top: 20px; /* Adjust heading margin to move it upwards */
+  margin-bottom: 10px;
+  font-size: 2.0rem;
+  color: #333;
+  text-align: left;
+}
+.chatbot-application-text h2
+ {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.services-list li {
+    width: 45%;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Button */
+.chatbot-application-button {
+    background-color: #00c853;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.chatbot-application-button:hover {
+    background-color: #009624;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chatbot-application-container {
+        flex-direction: column; /* Stack items for smaller screens */
+        align-items: left;
+        text-align: left;
+        gap: 20px;
+    }
+
+    .chatbot-application-text {
+        width: 150%;
+        margin-right:10px;
+        order: 2; /* Maintain order for responsive layout */
+    }
+
+    .chatbot-application-image {
+        width: 150%;
+        margin-top:50px;
+        order: 1; /* Maintain order for responsive layout */
+    }
+
+    .services-list li {
+        width: 100%;
+    }
+}
+
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .chatbot-application-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 90px;
+    }
+
+    .chatbot-application-image {
+        width: 19%;
+        margin-top: 60px;
+        margin-left:50px;
+    }
+
+    .chatbot-application-text {
+        width: 68%;
+        margin-top: -10px;
+        
+    }
+
+    .chatbot-application-text h1 {
+        font-size: 1.8rem;
+    }
+
+    .chatbot-application-text p {
+        font-size: 0.95em;
+    }
+
+    .services-list li {
+        width: 48%;
+    }
+
+    .chatbot-application-button {
+        font-size: 1em;
+        padding: 10px 18px;
+    }
+}
+
+/* Styles for Large Screens (1920px and Above) */
+@media (min-width: 1920px) {
+    .chatbot-application-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 100px;
+    }
+
+    .chatbot-application-image {
+        width: 40%;
+        margin-top: 0;
+    }
+
+    .chatbot-application-text {
+        width: 55%;
+        margin-top: 0;
+    }
+
+    .chatbot-application-text h1 {
+        font-size: 2.5rem;
+    }
+
+    .chatbot-application-text p {
+        font-size: 1.1rem;
+    }
+
+    .services-list li {
+        width: 42%;
+    }
+
+    .chatbot-application-button {
+        font-size: 1.1em;
+        padding: 15px 25px;
+    }
+}

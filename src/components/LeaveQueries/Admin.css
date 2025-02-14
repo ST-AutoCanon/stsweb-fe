@@ -1,0 +1,276 @@
+/* General container styling */
+.admin-container {
+  margin: 20px auto;
+  max-width: 1200px;
+  padding: 20px;
+  background-color: #E8E9EA;
+  
+  font-family: Arial, sans-serif;
+  margin-top: 0px;
+}
+
+/* Header styling */
+.admin-container h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: left;
+  margin-top: 0px;
+}
+
+/* Filters container styling */
+.filters {
+display: flex;
+align-items: center; /* Vertically align all elements */
+gap: 20px; /* Add spacing between elements */
+flex-wrap: nowrap; /* Prevent wrapping to a new line */
+margin-bottom: 20px;
+overflow-x: auto; /* Enable horizontal scrolling if content overflows */
+}
+
+/* Ensure individual filter elements adjust responsively */
+.filters > div,
+.filters > button {
+flex-shrink: 0; /* Prevent elements from shrinking too much */
+white-space: nowrap; /* Prevent content from wrapping */
+}
+
+/* Adjust date filter alignment */
+.date-filter {
+display: flex;
+align-items: center;
+gap: 20px;
+}
+
+.date-filter label {
+  font-size: medium;
+  font-weight: bold;
+margin: 0px;
+}
+
+/* Ensure date inputs adjust their width */
+.date-filter input {
+max-width: 150px; /* Restrict maximum width */
+}
+
+/* Ensure search bar adjusts */
+.search-bar {
+display: flex;
+align-items: center;
+gap: 20px;
+white-space: nowrap;
+margin: 0px;
+padding: 0px;
+}
+
+/* Search button alignment */
+.search-button {
+  padding: 1%;
+  margin-left: 2%;
+  font-size: medium;
+  cursor: pointer;
+  width: 10%;
+  background-color: #00468C;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+
+.search-bar label {
+font-size: medium;
+font-weight: bold; /* Optional: Make the label more prominent */
+white-space: nowrap; /* Ensure the label stays on one line */
+margin: 0px;
+
+}
+
+.search-bar input {
+flex: 1; /* Allow the input to take available space */
+padding: 8px;
+font-size: medium;
+border: 1px solid #ccc;
+border-radius: 4px;
+width: 160px;
+margin-bottom: 0px;
+}
+
+
+.status-filter select {
+width: 100%; /* Adjust width as needed */
+padding: 6px;
+font-size: 16px;
+border: 1px solid #ccc;
+border-radius: 4px;
+margin-top: 5px;
+}
+
+
+/* Scrollable Table Container */
+.table-container {
+display: flex;
+justify-content: center;
+max-height: 800px;
+overflow-y: auto;
+overflow-x: auto; 
+margin: 20px 0;
+
+}
+
+/* Ensure table fits within the container */
+.leave-table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 10px;
+}
+
+.leave-table td {
+padding: 10px;
+text-align: left;
+border: 1px solid #ddd;
+font-size: medium;
+background-color: #FFFFFF;
+}
+
+.leave-table th:nth-child(8),
+.leave-table td:nth-child(8) { 
+min-width: 50px; 
+text-align: center; 
+}
+
+.leave-table th {
+border: 2px solid #CCCBCE;
+height: 48px;
+background-color: #F2F2F2;
+font-size: medium;
+font-weight: bold;
+text-align: center;
+white-space: nowrap; /* Prevents wrapping of content */
+overflow: hidden;    /* Ensures long content doesn't overflow */
+}
+
+.leave-table tr:hover {
+background-color: #f1f1f1;
+}
+
+
+.status-dropdown {
+padding: 8px;
+border-radius: 4px;
+border: 2px solid #ccc;
+width: 150px;
+font-size: 14px;
+text-align: center;
+cursor: pointer;
+}
+
+.status-dropdown:focus {
+outline: none;
+}
+
+.status-dropdown option {
+padding: 8px;
+}
+
+/* Colors based on status */
+.status-dropdown {
+color: #000;
+border-color: #ccc;
+
+}
+
+.status-dropdown option[value="Approved"],
+.status-dropdown[value="Approved"] {
+background-color: #7BA100;
+color: #000;
+}
+
+.status-approved {
+background-color: #7BA100;
+color: #000;
+}
+
+.status-dropdown option[value="Rejected"],
+.status-dropdown[value="Rejected"] {
+background-color: #9a080d;
+color: #000;
+}
+
+.status-rejected {
+background-color: #9a080d;
+color: #000;
+}
+
+/* Update button */
+.update-button {
+  background-color: #7FBD2C;
+  color: white;
+  border: none;
+  padding: 5px 15px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  height: 30px;
+}
+
+.update-button.row-updated {
+background-color: #d3d3d3; /* Grey color for updated rows */
+color: #555;
+}
+
+
+.update-button:hover {
+  background-color: #218838;
+}
+
+/* Comments section */
+.comments {
+  font-size: 14px;
+  color: #555;
+  width: 100%;
+}
+
+.comments-input {
+width: 100%; /* Ensures the input fills the column width */
+max-width: 100%; /* Prevents it from exceeding the column width */
+box-sizing: border-box; /* Includes padding and border in the width calculation */
+padding: 8px;
+font-size: 14px;
+border: 2px solid #ccc;
+border-radius: 4px;
+margin: 0px;
+}
+
+.disabled-button {
+  background-color: #d3d3d3 !important; /* Light gray */
+  color: #555 !important; /* Darker gray for text */
+  cursor: not-allowed !important; /* Prevent clicking */
+  pointer-events: none !important; /* Disable all events */
+  border: none !important;
+}
+
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+      padding: 10px;
+  }
+
+  .search-bar {
+      flex-wrap: wrap;
+    
+  }
+
+  .search-bar select,
+  .search-bar input,
+  .search-bar button {
+      margin-bottom: 10px;
+      width: 100%;
+  }
+
+  table th,
+  table td {
+      font-size: 12px;
+  }
+}

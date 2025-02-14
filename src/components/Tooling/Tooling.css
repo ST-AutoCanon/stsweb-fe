@@ -1,0 +1,122 @@
+/* Tooling Container */
+.tooling-container {
+  display: flex;
+  gap: 20px;
+  padding: 70px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Left Section - Image */
+.tooling-image {
+  position: relative;
+  width: 34%;
+  order: 2; /* Place image on the left */
+  padding: 10px 0;
+  margin-top: 50px;
+  margin-left:30px;
+}
+
+
+
+/* Right Section - Content */
+.tooling-text {
+  width: 60%;
+  margin-top: -20px;
+}
+
+.tooling-text h1 {
+  font-size: 2em; /* Larger font size for main heading */
+  color: #000;
+  margin-bottom: 20px;
+}
+
+.tooling-text h2 {
+  font-size: 1.5em !important; /* Smaller font size for subheading */
+  margin-top: 20px;
+  color: #333;
+}
+
+.tooling-text p {
+  font-size: 0.905rem; /* Smaller font size for paragraphs */
+  color: #555;
+  line-height: 1.6;
+}
+
+.services-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.services-list li {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.services-list li strong {
+  color: #333; /* Highlight the main point */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tooling-container {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .tooling-image {
+    width: 140%;
+    margin-left:-50px;
+    margin-top:70px;
+    order:1;
+  }
+
+  .tooling-text {
+    width: 140%;
+    margin-left:-40px;
+    order:2;
+  }
+}
+
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+  .tooling-container {
+    padding: 80px; /* Increase padding for larger screens */
+  }
+
+  .tooling-image {
+    width: 30%; /* Adjust image width */
+  }
+
+  .tooling-text {
+    width: 62%; /* Adjust text width */
+  }
+
+  .services-list li {
+    width: 40%; /* Adjust width of list items */
+  }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+  .tooling-container {
+    padding: 90px; /* Set padding for this screen range */
+  }
+
+  .tooling-image {
+    width: 29%; /* Adjust image width */
+  }
+
+  .tooling-text {
+    width: 63%; /* Adjust text width */
+  }
+
+  .services-list li {
+    width: 44%; /* Adjust width of list items */
+  }
+}
+

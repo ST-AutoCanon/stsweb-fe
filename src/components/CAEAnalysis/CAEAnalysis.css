@@ -1,0 +1,155 @@
+/* Main container */
+.cae-analysis-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 80px;
+  background-color: #fff; /* Set background to white */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  gap: 20px;
+}
+
+/* Left Section - Content */
+.cae-analysis-text {
+  width: 60%;
+  order: 1; /* Place content on the left */
+  margin-top: -30px;
+}
+
+.cae-analysis-text h1 {
+  font-size: 2em;
+  color: #000;
+  margin-bottom: 10px;
+}
+
+.cae-analysis-text h2 {
+  font-size: 1.5em !important;
+  color: #555;
+  margin-bottom: 5px !important;
+}
+
+.cae-analysis-text p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.services-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+}
+
+.services-list li {
+  width: 45%;
+  font-size: 0.9em;
+  color: #333;
+}
+
+/* Right Section - Image */
+.cae-analysis-image {
+  position: relative;
+  width: 32%;
+  order: 2; /* Place image on the right */
+  margin-top: 60px;
+}
+
+.services-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+
+}
+
+/* Button */
+.cae-analysis-button {
+  background-color: #00c853;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.cae-analysis-button:hover {
+  background-color: #009624;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cae-analysis-container {
+    flex-direction: column; /* Stack items for smaller screens */
+    align-items: center;
+    text-align: left;
+    gap: 20px;
+  }
+
+  .cae-analysis-text {
+    width: 145%;
+    order: 1; /* Maintain order for responsive layout */
+  }
+
+  
+
+  .services-list li {
+    width: 100%;
+  }
+  /* Right Section - Image */
+.cae-analysis-image {
+  position: relative;
+  width: 150%;
+  margin-top:70px;
+  order: 1; /* Place image on the right */
+}
+
+.services-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+}
+
+
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+  .cae-analysis-container {
+    padding: 100px; /* Increase padding for larger screens */
+  }
+
+  .cae-analysis-text {
+    width: 58%; /* Adjust width for content */
+  }
+
+  .cae-analysis-image {
+    width: 38%; /* Adjust image width */
+  }
+
+  .services-list li {
+    width: 40%; /* Adjust list item width */
+  }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+  .cae-analysis-container {
+    padding: 80px; /* Adjust padding */
+  }
+
+  .cae-analysis-text {
+    width: 59%; /* Adjust content width */
+  }
+
+  .cae-analysis-image {
+    width: 28%; /* Adjust image width */
+  }
+
+  .services-list li {
+    width: 44%; /* Adjust list item width */
+  }
+}

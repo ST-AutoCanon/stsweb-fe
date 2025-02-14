@@ -1,0 +1,125 @@
+/* Main container for About section */
+.about-second-container {
+    display: flex;
+    gap: 40px;
+    padding: 20px;
+    background-color: #f9f9f9; /* Light background for better visibility */
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Left column */
+  .about-second-left {
+    flex: 1; /* Take equal space as the right section */
+    padding: 20px;
+  }
+  
+  .about-second-left h1 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+  }
+  
+  .about-second-left h2 {
+    font-size: 1.5rem;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .about-second-left p {
+    line-height: 1.6;
+    color: #333;
+  }
+  
+  /* Right column */
+  .about-second-right {
+    flex: 1; /* Take equal space as the left section */
+    padding: 20px;
+    background-color: #FAFAFA; /* White background for contrast */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(10, 6, 6, 0.842); /* Subtle shadow for better separation */
+  }
+  
+  .about-second-right h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+  
+  .about-second-right ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .about-second-right ul li {
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+  
+  .about-second-right ul li strong {
+    color: #0073e6; /* Highlight titles in blue */
+  }
+  
+  /* Ensure responsiveness */
+  /* Mobile View */
+@media (max-width: 768px) {
+    .about-second-container {
+      flex-direction: column; /* Stack sections vertically */
+      gap: 20px; /* Reduce gap between sections */
+      padding: 15px; /* Adjust padding for smaller screens */
+    }
+  
+    /* Left column */
+    .about-second-left {
+      padding: 10px; /* Reduce padding for mobile */
+      text-align: left; /* Center-align text for better readability */
+    }
+  
+    .about-second-left h1 {
+      font-size: 1.8rem; /* Adjust heading size for mobile */
+      margin-bottom: 10px;
+    }
+  
+    .about-second-left h2 {
+      font-size: 1.4rem; /* Adjust subheading size for mobile */
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
+  
+    .about-second-left p {
+      line-height: 1.5;
+      font-size: 0.95rem; /* Slightly smaller font size for mobile */
+      color: #333;
+    }
+  
+    /* Right column */
+    .about-second-right {
+      padding: 10px; /* Reduce padding for mobile */
+      background-color: #FAFAFA;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for separation */
+      text-align: left; /* Align text to the left for better readability */
+    }
+  
+    .about-second-right h2 {
+      font-size: 1.4rem; /* Adjust heading size for mobile */
+      margin-bottom: 10px;
+      text-align: center; /* Center-align text */
+    }
+  
+    .about-second-right ul {
+      padding: 0;
+      margin: 0;
+      list-style: none; /* Remove list styling for cleaner appearance */
+    }
+  
+    .about-second-right ul li {
+      margin-bottom: 10px; /* Reduce spacing between list items */
+      line-height: 1.4; /* Adjust line height */
+      font-size: 0.9rem; /* Slightly smaller font size for mobile */
+      text-align: left; /* Keep text left-aligned */
+    }
+  
+    .about-second-right ul li strong {
+      color: #090b0e; /* Keep highlight titles in blue */
+    }
+}

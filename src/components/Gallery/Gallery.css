@@ -1,0 +1,403 @@
+/* General Reset */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Gallery Container */
+.gallery-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+  margin-top: 70px;
+  background-color: #fff7d6;
+  margin-bottom: -90px;
+}
+
+/* Image Stack */
+.image-stack {
+  position: relative;
+  width: 300px;
+  height: 440px;
+}
+
+.image-item {
+  position: absolute;
+  width: 230px;
+  height: 160px;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: transform 0.3s, z-index 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-item:nth-child(1) {
+  top: -50px;
+  left: 0;
+  z-index: 4;
+}
+
+.image-item:nth-child(2) {
+  top: 80px;
+  left: 100px;
+  z-index: 3;
+}
+
+.image-item:nth-child(3) {
+  top: 40px;
+  left: -130px;
+  z-index: 2;
+}
+
+.image-item:nth-child(4) {
+  top: 200px;
+  left: -10px;
+  z-index: 1;
+}
+
+.image-item:hover {
+  transform: scale(1.1);
+  z-index: 5;
+}
+
+.image-item.active {
+  border: 3px solid #ff5757;
+}
+
+/* Info Section */
+/* Info Section: Center Align Text on the Right Side */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center; /* Center-align text */
+  margin-left: 60px;
+  width: 40%;
+  height: 40%;
+}
+
+.info-section h2 {
+  font-size: 36px;
+  color: #d65a07;
+  margin-bottom: 30px; /* Adjust spacing */
+  margin-left:150px;
+}
+
+.info-section p {
+  font-size: 18px;
+  line-height: 1.5;
+  color: #171313;
+  margin-bottom: 110px;
+  margin-left:150px;
+}
+
+/* Modal for Enlarged Image */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.modal-content {
+  position: relative;
+  text-align: center;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  max-width: 90%;
+  max-height: 80%;
+  overflow: auto;
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 15px;
+}
+
+.modal-description {
+  font-size: 18px;
+  color: #333;
+  margin-top: 20px;
+}
+
+
+
+
+
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #b4acac;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.modal-close:hover {
+  background: #706b6b;
+}
+
+/* Second Page Styling */
+.second-gallery-container {
+  background-color: #f2f2f2;
+  padding: 50px 20px;
+}
+
+.second-gallery-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+/* Second Gallery Section: Left-Side Text Area */
+.second-left-info {
+  flex: 1;
+  padding-right: 20px;
+  text-align: left; /* Align text to the left */
+}
+
+.second-left-info h2 {
+  font-size: 36px;
+  color: #23c7b1;
+  margin-bottom: 20px; /* Add some spacing below the heading */
+}
+
+.second-left-info p {
+  font-size: 18px;
+  line-height: 1.5;
+  color: #090c0c;
+  margin: 20px 0;
+  max-height: 4.5em; /* Adjust based on the line height */
+  overflow: hidden; /* Hide overflowed text */
+}
+
+
+
+
+.second-right-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns for layout */
+  grid-template-rows: auto auto; /* Automatic height adjustment */
+  gap: 20px;
+  justify-items: center;
+  align-items: center;
+}
+
+.second-side-image-container {
+  width: 200px;
+  height: 200px;
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* Child-specific sizes for each image */
+.second-side-image-container:nth-child(1) {
+  width: 240px;
+  height: 180px;
+  margin-right:-30px;
+  border-radius: 30%;
+}
+
+.second-side-image-container:nth-child(2) {
+  width: 200px;
+  height: 190px;
+  margin-right:-30px;
+  border-radius: 30%;
+}
+
+.second-side-image-container:nth-child(3) {
+  width: 220px;
+  height: 170px;
+  margin-bottom: -120px;
+  border-radius: 30%;
+}
+
+.second-side-image-container:nth-child(4) {
+  width: 150px;
+  height: 150px;
+  border-radius: 30%;
+}
+
+.second-side-image-container:nth-child(5) {
+  width: 180px;
+  height: 140px;
+  border-radius: 30%;
+}
+
+.second-side-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
+.second-side-image-container:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+
+
+/* Responsive Styling for Mobile View */
+@media screen and (max-width: 768px) {
+  /* Stack the gallery and info section vertically */
+  .gallery-container {
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center;    /* Center align elements */
+    margin: 30px 0;         /* Add spacing */
+    
+    
+  }
+  
+.image-item:nth-child(1) {
+  top: -50px;
+  left: 80px;
+  width:120px;
+  
+  z-index: 4;
+}
+
+.image-item:nth-child(2) {
+  top: 90px;
+  left: 120px;
+  z-index: 3;
+  width:120px;
+}
+
+.image-item:nth-child(3) {
+  top: 50px;
+  left: -10px;
+  z-index: 2;
+  width:120px;
+}
+
+.image-item:nth-child(4) {
+  top: 200px;
+  left: 50px;
+  z-index: 1;
+  width:120px;
+}
+
+
+  /* Ensure the image stack is full width */
+  .image-stack {
+    width: -90%; /* Take full width */
+    height: auto; /* Adjust height dynamically */
+    margin-bottom:380px; /* Add spacing below */
+    margin-top:250px;
+    margin-right:-20px;
+  }
+
+  /* Ensure the info section is full width */
+  .info-section {
+    width: 100%; /* Full width */
+    margin-bottom: 10px; /* Add spacing below text */
+    margin-top:-50px;
+    text-align: center; /* Center align text */
+  }
+
+  /* Adjust heading and paragraph sizes for better readability */
+  .info-section h2 {
+    font-size: 20px; /* Adjust font size */
+    margin-left: 15px;  /* Reset margin */
+    margin-bottom:10px;
+  }
+
+  .info-section p {
+    font-size: 16px; /* Adjust font size */
+    margin-left: 0;  /* Reset margin */
+  }
+
+  .second-gallery-content {
+    grid-template-columns: 1fr; /* Single column layout */
+    gap: 0px; /* Reduce gap for smaller screens */
+  }
+
+  .second-side-image-container {
+    max-width: 100%; /* Allow full width */
+    height: auto; /* Maintain aspect ratio */
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .second-gallery-content {
+    flex-direction: column; /* Keep content stacked vertically */
+  }
+
+  .second-left-info {
+    width: 100%; /* Ensure full width for text */
+    text-align: center; /* Center align for better readability */
+    margin-bottom: 10px; /* Add spacing below text */
+  }
+
+  .second-left-info h2 {
+    font-size: 30px;
+    color: #23c7b1;
+    margin-top: 5px;
+  }
+.second-left-info p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #96a3a1;
+  margin: 20px 0;
+}
+
+  .second-right-images {
+    grid-template-columns: 1fr; /* Single column for images */
+    gap: 10px; /* Reduce gap for smaller screens */
+  }
+
+  .second-side-image-container {
+    max-width: 100%; /* Full width images */
+    height: auto;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .second-gallery-content {
+    gap: 15px; /* Further reduce gap between text and images */
+  }
+
+  .second-left-info {
+    margin-bottom: 15px; /* Reduce spacing for smaller screens */
+  }
+
+  .second-right-images {
+    gap: 15px; /* Reduce gap between images */
+  }
+
+  .second-side-image-container:nth-child(4)
+  {
+    margin-top: 120px;
+  }
+  .second-side-image-container:nth-child(5)
+  {
+    margin-top: 10px;
+  }
+
+}

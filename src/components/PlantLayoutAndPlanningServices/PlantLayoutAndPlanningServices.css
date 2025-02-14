@@ -1,0 +1,121 @@
+/* Main container */
+.plant-layout-planning-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px;
+    background-color: #ffffff; /* Set background to white */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+/* Right Section - Image */
+.plant-layout-planning-image {
+    position: relative;
+    width: 35%;
+    order: 2; /* Place image on the right */
+    margin-top: 20px;
+}
+
+.services-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Left Section - Content */
+.plant-layout-planning-text {
+    width: 60%;
+    order: 1; /* Place content on the left */
+    margin-top: -60px;
+}
+
+.plant-layout-planning-text h1 {
+    font-size: 2em;
+    color: #000;
+    margin-bottom: 10px;
+}
+
+.plant-layout-planning-text p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.services-list li {
+    width: 45%;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .plant-layout-planning-container {
+        flex-direction: column; /* Stack items for smaller screens */
+        align-items: center;
+        text-align: start;
+        gap: 20px;
+    }
+
+    .plant-layout-planning-text {
+        width: 100%;
+        order: 2; /* Maintain order for responsive layout */
+        
+    }
+
+    .plant-layout-planning-image {
+        width: 100%;
+        order: 1; /* Maintain order for responsive layout */
+    }
+
+    .services-list li {
+        width: 100%;
+    }
+}
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+    .plant-layout-planning-container {
+        padding: 50px; /* Adjust padding for larger screen */
+    }
+
+    .plant-layout-planning-image {
+        width: 25%; /* Adjust image width */
+    }
+
+    .plant-layout-planning-text {
+        width: 70%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 40%; /* Adjust width of list items */
+    }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .plant-layout-planning-container {
+        padding: 90px; /* Set padding for this screen range */
+    }
+
+    .plant-layout-planning-image {
+        width: 34%; /* Adjust image width */
+    }
+
+    .plant-layout-planning-text {
+        width: 65%; /* Adjust text width */
+    }
+
+    .services-list li {
+        width: 45%; /* Adjust width of list items */
+    }
+}

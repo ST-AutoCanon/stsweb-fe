@@ -1,0 +1,119 @@
+/* Grid container for the header and cards */
+.grid-container {
+  position: relative; 
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 20px; 
+  padding: 60px;
+  max-width: 1600px;
+  margin: auto; 
+  background-color: #f1f1f1;
+  box-sizing: border-box;
+  
+}
+
+/* Header styles */
+.card-header {
+  position: absolute; 
+  top: -25px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  background-color: #f1f1f1; 
+  padding: 10px 20px; 
+  z-index: 1; 
+  
+  
+}
+
+/* Card styles */
+.card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: left;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center card content */
+  margin: 20px;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Card image styling */
+.card-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+/* Card title */
+.card-title {
+  font-size: 18px;
+  color: #0ec4e4;
+  margin-bottom: 5px;
+}
+
+/* Card description */
+.card-description {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr); /* Two columns */
+    gap: 45px;
+  }
+
+  .card {
+    padding: 15px;
+    
+  }
+
+  .card-title {
+    font-size: 16px;
+  }
+
+  .card-description {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-container {
+    grid-template-columns: 1fr; 
+    padding: 95px 80px; 
+  }
+
+  .card-header {
+    margin-top:30px;
+    font-size: 1.5rem; 
+    padding: 8px 16px; 
+  }
+
+  .card {
+    width: 95%;
+    margin: 0 auto;
+    padding: 10px;
+  }
+
+  .card-title {
+    font-size: 14px;
+  }
+
+  .card-description {
+    font-size: 12px;
+  }
+}

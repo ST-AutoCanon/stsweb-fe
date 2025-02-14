@@ -1,0 +1,147 @@
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+.App {
+
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  #root, .App {
+  display: flex;
+  flex-direction: column; /* Makes the layout vertical */
+  height: 80vh!important; /* Ensures the app spans the full viewport height */
+}
+body {
+  margin:0;
+  padding: 0;
+}
+
+main {
+  flex: 1; /* Ensures the main content stretches to fill the available space */
+  padding-top: 70px;
+}
+
+  font-family: Arial, sans-serif;
+  padding: 0;
+  overflow-x:hidden ;
+  margin: 0;
+}
+
+
+
+
+
+
+.about123
+{
+  padding-top: 90px;
+  padding-bottom: 0px;
+
+}
+
+.service123
+ {
+  padding-top: 50px;
+  padding-bottom: -40px;
+}
+
+.homologation123
+{
+  padding-top: 70px;
+
+}
+.dashboard123
+{
+  padding-top: 50%;
+  padding-bottom :70px; ;
+}
+.services123
+{
+  padding-top: 50%;
+  padding-bottom :70px; 
+}
+.circular123
+{
+  padding: 0%;
+  padding-bottom: 0%;
+}
+.ITNetworkFirst123
+{
+  padding: auto;
+  padding-bottom: 0%;
+}
+.Navbar {
+ 
+  top: 0;
+  background-color: #fff; /* Background color to make it stand out */
+  z-index: 10; /* Ensures it stays above the image */
+
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Optional: to add a shadow effect */
+}
+.Navbar
+{
+  position: sticky;
+  
+}
+
+
+
+/* Scrolling Buttons Styling */
+.scrolling-buttons {
+  position: absolute;
+  bottom: 140px; /* Position buttons at the bottom of the hero image */
+  left: 50%; /* Center horizontally within the image */
+  transform: translateX(-50%); /* Adjust to truly center */
+  display: flex;
+  gap: 20px; /* Space between buttons */
+}
+
+.scroll-btn {
+  width: 30px;
+  height: 30px;
+  background-color: #90F011; /* Green color for buttons */
+  color: white;
+  border: none;
+  border-radius: 50%; /* Make buttons circular */
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  opacity: 0.5; /* Default opacity for non-active buttons */
+}
+
+.scroll-btn.active {
+  background-color: #90F011; /* Darker green on active state */
+  transform: scale(1.2); /* Pop-up effect */
+  opacity: 1; /* Fully visible when active */
+}
+
+.scroll-btn:hover {
+  background-color: #085521e3; /* Darker green on hover */
+  transform: scale(1.2); /* Pop-up effect on hover */
+}
+
+.scroll-btn:hover ~ .scroll-btn,
+.scroll-btn:hover + .scroll-btn {
+  opacity: 0.2; /* Make non-hovered buttons slightly transparent */
+}
+
+.Footer {
+  position: fixed;
+  bottom: 0; /* Stick to the bottom of the viewport */
+  background-color: #fff; /* Background color for the footer */
+  z-index: 10; /* Ensure it appears above other elements */
+  text-align: center; /* Center-align text or content */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Optional: shadow effect for better visibility */
+  padding: 0; /* Padding for some spacing inside the footer */
+  width: 100%; /* Ensure the footer spans the full width */
+}
+
+
+
+
+

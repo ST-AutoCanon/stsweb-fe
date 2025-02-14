@@ -1,0 +1,219 @@
+.reachus-container {
+  margin: 0;
+  padding-top:30px;
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+  position: relative;
+  min-height: 100vh; /* Full screen height */
+  display: flex;
+  justify-content: flex-start; /* Align form to the left */
+  align-items: center;
+  overflow: hidden; /* Prevent overflow */
+  margin-top:50px;
+}
+
+.content-section {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* Full screen height */
+  overflow: hidden;
+}
+
+.map-box {
+  position: absolute; /* Allow the map to serve as the background */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Cover entire container */
+  z-index: 0; /* Ensure it's behind the form */
+  pointer-events: auto; /* Prevent map interaction */
+}
+
+.map-box iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.form-box {
+  margin-top:55px;
+  position: relative;
+  z-index: 2; /* Ensure it's above the map */
+  background: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  max-width: 90%;
+  margin-left: 70%; /* Align form to the left */
+  text-align: left;
+}
+
+.contact-form label {
+  margin-top: 10px;
+  font-size: 0.85em; 
+  font-weight: bold;
+  color: #333;
+}
+
+.input-field,
+.textarea-field {
+  margin-top: 5px;
+  width: 95%; 
+  padding: 10px; 
+  font-size: 0.9em; 
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.textarea-field {
+  resize: none;
+}
+
+.send-button {
+  width: 102%; 
+  height: 40px;
+  font-size: 1em; 
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.send-button:hover {
+  background-color: #218838;
+}
+
+
+@media screen and (min-width: 1920px) {
+.reachus-container{
+  padding-top:50px;
+}
+
+}
+/* Media Query for 1366px screen width */
+@media (max-width: 1366px) {
+  .reachus-container {
+    margin: 0;
+    padding-top:30px;
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    position: relative;
+    min-height: 100vh; /* Full screen height */
+    display: flex;
+    justify-content: flex-start; /* Align form to the left */
+    align-items: center;
+    overflow: hidden; /* Prevent overflow */
+    margin-top:50px;
+  }
+  
+  .content-section {
+    position: relative;
+    width: 100%;
+    height: 100vh; /* Full screen height */
+    overflow: hidden;
+  }
+  
+  .map-box {
+    position: absolute; /* Allow the map to serve as the background */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; /* Cover entire container */
+    z-index: 0; /* Ensure it's behind the form */
+    pointer-events: auto; /* Prevent map interaction */
+  }
+  
+  .map-box iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  
+  .form-box {
+    margin-top:55px;
+    position: relative;
+    z-index: 2; /* Ensure it's above the map */
+    background: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    max-width: 90%;
+    margin-left: 70%; /* Align form to the left */
+    text-align: left;
+  }
+  
+  .contact-form label {
+    margin-top: 10px;
+    font-size: 0.85em; 
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .input-field,
+  .textarea-field {
+    margin-top: 5px;
+    width: 95%; 
+    padding: 10px; 
+    font-size: 0.9em; 
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .textarea-field {
+    resize: none;
+  }
+  
+  .send-button {
+    width: 102%; 
+    height: 40px;
+    font-size: 1em; 
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .send-button:hover {
+    background-color: #218838;
+  }
+  
+/* Mobile view */
+@media (max-width: 768px) {
+  .reachus-container {
+    flex-direction: column; /* Stack the form and map vertically */
+    align-items: center; /* Center the content */
+    margin-top: 0px;
+  }
+
+  .map-box {
+    pointer-events: auto;
+    margin-top: 20px; /* Reduced margin for mobile */
+    height: 200px; /* Reduce map height for mobile view */
+    width: 100%; /* Adjust map width */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Card effect for map */
+    border-radius: 10px; /* Rounded corners */
+    margin-bottom: 20px; /* Add some space below the map */
+  }
+
+  .form-box {
+    width: 80%; /* Adjust width for mobile */
+    margin-top: -50px; /* Add margin top */
+  }
+
+  .form-box, .map-box {
+    border-radius: 10px; /* Apply rounded corners for cards */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Apply card shadow effect */
+  }
+
+  .form-box {
+    margin-top: 240px; /* Adjust top margin for the form */
+    margin-left:20px;
+  }
+}
+  }

@@ -1,0 +1,147 @@
+/* Main container */
+.consulting-expertise-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 140px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+/* Left Section - Image */
+.consulting-expertise-image {
+    position: relative;
+    width: 48%;
+    order: 1; /* Place image on the left */
+    margin-top: -10px;
+}
+
+.services-image {
+    width: 220%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Right Section - Content */
+.consulting-expertise-text {
+    margin-top:-90px;
+    width: 90%;
+    margin-left: 60px;
+    order: 2; /* Place content on the right */
+}
+
+.consulting-expertise-text h1 {
+    font-size: 2em;
+    color: #000;
+    margin-bottom: 10px;
+}
+
+.consulting-expertise-text p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.services-list li {
+    width: 45%;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Button */
+.consulting-expertise-button {
+    background-color: #00c853;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.consulting-expertise-button:hover {
+    background-color: #009624;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .consulting-expertise-container {
+        flex-direction: column; /* Stack items for smaller screens */
+        align-items: center;
+        text-align: left;
+        gap: 20px;
+    }
+
+    .consulting-expertise-text {
+        width: 280%;
+        margin-left:-20px;
+        margin-top:-50px ;
+        order: 2; /* Maintain order for responsive layout */
+    }
+
+    .consulting-expertise-text h1{
+        width: 130%;
+        margin-left:0px;
+        
+    }
+
+    .consulting-expertise-image {
+        width: 300%;
+        margin-top:20px;
+        order: 1; /* Maintain order for responsive layout */
+    }
+
+    .services-list li {
+        width: 100%;
+    }
+}
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+    .consulting-expertise-container {
+        padding: 160px; /* Adjust padding for medium-large screens */
+    }
+
+    .consulting-expertise-text {
+        margin-top:-80px;
+        margin-right:40px;
+        width: 55%; /* Adjust width for text section */
+    }
+
+    .consulting-expertise-image {
+        width: 32%; /* Adjust width for image section */
+    }
+
+    .services-list li {
+        width: 44%; /* Adjust width of list items */
+    }
+}
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+    .consulting-expertise-container {
+        padding: 100px; /* Increase padding for larger screens */
+    }
+
+    .consulting-expertise-text {
+        width: 58%; /* Adjust width for content */
+    }
+
+    .consulting-expertise-image {
+        width: 38%; /* Adjust image width */
+    }
+
+    .services-list li {
+        width: 40%; /* Adjust list item width */
+    }
+}

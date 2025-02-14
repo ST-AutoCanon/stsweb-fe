@@ -1,0 +1,158 @@
+/* Main container */
+.domestic-type-approval-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 100px;
+    background-color: #fff; /* White background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+
+  }
+  
+  /* Left Section - Content */
+  .domestic-type-approval-text {
+    width: 50%; /* Take up more space for text */
+    order: 1; /* Place text on the left */
+    margin-top: -35px;
+  }
+  
+  .domestic-type-approval-text h1 {
+    font-size: 2em;
+    color: #000;
+    margin-bottom: 10px;
+  }
+  
+  .domestic-type-approval-text h2 {
+    font-size: 1.5em;
+    color: #555;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .domestic-type-approval-text p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 10px;
+  }
+  
+  .services-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+  }
+  
+  .services-list li {
+    font-size: 0.9em;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  /* Right Section - Image */
+  .domestic-type-approval-image {
+    position: relative;
+    width: 85%; /* Take up less space for the image */
+    height: 100%;
+    order: 2; /* Place image on the right */
+    margin-top:50px;
+  }
+  
+  
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .domestic-type-approval-container {
+      flex-direction: column; /* Stack items for smaller screens */
+      align-items: center;
+      text-align: left;
+      gap: 20px;
+    }
+  
+    .domestic-type-approval-text {
+      width: 170%;
+      order: 1; /* Maintain order for responsive layout */
+    }
+  
+    .domestic-type-approval-image {
+      width: 100%;
+      order: 2; /* Maintain order for responsive layout */
+    }
+  
+    .services-list li {
+      width: 100%;
+    }
+      /* Right Section - Image */
+  .domestic-type-approval-image {
+    position: relative;
+    width: 180%; /* Take up less space for the image */
+    order: 1; /* Place image on the right */
+  }
+  
+  .services-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  }
+  /* For 1366x768 screen size */
+@media (min-width: 1366px) and (max-width: 1366px) {
+  .domestic-type-approval-container {
+      padding: 80px; /* Adjust padding */
+  }
+
+  .domestic-type-approval-text {
+      width: 55%; /* Adjust width for text section */
+  }
+
+  .domestic-type-approval-image {
+      width: 37%; /* Adjust image width */
+  }
+
+  .services-list li {
+      width: 48%; /* Adjust width for services list */
+  }
+  .services-image {
+    width: 110%;
+    height: auto;
+    border-radius: 8px;
+  }
+}
+
+/* For 1920x1080 screen size */
+@media (min-width: 1920px) and (max-width: 1920px) {
+  .domestic-type-approval-container {
+      padding: 120px; /* Increase padding for larger screens */
+  }
+
+  .domestic-type-approval-text {
+      width: 58%; /* Adjust text section width */
+  }
+
+  .domestic-type-approval-image {
+      width: 38%; /* Adjust image width */
+  }
+
+  .services-list li {
+      width: 40%; /* Adjust list item width */
+  }
+}
+
+/* For screens between 1380px and 1919px */
+@media (min-width: 1380px) and (max-width: 1919px) {
+  .domestic-type-approval-container {
+      padding: 100px; /* Set padding for this screen range */
+  }
+
+  .domestic-type-approval-text {
+      width: 59%; /* Adjust text width */
+  }
+
+  .domestic-type-approval-image {
+      width: 30%; /* Adjust image width */
+  }
+
+  .services-list li {
+      width: 44%; /* Adjust list item width */
+  }
+}

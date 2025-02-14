@@ -1,0 +1,174 @@
+/* Main container */
+.software-development-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 70px;
+    background-color:#fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+/* Left Section - Image */
+.software-development-image {
+    position: relative;
+    width: 34%;
+    order: 1; /* Place image on the left */
+    margin-top: 0;
+}
+
+
+
+/* Right Section - Content */
+.software-development-text {
+    width: 60%;
+    order: 2; /* Place content on the right */
+    margin-bottom: 90px;
+}
+
+.software-development-text h1 {
+    font-size: 2em;
+    color: #000;
+    margin-bottom: 10px;
+}
+
+.software-development-text p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.services-list li {
+    width: 45%;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Button */
+.software-development-button {
+    background-color: #00c853;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.software-development-button:hover {
+    background-color: #009624;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .software-development-container {
+        flex-direction: column; /* Stack items for smaller screens */
+        align-items: center;
+        text-align: left;
+        padding-top:150px;
+        gap: 20px;
+    }
+
+    .software-development-text {
+        width: 130%;
+        margin-top:-30px;
+        order: 2; /* Maintain order for responsive layout */
+    }
+
+    .software-development-text h1 {
+        margin-top:20px;
+        width: 125%;
+        font-size: 180%;
+        order: 2; /* Maintain order for responsive layout */
+    }
+
+    .software-development-image {
+        width: 130%;
+        order: 1; /* Maintain order for responsive layout */
+    }
+
+    .services-list li {
+        width: 100%;
+    }
+}
+
+
+/* Media Query for 1366x768 screen size */
+@media screen and (min-width: 1380px) and (max-width: 1919px) {
+    .software-development-container {
+        padding: 100px; /* Adjusted padding for medium screens */
+        gap: 15px; /* Reduced gap for tighter layout */
+    }
+
+    .software-development-text {
+        margin-bottom: 100px; /* Adjust spacing for better alignment */
+        margin-right: 30px;
+    }
+
+    .software-development-text h1 {
+        font-size: 1.8em; /* Slightly smaller headline font size */
+    }
+
+    .software-development-text p {
+        font-size: 0.95em; /* Adjusted font size for readability */
+    }
+
+    .software-development-image {
+        width: 31%; /* Adjusted image width for proportional layout */
+    }
+
+    .services-list li {
+        width: 48%; /* Adjust list item width to fit layout */
+        font-size: 0.85em; /* Reduced font size */
+    }
+
+    .software-development-button {
+        padding: 8px 18px; /* Reduced button size */
+        font-size: 0.95em;
+    }
+}
+
+/* Media Query for 1920x1080 screen size */
+@media screen and (min-width: 1920px) {
+    .software-development-container {
+        padding: 80px; /* Increased padding for larger screens */
+        gap: 25px; /* Enhanced gap for spacious layout */
+    }
+
+    .software-development-text {
+        margin-bottom: 100px; /* Increased spacing for content */
+    }
+
+    .software-development-text h1 {
+        font-size: 2.2em; /* Larger headline font size for better visual appeal */
+    }
+
+    .software-development-text p {
+        font-size: 1.1em; /* Increased font size for readability */
+    }
+
+    .software-development-image {
+        width: 32%; /* Reduced image width for balanced layout */
+    }
+
+    .services-list li {
+        width: 45%; /* Consistent width for larger screens */
+        font-size: 1em; /* Larger font size for improved readability */
+    }
+
+    .software-development-button {
+        padding: 12px 24px; /* Larger button size for emphasis */
+        font-size: 1.1em;
+    }
+}

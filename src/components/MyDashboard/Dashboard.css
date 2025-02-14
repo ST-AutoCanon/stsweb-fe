@@ -1,0 +1,95 @@
+/* Dashboard container */
+.dashboard {
+  display: flex;
+  flex-direction: column; /* Topbar on top, Sidebar + Content below */
+  height: 100%; /* Full viewport height */
+  overflow: hidden; /* Prevent scrollbars outside the layout */
+}
+
+/* Topbar styles */
+
+.conentcontainerdeisgn {
+  background-color: #E8E9EA;
+}
+
+/* Content container (Sidebar + Main Content) */
+.content-container {
+  display: flex;
+  border-radius: 5px;
+  background-color: #292c30;
+  flex: 1; /* Fills the remaining space below the Topbar */
+  margin-top: 1%; /* Push Sidebar and Main Content below the Topbar */
+  overflow: auto; /* Prevents overflow in the layout */
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 250px; /* Fixed width */
+  background-color: white;
+  overflow-y: auto; /* Sidebar scrolls if content overflows */
+  position: sticky; /* Sticks in place during scrolling */
+  top: 0px; /* Push below the Topbar */
+  margin-top: 0;
+  z-index: 1; /* Keep Sidebar below the Topbar */
+}
+
+/* Main content styles */
+.main-content {
+  flex: 1; /* Main content takes the remaining space */
+  background-color: #E8E9EA;
+  height: calc(100vh - 60px); /* Full height minus Topbar height */
+  box-sizing: border-box; /* Include padding in width/height */
+}
+
+.main-content h1 {
+  background-color: #E8E9EA;
+}
+
+.Dashboarddesign {
+  height: 150vh;
+  padding: 20px;
+  padding-top: 10px;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.Dashboard123 {
+  height: auto;
+  margin-top: 6%;
+  padding: 20px;
+  background-color: #E8E9EA;
+}
+
+.dashboard-graphs {
+  display: flex;
+  gap: 20px; /* Adjust spacing between charts */
+  margin-top:5%;
+  justify-content: center; /* Center align items */
+  align-items: center; /* Align items vertically */
+  flex-wrap: nowrap; /* Ensure all three charts stay in a single row */
+}
+
+.dashboard-logingraph{
+  display: flex;
+  gap: 20px; /* Adjust spacing between charts */
+  
+  justify-content: center; /* Center align items */
+  align-items: center; /* Align items vertically */
+  flex-wrap: nowrap; /* Ensure all three charts stay in a single row */
+
+}
+.dashboard-card-containers {
+  
+  display: flex;
+  margin-top:2%;
+  gap:20px;
+  flex-direction: row; /* Arrange cards in a row */
+  justify-content: center; /* Center the cards horizontally */
+}
+.dashboard-Projecttable{
+  display: flex;
+  margin-top:5%;
+  gap:20px;
+  flex-direction: row; /* Arrange cards in a row */
+  justify-content: center; /* Center the cards horizontally */
+}
