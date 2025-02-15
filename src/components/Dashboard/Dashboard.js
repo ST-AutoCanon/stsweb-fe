@@ -10,13 +10,15 @@ const Dashboard = () => {
   const renderContent = () => {
     return (
       <div className="content-container-design">
-        <div style={{ height: "1500px" }}>
+        <div >
           {activeContent}
         </div>
       </div>
     );
   };
 
+
+  
   return (
     <div className="Dashboard123">
       <div className="Dashboarddesign">
