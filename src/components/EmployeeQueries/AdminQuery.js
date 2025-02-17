@@ -9,7 +9,6 @@ const AdminQuery = () => {
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employee_id || null;
   const name = dashboardData.name || null;
-  const authToken = localStorage.getItem("authToken");
 
   const [queries, setQueries] = useState([]);
   const [selectedQuery, setSelectedQuery] = useState(null);
@@ -24,7 +23,7 @@ const AdminQuery = () => {
 
   const headers = {
     "x-api-key": API_KEY,
-    Authorization: `Bearer ${authToken}`,
+
   };
 
   // Socket connection setup
@@ -34,7 +33,6 @@ const AdminQuery = () => {
     // Connect to socket.io server
     socket.current = io(`${process.env.REACT_APP_BACKEND_URL}`, {
       transports: ["websocket"],
-      query: { authToken }, // Optionally, send the token for authentication
     });
   
     // Function to handle received messages
@@ -48,11 +46,11 @@ const AdminQuery = () => {
     // Cleanup function to remove listener and disconnect socket
     return () => {
       if (socket.current) {
-        socket.current.off("receiveMessage", handleReceiveMessage); // Remove listener properly
+        socket.current.off("receiveMessage", handleReceiveMessage);
         socket.current.disconnect();
       }
     };
-  }, [authToken]); // Ensure socket reconnects only when authToken changes
+  });
   
 
 
@@ -175,7 +173,6 @@ const AdminQuery = () => {
           headers: {
             "Content-Type": "application/json", // setting the correct content type for JSON
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
           },
         }
       );
@@ -204,7 +201,6 @@ const AdminQuery = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/attachments/${filename}`, {
         headers: {
           "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
         },
         responseType: "blob", // Ensures file download
       });

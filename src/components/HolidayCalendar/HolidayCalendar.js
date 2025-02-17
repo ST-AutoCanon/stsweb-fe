@@ -10,17 +10,15 @@ const HolidayCalendar = ({ closeCalendar }) => {
     const [date, setDate] = useState(new Date());
     const currentYear = new Date().getFullYear();
 
-    const authToken = localStorage.getItem("authToken");
     const API_KEY = process.env.REACT_APP_API_KEY;
 
     const headers = {
         "x-api-key": API_KEY,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
     };
 
     useEffect(() => {
-        axios.get("http://localhost:5000/holidays", { headers })
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/holidays`, { headers })
             .then(response => {
                 setHolidays(response.data);
                 localStorage.setItem("holidays", JSON.stringify(response.data));

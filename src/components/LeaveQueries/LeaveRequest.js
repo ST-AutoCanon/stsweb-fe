@@ -18,7 +18,6 @@ const LeaveRequest = () => {
     const [editingId, setEditingId] = useState(null);
 
     const API_KEY = process.env.REACT_APP_API_KEY;
-    const authToken = localStorage.getItem('authToken');
 
     // Retrieve employee details from local storage
     const employeeData = JSON.parse(localStorage.getItem('dashboardData'));
@@ -46,7 +45,6 @@ const LeaveRequest = () => {
                 headers: {
                     'x-api-key': API_KEY,
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
                 },
             });
 
@@ -125,7 +123,6 @@ const LeaveRequest = () => {
                 headers: {
                     'x-api-key': API_KEY,
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
                 },
                 body: JSON.stringify({
                     employeeId,
@@ -174,7 +171,6 @@ const LeaveRequest = () => {
                     headers: {
                         'x-api-key': API_KEY,
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`,
                     },
                 });
 

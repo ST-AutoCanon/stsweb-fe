@@ -54,7 +54,6 @@ const EmployeeDetails = () => {
 
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem('authToken');
 
   useEffect(() => {
     const requiredFields = [
@@ -99,7 +98,6 @@ const EmployeeDetails = () => {
       const response = await axios.get(apiUrl, {
         headers: {
           'x-api-key': API_KEY,
-          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -195,11 +193,10 @@ const handleAddEmployee = async (e) => {
       uploadData.append(key, formData[key]);
     });
 
-    await axios.post(`${process.env.REACT_APP_BACKEND_URL}/admin/employees`, formData, {
+    await axios.post(`${process.env.REACT_APP_BACKEND_URL}/admin/employees`, uploadData, {
       headers: {
         'x-api-key': API_KEY,
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'multipart/form-data',
       },
     });
 
@@ -218,16 +215,13 @@ const handleAddEmployee = async (e) => {
       spouse_name: '',
       marriage_date: '',
       address: '',
-      phone_number: '',
-      father_name: '',
-      mother_name: '',
       department: '',
       position: '',
       salary: '',
       photo: null,
-      });
+    });
 
-    setFormModalVisible(false); // Hide form after adding employee
+    setFormModalVisible(false); 
     alert('Employee added successfully. A password reset email has been sent.');
   } catch (err) {
     console.log(err);
@@ -237,90 +231,119 @@ const handleAddEmployee = async (e) => {
   }
 };
 
-  const handleEditEmployee = async (employeeId) => {
-    try {
-      // Fetch employee details from the backend API
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/employee/${employeeId}`, {
-        headers: {
-          'x-api-key': API_KEY,
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
-  
-      const employee = response?.data?.data;
-  
-      if (!employee) {
-        alert('Employee data not found');
-        return;
-      }
-  
-      // Set form data with employee details
-      setFormData({
-        employee_id: employee.employee_id,
-        first_name: employee.first_name || '',
-        last_name: employee.last_name || '',
-        dob: employee.dob || '',
-        email: employee.email || '',
-        father_name: employee.father_name || '',
-        mother_name: employee.mother_name || '',
-        aadhaar_number: employee.aadhaar_number || '',
-        pan_number: employee.pan_number || '',
-        phone_number: employee.phone_number || '',
-        gender: employee.gender || '',
-        marital_status: employee.marital_status || '',
-        spouse_name: employee.spouse_name || '',
-        marriage_date: employee.marriage_date || '',
-        address: employee.address || '',
-        role: employee.role || '',
-        department: employee.department || '',
-        position: employee.position || '',
-        salary: employee.salary || '',
-        photo: employee.photo_url || null,
-      });
-      console.log(employee.dob);
-      setEditModalVisible(true); // Set edit mode to true
-      setEmployeeToEdit(true);
-    } catch (err) {
-      console.error('Error fetching employee:', err);
-      alert(err.response?.data?.message || 'Failed to fetch employee details.');
+const fetchPhoto = async (photoUrl) => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`, {
+      headers: {
+        'x-api-key': API_KEY,
+      },
+      responseType: 'blob', 
+    });
+
+    const imageUrl = URL.createObjectURL(response.data);
+    setFormData((prevData) => ({
+      ...prevData,
+      photo: imageUrl,
+    }));
+  } catch (err) {
+    console.error('Error fetching photo:', err);
+    alert('Failed to fetch photo.');
+  }
+};
+
+
+
+const handleEditEmployee = async (employeeId) => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/employee/${employeeId}`, {
+      headers: {
+        'x-api-key': API_KEY,
+      },
+    });
+
+    const employee = response?.data?.data;
+
+    if (!employee) {
+      alert('Employee data not found');
+      return;
     }
-  };
+
+    setFormData({
+      employee_id: employee.employee_id,
+      first_name: employee.first_name || '',
+      last_name: employee.last_name || '',
+      dob: employee.dob || '',
+      email: employee.email || '',
+      father_name: employee.father_name || '',
+      mother_name: employee.mother_name || '',
+      aadhaar_number: employee.aadhaar_number || '',
+      pan_number: employee.pan_number || '',
+      phone_number: employee.phone_number || '',
+      gender: employee.gender || '',
+      marital_status: employee.marital_status || '',
+      spouse_name: employee.spouse_name || '',
+      marriage_date: employee.marriage_date || '',
+      address: employee.address || '',
+      role: employee.role || '',
+      department: employee.department || '',
+      position: employee.position || '',
+      salary: employee.salary || '',
+      photo: employee.photo_url || '',
+    });
+
+    if (employee.photo_url) {
+      await fetchPhoto(employee.photo_url); // Fetch the photo as a blob
+    }
+
+    setEditModalVisible(true);
+    setEmployeeToEdit(true);
+  } catch (err) {
+    console.error('Error fetching employee:', err);
+    alert(err.response?.data?.message || 'Failed to fetch employee details.');
+  }
+};
+
   
 
   const handleUpdateEmployee = async (e) => {
     e.preventDefault();
     setIsLoading(true);
   
-    // Format the `dob` field to ensure it's in `YYYY-MM-DD` format
-    const updatedFormData = {
-      ...formData,
-      dob: formData.dob ? formData.dob.split('T')[0] : '', // Strip any time portion
-    };
+    const uploadData = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === 'dob' && formData[key]) {
+        // Format the date to 'YYYY-MM-DD'
+        const formattedDate = new Date(formData[key]).toISOString().split('T')[0];
+        uploadData.append(key, formattedDate);
+      } else {
+        uploadData.append(key, formData[key]);
+      }
+    });
   
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/admin/employees/${formData.employee_id}`,
-        updatedFormData,
+        uploadData,
         {
           headers: {
             'x-api-key': API_KEY,
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'multipart/form-data',
           },
         }
       );
   
-      setEditModalVisible(false); // Hide edit modal after updating employee
+      setEditModalVisible(false);
       setEmployeeToEdit(false);
       alert('Employee updated successfully.');
     } catch (err) {
       console.error('Error updating employee:', err);
-      setError(err.response?.data?.message || 'Failed to update employee');
-      alert(err.response?.data?.message || 'Failed to update employee');
+      alert('Failed to update employee.');
     } finally {
       setIsLoading(false);
     }
   };
+  
+  
   
   // Handle deactivate employee action
 const handleDeactivateEmployee = async () => {
@@ -334,7 +357,6 @@ const handleDeactivateEmployee = async () => {
         headers: {
           'x-api-key': API_KEY,
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
         },
       }
     );
@@ -487,7 +509,7 @@ const handleDeactivateEmployee = async () => {
         <input
           type="date"
           name="dob"
-          value={formData.dob || ''}
+          value={formData.dob ? formData.dob.split('T')[0] : ''}
           onChange={handleInputChange}
           required
         />
@@ -588,7 +610,7 @@ const handleDeactivateEmployee = async () => {
     name="department"
     value={formData.department || ''}
     onChange={handleInputChange}
-    disabled={formData.role === 'Admin'} // Admin role doesn't need a department
+    disabled={formData.role === 'Admin'}
   >
     <option value="">Select Department</option>
     {Object.keys(departmentPositions).map((dept) => (
@@ -712,12 +734,13 @@ const handleDeactivateEmployee = async () => {
         />
       </div>
       <div className="form-group">
-        <label>Photo</label>
-        <input
-          type="file"
-          name="photo"
-          onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
-        />
+      <label>Photo</label>
+      <input
+        type="file"
+        name="photo"
+        accept="image/*"
+        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+      />
       </div>
       </div>
       <div className="button-group">
@@ -991,13 +1014,25 @@ const handleDeactivateEmployee = async () => {
         />
       </div>
       <div className="form-group">
-        <label>Photo</label>
-        <input
-          type="file"
-          name="photo"
-          onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
-        />
+      <label>Photo</label>
+      <input
+        type="file"
+        name="photo"
+        accept="image/*"
+        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+      />
       </div>
+     {formData.photo && (
+     <div className="form-group">
+      <label>Photo:</label>
+      <img
+      src={formData.photo}
+      alt="Employee Photo"
+      style={{ width: '60px', height: '60px', cursor: 'pointer' }}
+      onClick={() => window.open(formData.photo, '_blank')}
+      />
+      </div>
+      )}
       </div>
       {/* Button Group */}
       <div className="button-group">

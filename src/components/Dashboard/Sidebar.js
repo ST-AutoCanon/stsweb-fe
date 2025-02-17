@@ -5,36 +5,30 @@ import EmployeeDetails from "../EmployeeDetails/EmployeeDetails";
 import AddDepartment from "../AddDepartment/AddDepartment";
 import AdminQuery from "../EmployeeQueries/AdminQuery";
 import EmployeeQuery from "../EmployeeQueries/EmployeeQuery";
-// import MyDashboard from "../MyDashboard/MyDashboard";
-// import UpdateProjects from "../UpdateProjects/UpdateProjects";
-// import AttendanceMgmt from "../AttendanceMgmt/AttendanceMgmt";
 import LeaveQueries from "../LeaveQueries/Admin";
 import LeaveRequest from "../LeaveQueries/LeaveRequest";
-// import Performance from "../Performance/Performance";
-// import PayrollSummary from "../PayrollSummary/PayrollSummary";
-// import RequestLetter from "../RequestLetter/RequestLetter";
-// import HolidayDetails from "../HolidayDetails/HolidayDetails";
-// import TeamEvents from "../TeamEvents/TeamEvents";
+import Profile from "../Profile/Profile";
 
 const Sidebar = ({ setActiveContent }) => {
-  const [menuItems, setMenuItems] = useState([]); // Default empty array
+  const [menuItems, setMenuItems] = useState([]);
+  const [showProfile, setShowProfile] = useState(false);
+  const employeeId = localStorage.getItem("employeeId");
+  const userRole = localStorage.getItem("userRole");
 
   useEffect(() => {
     const storedData = localStorage.getItem("sidebarMenu");
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
-        setMenuItems(parsedData || []); // FIXED: No need for .sidebarMenu
+        setMenuItems(parsedData || []);
       } catch (error) {
         console.error("Error parsing sidebar menu:", error);
-        setMenuItems([]); // Fallback to empty array
+        setMenuItems([]);
       }
     }
   }, []);
 
   const handleMenuClick = (item) => {
-    const userRole = localStorage.getItem("userRole") || "Role";
-    // Dynamically map path to content
     switch (item.path) {
       case "/dashboard":
         setActiveContent(<p>Welcome to the Dashboard!</p>);
@@ -45,55 +39,45 @@ const Sidebar = ({ setActiveContent }) => {
       case "/addDepartment":
         setActiveContent(<AddDepartment />);
         break;
-      case "/updateProjects":
-        setActiveContent(<p>Update Projects content goes here.</p>);
+      case "/leaveQueries":
+        if (userRole === "Employee") {
+          setActiveContent(<LeaveRequest />);
+        } else if (userRole === "Admin") {
+          setActiveContent(<LeaveQueries />);
+        } else {
+          setActiveContent(<p>Not found</p>);
+        }
         break;
-      case "/attendanceMgmt":
-        setActiveContent(<p>Attendance Management content goes here.</p>);
+      case "/employeeQueries":
+        if (userRole === "Admin") {
+          setActiveContent(<AdminQuery />);
+        } else {
+          setActiveContent(<EmployeeQuery />);
+        }
         break;
-        case "/leaveQueries":
-          // Display LeaveRequest for employees and LeaveQueries for admins
-          if (userRole === "Employee") {
-            setActiveContent(<LeaveRequest />);
-          } else if (userRole === "Admin") {
-            setActiveContent(<LeaveQueries />);
-          } else {
-            setActiveContent(<p>Not found</p>);
-          }
-          break;
-      case "/performance":
-        setActiveContent(<p>Performance content goes here.</p>);
-        break;
-      case "/payrollSummary":
-        setActiveContent(<p>Payroll Summary content goes here.</p>);
-        break;
-      case "/requestLetter":
-        setActiveContent(<p>Request Letter content goes here.</p>);
-        break;
-      case "/holidayDetails":
-        setActiveContent(<p>Holiday Details content goes here.</p>);
-        break;
-      case "/teamEvents":
-        setActiveContent(<p>Team Events content goes here.</p>);
-        break;
-        case "/employeeQueries":
-          if (userRole === "Admin") {
-            setActiveContent(<AdminQuery />);
-          } else {
-            setActiveContent(<EmployeeQuery />);
-          }
-          break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }
   };
 
+  const toggleProfile = () => {
+    setShowProfile(!showProfile);
+  };
+
   return (
     <div className="sidebar">
+      {/* Conditionally render View Profile if not Admin */}
+      {userRole !== "Admin" && (
+        <div className="view-profile">
+          <span onClick={toggleProfile} className="view-profile-text">
+            View Profile
+          </span>
+        </div>
+      )}
       <ul>
         {menuItems.length > 0 ? (
           menuItems.map((item, index) => {
-            const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard; // Default icon
+            const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
             return (
               <li key={index} onClick={() => handleMenuClick(item)}>
                 <span className="icon"><IconComponent /></span>
@@ -105,6 +89,9 @@ const Sidebar = ({ setActiveContent }) => {
           <p className="no-menu">No menu items available</p>
         )}
       </ul>
+      {showProfile && (
+        <Profile employeeId={employeeId} onClose={toggleProfile} />
+      )}
     </div>
   );
 };

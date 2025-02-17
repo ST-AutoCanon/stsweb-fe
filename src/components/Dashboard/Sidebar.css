@@ -42,3 +42,21 @@
   font-size: 16px;
   color: #333;
 }
+
+/* Sidebar.css */
+.view-profile {
+  padding: 1%;
+  cursor: pointer;
+  margin-top: 10%;
+  text-align: center;
+}
+
+.view-profile-text {
+  color: #007bff;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.view-profile-text:hover {
+  color: #0056b3;
+}

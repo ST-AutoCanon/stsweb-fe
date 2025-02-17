@@ -4,7 +4,6 @@ import { IoMdAddCircleOutline } from "react-icons/io";
 import { MdOutlineCancel } from "react-icons/md";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
-const authToken = localStorage.getItem('authToken');
 
 const AddDepartment = () => {
     const [name, setName] = useState('');
@@ -20,7 +19,6 @@ const AddDepartment = () => {
                 method: 'GET',
                 headers: {
                     'x-api-key': API_KEY,
-                    'Authorization': `Bearer ${authToken}`,
                 },
             });
 
@@ -32,7 +30,6 @@ const AddDepartment = () => {
                             const imgResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}${dept.icon}`, {
                                 headers: {
                                     'x-api-key': API_KEY,
-                                    'Authorization': `Bearer ${authToken}`,
                                 },
                             });
 
@@ -85,7 +82,6 @@ const AddDepartment = () => {
                 method: 'POST',
                 headers: {
                     'x-api-key': API_KEY,
-                    'Authorization': `Bearer ${authToken}`,
                 },
                 body: formData,
             });

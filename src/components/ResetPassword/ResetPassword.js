@@ -52,7 +52,7 @@ const ResetPassword = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3',
+            'x-api-key': process.env.REACT_APP_API_KEY,
           }
         }
       );

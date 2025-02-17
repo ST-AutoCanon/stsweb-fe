@@ -28,8 +28,6 @@ const Admin = () => {
   const [statusUpdates, setStatusUpdates] = useState({}); // For updating status dynamically
   
 
-  const authToken = localStorage.getItem("authToken");
-
   // Fetch leave queries from the backend
   const fetchLeaveQueries = async () => {
     try {
@@ -44,7 +42,6 @@ const Admin = () => {
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
         },
       });
 
@@ -76,7 +73,6 @@ const Admin = () => {
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(update),
       });

@@ -15,7 +15,6 @@ const EmployeeQuery = () => {
   const departmentId = dashboardData.department_id || null;
   const name = dashboardData.name || null;
   const userRole = localStorage.getItem("userRole");
-  const authToken = localStorage.getItem("authToken");
 
   const [queries, setQueries] = useState([]);
   const [selectedQuery, setSelectedQuery] = useState(null);
@@ -40,7 +39,6 @@ const EmployeeQuery = () => {
 
   const headers = {
     "x-api-key": API_KEY,
-    Authorization: `Bearer ${authToken}`,
   };
 
   const feedbackOptions = [
@@ -57,7 +55,6 @@ const EmployeeQuery = () => {
     // Connect to socket.io server
     socket.current = io(`${process.env.REACT_APP_BACKEND_URL}`, {
       transports: ["websocket"],
-      query: { authToken }, // Optionally, send the token for authentication
     });
   
     // Function to handle received messages
@@ -75,8 +72,7 @@ const EmployeeQuery = () => {
         socket.current.disconnect();
       }
     };
-  }, [authToken]); // Ensure socket reconnects only when authToken changes
-  
+  });
 
   useEffect(() => {
     if (!employeeId) return;
@@ -143,7 +139,6 @@ const EmployeeQuery = () => {
           headers: {
             "Content-Type": "application/json", // setting the correct content type for JSON
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
           },
         }
       );
@@ -268,7 +263,6 @@ const EmployeeQuery = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/attachments/${filename}`, {
         headers: {
           "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
         },
         responseType: "blob", // Ensures file download
       });

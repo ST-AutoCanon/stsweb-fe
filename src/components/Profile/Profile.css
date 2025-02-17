@@ -1,0 +1,85 @@
+/* src/components/Profile/Profile.css */
+.profile-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .profile-content {
+    position: relative;
+    background: #fff;
+    padding: 2%;
+    max-width: 600px;
+    margin-top: 5%;
+    width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 10px solid #00468C;
+  }
+
+  .profile-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: x-large;
+    cursor: pointer;
+    color: #00468C;
+    transition: color 0.2s;
+  }
+  
+  .profile-close:hover {
+    color: #ff4d4f;
+  }
+  
+  .profile-header {
+    display: flex;
+    align-items: center;
+    
+  }
+  
+  .profile-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 3% 10%;
+    background-color: #f0f0f0;
+  }
+  
+  .profile-name {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-name h3{
+  margin: 1% 0;
+  }
+  
+  .profile-name p{
+    margin: 1% 0;
+    }
+
+  .profile-details {
+    display: grid;
+    justify-content: center;
+    grid-template-columns: repeat(2, minmax(20%, 1fr));
+  }
+  
+  .profile-details p {
+    line-height: 1.6;
+    color: #555;
+  }
+  
+  .profile-loading,
+  .profile-error {
+    text-align: center;
+    color: #777;
+    padding: 2%;
+  }
+  
