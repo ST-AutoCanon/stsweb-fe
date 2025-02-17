@@ -56,7 +56,7 @@ import Dashboad from "./components/Dashboard/Dashboard.js";
 import Sidebar from "./components/Dashboard/Sidebar.js";
 import Topbar from "./components/Dashboard/Topbar.js";
 
-
+import LoginChart from "./components/MyDashboard/LoginChart.js";
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
   return (
@@ -108,6 +108,10 @@ function App() {
           <Route path="/Dashboard" element={<Dashboad/>}/>
           <Route path="/Sidebar" element={<Sidebar/>}/>
           <Route path="/Topbar" element={<Topbar/>}/>
+
+          <Route path="/LoginChart" element={<LoginChart/>}/>
+
+
           <Route
             path="/EngineeringServices"
             element={<EngineeringServices />}

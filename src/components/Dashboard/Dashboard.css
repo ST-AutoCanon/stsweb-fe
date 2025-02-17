@@ -17,11 +17,12 @@
 .content-container {
   display: flex;
   border-radius: 5px;
- 
-  background-color: #E8E9EA;
+  scrollbar-width: none; /* Hides scrollbar in Firefox */
+  -ms-overflow-style: none;
+  background-color: #ddd;
   flex: 1; /* Fills the remaining space below the Topbar */
-  margin-top: 1%; /* Push Sidebar and Main Content below the Topbar */
-  overflow: hidden; /* Prevents overflow in the layout */
+  margin-bottom: 0px; /* Push Sidebar and Main Content below the Topbar */
+  overflow: auto; /* Prevents overflow in the layout */
 }
 
 /* Sidebar styles */
@@ -30,13 +31,15 @@
   width: 250px; /* Fixed width */
   background-color: white;
   overflow-y: auto; /* Sidebar scrolls if content overflows */
-  
+  scrollbar-width: none; /* Hides scrollbar in Firefox */
+  -ms-overflow-style: none;
   /* height: calc(100vh - 60px); Full height minus Topbar height */
   position: sticky; /* Sticks in place during scrolling */
-  top: 0px; /* Push below the Topbar */
+  top: 10px; /* Push below the Topbar */
   margin-top:0;
   z-index: 1; /* Keep Sidebar below the Topbar */
 }
+
 
 /* Main content styles */
 .main-content {
@@ -44,7 +47,7 @@
   /* overflow-y: auto; Enable scrolling for the main content */
   background-color: #E8E9EA;
  
-  height: calc(100vh - 60px); /* Full height minus Topbar height */
+  height:0%; /* Full height minus Topbar height */
   box-sizing: border-box; /* Include padding in width/height */
 }
 
@@ -56,8 +59,8 @@
 
 .Dashboarddesign
 {
-  height:150vh;
-  padding: 20px;
+  height:85vh;
+  padding: 0px;
   padding-top:10px;
  border-radius: 5px;
   background-color: white;
@@ -67,6 +70,6 @@
 
   height: auto;
   margin-top: 6%;
- padding: 20px;
+ padding: 0px;
   background-color:#E8E9EA;
 }

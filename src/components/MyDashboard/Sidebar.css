@@ -2,18 +2,18 @@
   width: 250px;
   background-color: #f4f4f4;
   overflow-y: auto; /* Enables vertical scrolling */
-
+  overflow: hidden;
   position: fixed; /* Keeps sidebar fixed on the left */
   left: 0;
- margin-top:100%;
+ 
   padding: 0;
 }
 
 .sidebar ul {
   
   list-style-type: none;
-  padding: 0;
-  margin-top:15%;
+  padding-top: 40%;
+  margin-top:30%;
 }
 
 .sidebar li {
@@ -22,8 +22,7 @@
  
   cursor: pointer;
   background-color: white;
-  border-radius:6px 0 0 6px;
-  /* border: 1px solid #ddd;  */
+  border-radius: 4px;
   transition: background-color 0.3s;
 }
 
@@ -42,30 +41,4 @@
 .sidebar .menu-text {
   font-size: 16px;
   color: #333;
-}
-
-
-/* Sidebar.css */
-.view-profile {
-  padding: 1%;
-  cursor: pointer;
-  margin-top: 10%;
-  text-align: center;
-}
-
-.view-profile-text {
-  color: #007bff;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.view-profile-text:hover {
-  color: #0056b3;
-}
-
-/* Active menu item */
-.sidebar li.active {
-  background: #ddd; /* Active item background */
-  color: white; /* Active text color */
-  font-weight: bold;
 }

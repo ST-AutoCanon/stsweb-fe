@@ -1,0 +1,47 @@
+.dashboardlogin-chart-container {
+    display: flex; /* Optional: If you want alignment */
+    justify-content: center; /* Center the chart horizontally */
+     /* Add space below the container */
+    width: 90%;
+    height:60%;
+    padding:0;
+}
+
+.dashboardloginchartgray-box {
+    background-color: #ffffff; /* White background */
+    border: 1px solid #d3d3d3; /* Light border */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Inner padding */
+    max-width: 900px; /* Slightly increase the maximum width */
+    width: 100%; /* Let the width take up more of the parent container */
+    margin: 0 auto; /* Center the box horizontally */
+}
+
+.dashboardlogin-chart {
+    text-align: center; /* Center-align the content */
+    
+}
+
+.dashboardlogin-chart h3 {
+    
+    font-family: Arial, sans-serif;
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 10px;
+    margin-left:80%;
+}
+
+
+.dashboardlogin-chart h3 {
+    font-family: Arial, sans-serif;
+    color: #333; /* Dark text color */
+    font-size: 16px; /* Adjust font size */
+    margin-bottom: 10px; /* Space below the title */
+}
+
+.dashboardloginchartgray-box canvas {
+    max-height: 250px; /* Limit the height of the chart */
+    height: 100%; /* Ensure the chart resizes properly */
+    width: 100%; /* Make the chart responsive */
+}

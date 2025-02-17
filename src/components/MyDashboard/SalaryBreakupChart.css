@@ -1,0 +1,66 @@
+.salary-breakup {
+    width: 250px; /* Fixed width */
+    height: 320px; /* Fixed height */
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.salary-breakup h3 {
+    margin-top: 0%;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.salary-breakup p {
+    margin-top: -2%;
+    color: #686868;
+    font-size: small;
+}
+
+.salary-breakup p1 {
+    margin-top: -5%;
+    color: #686868;
+    font-size: small;
+}
+
+.chart-container-salary {
+    width: 100%; /* Full width */
+    height: 180px; /* Fixed chart height */
+}
+
+.salary-amount {
+    font-size: 18px;
+    font-weight: bold;
+    color: #004DC6; /* Matches chart colors */
+    margin-top: 10px;
+}
+
+.custom-legend-salary {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.legend-item-salary {
+    display: flex;
+    align-items: center;
+    font-size: 10px;
+}
+
+.legend-color-salary {
+    width: 12px;
+    height: 12px;
+    border-radius: 0px;
+    display: inline-block;
+    margin-right: 5px;
+}

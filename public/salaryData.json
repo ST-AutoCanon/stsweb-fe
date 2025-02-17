@@ -1,0 +1,11 @@
+{
+    "labels": ["<30k", "30k-50k", "50k-70k", "70k+", "90k+"],
+    "datasets": [
+      {
+        "label": "Salaries",
+        "data": [100, 20, 10, 30, 20],
+        "backgroundColor": ["#82DAFE", "#00A1DA", "#0078CF", "#012FBA", "#011F7B"]
+      }
+    ]
+  }
+  
