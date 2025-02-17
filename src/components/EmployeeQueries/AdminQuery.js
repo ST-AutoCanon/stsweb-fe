@@ -13,7 +13,7 @@ const AdminQuery = () => {
   useEffect(() => {
     const fetchQueries = async () => {
       try {
-        const response = await fetch('http://localhost:5000/all', {
+        const response = await fetch('http://122.166.77.12:5000/all', {
           headers: {
             'x-api-key': API_KEY,
             'Authorization': `Bearer ${authToken}`,
@@ -37,7 +37,7 @@ const AdminQuery = () => {
   // Function to handle reply submission
   const handleReplySubmit = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/adminreply`, {
+      const response = await fetch(`http://122.166.77.12:5000/adminreply`, {
         method: 'POST',
         headers: {
           'x-api-key': API_KEY,

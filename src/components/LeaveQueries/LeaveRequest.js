@@ -33,7 +33,7 @@ const LeaveRequest = () => {
 
     const fetchLeaveRequests = async () => {
         try {
-            let url = `http://localhost:5000/employee/leave/${employeeId}`;
+            let url = `http://122.166.77.12:5000/employee/leave/${employeeId}`;
             if (filters.from_date || filters.to_date) {
                 const params = new URLSearchParams();
                 if (filters.from_date) params.append("from_date", filters.from_date);
@@ -114,8 +114,8 @@ const LeaveRequest = () => {
         };
 
         const url = editingId
-            ? `http://localhost:5000/edit/${editingId}`
-            : `http://localhost:5000/employee/leave`;
+            ? `http://122.166.77.12:5000/edit/${editingId}`
+            : `http://122.166.77.12:5000/employee/leave`;
 
         const method = editingId ? "PUT" : "POST";
 
@@ -169,7 +169,7 @@ const LeaveRequest = () => {
     const handleCancel = async (id) => {
         if (window.confirm("Are you sure you want to cancel this leave request?")) {
             try {
-                const response = await fetch(`http://localhost:5000/cancel/${id}/${employeeId}`, {
+                const response = await fetch(`http://122.166.77.12:5000/cancel/${id}/${employeeId}`, {
                     method: 'DELETE',
                     headers: {
                         'x-api-key': API_KEY,

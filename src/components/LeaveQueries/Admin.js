@@ -40,7 +40,7 @@ const Admin = () => {
         to_date: toDate,
       }).toString();
 
-      const response = await fetch(`http://localhost:5000/admin/leave?${query}`, {
+      const response = await fetch(`http://122.166.77.12:5000/admin/leave?${query}`, {
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const Admin = () => {
       const update = statusUpdates[leaveId];
       if (!update) return;
 
-      const response = await fetch(`http://localhost:5000/admin/leave/${leaveId}`, {
+      const response = await fetch(`http://122.166.77.12:5000/admin/leave/${leaveId}`, {
         method: "PUT",
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
