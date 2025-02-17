@@ -12,7 +12,7 @@ const AddDepartment = () => {
     // Fetch existing departments
     const fetchDepartments = async () => {
         try {
-            const response = await fetch('http://122.166.77.12:5000/departments', {
+            const response = await fetch('http://localhost:5000/departments', {
                 method: 'GET',
                 headers: {
                     'x-api-key': API_KEY,
@@ -44,7 +44,7 @@ const AddDepartment = () => {
         }
 
         try {
-            const response = await fetch('http://122.166.77.12:5000/departments/add', {
+            const response = await fetch('http://localhost:5000/departments/add', {
                 method: 'POST',
                 headers: {
                     'x-api-key': API_KEY,

@@ -20,7 +20,7 @@ const EmployeeQueries = () => {
     }
 
     try {
-      const response = await fetch(`http://122.166.77.12:5000/threads`, {
+      const response = await fetch(`http://localhost:5000/threads`, {
         headers: {
           'x-api-key': API_KEY,
           'Authorization': `Bearer ${authToken}`,
@@ -48,7 +48,7 @@ const EmployeeQueries = () => {
     }
 
     try {
-      const response = await fetch('http://122.166.77.12:5000/threads', {
+      const response = await fetch('http://localhost:5000/threads', {
         method: 'POST',
         headers: {
           'x-api-key': API_KEY,
@@ -85,7 +85,7 @@ const EmployeeQueries = () => {
     }
 
     try {
-      const response = await fetch(`http://122.166.77.12:5000/threads/${threadId}/messages`, {
+      const response = await fetch(`http://localhost:5000/threads/${threadId}/messages`, {
         method: 'POST',
         headers: {
           'x-api-key': API_KEY,

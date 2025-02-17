@@ -1,0 +1,25 @@
+{
+    "departments": [
+      {
+        "name": "IT",
+        "men": 100,
+        "women": 5
+      },
+      {
+        "name": "Engg Services",
+        "men": 30,
+        "women": 15
+      },
+      {
+        "name": "Other services",
+        "men": 15,
+        "women": 10
+      },
+      {
+        "name": "HR and Admin",
+        "men": 90,
+        "women": 0
+      }
+    ]
+  }
+  

@@ -31,7 +31,7 @@ const Login = ({ onClose }) => {
       return;
     }
     try {
-      const response = await fetch('http://122.166.77.12:5000/forgot-password', {
+      const response = await fetch('http://localhost:5000/forgot-password', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ const Login = ({ onClose }) => {
       return;
     }
     try {
-      const response = await fetch('http://122.166.77.12:5000/login', {
+      const response = await fetch('http://localhost:5000/login', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

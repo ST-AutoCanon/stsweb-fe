@@ -5,18 +5,20 @@ import "./Dashboard.css";
 
 const Dashboard = () => {
   // State to manage active content inside the main-content container
-  const [activeContent, setActiveContent] = useState(<p>Welcome to the Dashboard!</p>);
+  const [activeContent, setActiveContent] = useState();
 
   const renderContent = () => {
     return (
       <div className="content-container-design">
-        <div style={{ height: "1500px" }}>
+        <div >
           {activeContent}
         </div>
       </div>
     );
   };
 
+
+  
   return (
     <div className="Dashboard123">
       <div className="Dashboarddesign">

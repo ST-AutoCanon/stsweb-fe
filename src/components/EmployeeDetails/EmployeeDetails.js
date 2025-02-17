@@ -76,7 +76,7 @@ const EmployeeDetails = () => {
   const fetchEmployees = async () => {
     setIsLoading(true);
     try {
-      let apiUrl = `http://122.166.77.12:5000/admin/employees`; // Base URL
+      let apiUrl = `http://localhost:5000/admin/employees`; // Base URL
       const params = [];
 
       // Add searchTerm if available
@@ -195,7 +195,7 @@ const handleAddEmployee = async (e) => {
       uploadData.append(key, formData[key]);
     });
 
-    await axios.post('http://122.166.77.12:5000/admin/employees', formData, {
+    await axios.post('http://localhost:5000/admin/employees', formData, {
       headers: {
         'x-api-key': API_KEY,
         'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ const handleAddEmployee = async (e) => {
   const handleEditEmployee = async (employeeId) => {
     try {
       // Fetch employee details from the backend API
-      const response = await axios.get(`http://122.166.77.12:5000/employee/${employeeId}`, {
+      const response = await axios.get(`http://localhost:5000/employee/${employeeId}`, {
         headers: {
           'x-api-key': API_KEY,
           'Authorization': `Bearer ${authToken}`,
@@ -297,7 +297,7 @@ const handleAddEmployee = async (e) => {
   
     try {
       await axios.put(
-        `http://122.166.77.12:5000/admin/employees/${formData.employee_id}`,
+        `http://localhost:5000/admin/employees/${formData.employee_id}`,
         updatedFormData,
         {
           headers: {
@@ -326,7 +326,7 @@ const handleAddEmployee = async (e) => {
     if (!deleteEmployeeId) return;
 
     try {
-      await axios.delete(`http://122.166.77.12:5000/admin/employees/${deleteEmployeeId}`, {
+      await axios.delete(`http://localhost:5000/admin/employees/${deleteEmployeeId}`, {
         headers: {
           'x-api-key': API_KEY,
           'Content-Type': 'application/json',
