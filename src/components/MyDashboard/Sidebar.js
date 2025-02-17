@@ -1,45 +1,4 @@
-// import React from "react";
-// import "./Sidebar.css";
 
-// const Sidebar = ({ setActiveContent }) => {
-//   const menuItems = [
-//     "Dashboard",
-//     "Profile",
-//     "Settings",
-//     "Reports",
-//     "Analytics",
-//     "Notifications",
-//     "Support",
-//     "Logout",
-//     "Extra Item 1",
-//     "Extra Item 2",
-//     "Extra Item 3",
-//     "Extra Item 4",
-//     "Extra Item 5",
-//     "Notifications",
-//     "Support",
-//     "Logout",
-//     "Extra Item 1",
-//     "Extra Item 2",
-//     "Extra Item 3",
-//     "Extra Item 4",
-//     "Extra Item 5",
-//   ];
-
-//   return (
-//     <div className="sidebar">
-//       <ul>
-//         {menuItems.map((item, index) => (
-//           <li key={index} onClick={() => setActiveContent(item)}>
-//             {item}
-//           </li>
-//         ))}
-//       </ul>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;
 
 import React from "react";
 import "./Sidebar.css";
