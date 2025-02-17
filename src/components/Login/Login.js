@@ -8,16 +8,40 @@ const Login = ({ onClose }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(true);
   const navigate = useNavigate();
+  const idleTimeout = 15 * 60 * 1000; // 15 minutes in milliseconds
 
   useEffect(() => {
-    const sessionTimeout = 20 * 60 * 1000;
-    const sessionStart = localStorage.getItem('sessionStart');
+    const handleActivity = () => {
+      localStorage.setItem('lastActivity', Date.now());
+    };
 
-    if (sessionStart && Date.now() - parseInt(sessionStart, 10) > sessionTimeout) {
-      alert('Your session has expired. Please log in again.');
-      localStorage.clear();
-      navigate('/login');
-    }
+    const checkIdleTime = () => {
+      const lastActivity = localStorage.getItem('lastActivity');
+      if (lastActivity && Date.now() - parseInt(lastActivity, 10) > idleTimeout) {
+        alert('You have been logged out due to inactivity.');
+        localStorage.clear();
+        navigate('/login');
+      }
+    };
+
+    // Set initial activity time
+    localStorage.setItem('lastActivity', Date.now());
+
+    // Event listeners to detect activity
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('click', handleActivity);
+
+    // Check idle time every minute
+    const interval = setInterval(checkIdleTime, 60000);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+      clearInterval(interval);
+    };
   }, [navigate]);
 
   const closeModal = () => {
@@ -31,7 +55,7 @@ const Login = ({ onClose }) => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:5000/forgot-password', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/forgot-password`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -53,7 +77,7 @@ const Login = ({ onClose }) => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:5000/login', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/login`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -68,13 +92,13 @@ const Login = ({ onClose }) => {
         return;
       }
 
-      localStorage.setItem('authToken', data.message.token);
+      
       localStorage.setItem('userRole', data.message.role);
       localStorage.setItem('userName', data.message.name);
       localStorage.setItem('userGender', data.message.gender);
       localStorage.setItem('dashboardData', JSON.stringify(data.message.dashboard));
       localStorage.setItem('sidebarMenu', JSON.stringify(data.message.sidebarMenu));
-      localStorage.setItem('sessionStart', Date.now());
+      localStorage.setItem('lastActivity', Date.now()); // Set initial activity time
 
       closeModal();
       navigate('/dashboard'); // Redirect all users to a common dashboard

@@ -1,82 +1,107 @@
 /* Topbar container */
 .topbar {
-    display: flex;
-    justify-content: space-between; /* Space between profile and icons */
-    align-items: center; /* Vertically align items */
-    height: 2.5%; /* Fixed height */
- 
-    padding: 20px; /* Horizontal padding */
-    background-color: white;
-    color: black;
-    position: sticky; /* Sticky position */
-    top: 2%; /* Ensure it stays below the Navbar */
-    left: 0; /* Ensure it stays aligned to the left */
-    right: 0; /* Ensure it stays aligned to the right */
-    width: 100%; /* Ensure full width */
-    flex-shrink: 0; /* Prevent shrinking */
-    margin-left: -20%;
+  display: flex;
+  justify-content: space-between; /* Space between profile and icons */
+  align-items: center; /* Vertically align items */
+  height: 2.5%; /* Fixed height */
 
-    /* margin-top: 6%; */
+  padding: 20px; /* Horizontal padding */
+  background-color: white;
+  color: black;
+  position: sticky; /* Sticky position */
+  top: 2%; /* Ensure it stays below the Navbar */
+  left: 0; /* Ensure it stays aligned to the left */
+  right: 0; /* Ensure it stays aligned to the right */
+  width: 100%; /* Ensure full width */
+  flex-shrink: 0; /* Prevent shrinking */
+  margin-left: -20%;
 
-  }
+  /* margin-top: 6%; */
+
+}
+
+/* Profile section styling */
+.profile-section {
+  display: flex;
+  align-items: center; /* Align profile items vertically */
+  margin-left: 7%;
+  margin-bottom:1%;
+}
+
+.profile-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-left: -15%;
   
-  /* Profile section styling */
-  .profile-section {
-    display: flex;
-    align-items: center; /* Align profile items vertically */
-    margin-left: 7%;
-    margin-bottom:1%;
-  }
+}
+
+.profile-info {
+  margin-left:10%;
   
-  .profile-img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    margin-left: -15%;
-    
-  }
+  gap: 5px; 
+  white-space: nowrap; 
+  display: flex;
+  flex-direction: column;  
   
-  .profile-info {
-    margin-left:10%;
-    
-    gap: 5px; /* Space between name and designation */
-    white-space: nowrap; /* Prevents text from wrapping */
-    display: flex;
-    flex-direction: column;  /* Ensures designation appears below the name */
-    
-  }
-  .profile-namedash {
-    font-size: 16px;
-    white-space: nowrap;
-    font-weight: bold;
-    display: inline-block;
-    max-width: 100%;
-    
-  }
-  .profile-designation {
-    font-size: 14px;
-    color: #777;
-    margin-right:30%;
-    display: inline-block;
-  }
+}
+.profile-namedash {
+  font-size: 16px;
+  white-space: nowrap;
+  font-weight: bold;
+  display: inline-block;
+  max-width: 100%;
   
-  /* Icon section styling */
-  .icon-section {
-    display: flex;
-    gap: 40%; /* Space between icons */
-    margin-right: 5%;
-    font-size: 200%;
-    margin-bottom:2% ;
-  }
-  
-  .icon {
-    font-size: 20px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-  }
-  
-  .icon:hover {
-    transform: scale(1.1); /* Slight zoom on hover */
-  }
-  
-  
+}
+.profile-designation {
+  font-size: 14px;
+  color: #777;
+  margin-right:30%;
+  display: inline-block;
+}
+
+
+.icon-section {
+  display: flex;
+  gap: 40%; 
+  margin-right: 5%;
+  font-size: 200%;
+  margin-bottom:2% ;
+}
+
+.icon {
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.icon:hover {
+  transform: scale(1.1); 
+}
+
+
+.calendar-dropdown {
+position: absolute;
+top: 50px;
+right: 0.1%;
+font-size: small;
+background: white;
+border-radius: 10px;
+box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+position: absolute;
+top: 5px;
+right: 5px;
+background: #00468C;
+color: white;
+border: none;
+padding: 1% 2%;
+border-radius: 50%;
+cursor: pointer;
+font-size: small;
+}
+.close-btn:hover {
+background: darkred;
+}

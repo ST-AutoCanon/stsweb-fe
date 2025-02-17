@@ -47,12 +47,12 @@ const ResetPassword = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/password-reset',
+        `${process.env.REACT_APP_BACKEND_URL}/password-reset`,
         { resetToken: token, newPassword: password },
         {
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3',
+            'x-api-key': process.env.REACT_APP_API_KEY,
           }
         }
       );
@@ -72,16 +72,17 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="body">
     <div className="reset-password-container">
+      <div className='reset-header'>
       <h2>Reset Your Password</h2>
+      </div>
       {success ? (
         <div className="success-message">Password reset successfully! Redirecting to login...</div>
       ) : (
         error && <div className="error-message">{error}</div>
       )}
-      <form onSubmit={handleSubmit}>
-        <div>
+      <form className='reset-form' onSubmit={handleSubmit}>
+        <div className='reset-group'>
           <label htmlFor="password">New Password:</label>
           <input
             type="password"
@@ -93,7 +94,7 @@ const ResetPassword = () => {
             minLength="8"
           />
         </div>
-        <div>
+        <div className='reset-group'>
           <label htmlFor="confirmPassword">Confirm Password:</label>
           <input
             type="password"
@@ -105,11 +106,12 @@ const ResetPassword = () => {
             minLength="8"
           />
         </div>
-        <button type="submit" disabled={isLoading}>
+        <div className='reset-button'>
+        <button className='submit-reset' type="submit" disabled={isLoading}>
           {isLoading ? 'Resetting...' : 'Reset Password'}
         </button>
+        </div>
       </form>
-    </div>
     </div>
   );
 };

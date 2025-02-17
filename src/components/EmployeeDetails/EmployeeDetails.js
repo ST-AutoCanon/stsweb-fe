@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from '../Modal/Modal';
 import './EmployeeDetails.css';
 import { MdOutlineCalendarToday, MdOutlineEdit, MdDeleteOutline, MdOutlineCancel } from "react-icons/md";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const departmentPositions = {
-  Software: ['Software Manager', 'Senior Software Engineer', 'Associate Software Engineer', 'Senior Test Engineer', 'Test Engineer', 'Senior Network Engineer', 'Network Engineer', 'Technical Engineer'],
-  Homologation: ['Homologation Specialist', 'Homologation Manager', 'Homologation Engineer',],
-  Design: ['Senior Design Engineer', 'Design Engineer', 'Design Lead', 'Design Manager'],
-  Finance: ['Finance Manager', 'Accountant', 'Financial Analyst'],
-  HR: ['HR Specialist', 'HR Manager'],
+  Software: ['Software Team Lead', 'Senior Software Engineer', 'Associate Software Engineer', 'Senior Test Engineer', 'Test Engineer', 'Senior Network Engineer', 'Network Engineer', 'Technical Engineer'],
+  Homologation: ['Homologation Specialist', 'Homologation Team Lead', 'Homologation Engineer',],
+  Design: ['Senior Design Engineer', 'Design Engineer', 'Design Lead', 'Design Team Lead'],
+  Finance: ['Finance Team Lead', 'Accountant', 'Financial Analyst'],
+  HR: ['HR Specialist', 'HR Team Lead'],
 };
 
 const EmployeeDetails = () => {
@@ -32,6 +31,7 @@ const EmployeeDetails = () => {
     gender: '',
     marital_status: '',
     spouse_name: '',
+    marriage_date: '',
     address: '',
     phone_number: '',
     father_name: '',
@@ -54,7 +54,6 @@ const EmployeeDetails = () => {
 
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem('authToken');
 
   useEffect(() => {
     const requiredFields = [
@@ -76,7 +75,7 @@ const EmployeeDetails = () => {
   const fetchEmployees = async () => {
     setIsLoading(true);
     try {
-      let apiUrl = `http://localhost:5000/admin/employees`; // Base URL
+      let apiUrl = `${process.env.REACT_APP_BACKEND_URL}/admin/employees`; // Base URL
       const params = [];
 
       // Add searchTerm if available
@@ -99,7 +98,6 @@ const EmployeeDetails = () => {
       const response = await axios.get(apiUrl, {
         headers: {
           'x-api-key': API_KEY,
-          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -134,8 +132,8 @@ const EmployeeDetails = () => {
       setFormData((prevState) => ({
         ...prevState,
         [name]: value,
-        department: value === 'Admin' ? '' : prevState.department, // Clear department if role is Admin
-        position: value.includes('Manager') ? '' : prevState.position, // Clear position if role includes "Manager"
+        department: value === 'Admin' ? '' : prevState.department,
+        position: value.includes('Team Lead') ? '' : prevState.position,
       }));
     } else if (name === 'department') {
       setFormData((prevState) => ({
@@ -195,11 +193,10 @@ const handleAddEmployee = async (e) => {
       uploadData.append(key, formData[key]);
     });
 
-    await axios.post('http://localhost:5000/admin/employees', formData, {
+    await axios.post(`${process.env.REACT_APP_BACKEND_URL}/admin/employees`, uploadData, {
       headers: {
         'x-api-key': API_KEY,
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'multipart/form-data',
       },
     });
 
@@ -216,17 +213,15 @@ const handleAddEmployee = async (e) => {
       gender: '',
       marital_status: '',
       spouse_name: '',
+      marriage_date: '',
       address: '',
-      phone_number: '',
-      father_name: '',
-      mother_name: '',
       department: '',
       position: '',
       salary: '',
       photo: null,
-      });
+    });
 
-    setFormModalVisible(false); // Hide form after adding employee
+    setFormModalVisible(false); 
     alert('Employee added successfully. A password reset email has been sent.');
   } catch (err) {
     console.log(err);
@@ -236,117 +231,150 @@ const handleAddEmployee = async (e) => {
   }
 };
 
-  const handleEditEmployee = async (employeeId) => {
-    try {
-      // Fetch employee details from the backend API
-      const response = await axios.get(`http://localhost:5000/employee/${employeeId}`, {
-        headers: {
-          'x-api-key': API_KEY,
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
-  
-      const employee = response?.data?.data;
-  
-      if (!employee) {
-        alert('Employee data not found');
-        return;
-      }
-  
-      // Set form data with employee details
-      setFormData({
-        employee_id: employee.employee_id,
-        first_name: employee.first_name || '',
-        last_name: employee.last_name || '',
-        dob: employee.dob || '',
-        email: employee.email || '',
-        father_name: employee.father_name || '',
-        mother_name: employee.mother_name || '',
-        aadhaar_number: employee.aadhaar_number || '',
-        pan_number: employee.pan_number || '',
-        phone_number: employee.phone_number || '',
-        gender: employee.gender || '',
-        marital_status: employee.marital_status || '',
-        spouse_name: employee.spouse_name || '',
-        address: employee.address || '',
-        role: employee.role || '',
-        department: employee.department || '',
-        position: employee.position || '',
-        salary: employee.salary || '',
-        photo: employee.photo_url || null,
-      });
-      console.log(employee.dob);
-      setEditModalVisible(true); // Set edit mode to true
-      setEmployeeToEdit(true);
-    } catch (err) {
-      console.error('Error fetching employee:', err);
-      alert(err.response?.data?.message || 'Failed to fetch employee details.');
+const fetchPhoto = async (photoUrl) => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`, {
+      headers: {
+        'x-api-key': API_KEY,
+      },
+      responseType: 'blob', 
+    });
+
+    const imageUrl = URL.createObjectURL(response.data);
+    setFormData((prevData) => ({
+      ...prevData,
+      photo: imageUrl,
+    }));
+  } catch (err) {
+    console.error('Error fetching photo:', err);
+    alert('Failed to fetch photo.');
+  }
+};
+
+
+
+const handleEditEmployee = async (employeeId) => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/employee/${employeeId}`, {
+      headers: {
+        'x-api-key': API_KEY,
+      },
+    });
+
+    const employee = response?.data?.data;
+
+    if (!employee) {
+      alert('Employee data not found');
+      return;
     }
-  };
+
+    setFormData({
+      employee_id: employee.employee_id,
+      first_name: employee.first_name || '',
+      last_name: employee.last_name || '',
+      dob: employee.dob || '',
+      email: employee.email || '',
+      father_name: employee.father_name || '',
+      mother_name: employee.mother_name || '',
+      aadhaar_number: employee.aadhaar_number || '',
+      pan_number: employee.pan_number || '',
+      phone_number: employee.phone_number || '',
+      gender: employee.gender || '',
+      marital_status: employee.marital_status || '',
+      spouse_name: employee.spouse_name || '',
+      marriage_date: employee.marriage_date || '',
+      address: employee.address || '',
+      role: employee.role || '',
+      department: employee.department || '',
+      position: employee.position || '',
+      salary: employee.salary || '',
+      photo: employee.photo_url || '',
+    });
+
+    if (employee.photo_url) {
+      await fetchPhoto(employee.photo_url); // Fetch the photo as a blob
+    }
+
+    setEditModalVisible(true);
+    setEmployeeToEdit(true);
+  } catch (err) {
+    console.error('Error fetching employee:', err);
+    alert(err.response?.data?.message || 'Failed to fetch employee details.');
+  }
+};
+
   
 
   const handleUpdateEmployee = async (e) => {
     e.preventDefault();
     setIsLoading(true);
   
-    // Format the `dob` field to ensure it's in `YYYY-MM-DD` format
-    const updatedFormData = {
-      ...formData,
-      dob: formData.dob ? formData.dob.split('T')[0] : '', // Strip any time portion
-    };
+    const uploadData = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === 'dob' && formData[key]) {
+        // Format the date to 'YYYY-MM-DD'
+        const formattedDate = new Date(formData[key]).toISOString().split('T')[0];
+        uploadData.append(key, formattedDate);
+      } else {
+        uploadData.append(key, formData[key]);
+      }
+    });
   
     try {
       await axios.put(
-        `http://localhost:5000/admin/employees/${formData.employee_id}`,
-        updatedFormData,
+        `${process.env.REACT_APP_BACKEND_URL}/admin/employees/${formData.employee_id}`,
+        uploadData,
         {
           headers: {
             'x-api-key': API_KEY,
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'multipart/form-data',
           },
         }
       );
   
-      setEditModalVisible(false); // Hide edit modal after updating employee
+      setEditModalVisible(false);
       setEmployeeToEdit(false);
       alert('Employee updated successfully.');
     } catch (err) {
       console.error('Error updating employee:', err);
-      setError(err.response?.data?.message || 'Failed to update employee');
-      alert(err.response?.data?.message || 'Failed to update employee');
+      alert('Failed to update employee.');
     } finally {
       setIsLoading(false);
     }
   };
   
   
-  // Handle delete employee action
-  const handleDeleteEmployee = async () => {
-    if (!deleteEmployeeId) return;
+  
+  // Handle deactivate employee action
+const handleDeactivateEmployee = async () => {
+  if (!deleteEmployeeId) return;
 
-    try {
-      await axios.delete(`http://localhost:5000/admin/employees/${deleteEmployeeId}`, {
+  try {
+    await axios.put(
+      `${process.env.REACT_APP_BACKEND_URL}/admin/employees/${deleteEmployeeId}/deactivate`,
+      {}, // Empty request body
+      {
         headers: {
           'x-api-key': API_KEY,
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
         },
-      });
-      setEmployees(employees.filter((employee) => employee.employee_id !== deleteEmployeeId));
-      setDeleteEmployeeId(null);
-    } catch (err) {
-      setError('Failed to delete employee');
-    } finally {
-      setModalVisible(false);
-    }
-  };
+      }
+    );
+    
+    setDeleteEmployeeId(null);
+    alert('Employee Deactivated successfully.');
+  } catch (err) {
+    console.log('Failed to deactivate employee', err);
+    setError('Failed to deactivate employee');
+  } finally {
+    setModalVisible(false);
+  }
+};
 
   return (
     <div className="employee-details-container">
-      <div class="header-container">
-        <h2 class="header-title">Employee Details</h2>
-      <div class="header-content">
+      <h2 class="header-title">Employee Details</h2>
+<div class="header-container">
       {/* Search Employee */}
       <div className="search-container">
         <label>Search by</label>
@@ -361,8 +389,6 @@ const handleAddEmployee = async (e) => {
         </div>
       </div>
 
-      {/* Date Range Filters */}
-      <div className="calendar-buttons">
         {/* Date From Input Group */}
         <div className="calendar-input-group">
           <label className="calendar-label">Date From</label>
@@ -385,7 +411,7 @@ const handleAddEmployee = async (e) => {
             />
           </div>
         </div>
-
+        
         {/* Date To Input Group */}
         <div className="calendar-input-group">
           <label className="calendar-label">To</label>
@@ -408,11 +434,11 @@ const handleAddEmployee = async (e) => {
             />
           </div>
         </div>
-        <div className='button-search'>
+
+      <div className='button-search'>
         <button className="search-text" onClick={handleSearchClick}>
           <i className="fas fa-search search-icon"></i> Search
         </button>
-      </div>
       </div>
       
       {/* Add Employee Button */}
@@ -437,14 +463,15 @@ const handleAddEmployee = async (e) => {
       setFormModalVisible(true);}} 
         className="add-employee-button">
         <i className="add-icon">+</i>
-        <span>Add New Employee</span>
+        <span>Add Employee</span>
         </button>
       </div>
-      </div>
-    </div>
+</div>
+    
     {/* Add Employee Form */}
     {isFormModalVisible && (
-    <Modal className="empform-modal" isVisible={isFormModalVisible} buttons={[]}>
+      <div className='emp-modal-overlay'>
+    <div className="emp-modal" isVisible={isFormModalVisible} buttons={[]}>
     <form className="employee-form" onSubmit={handleAddEmployee}>
     <div className="form-header">
     <h3 class="form-header-title">Add New Employee</h3>
@@ -482,7 +509,7 @@ const handleAddEmployee = async (e) => {
         <input
           type="date"
           name="dob"
-          value={formData.dob || ''}
+          value={formData.dob ? formData.dob.split('T')[0] : ''}
           onChange={handleInputChange}
           required
         />
@@ -494,7 +521,7 @@ const handleAddEmployee = async (e) => {
           name="email"
           value={formData.email || ''}
           onChange={handleInputChange}
-          pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+          pattern="^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
           title="Please enter a valid email address (e.g., user@example.com)."
           placeholder='john.doe@gmail.com'
           required
@@ -562,6 +589,66 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
+  <label>Role<span className="required">*</span></label>
+  <select
+    name="role"
+    value={formData.role || ''}
+    onChange={handleInputChange}
+    required
+  >
+    <option value="">Select Role</option>
+    <option value="Admin">Admin</option>
+    <option value="Employee">Employee</option>
+    <option value="Project Manager">Project Manager</option>
+    <option value="Team Lead">Team Lead</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Department</label>
+  <select
+    name="department"
+    value={formData.department || ''}
+    onChange={handleInputChange}
+    disabled={formData.role === 'Admin'}
+  >
+    <option value="">Select Department</option>
+    {Object.keys(departmentPositions).map((dept) => (
+      <option key={dept} value={dept}>
+        {dept}
+      </option>
+    ))}
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Position</label>
+  <select
+    name="position"
+    value={formData.position || ''}
+    onChange={handleInputChange}
+    disabled={!formData.department && formData.role === 'Admin'}
+  >
+    <option value="">Select Position</option>
+    {formData.department &&
+      (formData.role.toLowerCase().includes('team lead')
+        ? departmentPositions[formData.department]
+            ?.filter((pos) => pos.toLowerCase().includes('team lead'))
+            .map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
+              </option>
+            ))
+        : departmentPositions[formData.department]
+            ?.filter((pos) => !pos.toLowerCase().includes('team lead'))
+            .map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
+              </option>
+            )))}
+  </select>
+</div>
+      <div className="form-group">
   <label>Gender<span className="required">*</span></label>
   <select
     name="gender"
@@ -615,6 +702,17 @@ const handleAddEmployee = async (e) => {
     required
   />
 </div>
+<div className="form-group">
+        <label>Marriage Anniversary</label>
+        <input
+          type="date"
+          name="marriage_date"
+          value={formData.marriage_date || ''}
+          onChange={handleInputChange}
+          disabled={formData.marital_status === 'Unmarried'}
+          required
+        />
+      </div>
       <div className="form-group">
         <label>Address</label>
         <input
@@ -626,67 +724,6 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-  <label>Role<span className="required">*</span></label>
-  <select
-    name="role"
-    value={formData.role || ''}
-    onChange={handleInputChange}
-    required
-  >
-    <option value="">Select Role</option>
-    <option value="Admin">Admin</option>
-    <option value="Employee">Employee</option>
-    <option value="Project Manager">Project Manager</option>
-    <option value="Manager">Manager</option>
-  </select>
-</div>
-
-<div className="form-group">
-  <label>Department</label>
-  <select
-    name="department"
-    value={formData.department || ''}
-    onChange={handleInputChange}
-    disabled={formData.role === 'Admin'} // Admin role doesn't need a department
-  >
-    <option value="">Select Department</option>
-    {Object.keys(departmentPositions).map((dept) => (
-      <option key={dept} value={dept}>
-        {dept}
-      </option>
-    ))}
-  </select>
-</div>
-
-<div className="form-group">
-  <label>Position</label>
-  <select
-    name="position"
-    value={formData.position || ''}
-    onChange={handleInputChange}
-    disabled={!formData.department && formData.role === 'Admin'} // Disable if no department for non-admin roles
-  >
-    <option value="">Select Position</option>
-    {formData.department &&
-      (formData.role.toLowerCase().includes('manager')
-        ? departmentPositions[formData.department]
-            ?.filter((pos) => pos.toLowerCase().includes('manager')) // Filter manager positions for Manager roles
-            .map((pos) => (
-              <option key={pos} value={pos}>
-                {pos}
-              </option>
-            ))
-        : departmentPositions[formData.department]
-            ?.filter((pos) => !pos.toLowerCase().includes('manager')) // Exclude manager positions for non-manager roles
-            .map((pos) => (
-              <option key={pos} value={pos}>
-                {pos}
-              </option>
-            )))}
-  </select>
-</div>
-
-      <div className="form-group">
         <label>Salary [ CTC ]</label>
         <input
           type="number"
@@ -697,26 +734,28 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Photo</label>
-        <input
-          type="file"
-          name="photo"
-          onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
-        />
+      <label>Photo</label>
+      <input
+        type="file"
+        name="photo"
+        accept="image/*"
+        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+      />
       </div>
       </div>
       <div className="button-group">
       <button type="button" className="cancel-button" onClick={() => setFormModalVisible(false)}>Cancel</button>
       <button type="submit" disabled={!isFormValid || isLoading} className="save-employee-button">{isLoading ? 'Submitting...' : 'Add Employee'}</button>
-      {error && <p className="error">{error}</p>}
       </div>
     </form>
-  </Modal>
+  </div>
+  </div>
 )}
 
 {/* Edit Employee Form */}
 {isEditModalVisible && (
-  <Modal className="empform-modal" isVisible={isEditModalVisible} buttons={[]}>
+  <div className='emp-modal-overlay'>
+  <div className="emp-modal" isVisible={isEditModalVisible} buttons={[]}>
     <form
       className="employee-form"
       onSubmit={handleUpdateEmployee} // Ensure this function matches the update action
@@ -833,6 +872,65 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
+  <label>Role<span className="required">*</span></label>
+  <select
+    name="role"
+    value={formData.role || ''}
+    onChange={handleInputChange}
+    required>
+    <option value="">Select Role</option>
+    <option value="Admin">Admin</option>
+    <option value="Employee">Employee</option>
+    <option value="Project Manager">Project Manager</option>
+    <option value="Team Lead">Team Lead</option>
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Department</label>
+  <select
+    name="department"
+    value={formData.department || ''}
+    onChange={handleInputChange}
+    disabled={formData.role === 'Admin'} // Admin role doesn't need a department
+  >
+    <option value="">Select Department</option>
+    {Object.keys(departmentPositions).map((dept) => (
+      <option key={dept} value={dept}>
+        {dept}
+      </option>
+    ))}
+  </select>
+</div>
+
+<div className="form-group">
+  <label>Position</label>
+  <select
+    name="position"
+    value={formData.position || ''}
+    onChange={handleInputChange}
+    disabled={!formData.department && formData.role === 'Admin'} 
+  >
+    <option value="">Select Position</option>
+    {formData.department &&
+      (formData.role.toLowerCase().includes('team lead')
+        ? departmentPositions[formData.department]
+            ?.filter((pos) => pos.toLowerCase().includes('team lead')) 
+            .map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
+              </option>
+            ))
+        : departmentPositions[formData.department]
+            ?.filter((pos) => !pos.toLowerCase().includes('team lead')) 
+            .map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
+              </option>
+            )))}
+  </select>
+</div>
+      <div className="form-group">
   <label>Gender<span className="required">*</span></label>
   <select
     name="gender"
@@ -886,6 +984,17 @@ const handleAddEmployee = async (e) => {
     required
   />
 </div>
+<div className="form-group">
+        <label>Marriage Anniversary</label>
+        <input
+          type="date"
+          name="marriage_date"
+          value={formData.marriage_date || ''}
+          onChange={handleInputChange}
+          disabled={formData.marital_status === 'Unmarried'}
+          required
+        />
+      </div>
       <div className="form-group">
         <label>Address</label>
         <input
@@ -896,67 +1005,6 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-  <label>Role<span className="required">*</span></label>
-  <select
-    name="role"
-    value={formData.role || ''}
-    onChange={handleInputChange}
-    required
-  >
-    <option value="">Select Role</option>
-    <option value="Admin">Admin</option>
-    <option value="Employee">Employee</option>
-    <option value="Project Manager">Project Manager</option>
-    <option value="Manager">Manager</option>
-  </select>
-</div>
-
-<div className="form-group">
-  <label>Department</label>
-  <select
-    name="department"
-    value={formData.department || ''}
-    onChange={handleInputChange}
-    disabled={formData.role === 'Admin'} // Admin role doesn't need a department
-  >
-    <option value="">Select Department</option>
-    {Object.keys(departmentPositions).map((dept) => (
-      <option key={dept} value={dept}>
-        {dept}
-      </option>
-    ))}
-  </select>
-</div>
-
-<div className="form-group">
-  <label>Position</label>
-  <select
-    name="position"
-    value={formData.position || ''}
-    onChange={handleInputChange}
-    disabled={!formData.department && formData.role === 'Admin'} // Disable if no department for non-admin roles
-  >
-    <option value="">Select Position</option>
-    {formData.department &&
-      (formData.role.toLowerCase().includes('manager')
-        ? departmentPositions[formData.department]
-            ?.filter((pos) => pos.toLowerCase().includes('manager')) // Filter manager positions for Manager roles
-            .map((pos) => (
-              <option key={pos} value={pos}>
-                {pos}
-              </option>
-            ))
-        : departmentPositions[formData.department]
-            ?.filter((pos) => !pos.toLowerCase().includes('manager')) // Exclude manager positions for non-manager roles
-            .map((pos) => (
-              <option key={pos} value={pos}>
-                {pos}
-              </option>
-            )))}
-  </select>
-</div>
-
-      <div className="form-group">
         <label>Salary [ CTC ]</label>
         <input
           type="number"
@@ -966,13 +1014,25 @@ const handleAddEmployee = async (e) => {
         />
       </div>
       <div className="form-group">
-        <label>Photo</label>
-        <input
-          type="file"
-          name="photo"
-          onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
-        />
+      <label>Photo</label>
+      <input
+        type="file"
+        name="photo"
+        accept="image/*"
+        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+      />
       </div>
+     {formData.photo && (
+     <div className="form-group">
+      <label>Photo:</label>
+      <img
+      src={formData.photo}
+      alt="Employee Photo"
+      style={{ width: '60px', height: '60px', cursor: 'pointer' }}
+      onClick={() => window.open(formData.photo, '_blank')}
+      />
+      </div>
+      )}
       </div>
       {/* Button Group */}
       <div className="button-group">
@@ -986,33 +1046,38 @@ const handleAddEmployee = async (e) => {
         <button type="submit" className="save-employee-button">
           Update Employee
         </button>
-        {error && <p className="error">{error}</p>}
       </div>
     </form>
-  </Modal>
+  </div>
+  </div>
 )}
-      <Modal
-        className="confirm-deletion-modal"
-        isVisible={modalVisible}
-        buttons={[
-        {
-        label: 'Cancel',
-        onClick: () => setModalVisible(false),
-        className: 'modal-cancel-button',
-        },
-        {
-        label: 'Delete',
-        onClick: handleDeleteEmployee,
-        className: 'modal-delete-button',
-        }, ]}>
-        <h2 className="delete-header">Confirm Deletion</h2>
-        <p>Are you sure you want to delete this employee?</p>
-      </Modal>
+{modalVisible && (
+  <div className="delete-modal-overlay">
+    <div className="delete-modal">
+      <h2>Confirm Deactivation</h2>
+      <p>Are you sure you want to deactivate this employee?</p>
+      <div className="delete-buttons">
+        <button
+          onClick={() => setModalVisible(false)}
+          className="delete-modal-cancel"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleDeactivateEmployee}
+          className="delete-modal-delete"
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-      {/* Display Error Message */}
-      {error && <div className="error">{error}</div>}
+{/* Display Error Message */}
+{error && <div className="error">{error}</div>}
 
-      {/* Employee Table */}
+{/* Employee Table */}
 {isLoading ? (
   <div className="loading">Loading...</div>
 ) : (
@@ -1023,6 +1088,7 @@ const handleAddEmployee = async (e) => {
         <th>Emp ID</th>
         <th>Emp Name</th>
         <th>DOJ</th>
+        <th>Status</th>
         <th>Email ID</th>
         <th>Contact</th>
         <th>Department</th>
@@ -1048,6 +1114,9 @@ const handleAddEmployee = async (e) => {
         return formattedDate;
         })()}
         </td>
+        <td className={employee.status === 'Active' ? 'status-active' : 'status-inactive'}>
+        {employee.status}
+        </td>
         <td>{employee.email}</td>
         <td>{employee.phone_number}</td>
         <td>{employee.department}</td>
@@ -1055,10 +1124,12 @@ const handleAddEmployee = async (e) => {
         <td>{employee.salary}</td>
         <td>
           <div className="actions">
-            <button className="edit" onClick={() => handleEditEmployee(employee.employee_id)}>
+            <button className="edit" onClick={() => handleEditEmployee(employee.employee_id)}
+              disabled={employee.status === 'Inactive'}>
             <MdOutlineEdit />
             </button>
-            <button className="delete" onClick={() => { setDeleteEmployeeId(employee.employee_id); setModalVisible(true); }}>
+            <button className="deactivate" onClick={() => { setDeleteEmployeeId(employee.employee_id); setModalVisible(true); }}
+              disabled={employee.status === 'Inactive'}>
             <MdDeleteOutline />
             </button>
           </div>
