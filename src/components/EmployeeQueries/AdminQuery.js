@@ -9,6 +9,8 @@ const AdminQuery = () => {
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employee_id || null;
   const name = dashboardData.name || null;
+  const userRole =localStorage.getItem("userRole") || null;
+  console.log("user role", userRole);
 
   const [queries, setQueries] = useState([]);
   const [selectedQuery, setSelectedQuery] = useState(null);
@@ -99,7 +101,7 @@ const AdminQuery = () => {
     const formData = new FormData();
     formData.append("sender_id", employeeId);
     formData.append("recipient_id", selectedQuery.sender_id);
-    formData.append("sender_role", "Admin");
+    formData.append("sender_role", userRole);  // This now references the top-level userRole
     formData.append("message", newMessage);
     if (attachment) formData.append("attachment", attachment);
   
@@ -110,9 +112,6 @@ const AdminQuery = () => {
         { headers }
       );
   
-      console.log("Sent Message Response:", response.data.data);
-  
-      // Emit message to socket (DO NOT update setMessages here)
       socket.current.emit("sendMessage", {
         id: response.data.message_id,
         sender_id: employeeId,
@@ -121,14 +120,13 @@ const AdminQuery = () => {
         attachment_url: response.data.attachment_url || null,
         created_at: response.data.created_at || new Date().toISOString(),
       });
-
+  
       setTimeout(() => {
         if (chatContainerRef.current) {
           chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
       }, 100);
   
-      // Only reset input fields, let socket handle message update
       setNewMessage("");
       setAttachment(null);
       setAttachmentName("");
@@ -137,6 +135,7 @@ const AdminQuery = () => {
       alert("Failed to send the message. Please try again.");
     }
   };
+  
   
   
   const markMessagesAsRead = async (threadId) => {

@@ -33,16 +33,12 @@ const Sidebar = ({ setActiveContent }) => {
 
     // Set default active content (Dashboard) on first load
     if (setActiveContent) {
-      if (userRole === "Employee") {
-        setActiveContent(<LeaveRequest />);
-        setActiveItem("/dashboard");
-      } else if (userRole === "Admin") {
+      } if (userRole === "Admin") {
         setActiveContent(<MyDashboard />);
         setActiveItem("/dashboard");
       } else {
-        setActiveContent(<p>Access Denied</p>);
+        setActiveContent(<LeaveRequest />);
       }
-    }
   }, [setActiveContent, userRole]);
 
   const handleMenuClick = (item) => {
@@ -50,7 +46,7 @@ const Sidebar = ({ setActiveContent }) => {
 
     switch (item.path) {
       case "/dashboard":
-        setActiveContent(userRole === "Employee" ? <LeaveRequest /> : <MyDashboard />);
+        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <LeaveRequest />);
         break;
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);

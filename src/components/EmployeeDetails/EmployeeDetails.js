@@ -310,15 +310,15 @@ const handleEditEmployee = async (employeeId) => {
     setIsLoading(true);
   
     const uploadData = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key === 'dob' && formData[key]) {
-        // Format the date to 'YYYY-MM-DD'
-        const formattedDate = new Date(formData[key]).toISOString().split('T')[0];
-        uploadData.append(key, formattedDate);
-      } else {
-        uploadData.append(key, formData[key]);
-      }
-    });
+Object.keys(formData).forEach((key) => {
+  if ((key === 'dob' || key === 'marriage_date') && formData[key]) {
+    // Format the date to 'YYYY-MM-DD'
+    const formattedDate = new Date(formData[key]).toISOString().split('T')[0];
+    uploadData.append(key, formattedDate);
+  } else {
+    uploadData.append(key, formData[key]);
+  }
+});
   
     try {
       await axios.put(
@@ -989,7 +989,7 @@ const handleDeactivateEmployee = async () => {
         <input
           type="date"
           name="marriage_date"
-          value={formData.marriage_date || ''}
+          value={formData.marriage_date ? formData.marriage_date.split('T')[0] : ''}
           onChange={handleInputChange}
           disabled={formData.marital_status === 'Unmarried'}
           required
