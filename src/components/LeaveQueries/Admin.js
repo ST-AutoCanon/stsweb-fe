@@ -67,7 +67,7 @@ const Admin = () => {
     try {
       const update = statusUpdates[leaveId];
       if (!update) return;
-
+      
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/admin/leave/${leaveId}`, {
         method: "PUT",
         headers: {

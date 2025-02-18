@@ -9,20 +9,14 @@ import EmployeeQuery from "../EmployeeQueries/EmployeeQuery";
 import LeaveQueries from "../LeaveQueries/Admin";
 import LeaveRequest from "../LeaveQueries/LeaveRequest";
 import Profile from "../Profile/Profile";
-
-const Sidebar = ({ setActiveContent }) => {
-  const [menuItems, setMenuItems] = useState([]);
-  const [showProfile, setShowProfile] = useState(false);
-  const employeeId = localStorage.getItem("employeeId");
-  const userRole = localStorage.getItem("userRole");
-
-
 import MyDashboard from "../MyDashboard/MyDashboard";
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [activeItem, setActiveItem] = useState(""); // Track active menu item
-
+  const [showProfile, setShowProfile] = useState(false);
+  const employeeId = localStorage.getItem("employeeId");
+  const userRole = localStorage.getItem("userRole");
 
   useEffect(() => {
     // Load menu items from local storage
@@ -38,24 +32,21 @@ const Sidebar = ({ setActiveContent }) => {
     }
 
     // Set default active content (Dashboard) on first load
-    const userRole = localStorage.getItem("userRole");
-    if (userRole === "Employee") {
-      setActiveContent(<LeaveRequest />);
-      setActiveItem("/dashboard");
-    } else if (userRole === "Admin") {
-      setActiveContent(<MyDashboard />);
-      setActiveItem("/dashboard");
-    } else {
-      setActiveContent(<p>Access Denied</p>);
+    if (setActiveContent) {
+      if (userRole === "Employee") {
+        setActiveContent(<LeaveRequest />);
+        setActiveItem("/dashboard");
+      } else if (userRole === "Admin") {
+        setActiveContent(<MyDashboard />);
+        setActiveItem("/dashboard");
+      } else {
+        setActiveContent(<p>Access Denied</p>);
+      }
     }
-  }, [setActiveContent]);
+  }, [setActiveContent, userRole]);
 
   const handleMenuClick = (item) => {
-
-
     setActiveItem(item.path); // Update active menu item
-
-    const userRole = localStorage.getItem("userRole");
 
     switch (item.path) {
       case "/dashboard":
@@ -68,7 +59,6 @@ const Sidebar = ({ setActiveContent }) => {
         setActiveContent(<AddDepartment />);
         break;
       case "/leaveQueries":
-
         if (userRole === "Employee") {
           setActiveContent(<LeaveRequest />);
         } else if (userRole === "Admin") {
@@ -78,13 +68,7 @@ const Sidebar = ({ setActiveContent }) => {
         }
         break;
       case "/employeeQueries":
-        if (userRole === "Admin") {
-          setActiveContent(<AdminQuery />);
-        } else {
-          setActiveContent(<EmployeeQuery />);
-        }
-
-      
+        setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
         break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
