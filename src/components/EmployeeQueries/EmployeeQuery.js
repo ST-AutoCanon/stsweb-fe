@@ -105,10 +105,11 @@ const EmployeeQuery = () => {
         `${process.env.REACT_APP_BACKEND_URL}/threads`,
         {
           sender_id: employeeId,
+          sender_role:  userRole,
           role: recipientRole,
           department_id: departmentId,
           subject: subject,
-          question: query,
+          message: query,
         },
         { headers }
       );
@@ -166,6 +167,8 @@ const EmployeeQuery = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
+    const userRole = localStorage.getItem("userRole");
+
     if (!inputMessage.trim() && !attachment) {
       alert("Message or attachment is required.");
       return;
@@ -345,7 +348,7 @@ const EmployeeQuery = () => {
                  >
                    <option value="">Select Recipient</option>
                    <option value="Admin">Admin</option>
-                   <option value="Manager">Manager</option>
+                   <option value="Team Lead">Team Lead</option>
                    <option value="HR">HR</option>
                  </select>
                </div>
