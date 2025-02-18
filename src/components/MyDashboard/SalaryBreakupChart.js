@@ -25,7 +25,7 @@ const EmployeeSalaryBreakup = () => {
     const fetchSalaryData = async () => {
       try {
         // Make a GET request to fetch salary data from the backend
-        const response = await fetch("http://localhost:5000/salary-ranges", {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/salary-ranges`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${authToken}`,

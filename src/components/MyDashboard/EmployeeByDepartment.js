@@ -27,7 +27,7 @@ const EmployeeByDepartment = () => {
   useEffect(() => {
     const fetchEmployeeCountByDepartment = async () => {
       try {
-        const response = await fetch("http://localhost:5000/employee-count-by-department", {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/employee-count-by-department`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${authToken}`,

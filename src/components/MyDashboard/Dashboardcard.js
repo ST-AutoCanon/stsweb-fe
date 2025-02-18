@@ -30,7 +30,7 @@ const Dashboardcard = () => {
           throw new Error("Authorization token or API Key missing.");
         }
 
-        const response = await fetch("http://localhost:5000/total-payroll-data", {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/total-payroll-data`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${authToken}`,

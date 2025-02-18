@@ -38,7 +38,7 @@ const LoginChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/login-data-count", {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/login-data-count`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${authToken}`, 
