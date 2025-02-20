@@ -46,7 +46,7 @@ const Sidebar = ({ setActiveContent }) => {
 
     switch (item.path) {
       case "/dashboard":
-        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <LeaveRequest />);
+        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <p>My Dashboard</p>);
         break;
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);

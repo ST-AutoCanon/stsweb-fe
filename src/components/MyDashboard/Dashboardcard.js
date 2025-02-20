@@ -22,14 +22,11 @@ const Dashboardcard = () => {
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const authToken = localStorage.getItem("authToken");
+  
 
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
-        if (!authToken || !API_KEY) {
-          throw new Error("Authorization token or API Key missing.");
-        }
-
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/total-payroll-data`, {
           method: "GET",
           headers: {
@@ -38,6 +35,7 @@ const Dashboardcard = () => {
             "Content-Type": "application/json",
           },
         });
+        
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
