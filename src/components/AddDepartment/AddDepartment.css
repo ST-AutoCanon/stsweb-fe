@@ -17,8 +17,9 @@
 
 .add-dp {
     display: flex;
-    width: 15%;
+    width: 16%;
     background-color: #79C42B;
+    text-align: center;
     color: #fff;
     gap: 1%;
     font-size: medium;
@@ -166,7 +167,7 @@
 }
 
 .file-upload {
-    margin-bottom: 15%;
+    margin-bottom: 10%;
 }
 
 .file-input-container {
@@ -174,6 +175,7 @@
     display: flex;
     align-items: center;
     width: 100%;
+    margin-bottom: 2%;
 }
 
 .file-name-input {
@@ -213,11 +215,18 @@
     margin-bottom: 5%;
 }
 
-.input-group label {
+.ad-label {
+    display: flex;
     text-align: left;
-    margin-left: 2%;
+    margin: 2%;
 }
 
 .name-input {
     width: 95%;
+    padding: 2%;
+}
+
+.size {
+    font-style: italic;
+    color: blue;
 }

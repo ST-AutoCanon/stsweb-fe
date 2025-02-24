@@ -150,30 +150,28 @@
   margin-right: 5px;
 }
 
-/* Scrollable Table Container */
-.table-scroll-container {
-  max-height: 600px;
-  overflow-y: auto;
-  overflow-x: auto; 
-  margin: 20px 0;
-}
-
 /* Employee Table */
 .employee-table {
   width: 100%;
-  margin: 20px 0;
+  height: 520px;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin: 2% 0;
+  padding: 0%;
   border-collapse: collapse;
+  display: block;
 }
 
 .employee-table th {
+  top: 0;
   border: 2px solid #CCCBCE;
   background-color: #F2F2F2;
   padding: 1% 0;
   font-size: medium;
   font-weight: bold;
   text-align: center;
-  white-space: nowrap; /* Prevents wrapping of content */
-  overflow: hidden;    /* Ensures long content doesn't overflow */
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .employee-table td {
@@ -181,17 +179,22 @@
   background-color: #fff;
   padding: 8px;
   text-align: left;
-  font-size: small;
+  font-size: 15px;
 }
 
 .employee-table tr {
   background-color: #fff;
 }
 
-.employee-table th:nth-child(3), /* DOJ column header */
-.employee-table td:nth-child(3) { /* DOJ column cells */
-  min-width: 65px; /* Adjust width as needed */
-  text-align: center; /* Ensure proper alignment */
+.employee-table th:nth-child(3),
+.employee-table td:nth-child(3) { 
+  min-width: 100px;
+  text-align: center;
+}
+
+.employee-table th:nth-child(2),
+.employee-table td:nth-child(2) { 
+  min-width: 150px;
 }
 
 .status-active {
@@ -292,34 +295,32 @@ button.deactivate:hover {
   margin-bottom: 10%;
 }
 
+.form-group label {
+  padding: 0%;
+  margin: 0 0 0 5%;
+}
+
 /* Form Inputs */
 .form-grid input{
+  margin: 0 0 0 5%;
   padding: 3%;
   border: 1px solid #CCCBCE;
   border-radius: 5px;
-  width: 86%;
-  font-size: 1vw;
+  width: 76%;
   background-color: #FFFFFF;
 }
 
 .form-grid select {
+  margin: 0 0 0 5%;
   padding: 3%;
   border: 1px solid #CCCBCE;
   border-radius: 5px;
-  width: 94%;
-  font-size: 1vw;
+  width: 84%;
   background-color: #FFFFFF;
-}
-
-/* Error Message */
-.error {
-  color: #D2451E;
-  font-size: 1vw;
 }
 
 .required {
   color: red;
-  font-size: larger;
 }
 
 /* Form Actions */
@@ -434,4 +435,10 @@ button.deactivate:hover {
 
 .modal-delete-button:hover {
   background-color: #999;
+}
+
+.errors {
+  font-size: medium;
+  color: red;
+  margin: 0.5% 2%;
 }

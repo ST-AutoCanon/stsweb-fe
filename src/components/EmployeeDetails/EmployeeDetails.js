@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './EmployeeDetails.css';
 import { MdOutlineCalendarToday, MdOutlineEdit, MdDeleteOutline, MdOutlineCancel } from "react-icons/md";
+import { format } from 'date-fns';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -42,7 +43,6 @@ const EmployeeDetails = () => {
     photo: null,
   });
   const [employeeToEdit, setEmployeeToEdit] = useState(null);
-  const [isFormValid, setIsFormValid] = useState(false);
   const [isFormModalVisible, setFormModalVisible] = useState(false);
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false); // State to show/hide the modal
@@ -54,22 +54,6 @@ const EmployeeDetails = () => {
 
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-
-  useEffect(() => {
-    const requiredFields = [
-      'first_name',
-      'last_name',
-      'dob',
-      'email',
-      'aadhaar_number',
-      'pan_number',
-      'phone_number',
-    ];
-    const isValid = requiredFields.every(
-      (field) => formData[field] && formData[field].trim() !== ''
-    );
-    setIsFormValid(isValid);
-  }, [formData]);
 
   // Fetch all employees or search results based on the search term
   const fetchEmployees = async () => {
@@ -175,14 +159,45 @@ const validateDOB = (dob) => {
   return age;
 };
 
+const handleBlur = (e) => {
+  if (!e.target.value.trim()) {
+    setError(`The ${e.target.name.replace("_", " ")} field is required.`);
+  }
+};
+
 const handleAddEmployee = async (e) => {
   e.preventDefault();
   setIsLoading(true);
+  setError(""); // Clear previous errors
 
-  // Validate Date of Birth (18 years old)
+  const requiredFields = [
+    "first_name",
+    "last_name",
+    "dob",
+    "email",
+    "aadhaar_number",
+    "pan_number",
+    "phone_number",
+    "role",
+    "gender",
+    "marital_status",
+  ];
+
+  const emptyFields = requiredFields.filter((field) => {
+    return !formData[field] || formData[field].toString().trim() === "";
+  });
+
+  console.log("Empty fields:", emptyFields); // Debugging step
+
+  if (emptyFields.length > 0) {
+    setError("Please fill in all required fields.");
+    setIsLoading(false);
+    return;
+  }
+
   const age = validateDOB(formData.dob);
   if (age < 18) {
-    alert('Employee must be at least 18 years old.');
+    setError("Employee must be at least 18 years old.");
     setIsLoading(false);
     return;
   }
@@ -195,41 +210,50 @@ const handleAddEmployee = async (e) => {
 
     await axios.post(`${process.env.REACT_APP_BACKEND_URL}/admin/employees`, uploadData, {
       headers: {
-        'x-api-key': API_KEY,
-        'Content-Type': 'multipart/form-data',
+        "x-api-key": API_KEY,
+        "Content-Type": "multipart/form-data",
       },
     });
 
     setFormData({
-      first_name: '',
-      last_name: '',
-      dob: '',
-      email: '',
-      father_name: '',
-      mother_name: '', 
-      aadhaar_number: '',
-      pan_number: '',
-      phone_number: '',
-      gender: '',
-      marital_status: '',
-      spouse_name: '',
-      marriage_date: '',
-      address: '',
-      department: '',
-      position: '',
-      salary: '',
+      first_name: "",
+      last_name: "",
+      dob: "",
+      email: "",
+      father_name: "",
+      mother_name: "",
+      aadhaar_number: "",
+      pan_number: "",
+      phone_number: "",
+      gender: "",
+      marital_status: "",
+      spouse_name: "",
+      marriage_date: "",
+      address: "",
+      department: "",
+      position: "",
+      salary: "",
       photo: null,
+      role: "",
     });
 
-    setFormModalVisible(false); 
-    alert('Employee added successfully. A password reset email has been sent.');
+    setFormModalVisible(false);
+    alert("Employee added successfully. A password reset email has been sent.");
   } catch (err) {
     console.log(err);
-    setError('Failed to add employee');
+    
+    // Extract the error message from the backend response
+    if (err.response && err.response.data && err.response.data.message) {
+      setError(err.response.data.message); // Show the exact backend error
+    } else {
+      setError("Failed to add employee. Please try again.");
+    }
   } finally {
     setIsLoading(false);
   }
 };
+
+
 
 const fetchPhoto = async (photoUrl) => {
   try {
@@ -401,7 +425,7 @@ const handleDeactivateEmployee = async () => {
                 <div className="custom-calendar-input">
                   <input
                     type="text"
-                    value={fromDate ? fromDate.toISOString().split('T')[0] : ''}
+                    value={fromDate ? format(fromDate, 'yyyy-MM-dd') : ''}
                     readOnly
                     placeholder="Select Date"
                   />
@@ -424,7 +448,7 @@ const handleDeactivateEmployee = async () => {
                 <div className="custom-calendar-input">
                   <input
                     type="text"
-                    value={toDate ? toDate.toISOString().split('T')[0] : ''}
+                    value={toDate ? format(toDate, 'yyyy-MM-dd') : ''}
                     readOnly
                     placeholder="Select Date"
                   />
@@ -472,11 +496,13 @@ const handleDeactivateEmployee = async () => {
     {isFormModalVisible && (
       <div className='emp-modal-overlay'>
     <div className="emp-modal" isVisible={isFormModalVisible} buttons={[]}>
-    <form className="employee-form" onSubmit={handleAddEmployee}>
+    <form className="employee-form" onSubmit={handleAddEmployee} noValidate>
+
     <div className="form-header">
     <h3 class="form-header-title">Add New Employee</h3>
     <MdOutlineCancel className="cancel-icon" onClick={() => setFormModalVisible(false)} />
     </div>
+    {error ? <p className='errors'>{error}</p> : null}
     <div className="form-grid">
       <div className="form-group">
         <label>First Name<span className="required">*</span></label>
@@ -488,6 +514,7 @@ const handleDeactivateEmployee = async () => {
           pattern="[A-Za-z\s]+"
           title="First name should only contain alphabets."
           placeholder='John'
+          onBlur={handleBlur}
           required
         />
       </div>
@@ -501,6 +528,7 @@ const handleDeactivateEmployee = async () => {
           pattern="[A-Za-z\s]+"
           title="Last name should only contain alphabets."
           placeholder='Doe'
+          onBlur={handleBlur}
           required
         />
       </div>
@@ -511,6 +539,7 @@ const handleDeactivateEmployee = async () => {
           name="dob"
           value={formData.dob ? formData.dob.split('T')[0] : ''}
           onChange={handleInputChange}
+          onBlur={handleBlur}
           required
         />
       </div>
@@ -524,6 +553,7 @@ const handleDeactivateEmployee = async () => {
           pattern="^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
           title="Please enter a valid email address (e.g., user@example.com)."
           placeholder='john.doe@gmail.com'
+          onBlur={handleBlur}
           required
         />
       </div>
@@ -559,11 +589,12 @@ const handleDeactivateEmployee = async () => {
           pattern="^\d{12}$"
           title="Aadhaar number must contain exactly 12 digits."
           placeholder='984567345465'
+          onBlur={handleBlur}
           required
         />
       </div>
       <div className="form-group">
-        <label>PAN<span className="required">*</span></label>
+        <label>PAN No<span className="required">*</span></label>
         <input
           type="text"
           name="pan_number"
@@ -572,6 +603,7 @@ const handleDeactivateEmployee = async () => {
           pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
           title="Please enter a valid pan number (e.g., ABCDE1234F)."
           placeholder='ABCDE1234F'
+          onBlur={handleBlur}
           required
         />
       </div>
@@ -585,6 +617,7 @@ const handleDeactivateEmployee = async () => {
           pattern="^\d{10}$"
           title="mobile number must contain 10 digits."
           placeholder='+91 8976345687'
+          onBlur={handleBlur}
           required
         />
       </div>
@@ -594,6 +627,7 @@ const handleDeactivateEmployee = async () => {
     name="role"
     value={formData.role || ''}
     onChange={handleInputChange}
+    onBlur={handleBlur}
     required
   >
     <option value="">Select Role</option>
@@ -605,7 +639,7 @@ const handleDeactivateEmployee = async () => {
 </div>
 
 <div className="form-group">
-  <label>Department</label>
+  <label>Department<span className="required">*</span></label>
   <select
     name="department"
     value={formData.department || ''}
@@ -654,6 +688,7 @@ const handleDeactivateEmployee = async () => {
     name="gender"
     value={formData.gender || ''}
     onChange={handleInputChange}
+    onBlur={handleBlur}
     required
   >
     <option value="">Select Gender</option>
@@ -682,6 +717,7 @@ const handleDeactivateEmployee = async () => {
         }));
       }
     }}
+    onBlur={handleBlur}
     required
   >
     <option value="">Select Marital Status</option>
@@ -699,20 +735,23 @@ const handleDeactivateEmployee = async () => {
     onChange={handleInputChange}
     disabled={formData.marital_status === 'Unmarried'}
     placeholder={formData.marital_status === 'Unmarried' ? 'NA' : 'Enter Spouse Name'}
+    onBlur={handleBlur}
     required
   />
 </div>
 <div className="form-group">
-        <label>Marriage Anniversary</label>
-        <input
-          type="date"
-          name="marriage_date"
-          value={formData.marriage_date || ''}
-          onChange={handleInputChange}
-          disabled={formData.marital_status === 'Unmarried'}
-          required
-        />
-      </div>
+  <label>Marriage Anniversary</label>
+  <input
+    type="date"
+    name="marriage_date"
+    value={formData.marriage_date || ''}
+    onChange={handleInputChange}
+    disabled={formData.marital_status === 'Unmarried'}
+    max={new Date().toISOString().split('T')[0]} 
+    onBlur={handleBlur}
+    required
+  />
+</div>
       <div className="form-group">
         <label>Address</label>
         <input
@@ -745,7 +784,7 @@ const handleDeactivateEmployee = async () => {
       </div>
       <div className="button-group">
       <button type="button" className="cancel-button" onClick={() => setFormModalVisible(false)}>Cancel</button>
-      <button type="submit" disabled={!isFormValid || isLoading} className="save-employee-button">{isLoading ? 'Submitting...' : 'Add Employee'}</button>
+      <button type="submit" disabled={isLoading} className="save-employee-button">{isLoading ? 'Submitting...' : 'Add Employee'}</button>
       </div>
     </form>
   </div>
@@ -767,6 +806,7 @@ const handleDeactivateEmployee = async () => {
           onClick={() => setEditModalVisible(false)}
         />
       </div>
+      {error ? <p className='errors'>{error}</p> : null}
       <div className="form-grid">
         {/* First Name */}
         <div className="form-group">
@@ -848,7 +888,7 @@ const handleDeactivateEmployee = async () => {
         />
       </div>
       <div className="form-group">
-        <label>PAN<span className="required">*</span></label>
+        <label>PAN No<span className="required">*</span></label>
         <input
           type="text"
           name="pan_number"
@@ -887,7 +927,7 @@ const handleDeactivateEmployee = async () => {
 </div>
 
 <div className="form-group">
-  <label>Department</label>
+  <label>Department<span className="required">*</span></label>
   <select
     name="department"
     value={formData.department || ''}
@@ -992,6 +1032,7 @@ const handleDeactivateEmployee = async () => {
           value={formData.marriage_date ? formData.marriage_date.split('T')[0] : ''}
           onChange={handleInputChange}
           disabled={formData.marital_status === 'Unmarried'}
+          max={new Date().toISOString().split('T')[0]}
           required
         />
       </div>
@@ -1075,13 +1116,12 @@ const handleDeactivateEmployee = async () => {
 )}
 
 {/* Display Error Message */}
-{error && <div className="error">{error}</div>}
+{error && <div className="errors">{error}</div>}
 
 {/* Employee Table */}
 {isLoading ? (
   <div className="loading">Loading...</div>
 ) : (
-  <div class="table-scroll-container">
   <table className="employee-table">
     <thead>
       <tr>
@@ -1138,7 +1178,6 @@ const handleDeactivateEmployee = async () => {
       )))}
       </tbody>
     </table>
-    </div>
   )}
 </div>
   );
