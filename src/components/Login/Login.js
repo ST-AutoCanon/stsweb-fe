@@ -8,7 +8,7 @@ const Login = ({ onClose }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(true);
   const navigate = useNavigate();
-  const idleTimeout = 15 * 60 * 1000; // 15 minutes in milliseconds
+  const idleTimeout = 15 * 60 * 1000;
 
   useEffect(() => {
     const handleActivity = () => {
@@ -121,6 +121,8 @@ const Login = ({ onClose }) => {
                 <div className="login-logo">
                   <img src="./images/Loginlogo.png" alt="Logo" className="login-logo-img" />
                 </div>
+                {/* Error Message Display */}
+                {errorMessage && <div className="error-messages">{errorMessage}</div>}
                 <div className="form-group">
                   <label htmlFor="username">User Name</label>
                   <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter your username" />

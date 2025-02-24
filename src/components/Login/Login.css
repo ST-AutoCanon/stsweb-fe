@@ -15,7 +15,7 @@ body, html {
 }
 .login-logo {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .login-logo-img {
@@ -55,7 +55,7 @@ body, html {
   justify-content: center;
 }
 
-h2 {
+.h2 {
   margin-bottom: 20px;
   color: #333;
 }
@@ -66,7 +66,7 @@ h2 {
   
 }
 
-label
+.label
 {
   display: block;
   margin-bottom: 5px;
@@ -74,7 +74,7 @@ label
   color: #333;
 }
 
-input {
+.input {
   width: 50%;
   padding: 10px;
   font-size: 14px;
@@ -82,7 +82,7 @@ input {
   border-radius: 5px;
 }
 
-input:focus {
+.input:focus {
   border-color: #007bff;
   outline: none;
 }
@@ -240,6 +240,12 @@ input:focus {
 {
   background-color: #3e8e41; /* Even darker green when clicked */
   transform: scale(0.98); /* Slightly shrink the button */
+}
+
+.error-messages {
+  font-size: 14px;
+  color: red;
+  margin-bottom: 2%;
 }
 
 /* General styles remain the same */

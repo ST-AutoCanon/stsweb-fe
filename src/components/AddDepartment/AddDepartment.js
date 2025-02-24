@@ -75,7 +75,7 @@ const AddDepartment = () => {
     
         const formData = new FormData();
         formData.append('name', name);
-        formData.append('icon', icon); // Ensure file is appended properly
+        formData.append('icon', icon);
     
         try {
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/departments/add`, {
@@ -91,16 +91,17 @@ const AddDepartment = () => {
                 setMessage(result.message);
                 setName('');
                 setIcon(null);
-                setShowPopup(false); 
+                setShowPopup(false);
                 fetchDepartments();
             } else {
                 setMessage(result.message || 'Failed to add department');
             }
         } catch (error) {
             console.error('Error adding department:', error);
-            setMessage('An error occurred');
+            setMessage(error.message || 'An error occurred');
         }
     };
+    
     
     return (
         <div className="department-container">
@@ -136,7 +137,7 @@ const AddDepartment = () => {
                 </div>
             </div>
 
-            {/* 🔹 Pop-up Form for Adding a New Department */}
+            {/* op-up Form for Adding a New Department */}
             {showPopup && (
                 <div className="popup-overlay">
                     <div className="popup-content">
@@ -144,9 +145,10 @@ const AddDepartment = () => {
                         <h3>Add New Department</h3>
                         <MdOutlineCancel className="close-popup" onClick={() => setShowPopup(false)} />
                         </div>
+                        {message && <p className="error-message">{message}</p>}
                         <form className='dp-form' onSubmit={handleSubmit} encType="multipart/form-data">
                             <div className="input-group">
-                                <label>Department Name</label>
+                                <label className='ad-label'>Department Name</label>
                                 <input
                                     type="text"
                                     placeholder="Enter Department Name"
@@ -157,7 +159,7 @@ const AddDepartment = () => {
                                 </div>
                                 <div className="input-group">
                                 <div className="file-upload">
-                                <label>Upload Icon</label>
+                                <label className='ad-label'>Upload Icon</label>
                                 <div className="file-input-container">
                                 <input
                                 type="text"
@@ -176,6 +178,7 @@ const AddDepartment = () => {
                                     style={{ display: 'none' }} // Hide default file input
                                     />
                                     </div>
+                                    <span className='size'>Icon Size should be 32×32</span>
                                 </div>
                                 <button className='dp-cancel' onClick={() => setShowPopup(false)}>Cancel</button>
                                 <button className='add-button' type="submit">Submit</button>

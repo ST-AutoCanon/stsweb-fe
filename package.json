@@ -4,7 +4,7 @@
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "main": "index.js",
   "scripts": {
-    "start": "PORT=3000 react-scripts start",
+    "start": "cross-env PORT=3000 react-scripts start",
     "server": "cd../Contact && node src/app.js",
     "client": "react-scripts start",
     "build": "react-scripts build",
@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@capacitor/android": "^6.2.0"
+    "@capacitor/android": "^6.2.0",
+    "cross-env": "^7.0.3"
   }
 }
