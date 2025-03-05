@@ -26,6 +26,8 @@ import CardLayout from "./components/CardLayout/CardLayout";
 //import CircularDesign from './components/CircularDesign/CircularDesign';
 import OtherServiceFirst from './components/OtherServiceFirst/OtherServiceFirst';
 
+
+
 import "./App.css";
 import MajorProjects from "./components/MajorProjects/MajorProjects";
 import ITNetworkFirst from "./components/ITNetworkFirst/ITNetworkFirst";
@@ -57,6 +59,13 @@ import Sidebar from "./components/Dashboard/Sidebar.js";
 import Topbar from "./components/Dashboard/Topbar.js";
 
 import LoginChart from "./components/MyDashboard/LoginChart.js";
+
+import MyEmpDashboard from "./components/MyEmpDashboard/MyEmpDashboard.js";
+import EmpDashcards from "./components/MyEmpDashboard/EmpDashCards.js"
+import EmpSessions from "./components/MyEmpDashboard/EmpSessions.js";
+import EmpWorkDays from "./components/MyEmpDashboard/EmpWorkDays.js";
+import EmpReImbursement from "./components/MyEmpDashboard/EmpReImbursement.js";
+
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
   return (
@@ -110,6 +119,14 @@ function App() {
           <Route path="/Topbar" element={<Topbar/>}/>
 
           <Route path="/LoginChart" element={<LoginChart/>}/>
+          <Route path="/MyEmpDashboard" element={<MyEmpDashboard/>}/>
+          <Route path="/EmpDashCards" element={<EmpDashcards/>}/>
+          
+          <Route path="/EmpSessions" element={<EmpSessions/>}/>
+          <Route path="/EmpWorkDays" element={<EmpWorkDays/>}/>
+          <Route path="/EmpReImbursement" element={<EmpReImbursement/>}/>
+          
+
 
 
           <Route
