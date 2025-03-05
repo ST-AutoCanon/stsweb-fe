@@ -10,6 +10,8 @@ import LeaveQueries from "../LeaveQueries/Admin";
 import LeaveRequest from "../LeaveQueries/LeaveRequest";
 import Profile from "../Profile/Profile";
 import MyDashboard from "../MyDashboard/MyDashboard";
+import MyEmpDashboard from "../MyEmpDashboard/MyEmpDashboard";
+
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -37,7 +39,7 @@ const Sidebar = ({ setActiveContent }) => {
         setActiveContent(<MyDashboard />);
         setActiveItem("/dashboard");
       } else {
-        setActiveContent(<LeaveRequest />);
+        setActiveContent(<MyEmpDashboard />);
       }
   }, [setActiveContent, userRole]);
 
@@ -46,7 +48,7 @@ const Sidebar = ({ setActiveContent }) => {
 
     switch (item.path) {
       case "/dashboard":
-        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <p>My Dashboard</p>);
+        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />);
         break;
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);

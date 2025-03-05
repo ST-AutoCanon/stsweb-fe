@@ -1,0 +1,58 @@
+
+.table-container {
+  overflow-x: auto;
+  padding: 30px;
+  width: 88%;
+  
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ccc;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  background-color: #f7f7f7;
+  font-weight: bold;
+}
+
+/* Status Badge Styles */
+.status-approved {
+  background-color: green;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.status-rejected {
+  background-color: red;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.status-pending {
+  background-color: yellow;
+  color: black;
+  padding: 6px 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.status-default {
+  background-color: gray;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  text-align: center;
+}

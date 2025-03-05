@@ -1,0 +1,68 @@
+.emp-dash-cards {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top:50px;
+}
+
+.emp-card {
+  width: 240px;
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+  border: none; /* Removes any border */
+}
+
+/* First Card Background - Default */
+.emp-punch-in {
+  background: #4caf50; /* Green background */
+  color: white;
+}
+
+/* First Card Background - After Clicking */
+.emp-punched-out {
+  background: #DE7921; /* Red background after Punch Out */
+  color: white;
+}
+
+/* Ensure the first card icon is white when active */
+.emp-punch-in .emp-icon,
+.emp-punched-out .emp-icon {
+  color: white;
+}
+
+/* Next three cards (Login Time, Location, Device) */
+.emp-card:not(.emp-punch-in):not(.emp-punched-out) .emp-icon {
+  color: black; /* Set icon color to black */
+}
+
+.emp-card:not(.emp-punch-in):not(.emp-punched-out) .emp-text {
+  color: #3498db; /* Set text color to blue */
+}
+
+.emp-card-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 20px; /* Increased gap between icon and text */
+}
+
+.emp-icon {
+  font-size: 1.8rem;
+}
+
+.emp-text {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.emp-label {
+  font-size: 0.8rem;
+  color: #555;
+  display: block;
+}
