@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./EmpDashCards.css";
@@ -6,7 +7,6 @@ import { FaFingerprint, FaRegClock, FaMapMarkerAlt, FaDesktop } from "react-icon
 
 const EmpDashCards = () => {
   const API_KEY = process.env.REACT_APP_API_KEY; 
-  const authToken = localStorage.getItem("authToken");
 
   let employeeId;
   const dashboardData = localStorage.getItem("dashboardData");
@@ -28,25 +28,19 @@ const EmpDashCards = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    if (!authToken) {
-      setErrorMessage("Session expired. Please log in again.");
-      return;
-    }
     if (employeeId) {
       fetchPunchData();
     }
-  }, [authToken, employeeId]);
+  }, [employeeId]);
 
   const fetchPunchData = async () => {
     try {
-      if (!authToken) return;
       if (!API_KEY) throw new Error("API Key is missing.");
   
       const response = await axios.get(latestPunchApi, {
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
+          "x-api-key": API_KEY
         },
       });
   
@@ -74,45 +68,7 @@ const EmpDashCards = () => {
       setErrorMessage("Failed to fetch punch data.");
     }
   };
-  
-  
-  // const getLocationAndDevice = async () => {
-  //   return new Promise((resolve) => {
-  //     if (navigator.geolocation) {
-  //       navigator.geolocation.getCurrentPosition(
-  //         async (position) => {
-  //           const { latitude, longitude } = position.coords;
-  //           const userAgent = navigator.userAgent;
-  //           const isMobile = /Mobi|Android/i.test(userAgent);
-  //           const device = isMobile ? "Mobile" : "Desktop";
-  
-  //           try {
-  //             const response = await fetch(
-  //               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-  //             );
-  //             const data = await response.json();
-  
-  //             let location = "Unknown";
-  //             if (data && data.address) {
-  //               const { road, suburb, city, state, country } = data.address;
-  //               location = `${road ? road + ", " : ""}${suburb ? suburb + ", " : ""}${city ? city + ", " : ""}${state ? state + ", " : ""}${country || ""}`.trim();
-  //             }
-  
-  //             resolve({ latitude, longitude, location, device }); // Return location instead of coordinates
-  //           } catch (error) {
-  //             console.error("Error fetching address:", error);
-  //             resolve({ latitude, longitude, location: "Unknown", device });
-  //           }
-  //         },
-  //         () => resolve({ latitude: "N/A", longitude: "N/A", location: "Location access denied", device: "Unknown" }),
-  //         { enableHighAccuracy: true }
-  //       );
-  //     } else {
-  //       resolve({ latitude: "N/A", longitude: "N/A", location: "Not supported", device: "Unknown" });
-  //     }
-  //   });
-  // };
-  // 
+
   const getLocationAndDevice = async () => {
     return new Promise((resolve) => {
       if (navigator.geolocation) {
@@ -151,9 +107,8 @@ const EmpDashCards = () => {
     });
   };
   
-
   const handlePunch = async () => {
-    if (!authToken || !API_KEY) {
+    if (!API_KEY) {
       setErrorMessage("Session expired. Please log in again.");
       return;
     }
@@ -176,8 +131,7 @@ const EmpDashCards = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-          Authorization: `Bearer ${authToken}`,
+          "x-api-key": API_KEY
         },
         body: JSON.stringify({ employeeId, device, location, punchMode: "Manual" }),
       });
@@ -200,11 +154,7 @@ const EmpDashCards = () => {
 
   return (
     <div className="emp-dash-cards">
-      <button
-        className={`emp-card emp-punch-in ${isPunchedIn ? "emp-punched-out" : ""}`}
-        onClick={handlePunch}
-        disabled={loading}
-      >
+      <button className={`emp-card emp-punch-in ${isPunchedIn ? "emp-punched-out" : ""}`} onClick={handlePunch} disabled={loading}>
         <div className="emp-card-content">
           <FaFingerprint className="emp-icon" />
           <div>
