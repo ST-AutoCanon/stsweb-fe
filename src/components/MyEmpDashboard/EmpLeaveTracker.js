@@ -37,36 +37,81 @@ const EmpLeaveTracker = () => {
       return;
     }
 
-    const fetchLeaveData = async () => {
-      setLoading(true);
-      setError(null);
+//     const fetchLeaveData = async () => {
+//       setLoading(true);
+//       setError(null);
 
-      try {
-        if (!authToken) throw new Error("⚠️ Session expired. Please log in again.");
-        if (!API_KEY) throw new Error("⚠️ API Key is missing.");
+//       try {
+//         if (!authToken) throw new Error("⚠️ Session expired. Please log in again.");
+//         if (!API_KEY) throw new Error("⚠️ API Key is missing.");
 
-        const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/leave-queries/${employeeId}`;
-        console.log("📡 Fetching leave data from:", apiUrl);
+//         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/leave-queries/${employeeId}`;
+//         console.log("📡 Fetching leave data from:", apiUrl);
 
-        const response = await axios.get(apiUrl, {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
+//         const response = await axios.get(apiUrl, {
+//           headers: {
+//             "Content-Type": "application/json",
+//             "x-api-key": API_KEY,
+//             Authorization: `Bearer ${authToken}`,
+//           },
+//         });
 
-        console.log("✅ API Response:", response.data.leaveQueries);
-        console.log("response123",response);
-        // if (response.status === 200 && Array.isArray(response.data.leaveQueries)) {
-        //   setLeaveData([...response.data.leaveQueries]); // Force React state update
-        //   console.log("⬆️ Updated leaveData:", response.data.leaveQueries);
-        // }
+//         console.log("✅ API Response:", response.data.leaveQueries);
+//         console.log("response123",response);
+//         // if (response.status === 200 && Array.isArray(response.data.leaveQueries)) {
+//         //   setLeaveData([...response.data.leaveQueries]); // Force React state update
+//         //   console.log("⬆️ Updated leaveData:", response.data.leaveQueries);
+//         // }
         
         
         
-          if (response.status === 200 && Array.isArray(response.data.leaveQueries)) {
-      // 🔄 Convert API keys to camelCase
+//           if (response.status === 200 && Array.isArray(response.data.leaveQueries)) {
+//       // 🔄 Convert API keys to camelCase
+//       const formattedData = response.data.leaveQueries.map((leave) => ({
+//         leaveType: leave["Leave Type"] || "N/A",
+//         startDate: leave["Start Date"] || "N/A",
+//         endDate: leave["End Date"] || "N/A",
+//         halfOrFullDay: leave["Half/Full Day"] || "N/A",
+//         reason: leave["Reason"] || "N/A",
+//         status: leave["Status"] || "N/A",
+//         comments: leave["Comments"] || "N/A",
+//       }));
+//       setLeaveData(formattedData);
+//       console.log("⬆️ Updated leaveData (formatted):", formattedData);
+//     } else {
+//       setLeaveData([]);
+//       console.warn("⚠️ No leave records found in API response")
+//     }
+//   } catch (err) {
+//     console.error("❌ Error fetching leave data:", err);
+//     setError(err.response?.data?.message || err.message || "Failed to load data.");
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+        
+
+
+const fetchLeaveData = async () => {
+  setLoading(true);
+  setError(null);
+
+  try {
+    if (!API_KEY) throw new Error("⚠️ API Key is missing.");
+
+    const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/leave-queries/${employeeId}`;
+    console.log("📡 Fetching leave data from:", apiUrl);
+
+    const response = await axios.get(apiUrl, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY, // Keeping API key check
+      },
+    });
+
+    console.log("✅ API Response:", response.data);
+
+    if (response.status === 200 && Array.isArray(response.data.leaveQueries)) {
       const formattedData = response.data.leaveQueries.map((leave) => ({
         leaveType: leave["Leave Type"] || "N/A",
         startDate: leave["Start Date"] || "N/A",
@@ -77,19 +122,18 @@ const EmpLeaveTracker = () => {
         comments: leave["Comments"] || "N/A",
       }));
       setLeaveData(formattedData);
-      console.log("⬆️ Updated leaveData (formatted):", formattedData);
     } else {
       setLeaveData([]);
-      console.warn("⚠️ No leave records found in API response")
+      console.warn("⚠️ No leave records found.");
     }
   } catch (err) {
     console.error("❌ Error fetching leave data:", err);
-    setError(err.response?.data?.message || err.message || "Failed to load data.");
+    setError(err.response?.data?.message || "Failed to load data.");
   } finally {
     setLoading(false);
   }
 };
-        
+
     //     else {
     //       setLeaveData([]); // Avoid errors if response is empty
     //       console.warn("⚠️ No leave records found in API response");

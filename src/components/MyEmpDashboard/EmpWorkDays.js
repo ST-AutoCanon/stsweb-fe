@@ -1,7 +1,5 @@
 
 
-
-
 import React, { useEffect, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -18,7 +16,6 @@ const EmpWorkDays = () => {
   const [employeeId, setEmployeeId] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
@@ -38,12 +35,6 @@ const EmpWorkDays = () => {
     if (!employeeId) return;
 
     const fetchWorkDaysData = async () => {
-      if (!authToken) {
-        setError("Session expired. Please log in again.");
-        setLoading(false);
-        return;
-      }
-
       if (!API_KEY) {
         setError("API Key is missing.");
         setLoading(false);
@@ -57,7 +48,6 @@ const EmpWorkDays = () => {
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
           },
         });
 
@@ -112,7 +102,6 @@ const EmpWorkDays = () => {
         bottom: 15, // Adds space below the chart
       },
     },
- 
     plugins: {
       legend: { display: false },
       datalabels: {
@@ -165,25 +154,21 @@ const EmpWorkDays = () => {
         })}
       </p>
       <div className="chart-container1" style={{ paddingTop: "50px" }}>
-        <Doughnut data={data} options={options
-
-          
-        } plugins={[centerTextPluginWorkDays]} />
+        <Doughnut data={data} options={options} plugins={[centerTextPluginWorkDays]} />
       </div>
       <div className="custom-legend">
-  {chartData.labels.map((label, index) => (
-    <div key={index} className="legend-item">
-      <span
-        className="legend-color"
-        style={{ backgroundColor: chartData.backgroundColors[index] }}
-      ></span>
-      <span className="legend-text">
-        {label}: {chartData.data[index]}
-      </span>
-    </div>
-  ))}
-</div>
-
+        {chartData.labels.map((label, index) => (
+          <div key={index} className="legend-item">
+            <span
+              className="legend-color"
+              style={{ backgroundColor: chartData.backgroundColors[index] }}
+            ></span>
+            <span className="legend-text">
+              {label}: {chartData.data[index]}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

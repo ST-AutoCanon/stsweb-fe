@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Doughnut } from "react-chartjs-2";
@@ -19,7 +20,6 @@ const EmpSessions = () => {
   const [remainingTime, setRemainingTime] = useState("00:00:00");
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
@@ -43,10 +43,6 @@ const EmpSessions = () => {
       setError(null);
 
       try {
-        if (!authToken) {
-          setError("Session expired. Please log in again.");
-          return;
-        }
         if (!API_KEY) {
           setError("API Key is missing.");
           return;
@@ -57,7 +53,6 @@ const EmpSessions = () => {
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
           },
         });
 
@@ -156,14 +151,10 @@ const EmpSessions = () => {
       <p className="current-time">{new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>
       <div className="chart-container">
         <Doughnut data={chartData} options={{
-         responsive: true, maintainAspectRatio: false, cutout: "70%", 
+         responsive: true, maintainAspectRatio: false, cutout: "70%",
          layout: {
-                        padding: {
-                          top: 20, // Adds space above the chart
-                          bottom: 20, // Adds space below the chart
-                        },
-                      },
-         
+           padding: { top: 20, bottom: 20 },
+         },
          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (tooltipItem) => `${tooltipItem.label}: ${formatTime(tooltipItem.raw)}` } }, datalabels: { color: "#000", font: { size: 10, weight: "bold" }, anchor: "end", align: "end", offset: 6, formatter: (value) => (value <= 0 ? "" : formatTime(value)) } } }} />
         <div className="chart-center-label">
           <p>{formatTime(totalWorkSeconds)}</p>
