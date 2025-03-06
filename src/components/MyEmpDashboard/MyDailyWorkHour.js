@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Bar } from "react-chartjs-2";
@@ -24,7 +25,6 @@ const MyDailyWorkHour = () => {
   const [employeeId, setEmployeeId] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
@@ -48,7 +48,6 @@ const MyDailyWorkHour = () => {
       setError(null);
 
       try {
-        if (!authToken) throw new Error("Session expired. Please log in again.");
         if (!API_KEY) throw new Error("API Key is missing.");
 
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/api/work-hour-summary/${employeeId}`;
@@ -56,7 +55,6 @@ const MyDailyWorkHour = () => {
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
           },
         });
 
@@ -84,7 +82,6 @@ const MyDailyWorkHour = () => {
 
   const chartData = workHourData[view] || { labels: [], values: [] };
 
-  // Convert decimal hours to HH:MM format
   const formatTime = (hours) => {
     if (hours === null) return "--:--";
     const h = Math.floor(hours);
@@ -131,12 +128,12 @@ const MyDailyWorkHour = () => {
       x: { grid: { display: false } },
       y: {
         beginAtZero: true,
-        max: view === "Weekly" ? 48 : 10, // Weekly max = 48 hours
+        max: view === "Weekly" ? 48 : 10,
         ticks: {
           callback: function (value) {
             return formatTime(value);
           },
-          stepSize: view === "Weekly" ? 8 : 1, // Weekly step size = 8 hours
+          stepSize: view === "Weekly" ? 8 : 1,
         },
       },
     },
@@ -154,27 +151,26 @@ const MyDailyWorkHour = () => {
           ))}
         </div>
         <div className="work-hour-legend">
-  {view === "Weekly" ? (
-    <>
-      <span className="work-hour-legend-item">
-        <span className="work-hour-box blue"></span> 48+ hours
-      </span>
-      <span className="work-hour-legend-item">
-        <span className="work-hour-box light-blue"></span> Less than 48 hours
-      </span>
-    </>
-  ) : (
-    <>
-      <span className="work-hour-legend-item">
-        <span className="work-hour-box blue"></span> 9+ hours
-      </span>
-      <span className="work-hour-legend-item">
-        <span className="work-hour-box light-blue"></span> Less than 9 hours
-      </span>
-    </>
-  )}
-</div>
-
+          {view === "Weekly" ? (
+            <>
+              <span className="work-hour-legend-item">
+                <span className="work-hour-box blue"></span> 48+ hours
+              </span>
+              <span className="work-hour-legend-item">
+                <span className="work-hour-box light-blue"></span> Less than 48 hours
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="work-hour-legend-item">
+                <span className="work-hour-box blue"></span> 9+ hours
+              </span>
+              <span className="work-hour-legend-item">
+                <span className="work-hour-box light-blue"></span> Less than 9 hours
+              </span>
+            </>
+          )}
+        </div>
       </div>
       <div style={{ width: "1050px", height: "200px", margin: "0 auto" }}>
         <Bar data={generateData()} options={options} />

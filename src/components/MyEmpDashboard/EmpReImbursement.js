@@ -1,5 +1,6 @@
 
 
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Pie } from "react-chartjs-2";
@@ -14,7 +15,6 @@ const EmpReImbursement = () => {
   const [activeTab, setActiveTab] = useState("current");
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
@@ -38,7 +38,6 @@ const EmpReImbursement = () => {
       setError(null);
 
       try {
-        if (!authToken) throw new Error("Session expired. Please log in again.");
         if (!API_KEY) throw new Error("API Key is missing.");
 
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/stats/${employeeId}`;
@@ -47,7 +46,6 @@ const EmpReImbursement = () => {
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
-            Authorization: `Bearer ${authToken}`,
           },
         });
 
