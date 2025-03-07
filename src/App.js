@@ -66,6 +66,9 @@ import EmpSessions from "./components/MyEmpDashboard/EmpSessions.js";
 import EmpWorkDays from "./components/MyEmpDashboard/EmpWorkDays.js";
 import EmpReImbursement from "./components/MyEmpDashboard/EmpReImbursement.js";
 
+import SalaryStatement from "./components/Salary_statement/Salary_Statement.js";
+
+
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
   return (
@@ -125,7 +128,8 @@ function App() {
           <Route path="/EmpSessions" element={<EmpSessions/>}/>
           <Route path="/EmpWorkDays" element={<EmpWorkDays/>}/>
           <Route path="/EmpReImbursement" element={<EmpReImbursement/>}/>
-          
+          <Route path="/Salary_Statement" element={<SalaryStatement/>}/>
+
 
 
 

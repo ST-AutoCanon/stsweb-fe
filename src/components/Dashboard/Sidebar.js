@@ -11,7 +11,8 @@ import LeaveRequest from "../LeaveQueries/LeaveRequest";
 import Profile from "../Profile/Profile";
 import MyDashboard from "../MyDashboard/MyDashboard";
 import MyEmpDashboard from "../MyEmpDashboard/MyEmpDashboard";
-
+import Salary_Statement from "../Salary_statement/Salary_Statement";
+import PayrollSummary from "../PayrollSummary/PayrollSummary";
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -65,6 +66,15 @@ const Sidebar = ({ setActiveContent }) => {
           setActiveContent(<p>Not found</p>);
         }
         break;
+
+        
+        case "/Salary_Statement":
+        setActiveContent(<Salary_Statement />);
+        break;
+        case "/payrollSummary":
+        setActiveContent(<PayrollSummary />);
+        break;
+      
       case "/employeeQueries":
         setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
         break;
