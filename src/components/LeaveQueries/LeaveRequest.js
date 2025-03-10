@@ -6,16 +6,21 @@ import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 
 const LeaveRequest = () => {
     const [isFormVisible, setFormVisible] = useState(false);
+     const [statusUpdates, setStatusUpdates] = useState({}); // For updating status dynamically
     const [formData, setFormData] = useState({
         reason: '',
-        leavetype: 'Casual',
-        h_f_day: 'Full Day',
+        leavetype: '',
+        h_f_day: ' ',
         startDate: '',
         endDate: '',
     });
-    const [leaveRequests, setLeaveRequests] = useState([]);
+    const [leaveRequests, setLeaveRequests] = useState({
+        self: [],  // For storing self leave data
+        team: []   // For storing team leave data
+    });
     const [filters, setFilters] = useState({ from_date: '', to_date: '' });
     const [editingId, setEditingId] = useState(null);
+    
 
     const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -23,6 +28,7 @@ const LeaveRequest = () => {
     const employeeData = JSON.parse(localStorage.getItem('dashboardData'));
     const employeeId = employeeData?.employeeId;
     const name = employeeData?.name;
+    const role = localStorage.getItem("userRole") || null;
 
     useEffect(() => {
         if (employeeId) {
@@ -32,37 +38,115 @@ const LeaveRequest = () => {
 
     const fetchLeaveRequests = async () => {
         try {
-            let url = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
-            if (filters.from_date || filters.to_date) {
-                const params = new URLSearchParams();
-                if (filters.from_date) params.append("from_date", filters.from_date);
-                if (filters.to_date) params.append("to_date", filters.to_date);
-                url += `?${params.toString()}`;
-            }
-
-            const response = await fetch(url, {
+            // Fetch self leave requests
+            const selfUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
+            const selfParams = new URLSearchParams();
+            if (filters.from_date) selfParams.append("from_date", filters.from_date);
+            if (filters.to_date) selfParams.append("to_date", filters.to_date);
+            const selfFinalUrl = selfParams.toString() ? `${selfUrl}?${selfParams.toString()}` : selfUrl;
+    
+            const selfResponse = await fetch(selfFinalUrl, {
                 method: 'GET',
                 headers: {
                     'x-api-key': API_KEY,
                     'Content-Type': 'application/json',
                 },
             });
-
-            if (response.ok) {
-                const result = await response.json();
-                if (result?.status === "success" && Array.isArray(result.message)) {
-                    setLeaveRequests(result.message);
-                } else {
-                    setLeaveRequests([]);
-                }
-            } else {
-                setLeaveRequests([]);
+    
+            let selfRequests = [];
+            if (selfResponse.ok) {
+                const selfResult = await selfResponse.json();
+                selfRequests = selfResult?.data || [];
             }
+    
+            // Fetch team leave requests (Only if the user is a Team Lead)
+            let teamRequests = [];
+            if (role === "Team Lead") {
+                const teamUrl = `${process.env.REACT_APP_BACKEND_URL}/team-lead/${employeeId}`;
+                const teamParams = new URLSearchParams();
+                if (filters.from_date) teamParams.append("from_date", filters.from_date);
+                if (filters.to_date) teamParams.append("to_date", filters.to_date);
+                const teamFinalUrl = teamParams.toString() ? `${teamUrl}?${teamParams.toString()}` : teamUrl;
+    
+                const teamResponse = await fetch(teamFinalUrl, {
+                    method: 'GET',
+                    headers: {
+                        'x-api-key': API_KEY,
+                        'Content-Type': 'application/json',
+                    },
+                });
+    
+                if (teamResponse.ok) {
+                    const teamResult = await teamResponse.json();
+                    teamRequests = teamResult?.message?.data || [];
+                }
+            }
+    
+            // Set state separately
+            setLeaveRequests({ self: selfRequests, team: teamRequests });
+            setStatusUpdates({});
+    
+            console.log("Updated Leave Requests:", { self: selfRequests, team: teamRequests }); // ✅ Debugging log
         } catch (error) {
-            console.error('Error fetching leave requests:', error);
-            setLeaveRequests([]);
+            console.error("Error fetching leave requests:", error);
+            setLeaveRequests({ self: [], team: [] });
         }
     };
+    
+
+    // Update leave request status
+  const handleUpdate = async (leaveId) => {
+    try {
+      const update = statusUpdates[leaveId];
+      if (!update) return;
+      
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/admin/leave/${leaveId}`, {
+        method: "PUT",
+        headers: {
+          "x-api-key": process.env.REACT_APP_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(update),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(data.message || "Leave request updated successfully.");
+
+        // Mark as updated
+        setUpdatedQueries((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(leaveId);
+          return newSet;
+        });
+
+        // Optional: Fetch new data
+        fetchLeaveQueries();
+      } else {
+        alert(data.message || "Failed to update leave request.");
+      }
+    } catch (error) {
+      console.error("Error updating leave request:", error);
+    }
+  };
+
+  const handleStatusChange = (leaveId, key, value) => {
+    setStatusUpdates((prev) => ({
+      ...prev,
+      [leaveId]: {
+        ...prev[leaveId],
+        [key]: value,
+      },
+    }));
+  };
+
+    
+    
 
     // Handle form input changes
     const handleInputChange = (e) => {
@@ -87,7 +171,6 @@ const LeaveRequest = () => {
     // Handle form submission for both new and edited requests
     const handleSubmit = async (e) => {
         e.preventDefault();
-
 
         if (!employeeId || !name) {
             alert("Employee data not found. Please log in again.");
@@ -136,8 +219,8 @@ const LeaveRequest = () => {
                 setEditingId(null);
                 setFormData({
                     reason: '',
-                    leavetype: 'Casual',
-                    h_f_day: 'Full Day',
+                    leavetype: '',
+                    h_f_day: '',
                     startDate: '',
                     endDate: '',
                 });
@@ -154,7 +237,7 @@ const LeaveRequest = () => {
         setFormData({
             reason: request.reason,
             leavetype: request.leave_type,
-            h_f_day: request.h_f_day || "Full Day",
+            h_f_day: request.h_f_day,
             startDate: request.start_date ? request.start_date.split("T")[0] : "",
             endDate: request.end_date ? request.end_date.split("T")[0] : "",
         });
@@ -205,42 +288,40 @@ const LeaveRequest = () => {
             {isFormVisible && (
                 <div className="leave-modal">
                     <div className="leave-modal-content">
-                    <form className="leave-form" onSubmit={handleSubmit}>
-                        <div className="leave-form-header">
-                            <h2>Leave Request Form</h2>
-                            <MdOutlineCancel className="icon" onClick={() => setFormVisible(false)} />
-                        </div>
+                        <form className="leave-form" onSubmit={handleSubmit}>
+                            <div className="leave-form-header">
+                                <h2>Leave Request Form</h2>
+                                <MdOutlineCancel className="icon" onClick={() => setFormVisible(false)} />
+                            </div>
                             <div className='leave-form-grid'>
-                            <div className='leave-form-group'>
-                                <label>Type of Leave</label>
-                                <select name="leavetype" value={formData.leavetype} onChange={handleInputChange}>
-                                    <option value="Casual">Casual</option>
-                                    <option value="Sick">Sick</option>
-                                    <option value="Vacation">Vacation</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div className='leave-form-group'>
-                                <label>Leave Start Date</label>
-                                <input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required />
-                            </div>
-                            <div className='leave-form-group'>
-                                <label>Leave End Date</label>
-                                <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} />
-                            </div>
-
-                            <div className='leave-form-group'>
-                                <label>Half or Full Day Leave</label>
-                                <select name="h_f_day" value={formData.h_f_day} onChange={handleInputChange}>
-                                    <option value="Full Day">Full Day</option>
-                                    <option value="Half Day">Half Day</option>
-                                </select>
-                            </div>
-
-                            <div className='leave-form-group'>
-                                <label>Leave Reason</label>
-                                <input type="text" name="reason" value={formData.reason} onChange={handleInputChange} required />
-                            </div>
+                                <div className='leave-form-group'>
+                                    <label>Type of Leave</label>
+                                    <select name="leavetype" value={formData.leavetype} onChange={handleInputChange}>
+                                        <option value="Casual">Casual</option>
+                                        <option value="Sick">Sick</option>
+                                        <option value="Vacation">Vacation</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div className='leave-form-group'>
+                                    <label>Leave Start Date</label>
+                                    <input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required />
+                                </div>
+                                <div className='leave-form-group'>
+                                    <label>Leave End Date</label>
+                                    <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} />
+                                </div>
+                                <div className='leave-form-group'>
+                                    <label>Half or Full Day Leave</label>
+                                    <select name="h_f_day" value={formData.h_f_day} onChange={handleInputChange}>
+                                        <option value="Full Day">Full Day</option>
+                                        <option value="Half Day">Half Day</option>
+                                    </select>
+                                </div>
+                                <div className='leave-form-group'>
+                                    <label>Leave Reason</label>
+                                    <input type="text" name="reason" value={formData.reason} onChange={handleInputChange} required />
+                                </div>
                             </div>
                             <div className="leave-form-actions">
                                 <button type="button" className="leave-cancel" onClick={() => setFormVisible(false)}>Cancel</button>
@@ -251,10 +332,104 @@ const LeaveRequest = () => {
                 </div>
             )}
 
-
-            <div className='leave-request-table'>
-                <table className='leave-requests'>
+{role === "Team Lead" && (
+    <>
+        {/* Team Leave Requests Table */}
+        <div className='leave-request-table'>
+            <h4>Team Leave Requests</h4>
+            <table className='leave-requests'>
                 <thead>
+                    <tr>
+                        <th>Employee Id</th>
+                        <th>Leave Type</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Half/Full Day</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Comments</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {leaveRequests?.team?.sort((a, b) => b.leave_id - a.leave_id).map((leave) => {
+                        const update = statusUpdates?.[leave.leave_id] || {};
+                        const currentStatus = update.status || leave.status || "";
+                        const statusClass =
+                            currentStatus === "Approved"
+                                ? "status-approved"
+                                : currentStatus === "Rejected"
+                                    ? "status-rejected"
+                                    : "";
+
+                        const isAlreadyUpdated = leave.status !== "pending";
+                        const isUpdating = update.status && update.status !== leave.status;
+
+                        return (
+                            <tr key={leave.leave_id} className={isAlreadyUpdated ? "row-updated" : ""}>
+                                <td>{leave.employee_id}</td>
+                                <td>{leave.leave_type}</td>
+                                <td>{new Date(leave.start_date).toLocaleDateString()}</td>
+                                <td>{new Date(leave.end_date).toLocaleDateString()}</td>
+                                <td>{leave.H_F_day}</td>
+                                <td>{leave.reason}</td>
+                                <td>
+                                    <select
+                                        value={currentStatus}
+                                        onChange={(e) =>
+                                            handleStatusChange(leave.leave_id, "status", e.target.value)
+                                        }
+                                        className={`status-dropdown ${statusClass}`}
+                                        disabled={isAlreadyUpdated} // Disable dropdown if already updated in DB
+                                    >
+                                        <option value="pending">Pending</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                    </select>
+                                </td>
+                                <td>
+            {leave.comments ? (
+                <span className="comments-display">{leave.comments}</span>
+            ) : (
+                <input
+                    type="text"
+                    placeholder="Enter Reason"
+                    value={update.comments || ""}
+                    onChange={(e) =>
+                        handleStatusChange(leave.leave_id, "comments", e.target.value)
+                    }
+                    className="comments-input"
+                    disabled={isAlreadyUpdated} // Disable input only if already updated in DB
+                />
+            )}
+        </td>
+                                <td>
+                                    <button
+                                        className={`update-button ${isAlreadyUpdated ? "disabled-button" : ""}`}
+                                        onClick={() => handleUpdate(leave.leave_id)}
+                                        disabled={
+                                            isAlreadyUpdated || // Disable if already updated
+                                            !isUpdating || // Disable if no new status is selected
+                                            (currentStatus === "Rejected" && !update.comments) // Require comments if rejecting
+                                        }
+                                    >
+                                        {isAlreadyUpdated ? "Updated" : "Update"}
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    </>
+)}
+
+            {/* Self Leave Requests Table */}
+            <div className='leave-request-table'>
+                <h4>My Leave Requests</h4>
+                <table className='leave-requests'>
+                    <thead>
                         <tr>
                             <th>Leave Type</th>
                             <th>Start Date</th>
@@ -267,47 +442,33 @@ const LeaveRequest = () => {
                         </tr>
                     </thead>
                     <tbody>
-                    {leaveRequests
-        .sort((a, b) => b.id - a.id) // Sort in descending order
-        .map((request) => {
-            const isPending = request.status.toLowerCase() === "pending";
-
-        return (
-            <tr key={request.id}>
-                <td>{request.leave_type}</td>
-                <td>{request.start_date.split("T")[0]}</td>
-                <td>{request.end_date.split("T")[0]}</td>
-                <td>{request.h_f_day || "Full Day"}</td>
-                <td>{request.reason}</td>
-                <td 
-                    className={
-                        request.status.toLowerCase() === "approved" ? "status-approved" :
-                        request.status.toLowerCase() === "rejected" ? "status-rejected" :
-                        "status-pending"
-                    }
-                >
-                    {request.status}
-                </td>
-                <td>{request.comments}</td>
-                <td>
-                    <MdOutlineEdit 
-                        className={`button-edit ${!isPending ? "button-disabled" : ""}`} 
-                        onClick={() => isPending && handleEdit(request)}
-                    />
-                    <MdDeleteOutline 
-                        className={`button-delete ${!isPending ? "button-disabled" : ""}`} 
-                        onClick={() => isPending && handleCancel(request.id)}
-                    />
-                </td>
-            </tr>
-        );
-    })}
-</tbody>
-
+                        {leaveRequests.self
+                            .sort((a, b) => b.start_date.localeCompare(a.start_date))
+                            .map(request => (
+                                <tr key={request.id}>
+                                    <td>{request.leave_type}</td>
+                                    <td>{new Date(request.start_date).toLocaleDateString()}</td>
+                                    <td>{new Date(request.end_date).toLocaleDateString()}</td>
+                                    <td>{request.H_F_day}</td>
+                                    <td>{request.reason}</td>
+                                    <td>
+                                    <span className={`leave-status-label ${request.status === "Approved" ? "leave-approved"
+                                       : request.status === "Rejected" ? "leave-rejected" : ""}`}>
+                                      {request.status}
+                                     </span>
+                                       </td>
+                                    <td>{request.comments}</td>
+                                    <td>
+                                        <MdOutlineEdit onClick={() => handleEdit(request)} className='action-button'/>
+                                        <MdDeleteOutline onClick={() => handleCancel(request.id)} className='action-button'/>
+                                    </td>
+                                </tr>
+                            ))}
+                    </tbody>
                 </table>
             </div>
         </div>
     );
-};
+}
 
 export default LeaveRequest;

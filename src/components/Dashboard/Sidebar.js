@@ -13,6 +13,10 @@ import MyDashboard from "../MyDashboard/MyDashboard";
 import MyEmpDashboard from "../MyEmpDashboard/MyEmpDashboard";
 import Salary_Statement from "../Salary_statement/Salary_Statement";
 import PayrollSummary from "../PayrollSummary/PayrollSummary";
+import Reimbursement from "../Reimbursement/Reimbursement";
+import RbAdmin from "../Reimbursement/RbAdmin";
+import RbTeamLead from "../Reimbursement/RbTeamLead";
+
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -75,6 +79,16 @@ const Sidebar = ({ setActiveContent }) => {
         setActiveContent(<PayrollSummary />);
         break;
       
+        case "/reimbursement":
+          if (userRole === "Admin") {
+              setActiveContent(<RbAdmin />);
+          } else if (userRole === "Team Lead") {
+              setActiveContent(<RbTeamLead />);
+          } else {
+              setActiveContent(<Reimbursement />);
+          }
+          break;
+
       case "/employeeQueries":
         setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
         break;

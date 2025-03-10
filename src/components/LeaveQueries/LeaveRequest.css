@@ -259,6 +259,27 @@
 /* Disabled Buttons */
 .button-disabled {
     color: lightgray !important;
-    pointer-events: none; /* Prevent clicks */
+    pointer-events: none;
     cursor: not-allowed;
+}
+
+.leave-status-label {
+    padding: 6px 12px;
+    border-radius: 12px;
+    display: inline-block;
+    text-align: center;
+    min-width: 100px;
+}
+
+.leave-approved {
+    background-color: #D7F2CE;
+}
+
+.leave-rejected {
+    background-color: #FFE5D2;
+}
+
+.action-button {
+    font-size: x-large;
+    margin: 0 5%;
 }

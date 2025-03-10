@@ -1,6 +1,5 @@
 .admin-container {
   padding: 2%;
-  background-color: #E8E9EA;
   font-family: Arial, sans-serif;
 }
 
@@ -41,6 +40,7 @@ margin: 0px;
 
 .date-filter input {
 max-width: 150px;
+padding: 2%;
 }
 
 .search-bar {
@@ -53,7 +53,7 @@ padding: 0px;
 }
 
 .search-button {
-  padding: 1%;
+  padding: 0.6%;
   margin-left: 2%;
   font-size: medium;
   cursor: pointer;
@@ -126,12 +126,12 @@ margin-top: 1%;
 padding: 1%;
 text-align: left;
 border: 1px solid #ddd;
-font-size: medium;
+font-size: small;
 background-color: #FFFFFF;
 }
 
-.leave-table th:nth-child(8),
-.leave-table td:nth-child(8) { 
+.leave-table th:nth-child(7),
+.leave-table td:nth-child(7) { 
 min-width: 50px; 
 text-align: center; 
 }
@@ -140,7 +140,7 @@ text-align: center;
 border: 2px solid #CCCBCE;
 padding: 1%;
 background-color: #F2F2F2;
-font-size: medium;
+font-size: small;
 font-weight: bold;
 text-align: center;
 white-space: nowrap; 
@@ -155,46 +155,30 @@ background-color: #f1f1f1;
 padding: 4%;
 border-radius: 4px;
 border: 2px solid #ccc;
-width: 150px;
 font-size: small;
+color: #000;
 text-align: center;
 cursor: pointer;
 }
 
-.status-dropdown:focus {
-outline: none;
-}
-
-.status-dropdown option {
-padding: 1%;
-}
-
-.status-dropdown {
-color: #000;
-border-color: #ccc;
-
-}
-
 .status-dropdown option[value="Approved"],
 .status-dropdown[value="Approved"] {
-background-color: #7BA100;
-color: #fff;
-}
-
-.status-approved {
-background-color: #7BA100;
-color: #fff;
+background-color: #D7F2CE;
 }
 
 .status-dropdown option[value="Rejected"],
 .status-dropdown[value="Rejected"] {
-background-color: #dd0209;
-color: #fff;
+background-color: #FFE5D2;
+}
+
+.status-approved {
+  background-color: #D7F2CE;
+  color: #000;
 }
 
 .status-rejected {
-background-color: #dd0209;
-color: #fff;
+  background-color: #FFE5D2;
+  color: #000;
 }
 
 .update-button {
@@ -237,7 +221,7 @@ margin: 0px;
 
 .disabled-button {
   background-color: #d3d3d3 !important; 
-  color: #555 !important; 
+  color: #000 !important; 
   cursor: not-allowed !important; 
   pointer-events: none !important; 
   border: none !important;

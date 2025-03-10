@@ -171,8 +171,8 @@ const Admin = () => {
             <thead>
               <tr>
                 <th>Emp ID</th>
-                <th>Emp Name</th>
                 <th>Leave Type</th>
+                <th>Half/Full Day</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Reason</th> 
@@ -202,8 +202,8 @@ const isUpdating = statusUpdates[query.leave_id]?.status && statusUpdates[query.
 return (
     <tr key={query.leave_id} className={isAlreadyUpdated ? "row-updated" : ""}>
         <td>{query.employee_id}</td>
-        <td>{query.name}</td>
         <td>{query.leave_type}</td>
+        <td>{query.H_F_day}</td>
         <td>{formatDate(query.start_date)}</td>
         <td>{formatDate(query.end_date)}</td>
         <td>{query.reason}</td>
