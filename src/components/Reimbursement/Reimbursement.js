@@ -371,7 +371,7 @@ const handleSubmit = async (e) => {
 const updateReimbursement = async (reimbursementId, updateData) => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/reimbursement/update/${reimbursementId}`,
+      `${process.env.REACT_APP_BACKEND_URL}/api/reimbursement/update/${reimbursementId}`,
       {
         method: "PUT",
         headers: {
