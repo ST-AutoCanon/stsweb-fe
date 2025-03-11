@@ -6,20 +6,20 @@
   
 }
 
-table {
+.table {
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #ccc;
 }
 
-th, td {
+.th, .td {
   border: 1px solid #ccc;
   padding: 10px;
   text-align: left;
   font-size: 14px;
 }
 
-th {
+.th {
   background-color: #f7f7f7;
   font-weight: bold;
 }

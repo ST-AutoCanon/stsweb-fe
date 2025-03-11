@@ -6,6 +6,7 @@ import AddDepartment from "../AddDepartment/AddDepartment";
 
 import AdminQuery from "../EmployeeQueries/AdminQuery";
 import EmployeeQuery from "../EmployeeQueries/EmployeeQuery";
+import UpdateProject from "../UpdateProjects/ProjectsDashboard";
 import LeaveQueries from "../LeaveQueries/Admin";
 import LeaveRequest from "../LeaveQueries/LeaveRequest";
 import Profile from "../Profile/Profile";
@@ -60,6 +61,9 @@ const Sidebar = ({ setActiveContent }) => {
         break;
       case "/addDepartment":
         setActiveContent(<AddDepartment />);
+        break;
+        case "/updateProjects":
+        setActiveContent(<UpdateProject />);
         break;
       case "/leaveQueries":
         if (userRole === "Employee") {

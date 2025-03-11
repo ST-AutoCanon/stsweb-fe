@@ -43,7 +43,7 @@
   height: 100%;
 }
 
-.search-input {
+.ed-search-input {
   border: none;
   outline: none;
   font-size: medium;
@@ -57,7 +57,7 @@
   width: 100%; /* Adjust width as needed */
 }
 
-.search-input::placeholder {
+.ed-search-input::placeholder {
   padding: 0 0 0 2%;
   color: #999;
   font-size: 13px;

@@ -10,7 +10,7 @@ const departmentPositions = {
   Software: ['Software Team Lead', 'Senior Software Engineer', 'Associate Software Engineer', 'Senior Test Engineer', 'Test Engineer', 'Senior Network Engineer', 'Network Engineer', 'Technical Engineer'],
   Homologation: ['Homologation Specialist', 'Homologation Team Lead', 'Homologation Engineer',],
   Design: ['Senior Design Engineer', 'Design Engineer', 'Design Lead', 'Design Team Lead'],
-  Finance: ['Finance Team Lead', 'Accountant', 'Financial Analyst'],
+  Finance: ['Finance Manager', 'Accountant', 'Financial Analyst'],
   HR: ['HR Specialist', 'HR Team Lead'],
 };
 
@@ -59,34 +59,33 @@ const EmployeeDetails = () => {
   const fetchEmployees = async () => {
     setIsLoading(true);
     try {
-      let apiUrl = `${process.env.REACT_APP_BACKEND_URL}/admin/employees`; // Base URL
+      let apiUrl = `${process.env.REACT_APP_BACKEND_URL}/admin/employees`; 
       const params = [];
-
-      // Add searchTerm if available
+  
       if (searchTerm) {
         params.push(`search=${encodeURIComponent(searchTerm)}`);
       }
-
-      // Add fromDate and toDate only when search button is clicked
+  
+      // Format dates properly
       if (fromDate) {
-        params.push(`fromDate=${fromDate.toISOString().split('T')[0]}`);
+        params.push(`fromDate=${format(fromDate, 'yyyy-MM-dd')}`);
       }
       if (toDate) {
-        params.push(`toDate=${toDate.toISOString().split('T')[0]}`);
+        params.push(`toDate=${format(toDate, 'yyyy-MM-dd')}`);
       }
-
+  
       if (params.length > 0) {
         apiUrl += `?${params.join('&')}`;
       }
-
+  
       const response = await axios.get(apiUrl, {
         headers: {
           'x-api-key': API_KEY,
           'Content-Type': 'application/json',
         },
       });
-
-      if (response.data && response.data.message && response.data.message.data) {
+  
+      if (response.data?.message?.data) {
         setEmployees(response.data.message.data);
       } else {
         setEmployees([]);
@@ -405,7 +404,7 @@ const handleDeactivateEmployee = async () => {
         <div className="search-box">
           <input
             type="text"
-            className="search-input"
+            className="ed-search-input"
             placeholder="Name, EmpID, Email, Dept"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)} // Update search term as user types
@@ -468,6 +467,7 @@ const handleDeactivateEmployee = async () => {
       {/* Add Employee Button */}
       <div className="actions-container">
       <button onClick={() => {
+        setError('');
       setFormData({
         first_name: '',
         last_name: '',
@@ -633,7 +633,7 @@ const handleDeactivateEmployee = async () => {
     <option value="">Select Role</option>
     <option value="Admin">Admin</option>
     <option value="Employee">Employee</option>
-    <option value="Project Manager">Project Manager</option>
+    <option value="Finance Manager">Finance Manager</option>
     <option value="Team Lead">Team Lead</option>
   </select>
 </div>
@@ -658,29 +658,33 @@ const handleDeactivateEmployee = async () => {
 <div className="form-group">
   <label>Position</label>
   <select
-    name="position"
-    value={formData.position || ''}
-    onChange={handleInputChange}
-    disabled={!formData.department && formData.role === 'Admin'}
-  >
-    <option value="">Select Position</option>
-    {formData.department &&
-      (formData.role.toLowerCase().includes('team lead')
-        ? departmentPositions[formData.department]
-            ?.filter((pos) => pos.toLowerCase().includes('team lead'))
-            .map((pos) => (
-              <option key={pos} value={pos}>
-                {pos}
-              </option>
-            ))
-        : departmentPositions[formData.department]
-            ?.filter((pos) => !pos.toLowerCase().includes('team lead'))
-            .map((pos) => (
-              <option key={pos} value={pos}>
-                {pos}
-              </option>
-            )))}
-  </select>
+  name="position"
+  value={formData.position || ''}
+  onChange={handleInputChange}
+  disabled={!formData.department && formData.role === 'Admin'}
+>
+  <option value="">Select Position</option>
+  {formData.department &&
+    (
+      formData.role.toLowerCase().includes('team lead')
+        ? departmentPositions[formData.department]?.filter((pos) =>
+            pos.toLowerCase().includes('team lead')
+          )
+        : formData.role.toLowerCase().includes('manager')
+          ? departmentPositions[formData.department]?.filter((pos) =>
+              pos.toLowerCase().includes('manager')
+            )
+          : departmentPositions[formData.department]?.filter((pos) =>
+              !pos.toLowerCase().includes('team lead') &&
+              !pos.toLowerCase().includes('manager')
+            )
+    ).map((pos) => (
+      <option key={pos} value={pos}>
+        {pos}
+      </option>
+    ))
+  }
+</select>
 </div>
       <div className="form-group">
   <label>Gender<span className="required">*</span></label>
@@ -921,7 +925,7 @@ const handleDeactivateEmployee = async () => {
     <option value="">Select Role</option>
     <option value="Admin">Admin</option>
     <option value="Employee">Employee</option>
-    <option value="Project Manager">Project Manager</option>
+    <option value="Finance Manager">Finance Manager</option>
     <option value="Team Lead">Team Lead</option>
   </select>
 </div>

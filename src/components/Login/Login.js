@@ -8,7 +8,7 @@ const Login = ({ onClose }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(true);
   const navigate = useNavigate();
-  const idleTimeout = 15 * 60 * 1000;
+  const idleTimeout = 5 * 60 * 1000;
 
   useEffect(() => {
     const handleActivity = () => {
@@ -79,6 +79,7 @@ const Login = ({ onClose }) => {
     try {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/login`, {
         method: 'POST',
+        credentials: "include",
         headers: { 
           'Content-Type': 'application/json',
           'x-api-key': process.env.REACT_APP_API_KEY,
