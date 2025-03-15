@@ -178,7 +178,7 @@ const AddDepartment = () => {
                                     style={{ display: 'none' }} // Hide default file input
                                     />
                                     </div>
-                                    <span className='size'>Icon Size should be 32×32</span>
+                                    <span className='size'>Note: Icon Size should be 32×32</span>
                                 </div>
                                 <button className='dp-cancel' onClick={() => setShowPopup(false)}>Cancel</button>
                                 <button className='add-button' type="submit">Submit</button>

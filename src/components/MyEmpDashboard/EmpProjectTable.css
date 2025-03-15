@@ -49,13 +49,13 @@
     margin-top: 20px;
 }
 
-table {
+.table {
     width: 100%;
     border-collapse: collapse;
     background: white;
 }
 
-th, td {
+.th, .td {
     padding: 10px;
     border: 1px solid #ddd;
     text-align: left;

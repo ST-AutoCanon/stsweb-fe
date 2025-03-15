@@ -6,6 +6,7 @@ import AddDepartment from "../AddDepartment/AddDepartment";
 
 import AdminQuery from "../EmployeeQueries/AdminQuery";
 import EmployeeQuery from "../EmployeeQueries/EmployeeQuery";
+import UpdateProject from "../UpdateProjects/ProjectsDashboard";
 import LeaveQueries from "../LeaveQueries/Admin";
 import LeaveRequest from "../LeaveQueries/LeaveRequest";
 import Profile from "../Profile/Profile";
@@ -61,13 +62,14 @@ const Sidebar = ({ setActiveContent }) => {
       case "/addDepartment":
         setActiveContent(<AddDepartment />);
         break;
+        case "/updateProjects":
+        setActiveContent(<UpdateProject />);
+        break;
       case "/leaveQueries":
-        if (userRole === "Employee") {
-          setActiveContent(<LeaveRequest />);
-        } else if (userRole === "Admin") {
+         if (userRole === "Admin") {
           setActiveContent(<LeaveQueries />);
         } else {
-          setActiveContent(<p>Not found</p>);
+          setActiveContent(<LeaveRequest />);
         }
         break;
 

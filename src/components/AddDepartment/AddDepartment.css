@@ -54,7 +54,7 @@
     display: flex;
     background: #00A1DA;
     color: #fff;
-    padding: 10%;
+    padding: 5%;
     margin-bottom: 10%;
     border-radius: 8px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
@@ -63,6 +63,12 @@
 
 .department-card:hover {
     transform: scale(1.05);
+}
+
+.department-icon {
+    width: 32px;
+    height: 32px;
+    margin: 4% 0 0 5%;
 }
 
 .dp-name {
@@ -76,7 +82,7 @@
 }
 
 .add-new {
-    padding: 8% 0 0 0;
+    padding: 2% 0 0 0;
     text-align: center;
     margin-bottom: 10%;
     border-radius: 8px;
