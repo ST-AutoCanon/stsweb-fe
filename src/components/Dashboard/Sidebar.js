@@ -66,12 +66,10 @@ const Sidebar = ({ setActiveContent }) => {
         setActiveContent(<UpdateProject />);
         break;
       case "/leaveQueries":
-        if (userRole === "Employee") {
-          setActiveContent(<LeaveRequest />);
-        } else if (userRole === "Admin") {
+         if (userRole === "Admin") {
           setActiveContent(<LeaveQueries />);
         } else {
-          setActiveContent(<p>Not found</p>);
+          setActiveContent(<LeaveRequest />);
         }
         break;
 

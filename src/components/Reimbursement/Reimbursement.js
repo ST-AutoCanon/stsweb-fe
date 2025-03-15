@@ -90,6 +90,7 @@ const Reimbursement = () => {
               reimbursementsData.map(async (claim) => {
                 try {
                   console.log(`Fetching attachments for claim ID: ${claim.id}`);
+                  console.log("attachmentdata.....",attachmentsData);
                   const attachmentResponse = await axios.get(
                     `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${claim.id}/attachments`,
                     {
@@ -104,7 +105,7 @@ const Reimbursement = () => {
             
                   // Process attachments
                   attachmentsData[claim.id] = (attachmentResponse.data.attachments || []).map((file) => {
-                    const pathParts = file.file_path.split("\\"); // Split path by backslash
+                    const pathParts = file.file_path.split("/"); // Split path by backslash
                     const year = pathParts[pathParts.length - 4]; // Extract year
                     const month = pathParts[pathParts.length - 3]; // Extract month
                     const employeeId = pathParts[pathParts.length - 2]; // Extract employee ID
@@ -850,6 +851,7 @@ const handleOpenAttachments = async (files, claim) => {
       const fetchedFiles = await Promise.all(
           files.map(async (file) => {
               if (!file?.file_name) return null;
+              console.log("fileurl_...............",files)
 
               const response = await axios.get(
                   `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${file.year}/${file.month}/${file.employeeId}/${file.file_name}`,
