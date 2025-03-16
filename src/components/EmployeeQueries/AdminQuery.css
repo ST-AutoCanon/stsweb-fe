@@ -76,7 +76,7 @@
   overflow-y: scroll;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
-  
+
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -160,12 +160,12 @@
   font-size: small;
   color: #fff;
   text-align: center;
-  background-color: #0078CE;
+  background-color: #0078ce;
   border-radius: 50%;
 }
 
 .message-preview.unread-message {
-  color: #0078CE;
+  color: #0078ce;
 }
 
 .time,
@@ -177,16 +177,14 @@
   flex-grow: 1;
 }
 
-.chat-header {
-  border-bottom: 1px solid #001f3f;
-}
-
 /* Hide scrollbar */
 .chat-messages {
+  display: flex;
+  flex-direction: column-reverse;
   overflow-y: auto;
-  max-height: 400px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  height: 470px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* Hide scrollbar for WebKit (Chrome, Safari) */
@@ -247,7 +245,6 @@
   margin-top: 5px;
 }
 
-
 .chat-input {
   display: flex;
   align-items: center;
@@ -257,26 +254,46 @@
 }
 
 .input-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-wrapper {
   position: relative;
   width: 100%;
 }
 
-.input-container input {
-  width: 90%;
-  padding: 1.5% 5%; /* Adjust padding to make space for the icon */
+.message-input {
+  width: 100%;
+  padding: 1.5% 50px 1.5% 10px; /* Reduced right padding to make room for icon and suffix */
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 16px;
 }
 
+.attachment-suffix {
+  position: absolute;
+  right: 40px; /* leave space for the icon */
+  top: 50%;
+  transform: translateY(-50%);
+  color: #333;
+  font-size: 14px;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .attachment-icon {
   position: absolute;
-  right: 3%; /* Adjust position inside the input box */
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
   color: #666;
   font-size: 20px;
+  z-index: 2;
 }
 
 .attachment-icon:hover {
@@ -284,7 +301,7 @@
 }
 
 .submit-btn {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   width: 10%;
   color: white;
   border: none;
@@ -294,7 +311,7 @@
 }
 
 .submit-btn:hover {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
 }
 
 .chat-input .submit-btn:disabled {

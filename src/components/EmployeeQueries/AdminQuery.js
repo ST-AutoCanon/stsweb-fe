@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { FiPaperclip } from "react-icons/fi";
-import io from "socket.io-client"; // Importing socket.io-client
+import io from "socket.io-client";
+import UserAvatar from "./UserAvatar";
 import "./AdminQuery.css";
 
 const AdminQuery = () => {
@@ -9,7 +10,7 @@ const AdminQuery = () => {
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employee_id || null;
   const name = dashboardData.name || null;
-  const userRole =localStorage.getItem("userRole") || null;
+  const userRole = localStorage.getItem("userRole") || null;
   console.log("user role", userRole);
 
   const [queries, setQueries] = useState([]);
@@ -17,7 +18,7 @@ const AdminQuery = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [attachment, setAttachment] = useState(null);
-  const [attachmentName, setAttachmentName] = useState(""); 
+  const [attachmentName, setAttachmentName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showResolved, setShowResolved] = useState(false);
@@ -25,7 +26,6 @@ const AdminQuery = () => {
 
   const headers = {
     "x-api-key": API_KEY,
-
   };
 
   // Socket connection setup
@@ -36,15 +36,15 @@ const AdminQuery = () => {
     socket.current = io(`${process.env.REACT_APP_BACKEND_URL}`, {
       transports: ["websocket"],
     });
-  
+
     // Function to handle received messages
     const handleReceiveMessage = (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     };
-  
+
     // Attach listener
     socket.current.on("receiveMessage", handleReceiveMessage);
-  
+
     // Cleanup function to remove listener and disconnect socket
     return () => {
       if (socket.current) {
@@ -53,13 +53,14 @@ const AdminQuery = () => {
       }
     };
   });
-  
-
 
   useEffect(() => {
     const fetchQueries = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/threads`, { headers });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/threads`,
+          { headers }
+        );
         if (response.data && response.data.data) {
           setQueries(response.data.data);
         } else {
@@ -77,13 +78,17 @@ const AdminQuery = () => {
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
   const fetchMessages = async (threadId) => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/threads/${threadId}/messages`, { headers });
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/threads/${threadId}/messages`,
+        { headers }
+      );
       setMessages(response.data.data);
       console.log("Fetched Messages:", response.data.data); // Debugging step
     } catch (error) {
@@ -97,36 +102,38 @@ const AdminQuery = () => {
       alert("Message or attachment is required.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("sender_id", employeeId);
     formData.append("recipient_id", selectedQuery.sender_id);
-    formData.append("sender_role", userRole);  // This now references the top-level userRole
+    formData.append("sender_role", userRole); // This now references the top-level userRole
     formData.append("message", newMessage);
     if (attachment) formData.append("attachment", attachment);
-  
+
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
         formData,
         { headers }
       );
-  
+
       socket.current.emit("sendMessage", {
         id: response.data.message_id,
         sender_id: employeeId,
         sender_name: name,
         message: newMessage,
-        attachment_url: response.data.attachment_url || null,
-        created_at: response.data.created_at || new Date().toISOString(),
+        attachment_url: response.data.message.attachment_url || null,
+        created_at:
+          response.data.message.created_at || new Date().toISOString(),
       });
-  
+
       setTimeout(() => {
         if (chatContainerRef.current) {
-          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+          chatContainerRef.current.scrollTop =
+            chatContainerRef.current.scrollHeight;
         }
       }, 100);
-  
+
       setNewMessage("");
       setAttachment(null);
       setAttachmentName("");
@@ -135,9 +142,7 @@ const AdminQuery = () => {
       alert("Failed to send the message. Please try again.");
     }
   };
-  
-  
-  
+
   const markMessagesAsRead = async (threadId) => {
     try {
       await axios.put(
@@ -161,7 +166,10 @@ const AdminQuery = () => {
     setSelectedQuery(query);
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages`, { headers });
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages`,
+        { headers }
+      );
       setMessages(response.data.data);
 
       // Mark messages as read
@@ -196,14 +204,17 @@ const AdminQuery = () => {
   const downloadAttachment = async (url) => {
     try {
       const filename = url.split("/").pop(); // Extract filename from URL
-  
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/attachments/${filename}`, {
-        headers: {
-          "x-api-key": API_KEY,
-        },
-        responseType: "blob", // Ensures file download
-      });
-  
+
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/attachments/${filename}`,
+        {
+          headers: {
+            "x-api-key": API_KEY,
+          },
+          responseType: "blob", // Ensures file download
+        }
+      );
+
       const blob = new Blob([response.data]);
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
@@ -216,8 +227,6 @@ const AdminQuery = () => {
       alert("Failed to download file.");
     }
   };
-  
-  
 
   return (
     <div className="admin-query-container">
@@ -227,37 +236,69 @@ const AdminQuery = () => {
 
       <div className="admin-query-content">
         <div className="ad-sidebar">
-        <div className="toggle-switch">
-  <div className={`toggle-option ${!showResolved ? "active" : ""}`} onClick={() => setShowResolved(false)}>
-    Queries
-  </div>
-  <div className={`toggle-option ${showResolved ? "active" : ""}`} onClick={() => setShowResolved(true)}>
-    Resolved
-    </div>
-  </div>
+          <div className="toggle-switch">
+            <div
+              className={`toggle-option ${!showResolved ? "active" : ""}`}
+              onClick={() => setShowResolved(false)}
+            >
+              Queries
+            </div>
+            <div
+              className={`toggle-option ${showResolved ? "active" : ""}`}
+              onClick={() => setShowResolved(true)}
+            >
+              Resolved
+            </div>
+          </div>
 
           <div className="query-list">
             {queries
-              .filter((query) => (showResolved ? query.status === "closed" : query.status !== "closed"))
+              .filter((query) =>
+                showResolved
+                  ? query.status === "closed"
+                  : query.status !== "closed"
+              )
               .map((query) => (
                 <div
                   key={query.id}
-                  className={`query-item ${selectedQuery?.id === query.id ? "active" : ""}`}
+                  className={`query-item ${
+                    selectedQuery?.id === query.id ? "active" : ""
+                  }`}
                   onClick={() => handleSelectQuery(query)}
                 >
-                  <div className="profile-pic"></div>
+                  {/* Use UserAvatar here */}
+                  <UserAvatar
+                    photoUrl={query.photo_url}
+                    role={query.role}
+                    gender={query.gender}
+                    apiKey={API_KEY}
+                    className="profile-pic"
+                  />
                   <div className="query-info">
                     <div className="query-header">
                       <p className="name">{query.sender_name}</p>
-                      {query.unread_message_count > 0 && <p className="unread-dot">{query.unread_message_count}</p>}
+                      {query.unread_message_count > 0 && (
+                        <p className="unread-dot">
+                          {query.unread_message_count}
+                        </p>
+                      )}
                       <p className="time">
-                        {query.updated_at ? new Date(query.updated_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "N/A"}
+                        {query.updated_at
+                          ? new Date(query.updated_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "N/A"}
                       </p>
                     </div>
-                    <p className={`message-preview ${query.unread_message_count > 0 ? 'unread-message' : ''}`}>
-                    {query.status === "closed" && query.feedback 
-                    ? query.feedback 
-                    : query.latest_message || "No messages yet"}
+                    <p
+                      className={`message-preview ${
+                        query.unread_message_count > 0 ? "unread-message" : ""
+                      }`}
+                    >
+                      {query.status === "closed" && query.feedback
+                        ? query.feedback
+                        : query.latest_message || "No messages yet"}
                     </p>
                   </div>
                 </div>
@@ -269,78 +310,117 @@ const AdminQuery = () => {
           {selectedQuery ? (
             <>
               <div className="chat-header">
-                <p>{new Date(selectedQuery.created_at).toLocaleString()}</p>
-                <p>From: <strong>{selectedQuery.sender_name}</strong></p>
+                <p>
+                  {new Date(selectedQuery.created_at).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </p>
+                <p>
+                  From: <strong>{selectedQuery.sender_name}</strong>
+                </p>
                 <h2>{selectedQuery.subject || "Subject"}</h2>
               </div>
 
               <div className="chat-messages" ref={chatContainerRef}>
-  {messages.map((message) => (
-    <div key={message.id} className={`message-container ${message.sender_id === employeeId ? "right" : "left"}`}>
-      <div className="message-header">
-        <p className="message-sender">{message.sender_name}</p>
-      </div>
-      <div className="message">
-        <p>{message.message}</p>
-
-        {/* Show attachment if available */}
-        {message.attachment_url && (
-          <button
-            className="emp-attachment"
-            onClick={() => downloadAttachment(message.attachment_url)}
-          >
-            📎 {message.attachment_url.split("/").pop()}
-          </button>                    
-        )}
-        <span className="message-time">
-          {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </span>
-      </div>
-    </div>
-  ))}
-
-  {/* Show Feedback and Note for Closed Queries */}
-  {selectedQuery.status === "closed" && selectedQuery.feedback && (
-    <div className="message-container feedback-message">
-      <div className="message feedback">
-        <p><strong>Feedback:</strong> {selectedQuery.feedback}</p>
-        {selectedQuery.note && (
-          <p><strong>Note:</strong> {selectedQuery.note}</p>
-        )}
-      </div>
-    </div>
-  )}
-</div>
-
-              
-              <div className="chat-input">
-                    {/* Input field container */}
-                    <div className="input-container">
-                    <input
-                  type="text"
-                  placeholder="Write a reply..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  disabled={selectedQuery.status === "closed"}
-                />
-                      <input
-                  type="file"
-                  onChange={(e) => {
-                  console.log("Selected File:", e.target.files[0]);
-                  setAttachment(e.target.files[0])
-                  setAttachmentName(e.target.files[0].name); }}
-                  disabled={selectedQuery.status === "closed"}
-                  style={{ display: "none" }}
-                  id="fileInput"
-                />
-                <label htmlFor="fileInput" className="attachment-icon"><FiPaperclip /></label>
-                {attachmentName && <span className="file-name">{attachmentName}</span>}
+                {/* Show Feedback and Note for Closed Queries */}
+                {selectedQuery.status === "closed" &&
+                  selectedQuery.feedback && (
+                    <div className="message-container feedback-message">
+                      <div className="message feedback">
+                        <p>
+                          <strong>Feedback:</strong> {selectedQuery.feedback}
+                        </p>
+                        {selectedQuery.note && (
+                          <p>
+                            <strong>Note:</strong> {selectedQuery.note}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    
-                    <button className="submit-btn" onClick={sendMessage} disabled={selectedQuery.status === "closed"}>
+                  )}
+                {[...messages].reverse().map((message) => (
+                  <div
+                    key={message.id}
+                    className={`message-container ${
+                      message.sender_id === employeeId ? "right" : "left"
+                    }`}
+                  >
+                    <div className="message-header">
+                      <p className="message-sender">{message.sender_name}</p>
+                    </div>
+                    <div className="message">
+                      <p>{message.message}</p>
+
+                      {/* Show attachment if available */}
+                      {message.attachment_url && (
+                        <button
+                          className="emp-attachment"
+                          onClick={() =>
+                            downloadAttachment(message.attachment_url)
+                          }
+                        >
+                          📎 {message.attachment_url.split("/").pop()}
+                        </button>
+                      )}
+                      <span className="message-time">
+                        {new Date(message.created_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="chat-input">
+                {/* Input field container */}
+                <div className="input-container">
+                  <div className="input-wrapper">
+                    <input
+                      type="text"
+                      placeholder="Write a reply..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      disabled={selectedQuery.status === "closed"}
+                      className="message-input"
+                    />
+                    {attachmentName && (
+                      <span className="attachment-suffix">
+                        {attachmentName}
+                      </span>
+                    )}
+                    <label htmlFor="fileInput" className="attachment-icon">
+                      <FiPaperclip />
+                    </label>
+                  </div>
+                  <input
+                    type="file"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setAttachment(file);
+                        setAttachmentName(file.name);
+                      }
+                    }}
+                    disabled={selectedQuery.status === "closed"}
+                    style={{ display: "none" }}
+                    id="fileInput"
+                  />
+                </div>
+                <button
+                  className="submit-btn"
+                  onClick={sendMessage}
+                  disabled={selectedQuery.status === "closed"}
+                >
                   Submit
                 </button>
-                  </div>
+              </div>
             </>
           ) : (
             <p className="select-query">Select a query to view details</p>

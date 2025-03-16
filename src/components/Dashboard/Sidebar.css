@@ -5,24 +5,22 @@
 
   position: fixed; /* Keeps sidebar fixed on the left */
   left: 0;
- margin-top:100%;
+  margin-top: 100%;
   padding: 0;
 }
 
 .sidebar ul {
-  
   list-style-type: none;
   padding: 0;
-  margin-top:15%;
 }
 
 .sidebar li {
   padding: 15px;
   margin: 5px 0;
- 
+
   cursor: pointer;
   background-color: white;
-  border-radius:6px 0 0 6px;
+  border-radius: 6px 0 0 6px;
   /* border: 1px solid #ddd;  */
   transition: background-color 0.3s;
 }
@@ -30,8 +28,6 @@
 .sidebar li:hover {
   background-color: #ddd;
 }
-
-
 
 .sidebar .icon {
   font-size: 20px;
@@ -44,13 +40,11 @@
   color: #333;
 }
 
-
 /* Sidebar.css */
 .view-profile {
   padding: 1%;
   cursor: pointer;
-  margin-top: 10%;
-  text-align: center;
+  margin-left: 22%;
 }
 
 .view-profile-text {

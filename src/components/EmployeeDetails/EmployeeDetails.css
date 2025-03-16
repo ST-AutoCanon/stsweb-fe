@@ -18,7 +18,7 @@
   align-content: flex-start;
   font-size: x-large;
   font-weight: bold;
-  margin:  1% 0 5% 0;
+  margin: 1% 0 5% 0;
 }
 
 .search-container {
@@ -54,7 +54,7 @@
   margin: 0;
   border: 1px solid #ccc;
   border-radius: 4px;
-  width: 100%; /* Adjust width as needed */
+  width: 100%;
 }
 
 .ed-search-input::placeholder {
@@ -65,21 +65,21 @@
 
 .calendar-input-group {
   display: flex;
-  align-items: center; /* Align label and input inline */
-  gap: 5px; /* Space between label and input box */
-  flex-wrap: nowrap; /* Ensure label and input stay on the same row */
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
 }
 
 .calendar-label {
   font-size: medium;
   color: #333;
-  white-space: nowrap; /* Prevent the label from wrapping */
+  white-space: nowrap;
   margin: 0;
 }
 
 .calendar-input-wrapper {
   display: flex;
-  align-items: center; /* Align input and calendar icon inline */
+  align-items: center;
   height: 40px;
 }
 
@@ -91,8 +91,8 @@
 }
 
 .custom-calendar-input input {
-  width: 90px; /* Adjust width as needed */
-  padding: 0px 30px 0px 10px; /* Add padding for the icon */
+  width: 90px;
+  padding: 0px 30px 0px 10px;
   margin: 0;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -115,13 +115,13 @@
   height: 100%;
   font-size: larger;
   border-radius: 5px;
-  background-color: #79C42B;
+  background-color: #79c42b;
   color: white;
   border: none;
   cursor: pointer;
 }
 
-.search-icon {
+.ed-search-icon {
   margin-right: 5px;
 }
 
@@ -131,13 +131,12 @@
   width: 15%;
 }
 
-/* Add New Employee Button */
 .add-employee-button {
   display: flex;
   align-items: center;
   padding: 0 3%;
-  background-color: #79C42B;
-  color: #FFFFFF;
+  background-color: #79c42b;
+  color: #ffffff;
   font-size: larger;
   border: none;
   border-radius: 5px;
@@ -150,7 +149,6 @@
   margin-right: 5px;
 }
 
-/* Employee Table */
 .employee-table {
   width: 100%;
   height: 520px;
@@ -164,8 +162,8 @@
 
 .employee-table th {
   top: 0;
-  border: 2px solid #CCCBCE;
-  background-color: #F2F2F2;
+  border: 2px solid #cccbce;
+  background-color: #f2f2f2;
   padding: 1% 0;
   font-size: medium;
   font-weight: bold;
@@ -175,7 +173,7 @@
 }
 
 .employee-table td {
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   background-color: #fff;
   padding: 8px;
   text-align: left;
@@ -187,13 +185,13 @@
 }
 
 .employee-table th:nth-child(3),
-.employee-table td:nth-child(3) { 
+.employee-table td:nth-child(3) {
   min-width: 100px;
   text-align: center;
 }
 
 .employee-table th:nth-child(2),
-.employee-table td:nth-child(2) { 
+.employee-table td:nth-child(2) {
   min-width: 150px;
 }
 
@@ -247,13 +245,11 @@ button.deactivate:hover {
   background-color: #fff;
 }
 
-
-/* Employee Form */
 .employee-form {
   display: flex;
   flex-direction: column;
   gap: 2%;
-  background-color: #E8E9EA;
+  background-color: #e8e9ea;
   border-radius: 0%;
   padding: 0%;
   width: 100%;
@@ -261,28 +257,26 @@ button.deactivate:hover {
   box-sizing: border-box;
 }
 
-/* Form Header */
 .form-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #00468C;
+  background-color: #00468c;
   height: 5vh;
   padding: 1% 5% 1% 3%;
 }
 
 .form-header-title {
-  font-size: 1.5vw; /* Adjusts based on screen width */
-  color: #FFFFFF;
+  font-size: 1.5vw;
+  color: #ffffff;
 }
 
 .cancel-icon {
   font-size: 2vw;
-  color: #FFFFFF;
+  color: #ffffff;
   cursor: pointer;
 }
 
-/* Form Grid */
 .form-grid {
   display: grid;
   justify-content: center;
@@ -300,30 +294,28 @@ button.deactivate:hover {
   margin: 0 0 0 5%;
 }
 
-/* Form Inputs */
-.form-grid input{
+.form-grid input {
   margin: 0 0 0 5%;
   padding: 3%;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 76%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .form-grid select {
   margin: 0 0 0 5%;
   padding: 3%;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 84%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .required {
   color: red;
 }
 
-/* Form Actions */
 .button-group {
   display: flex;
   gap: 10%;
@@ -334,7 +326,7 @@ button.deactivate:hover {
 .cancel-button {
   background-color: transparent;
   color: #000000;
-  border: 0.3vw solid #7FBD2C;
+  border: 0.3vw solid #7fbd2c;
   width: 25%;
   padding: 1%;
   cursor: pointer;
@@ -342,7 +334,7 @@ button.deactivate:hover {
 }
 
 .save-employee-button {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
   border: none;
   width: 25%;
@@ -351,10 +343,9 @@ button.deactivate:hover {
   font-size: 1vw;
 }
 
-/* Prevent default hover effects */
 .cancel-button:hover,
 .save-employee-button:hover {
-  background-color: #79C42B;
+  background-color: #79c42b;
   color: initial;
   border-color: initial;
 }
@@ -373,7 +364,7 @@ button.deactivate:hover {
 }
 
 .emp-modal {
-  background-color: #E8E9EA;
+  background-color: #e8e9ea;
   padding: 0;
   width: 70%;
   top: 6%;
@@ -394,8 +385,8 @@ button.deactivate:hover {
 }
 
 .delete-modal {
-  background-color: #E8E9EA;
-  border: 10px solid #00468C;
+  background-color: #e8e9ea;
+  border: 10px solid #00468c;
   padding: 1.5%;
   width: 30%;
   top: 6%;
@@ -403,28 +394,25 @@ button.deactivate:hover {
   text-align: center;
 }
 
-/* Ensure buttons are properly spaced out */
 .delete-buttons {
   display: flex;
-  justify-content: space-around; /* Space out the buttons */
+  justify-content: space-around;
   width: 100%;
   padding: 2%;
 }
 
-/* Styling for the cancel button */
 .delete-modal-cancel {
   background-color: transparent;
   color: #000000;
-  border: 0.3vw solid #7FBD2C;
+  border: 0.3vw solid #7fbd2c;
   width: 25%;
   padding: 1%;
   cursor: pointer;
   font-size: 1vw;
 }
 
-/* Styling for the delete button */
 .delete-modal-delete {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
   border: none;
   width: 25%;
