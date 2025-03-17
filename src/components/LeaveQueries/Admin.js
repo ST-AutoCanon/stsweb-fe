@@ -16,7 +16,9 @@ const calculateDays = (startDate, endDate) => {
   const diffInTime = end - start;
 
   // Calculate days (including both start and end dates)
-  return diffInTime >= 0 ? Math.ceil(diffInTime / (1000 * 60 * 60 * 24)) + 1 : 0;
+  return diffInTime >= 0
+    ? Math.ceil(diffInTime / (1000 * 60 * 60 * 24)) + 1
+    : 0;
 };
 
 const Admin = () => {
@@ -26,7 +28,6 @@ const Admin = () => {
   const [fromDate, setFromDate] = useState(""); // State for From Date
   const [toDate, setToDate] = useState(""); // State for To Date
   const [statusUpdates, setStatusUpdates] = useState({}); // For updating status dynamically
-  
 
   // Fetch leave queries from the backend
   const fetchLeaveQueries = async () => {
@@ -38,12 +39,15 @@ const Admin = () => {
         to_date: toDate,
       }).toString();
 
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/admin/leave?${query}`, {
-        headers: {
-          "x-api-key": process.env.REACT_APP_API_KEY,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/admin/leave?${query}`,
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -67,15 +71,18 @@ const Admin = () => {
     try {
       const update = statusUpdates[leaveId];
       if (!update) return;
-      
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/admin/leave/${leaveId}`, {
-        method: "PUT",
-        headers: {
-          "x-api-key": process.env.REACT_APP_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(update),
-      });
+
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/admin/leave/${leaveId}`,
+        {
+          method: "PUT",
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(update),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -125,10 +132,11 @@ const Admin = () => {
       <div className="filters">
         {/* Status Filter */}
         <div className="status-filter">
-        <label>Status Filter</label>
+          <label>Status Filter</label>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}>
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
             <option value="pending">Pending</option>
@@ -161,12 +169,12 @@ const Admin = () => {
         </div>
         {/* Search Button */}
         <button className="search-button" onClick={fetchLeaveQueries}>
-        <IoSearch/> Search
+          <IoSearch /> Search
         </button>
       </div>
       <div>
         {/* Leave Queries Table */}
-        <div className="table-container">
+        <div className="leave-table-container">
           <table className="leave-table">
             <thead>
               <tr>
@@ -175,7 +183,7 @@ const Admin = () => {
                 <th>Half/Full Day</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                <th>Reason</th> 
+                <th>Reason</th>
                 <th>Days</th>
                 <th>Status</th>
                 <th>Comments</th>
@@ -183,77 +191,96 @@ const Admin = () => {
               </tr>
             </thead>
             <tbody>
-    {leaveQueries
-        .sort((a, b) => b.leave_id - a.leave_id) // Sort in descending order
-        .map((query) => {
-                const update = statusUpdates[query.leave_id] || {};
-                const currentStatus = update.status || query.status || ""; // Use updated or existing status
-                const statusClass =
-                  currentStatus === "Approved"
-                    ? "status-approved"
-                    : currentStatus === "Rejected"
-                    ? "status-rejected"
-                    : "";
+              {leaveQueries
+                .sort((a, b) => b.leave_id - a.leave_id) // Sort in descending order
+                .map((query) => {
+                  const update = statusUpdates[query.leave_id] || {};
+                  const currentStatus = update.status || query.status || ""; // Use updated or existing status
+                  const statusClass =
+                    currentStatus === "Approved"
+                      ? "status-approved"
+                      : currentStatus === "Rejected"
+                      ? "status-rejected"
+                      : "";
 
-                    const isAlreadyUpdated = query.status !== "pending"; // Check the original status from DB
+                  const isAlreadyUpdated = query.status !== "pending"; // Check the original status from DB
 
-const isUpdating = statusUpdates[query.leave_id]?.status && statusUpdates[query.leave_id]?.status !== query.status; // Check if user is selecting a new status
+                  const isUpdating =
+                    statusUpdates[query.leave_id]?.status &&
+                    statusUpdates[query.leave_id]?.status !== query.status; // Check if user is selecting a new status
 
-return (
-    <tr key={query.leave_id} className={isAlreadyUpdated ? "row-updated" : ""}>
-        <td>{query.employee_id}</td>
-        <td>{query.leave_type}</td>
-        <td>{query.H_F_day}</td>
-        <td>{formatDate(query.start_date)}</td>
-        <td>{formatDate(query.end_date)}</td>
-        <td>{query.reason}</td>
-        <td>{calculateDays(query.start_date, query.end_date)}</td>
-        <td>
-            <select
-                value={currentStatus}
-                onChange={(e) =>
-                    handleStatusChange(query.leave_id, "status", e.target.value)
-                }
-                className={`status-dropdown ${statusClass}`}
-                disabled={isAlreadyUpdated} // Disable dropdown only if already updated in DB
-            >
-                <option value="pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-            </select>
-        </td>
-        <td>
-            {query.comments ? (
-                <span className="comments-display">{query.comments}</span>
-            ) : (
-                <input
-                    type="text"
-                    placeholder="Enter Reason"
-                    value={update.comments || ""}
-                    onChange={(e) =>
-                        handleStatusChange(query.leave_id, "comments", e.target.value)
-                    }
-                    className="comments-input"
-                    disabled={isAlreadyUpdated} // Disable input only if already updated in DB
-                />
-            )}
-        </td>
-        <td>
-            <button
-                className={`update-button ${isAlreadyUpdated ? "disabled-button" : ""}`}
-                onClick={() => handleUpdate(query.leave_id)}
-                disabled={
-                    isAlreadyUpdated || // Disable only if already updated
-                    !isUpdating || // Disable if no new status is selected
-                    (currentStatus === "Rejected" && !update.comments) // Require comments if rejecting
-                }
-            >
-                {isAlreadyUpdated ? "Updated" : "Update"}
-            </button>
-        </td>
-    </tr>
-                );
-              })}
+                  return (
+                    <tr
+                      key={query.leave_id}
+                      className={isAlreadyUpdated ? "row-updated" : ""}
+                    >
+                      <td>{query.employee_id}</td>
+                      <td>{query.leave_type}</td>
+                      <td>{query.H_F_day}</td>
+                      <td>{formatDate(query.start_date)}</td>
+                      <td>{formatDate(query.end_date)}</td>
+                      <td className="comments-col">
+                        <div className="comment-preview">{query.reason}</div>
+                      </td>
+                      <td>{calculateDays(query.start_date, query.end_date)}</td>
+                      <td>
+                        <select
+                          value={currentStatus}
+                          onChange={(e) =>
+                            handleStatusChange(
+                              query.leave_id,
+                              "status",
+                              e.target.value
+                            )
+                          }
+                          className={`status-dropdown ${statusClass}`}
+                          disabled={isAlreadyUpdated} // Disable dropdown only if already updated in DB
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="Approved">Approved</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </td>
+                      <td className="comments-col">
+                        <div className="comment-preview">
+                          {query.comments ? (
+                            <span>{query.comments}</span>
+                          ) : (
+                            <input
+                              type="text"
+                              placeholder="Enter Reason"
+                              value={update.comments || ""}
+                              onChange={(e) =>
+                                handleStatusChange(
+                                  query.leave_id,
+                                  "comments",
+                                  e.target.value
+                                )
+                              }
+                              className="comments-input"
+                              disabled={isAlreadyUpdated}
+                            />
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          className={`update-button ${
+                            isAlreadyUpdated ? "disabled-button" : ""
+                          }`}
+                          onClick={() => handleUpdate(query.leave_id)}
+                          disabled={
+                            isAlreadyUpdated || // Disable only if already updated
+                            !isUpdating || // Disable if no new status is selected
+                            (currentStatus === "Rejected" && !update.comments) // Require comments if rejecting
+                          }
+                        >
+                          {isAlreadyUpdated ? "Updated" : "Update"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>

@@ -1,68 +1,101 @@
 .calendar-container {
-    width: 250px;
-    text-align: center;
-    background: #00468C;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  height: 330px;
+  text-align: center;
+  background: #001d4a;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .react-calendar {
-    background: #E8E9EA;
+  height: 100%;
+  background: #f8f8f9;
+}
+
+.react-calendar__navigation {
+  height: 20%;
+}
+
+.react-calendar__navigation__arrow {
+  width: 20%;
+  font-size: xx-large;
+  color: #00468c;
 }
 
 .react-calendar__navigation__label {
-    font-size: 1rem;
-    font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: bold;
+  pointer-events: none;
+  color: #00468c;
 }
 
-/* Hide the year in the header */
-.react-calendar__navigation__label {
-    pointer-events: none;
+.react-calendar__month-view__weekdays {
+  font-size: 0.9rem;
+  border: none;
+  color: #0267cb;
 }
 
 /* ✅ Holiday indicator dot */
 .holiday-dot {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.sunday-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  background-color: #fc4f4f;
 }
 
 /* ✅ Holiday color styles */
 .govt-holiday .holiday-dot {
-    background-color: rgb(252, 79, 79);
+  background-color: #fc4f4f;
 }
 
 .company-holiday .holiday-dot {
-    background-color: rgb(144, 144, 253);
+  background-color: rgb(144, 144, 253);
 }
 
 /* Ensure date number is above dot */
 .react-calendar__tile {
-    position: relative;
+  position: relative;
+  padding: 3%;
+  font-size: medium;
+  font-weight: lighter;
 }
 
 .react-calendar__tile abbr {
-    position: relative;
-    z-index: 2;
-    color: #000;
-    font-weight: bold;
+  position: relative;
+  z-index: 2;
+  color: #000;
+  font-weight: bold;
 }
 
 /* ✅ Tooltip styling */
 .react-tooltip {
-    z-index: 9999 !important;
-    background-color: rgba(0, 0, 0, 0.9) !important;
-    color: white !important;
-    padding: 6px 10px !important;
-    border-radius: 5px !important;
-    font-size: 14px !important;
+  z-index: 9999 !important;
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  padding: 6px 10px !important;
+  border-radius: 5px !important;
+  font-size: 14px !important;
 }

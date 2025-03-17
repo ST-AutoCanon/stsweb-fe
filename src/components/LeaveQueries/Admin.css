@@ -11,45 +11,44 @@
 }
 
 .filters {
-display: flex;
-justify-content: space-between;
-align-items: center;
-flex-wrap: nowrap;
-margin-bottom: 2%;
-overflow-x: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  margin-bottom: 2%;
+  overflow-x: auto;
 }
 
 .filters > div,
 .filters > button {
-flex-shrink: 0; 
-white-space: nowrap;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .date-filter {
-display: flex;
-align-items: center;
-gap: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .date-filter label {
   font-size: medium;
   font-weight: bold;
-margin: 0px;
+  margin: 0px;
 }
 
-
 .date-filter input {
-max-width: 150px;
-padding: 2%;
+  max-width: 150px;
+  padding: 2%;
 }
 
 .search-bar {
-display: flex;
-align-items: center;
-gap: 2%;
-white-space: nowrap;
-margin: 0px;
-padding: 0px;
+  display: flex;
+  align-items: center;
+  gap: 2%;
+  white-space: nowrap;
+  margin: 0px;
+  padding: 0px;
 }
 
 .search-button {
@@ -58,29 +57,27 @@ padding: 0px;
   font-size: medium;
   cursor: pointer;
   width: 10%;
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   border: none;
   border-radius: 5px;
 }
 
-
 .search-bar label {
-font-size: medium;
-font-weight: bold; 
-white-space: nowrap; 
-margin: 0px;
-
+  font-size: medium;
+  font-weight: bold;
+  white-space: nowrap;
+  margin: 0px;
 }
 
 .search-bar input {
-flex: 1; 
-padding: 3%;
-font-size: medium;
-border: 1px solid #ccc;
-border-radius: 4px;
-width: 160px;
-margin-bottom: 0px;
+  flex: 1;
+  padding: 3%;
+  font-size: medium;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 160px;
+  margin-bottom: 0px;
 }
 
 .status-filter {
@@ -97,92 +94,91 @@ margin-bottom: 0px;
 }
 
 .status-filter select {
-width: 100px;
-padding: 4%;
-font-size: small;
-font-weight: bold;
-border: 1px solid #ccc;
-border-radius: 4px;
-margin-top: 5px;
+  width: 100px;
+  padding: 4%;
+  font-size: small;
+  font-weight: bold;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 5px;
 }
 
-.table-container {
-display: flex;
-justify-content: center;
-max-height: 600px;
-overflow-y: auto;
-overflow-x: auto; 
-margin: 2% 0;
-
+.leave-table-container {
+  display: flex;
+  justify-content: center;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin: 2% 0;
 }
 
 .leave-table {
-width: 100%;
-border-collapse: collapse;
-margin-top: 1%;
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .leave-table td {
-padding: 1%;
-text-align: left;
-border: 1px solid #ddd;
-font-size: small;
-background-color: #FFFFFF;
+  padding: 0.5% 1%;
+  text-align: left;
+  border: 1px solid #ddd;
+  font-size: small;
+  background-color: #ffffff;
 }
 
 .leave-table th:nth-child(7),
-.leave-table td:nth-child(7) { 
-min-width: 50px; 
-text-align: center; 
+.leave-table td:nth-child(7) {
+  min-width: 50px;
+  text-align: center;
 }
 
 .leave-table th {
-border: 2px solid #CCCBCE;
-padding: 1%;
-background-color: #F2F2F2;
-font-size: small;
-font-weight: bold;
-text-align: center;
-white-space: nowrap; 
-overflow: hidden;
+  border: 2px solid #cccbce;
+  padding: 1%;
+  background-color: #f2f2f2;
+  font-size: small;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .leave-table tr:hover {
-background-color: #f1f1f1;
+  background-color: #f1f1f1;
 }
 
 .status-dropdown {
-padding: 4%;
-border-radius: 4px;
-border: 2px solid #ccc;
-font-size: small;
-color: #000;
-text-align: center;
-cursor: pointer;
+  padding: 4%;
+  border-radius: 4px;
+  border: 2px solid #ccc;
+  font-size: small;
+  color: #000;
+  text-align: center;
+  cursor: pointer;
 }
 
 .status-dropdown option[value="Approved"],
 .status-dropdown[value="Approved"] {
-background-color: #D7F2CE;
+  background-color: #d7f2ce;
 }
 
 .status-dropdown option[value="Rejected"],
 .status-dropdown[value="Rejected"] {
-background-color: #FFE5D2;
+  background-color: #ffe5d2;
 }
 
 .status-approved {
-  background-color: #D7F2CE;
+  background-color: #d7f2ce;
   color: #000;
 }
 
 .status-rejected {
-  background-color: #FFE5D2;
+  background-color: #ffe5d2;
   color: #000;
 }
 
 .update-button {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
   border: none;
   padding: 5px 15px;
@@ -194,60 +190,66 @@ background-color: #FFE5D2;
 }
 
 .update-button.row-updated {
-background-color: #d3d3d3;
-color: #555;
+  background-color: #d3d3d3;
+  color: #555;
 }
 
 .update-button:hover {
   background-color: #218838;
 }
 
-.comments {
-  font-size: small;
-  color: #555;
-  width: 90%;
-}
-
-.comments-input {
-width: 100%; 
-max-width: 100%; 
-box-sizing: border-box; 
-padding: 4%;
-font-size: small;
-border: 2px solid #ccc;
-border-radius: 4px;
-margin: 0px;
-}
-
 .disabled-button {
-  background-color: #d3d3d3 !important; 
-  color: #000 !important; 
-  cursor: not-allowed !important; 
-  pointer-events: none !important; 
+  background-color: #d3d3d3 !important;
+  color: #000 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
   border: none !important;
 }
 
+.leave-table th.comments-col,
+.leave-table td.comments-col {
+  width: 200px;
+  vertical-align: top;
+}
+
+.comment-preview input {
+  width: 85%;
+  padding: 4%;
+}
+
+.comment-preview {
+  max-height: 35px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  white-space: normal;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  font-size: medium;
+}
+
+.comments-col:hover .comment-preview {
+  max-height: 500px;
+}
 
 /* Responsive design */
 @media (max-width: 768px) {
   .container {
-      padding: 10px;
+    padding: 10px;
   }
 
   .search-bar {
-      flex-wrap: wrap;
-    
+    flex-wrap: wrap;
   }
 
   .search-bar select,
   .search-bar input,
   .search-bar button {
-      margin-bottom: 10px;
-      width: 100%;
+    margin-bottom: 10px;
+    width: 100%;
   }
 
   table th,
   table td {
-      font-size: 12px;
+    font-size: 12px;
   }
 }

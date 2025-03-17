@@ -17,7 +17,6 @@
   margin-left: -20%;
 
   /* margin-top: 6%; */
-
 }
 
 /* Profile section styling */
@@ -25,7 +24,7 @@
   display: flex;
   align-items: center; /* Align profile items vertically */
   margin-left: 7%;
-  margin-bottom:1%;
+  margin-bottom: 1%;
 }
 
 .profile-img {
@@ -33,17 +32,15 @@
   height: 60px;
   border-radius: 50%;
   margin-left: -15%;
-  
 }
 
 .profile-info {
-  margin-left:10%;
-  
-  gap: 5px; 
-  white-space: nowrap; 
+  margin-left: 10%;
+
+  gap: 5px;
+  white-space: nowrap;
   display: flex;
-  flex-direction: column;  
-  
+  flex-direction: column;
 }
 .profile-namedash {
   font-size: 16px;
@@ -51,22 +48,20 @@
   font-weight: bold;
   display: inline-block;
   max-width: 100%;
-  
 }
 .profile-designation {
   font-size: 14px;
   color: #777;
-  margin-right:30%;
+  margin-right: 30%;
   display: inline-block;
 }
 
-
 .icon-section {
   display: flex;
-  gap: 40%; 
+  gap: 40%;
   margin-right: 5%;
   font-size: 200%;
-  margin-bottom:2% ;
+  margin-bottom: 2%;
 }
 
 .icon {
@@ -76,32 +71,31 @@
 }
 
 .icon:hover {
-  transform: scale(1.1); 
+  transform: scale(1.1);
 }
 
-
 .calendar-dropdown {
-position: absolute;
-top: 50px;
-right: 0.1%;
-font-size: small;
-background: white;
-border-radius: 10px;
-box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: 150px;
+  right: 0.1%;
+  font-size: small;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .close-btn {
-position: absolute;
-top: 5px;
-right: 5px;
-background: #00468C;
-color: white;
-border: none;
-padding: 1% 2%;
-border-radius: 50%;
-cursor: pointer;
-font-size: small;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #001d4a;
+  color: white;
+  border: none;
+  padding: 2% 3%;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: small;
 }
 .close-btn:hover {
-background: darkred;
+  background: darkred;
 }

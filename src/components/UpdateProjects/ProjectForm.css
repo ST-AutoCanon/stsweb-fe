@@ -1,6 +1,6 @@
 .pj-form-container {
   width: 100%;
-  background: #E8E9EA;
+  background: #e8e9ea;
 }
 
 .pj-form-header {
@@ -8,17 +8,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 5%;
-  background: #00468C;
+  background: #00468c;
   color: #fff;
 }
 
 .pj-form-title {
-  margin: 2%;
+  margin: 1.5%;
   color: #fff;
 }
 
 .pj-close-btn {
-  font-size: x-large;
+  font-size: xx-large;
 }
 
 .pj-step-navigation {
@@ -40,8 +40,8 @@
 
 /* Step Circle */
 .pj-step-circle {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: lightgray;
   display: flex;
@@ -51,25 +51,26 @@
   font-weight: bold;
   color: #fff;
   z-index: 1;
+  margin-bottom: 2%;
 }
 
 /* Active step (current step) */
 .pj-step-circle.active {
-  background: #00468C; /* Blue */
+  background: #00468c; /* Blue */
 }
 
 /* Completed step */
 .pj-step-circle.completed {
-  background: #7AC127;
+  background: #7ac127;
 }
 
 /* Gray background line */
 .pj-step-bg {
   position: absolute;
-  top: 15%;
+  top: 18%;
   left: var(--step-line-left);
   width: var(--step-line-total-width);
-  height: 2px;
+  height: 4px;
   background: lightgray;
   z-index: 0;
 }
@@ -77,11 +78,11 @@
 /* Green progress line */
 .pj-step-line {
   position: absolute;
-  top: 15%;
+  top: 18%;
   left: var(--step-line-left);
   width: var(--step-progress-width);
-  height: 2px;
-  background: #7AC127;
+  height: 4px;
+  background: #7ac127;
   z-index: 1;
   transition: width 0.3s ease-in-out;
 }
@@ -121,22 +122,22 @@
 }
 
 /* Form Inputs */
-.pj-form-grid input{
+.pj-form-grid input {
   margin: 0 0 0 10%;
   padding: 2%;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 76%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .pj-form-grid select {
   margin: 0 0 0 10%;
   padding: 2%;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 81%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .pj-form-row {
@@ -148,7 +149,7 @@
 }
 
 .pj-description {
-  flex: 1; 
+  flex: 1;
 }
 .pj-description label {
   font-size: small;
@@ -185,12 +186,16 @@
   width: 100%;
 }
 
-.pj-file-links a {
-  display: flex;
-  color: #00468C;
+.pj-file-links {
+  width: 80%;
   text-decoration: none;
-  font-size: 14px;
-  margin-top: 8%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.pj-file-name {
+  color: #00468c;
+  font-size: medium;
 }
 
 .pj-attachment-upload {
@@ -203,7 +208,7 @@
 }
 
 .pj-custom-file-upload {
-  background: #79C42B;
+  background: #79c42b;
   color: #fff;
   padding: 6px 15px;
   cursor: pointer;
@@ -220,10 +225,10 @@
 }
 
 .pj-next-btn {
-  background: #79C42B;
+  background: #79c42b;
   color: white;
   padding: 1% 5%;
-  border: 1px solid #79C42B;
+  border: 1px solid #79c42b;
   cursor: pointer;
   border-radius: 5px;
   font-size: small;
@@ -231,7 +236,7 @@
 }
 
 .pj-next-btn:hover {
-  background: #79C42B;
+  background: #79c42b;
 }
 
 .pj-cancel-btn {
@@ -239,7 +244,7 @@
   padding: 1% 5%;
   cursor: pointer;
   border-radius: 5px;
-  border: 1px solid #79C42B;
+  border: 1px solid #79c42b;
   background-color: #fff;
   font-size: small;
   font-weight: bold;
@@ -258,7 +263,7 @@
 }
 
 .pj-form-group2 label {
-  width: 80%;
+  width: 90%;
   display: flex;
   justify-content: space-between;
   font-size: small;
@@ -268,22 +273,22 @@
 }
 
 /* Form Inputs */
-.step-two-grid input{
+.step-two-grid input {
   margin: 0 0 0 5%;
   padding: 2%;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 85%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .step-two-grid select {
   margin: 0 0 0 5%;
   padding: 2%;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 90%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .pj-input {
@@ -300,6 +305,7 @@
   overflow-y: auto;
   background: #fff;
   margin-left: 5%;
+  margin-top: 2%;
   border-radius: 5px;
 }
 
@@ -350,11 +356,11 @@
   font-weight: bold;
 }
 
-.key-considerations-box{
+.key-considerations-box {
   width: 99%;
   height: 100px;
   padding: 1% 0 0 1%;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   background-color: #fff;
   overflow-y: auto;
@@ -381,7 +387,7 @@
 .milestone-table thead th {
   position: sticky;
   top: 0;
-  background-color: #E8E9EA;
+  background-color: #e8e9ea;
   z-index: 10;
   font-weight: bold;
   font-size: 12px;
@@ -393,7 +399,7 @@
   text-align: center;
 }
 
-.milestone-table th:nth-child(1) { 
+.milestone-table th:nth-child(1) {
   min-width: 60px;
   text-align: center;
 }
@@ -406,10 +412,33 @@
   text-align: center;
 }
 
+.milestone-table select {
+  width: 80%;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: left;
+  background-color: #f7f7f7;
+  color: #333;
+}
+
+/* Style options based on their value */
+select option[value="Active"] {
+  background-color: #d1ecf1;
+}
+
+select option[value="Pending"] {
+  background-color: #fff3cd;
+}
+
+select option[value="Completed"] {
+  background-color: #d4edda;
+}
+
 .add-milestone-btn {
   margin: 2%;
-  margin-left: 80%;
-  background-color: #79C42B;
+  margin-left: 84%;
+  background-color: #79c42b;
   color: white;
   border: none;
   padding: 1% 2%;
@@ -419,7 +448,7 @@
 }
 
 .add-milestone-btn:hover {
-  background-color: #79C42B;
+  background-color: #79c42b;
 }
 
 .pj-step-four {
@@ -479,33 +508,31 @@
   border-collapse: collapse;
 }
 
-.finance-table thead th {
+.finance-table th {
   position: sticky;
   top: 0;
-  background-color: #E8E9EA;
+  background-color: #e8e9ea;
   z-index: 10;
   font-weight: bold;
   font-size: 12px;
   padding: 1%;
+  font-weight: bold;
 }
 
 .finance-table td {
-  padding: 1%;
+  padding: 0.5%;
   text-align: center;
   font-size: 12px;
   align-items: center;
 }
 
-.finance-table th {
-  font-weight: bold;
-}
-
-.finance-table th:nth-child(1) { 
-  min-width: 45px;
+.finance-table th:nth-child(1) {
+  min-width: 43px;
   text-align: center;
 }
 
 .finance-table input {
+  width: 80%;
   padding: 3%;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -513,7 +540,7 @@
 }
 
 .finance-table select {
-  padding: 3%;
+  padding: 5%;
   border-radius: 4px;
   text-align: center;
 }
@@ -521,7 +548,9 @@
 .completed-date {
   font-size: small;
   color: #000;
-  padding: 0%;
+  padding: 8%;
+  background-color: #d4edda;
+  border-radius: 40px;
 }
 
 .finance-table tfoot .summary-row {
@@ -554,7 +583,7 @@
   width: 50%;
 }
 
-.small-input input{
+.small-input input {
   background-color: #ccc;
   padding: 1%;
   width: 40px;
@@ -563,6 +592,7 @@
 .step-four-group2 {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   background-color: #fff;
   padding: 2%;
   border: 1px solid #ccc;
@@ -580,7 +610,7 @@
   font-size: medium;
 }
 
-.small-input2 input{
+.small-input2 input {
   background-color: #ccc;
   padding: 1%;
   width: 50px;
@@ -592,7 +622,7 @@ input[type="checkbox"] {
   width: 15px;
   height: 15px;
   margin: 0;
-  border: 2px solid #79C42B;
+  border: 2px solid #79c42b;
   background-color: white;
   border-radius: 4px;
   cursor: pointer;
@@ -601,8 +631,8 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:checked {
-  background-color: #79C42B;
-  border: 2px solid #79C42B;
+  background-color: #79c42b;
+  border: 2px solid #79c42b;
 }
 
 input[type="checkbox"]::after {
@@ -626,11 +656,11 @@ input[type="checkbox"]:checked::after {
 .custom-dropdown {
   position: relative;
   margin: 0 0 0 10%;
-  padding: 1.5%;
-  border: 1px solid #CCCBCE;
+  padding: 1.7%;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 77%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
 
 .dropdown-header {
@@ -711,8 +741,25 @@ input[type="checkbox"]:checked::after {
 .add-employee {
   margin: 0 0 0 5%;
   padding: 0;
-  border: 1px solid #CCCBCE;
+  border: 1px solid #cccbce;
   border-radius: 5px;
   width: 90%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
+}
+
+.pj-search-box {
+  position: relative;
+  display: flex;
+  width: 50%;
+  margin-bottom: 0.5%;
+}
+
+.pj-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 1.2em;
+  margin-left: 80%;
 }
