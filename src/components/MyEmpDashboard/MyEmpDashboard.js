@@ -32,7 +32,6 @@ const MyEmpDashboard = () => {
 <EmpProjectTable/>
 </div> */}
 <div className="EmpLeaveTracker123">
-  <h2>Leave Tracker</h2>
 <EmpLeaveTracker/>
 </div>
 </div>

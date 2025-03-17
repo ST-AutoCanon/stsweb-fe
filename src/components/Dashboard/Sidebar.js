@@ -74,7 +74,7 @@ const Sidebar = ({ setActiveContent }) => {
         break;
 
         
-        case "/Salary_Statement":
+        case "/salaryStatement":
         setActiveContent(<Salary_Statement />);
         break;
         case "/payrollSummary":

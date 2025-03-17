@@ -106,6 +106,9 @@ const LoginChart = () => {
         position: "top",
         align: "end",
       },
+      datalabels: {
+        display: false, // Hides the count labels on the dots
+      },
     },
     scales: {
       x: {
