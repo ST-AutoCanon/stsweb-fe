@@ -332,6 +332,19 @@
   width: 600px;
   top: 8%;
   position: relative;
+  font-family: "Arial", sans-serif;
+}
+
+.employee-query-textarea::placeholder {
+  font-family: inherit;
+  font-size: 1rem;
+  color: #999;
+}
+
+.employee-query-input::placeholder {
+  font-family: inherit;
+  font-size: 1rem;
+  color: #999;
 }
 
 .emp-form-header {
@@ -392,6 +405,7 @@
   border-radius: 5px;
   box-sizing: border-box;
   margin-bottom: 10px;
+  font-family: inherit;
 }
 
 .employee-query-textarea {
