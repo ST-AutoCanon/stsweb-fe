@@ -266,8 +266,14 @@ const MultiStepForm = ({ onClose, projectData }) => {
                 ? data.project.key_considerations
                 : [],
             }));
-            // Update selectedFiles with the attachment_url array from the response.
-            setSelectedFiles(data.project.attachment_url || []);
+            // Ensure selectedFiles is always an array
+            setSelectedFiles(
+              Array.isArray(data.project.attachment_url)
+                ? data.project.attachment_url
+                : data.project.attachment_url
+                ? [data.project.attachment_url]
+                : []
+            );
             setSelectedEmployees(
               allEmployees.filter((emp) =>
                 data.project.employee_list.includes(emp.employee_id)
@@ -961,7 +967,8 @@ const MultiStepForm = ({ onClose, projectData }) => {
                 <label>Attachment</label>
                 <div className="pj-attachment-wrapper">
                   <div className="pj-file-links">
-                    {selectedFiles.length > 0 ? (
+                    {Array.isArray(selectedFiles) &&
+                    selectedFiles.length > 0 ? (
                       selectedFiles.map((fileName, index) => (
                         <p key={index} className="pj-file-name">
                           {fileName}
