@@ -85,8 +85,15 @@ const EmployeeByDepartment = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "bottom" },
-      tooltip: {
+      legend: {
+        position: "bottom",
+        align: "center",
+        labels: {
+          boxWidth: 15,
+          padding: 10,
+        },
+      
+      },      tooltip: {
         enabled: true, // Show tooltips on hover
       },
       datalabels: {

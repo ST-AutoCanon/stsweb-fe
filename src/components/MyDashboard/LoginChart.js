@@ -113,6 +113,13 @@ const LoginChart = () => {
     scales: {
       x: {
         grid: { display: false },
+        ticks: {
+          font: {
+            size: 10, // Make labels smaller
+          },
+          maxRotation: 0, // Keep labels horizontal
+          minRotation: 0, // Prevent slanting
+        },
       },
       y: {
         beginAtZero: true,

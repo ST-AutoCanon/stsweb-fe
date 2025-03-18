@@ -69,9 +69,8 @@
   background: #fff;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  margin: 0 auto; 
   overflow: hidden; /* Prevents double scrollbars */
-  margin-top:10px;
+  margin-top:-50px;
 }
 
 .admin-table-container{
@@ -85,13 +84,13 @@
   border-radius: 8px;
   margin: 0 auto; 
   overflow: hidden; /* Prevents double scrollbars */
-  margin-top:10px;
+  margin-top:-30px;
 }
 
 /* New wrapper to manage scrolling */
 .table-scroll-wrapper {
-  overflow-x: auto; /* Ensures horizontal scrolling starts from the first column */
   width: 100%;
+  overflow-x: auto;
 }
 
 /* Table styling */
@@ -237,7 +236,20 @@
   margin: 0;
 }
 
+.search-box {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  width: 200px; /* Adjust width as needed */
+  transition: all 0.3s ease-in-out;
+}
 
+.search-box:focus {
+  border-color: #007bff; /* Blue border on focus */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
 
 
 
@@ -341,7 +353,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   padding: 10px;
   cursor: pointer;
-  margin-left:330px;
+  margin-left:320px;
   margin-top:-75px;
 }
 
@@ -390,8 +402,6 @@
 .adminsalary-table-container {
   width: 100%!important;
   max-width: 1400px; /* Limit table width */
-  overflow-x: auto; /* Enable horizontal scroll if needed */
-  border: 1px solid #ddd; /* Light border for structure */
   padding: 8px;
 }
 
@@ -401,6 +411,7 @@
   min-width: 600px; /* Ensure table does not shrink too much */
   border-collapse: collapse;
   text-align: left;
+  margin-top:-30px;
 }
 
 
@@ -428,7 +439,15 @@
 .adminsalary-table tbody tr:hover {
   background: #f1f1f1;
 }
-
+.reference-container {
+  display: flex;
+  justify-content: center; /* Centers the elements */
+  align-items: center;
+  flex-wrap: wrap; /* Prevents overlap on smaller screens */
+  gap: 20px; /* Adds spacing between elements */
+  width: 100%;
+  margin-top: 20px;
+}
 .reference-box {
   width: 250px;  /* Set width */
   height: 50px;  /* Set height */
@@ -441,7 +460,7 @@
   padding: 10px;
   cursor: pointer;
   margin-left:630px;
-  margin-top:-11.2%;
+  margin-top:-210px;
   position: relative;
   z-index: 1;
 }
@@ -474,7 +493,7 @@
   color: black;
 }
 .admin-search-box {
-  width: 150px; /* Adjust the width */
+  width: 100px; /* Adjust the width */
   padding: 6px;
   font-size: 13px;
   border: 1px solid #ccc;
