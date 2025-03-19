@@ -501,7 +501,7 @@ const fetchSalaryData = async () => {
   console.log("Fetching Salary Data for:", selectedMonth, selectedYear); // Debugging
 
   try {
-    const apiUrl = `http://localhost:5000/api/salary-statement/${selectedMonth.toLowerCase()}/${selectedYear}`;
+    const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/api/salary-statement/${selectedMonth.toLowerCase()}/${selectedYear}`;
     
     console.log("API Request URL:", apiUrl); // Log API URL
 
