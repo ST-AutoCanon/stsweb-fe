@@ -448,7 +448,7 @@ const handleMonthYearChange = async (event) => {
 
 
 const formattedMonth = selectedMonth.toLowerCase(); // Convert to lowercase
-const fetchUrl = `http://localhost:5000/api/salary-statement/${formattedMonth}/${selectedYear}`;
+const fetchUrl = `${process.env.REACT_APP_BACKEND_URL}/api/salary-statement/${formattedMonth}/${selectedYear}`;
 
   const fetchSalaryStatement = async (month, year) => {
     if (!month || !year) return;
