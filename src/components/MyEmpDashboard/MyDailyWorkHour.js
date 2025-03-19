@@ -146,7 +146,8 @@ const MyDailyWorkHour = () => {
         <div className="work-hour-view-options">
           {["Daily", "Weekly", "Monthly"].map((option) => (
             <button key={option} className={view === option ? "active" : ""} onClick={() => setView(option)}>
-              {option}
+              {/* {option} */}
+              {option === "Monthly" ? "Prev-Month" : option}
             </button>
           ))}
         </div>

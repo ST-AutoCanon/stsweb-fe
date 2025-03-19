@@ -1,4 +1,4 @@
-.salary-breakup {
+.salary-breakup-chart {
     width: 250px; /* Fixed width */
     height: 320px; /* Fixed height */
     text-align: center;
@@ -13,37 +13,31 @@
     overflow: hidden;
 }
 
-.salary-breakup h3 {
+.salary-breakup-chart h3 {
     margin-top: 0%;
     font-size: 18px;
     font-weight: bold;
 }
 
-.salary-breakup p {
+.salary-breakup-chart p {
     margin-top: -2%;
     color: #686868;
     font-size: small;
 }
 
-.salary-breakup p1 {
-    margin-top: -5%;
-    color: #686868;
-    font-size: small;
-}
-
-.chart-container-salary {
+.salary-breakup-chart .chart-container {
     width: 100%; /* Full width */
     height: 180px; /* Fixed chart height */
 }
 
-.salary-amount {
+.salary-amount-chart {
     font-size: 18px;
     font-weight: bold;
     color: #004DC6; /* Matches chart colors */
     margin-top: 10px;
 }
 
-.custom-legend-salary {
+.custom-legend-chart {
     display: flex;
     justify-content: center;
     gap: 10px;
@@ -51,16 +45,25 @@
     flex-wrap: wrap;
 }
 
-.legend-item-salary {
+.legend-item-chart {
     display: flex;
     align-items: center;
     font-size: 10px;
 }
 
-.legend-color-salary {
+.legend-color-chart {
     width: 12px;
     height: 12px;
     border-radius: 0px;
     display: inline-block;
     margin-right: 5px;
+}
+
+.chart-container-for-employee{
+    width: 100%;  /* Ensure it takes full width */
+    height: 250px; /* Increase the height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
 }

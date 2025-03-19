@@ -1,35 +1,19 @@
-// // empdash.js (constants file)
-// export const VALID_SALARY_HEADERS = [
-//     "Employee ID",
-//     "Employee Name",
-//     "Department",
-//     "Designation",
-//     "Joining Date",
-//     "Basic Salary",
-//     "House Rent Allowance (HRA)",
-//     "Medical Allowance",
-//     "Total Earnings",
-//     "Provident Fund (PF)",
-//     "Tax Deduction",
-//     "Total Deductions",
-//     "Net Salary"
 
-//   ];
-  
-// empdash.js (constants file)
 export const VALID_SALARY_HEADERS = [
   "Employee ID",
   "Employee Name",
   "Department",
   "Designation",
+  "UIN Number",
+
   "Joining Date",
   "Basic Salary",
-  "House Rent Allowance (HRA)",
-  "Other Allowances",
+  "HRA",
+  "Allowances",
   "Total Earnings",
-  "Provident Fund (PF)",
+  "PF",
   "ESI",
-  "Proffessional tax",
+  "PT",
   "TDS",
   "Total Deductions",
   "Net Salary",

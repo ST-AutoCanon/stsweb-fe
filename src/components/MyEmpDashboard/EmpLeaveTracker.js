@@ -180,30 +180,38 @@ const fetchLeaveData = async () => {
   };
 
   return (
-    <div className="table-container">
-      <table>
-        <thead>
-          <tr>
-            {["Leave Type", "Start Date", "End Date", "Half/Full Day", "Reason", "Status", "Comments"].map((header) => (
-              <th key={header}>{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {leaveData.map((leave, index) => (
-            <tr key={index}>
-              <td>{leave.leaveType || "N/A"}</td>
-              <td>{formatDate(leave.startDate)}</td>
-              <td>{formatDate(leave.endDate)}</td>
-              <td>{leave.halfOrFullDay || "N/A"}</td>
-              <td>{leave.reason || "N/A"}</td>
-              <td className={getStatusClass(leave.status)}>{leave.status || "N/A"}</td>
-              <td>{leave.comments || "N/A"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <div className="empleavetracker-container">
+  <div className="empleavetracker-header">Employee Leave Tracker</div>
+  <table className="empleavetracker-table">
+    <thead>
+      <tr>
+        {["Leave Type", "Start Date", "End Date", "Half/Full Day", "Reason", "Status", "Comments"].map((header) => (
+          <th key={header}>{header}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {leaveData.map((leave, index) => (
+        <tr key={index}>
+          <td>{leave.leaveType || "N/A"}</td>
+          <td>{formatDate(leave.startDate)}</td>
+          <td>{formatDate(leave.endDate)}</td>
+          <td>{leave.halfOrFullDay || "N/A"}</td>
+<td className="reason-cell" title={leave.reason}>
+  {leave.reason.length > 20 ? `${leave.reason.substring(0, 20)}...` : leave.reason || "N/A"}
+</td>
+          <td className={`empleavetracker-status-${leave.status.toLowerCase() || "default"}`}>
+            {leave.status || "N/A"}
+          </td>
+          <td className="tooltip-cell" title={leave.comments}>
+  {leave.comments.length > 20 ? `${leave.comments.substring(0, 20)}...` : leave.comments || "N/A"}
+</td>        </tr>
+        
+      ))}
+    </tbody>
+  </table>
+</div>
+
   );
 };
 export default EmpLeaveTracker;

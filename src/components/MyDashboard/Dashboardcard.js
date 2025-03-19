@@ -1,16 +1,15 @@
 
-// export default Dashboardcard;
 import React, { useEffect, useState } from "react";
 import { IoBagSharp } from "react-icons/io5";
 import { GrMoney } from "react-icons/gr";
-import { GiWallet } from "react-icons/gi"; // Import GiWallet
+import { GiWallet } from "react-icons/gi";
 import "./Dashboardcard.css";
 
-// Updated icon mapping
+// Icon mapping
 const iconMapping = {
-  FaUserGroup: <GrMoney />,
+  GiWallet: <GiWallet />,
   IoBagSharp: <IoBagSharp />,
-  GiWallet: <GiWallet />, // Replacing middle card icon with GiWallet
+  GrMoney: <GrMoney />,
 };
 
 const Dashboardcard = () => {
@@ -18,34 +17,31 @@ const Dashboardcard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [payrollData, setPayrollData] = useState({});
-  const [employeeId, setEmployeeId] = useState("12345"); // Replace with dynamic employee ID if needed
+  const [reimbursementData, setReimbursementData] = useState({ totalApprovedReimbursement: "0.00" });
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const authToken = localStorage.getItem("authToken");
-  
 
+  // Fetch previous month's salary data
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/total-payroll-data`, {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/salary/last-month-total`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${authToken}`,
             "x-api-key": API_KEY,
             "Content-Type": "application/json",
           },
         });
-        
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
         }
 
         const jsonData = await response.json();
-        console.log("Total Payroll Data:", jsonData);
+        console.log("Last Month Salary Data:", jsonData);
 
-        // Set the payroll data received from the backend
-        setPayrollData(jsonData.message);
+        setPayrollData({ total_previous_month_salary: jsonData.total_salary || "0.00" });
       } catch (err) {
         console.error("Error fetching payroll data:", err);
         setError(err.message);
@@ -57,23 +53,43 @@ const Dashboardcard = () => {
     fetchPayrollData();
   }, [authToken, API_KEY]);
 
+  // Fetch previous month's approved reimbursement data
   useEffect(() => {
-    // Simulate the fetching of card data (this could be adjusted as needed)
-    const fetchCardData = async () => {
+    const fetchReimbursementData = async () => {
       try {
-        // Replace with dynamic card data fetch if necessary
-        setCards([
-          { label: "Previous Month Credit", icon: "GiWallet", value: "0" },
-          { label: "Previous Month Expenses", icon: "IoBagSharp", value: "0" },
-          { label: "Previous Month Salary", icon: "FaUserGroup", value: "0" },
-        ]);
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/approved-reimbursement-last-month`, {
+          method: "GET",
+          headers: {
+            "x-api-key": API_KEY,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+        }
+
+        const jsonData = await response.json();
+        console.log("Last Month Reimbursement Data:", jsonData);
+
+        setReimbursementData({ totalApprovedReimbursement: jsonData.totalApprovedReimbursement || "0.00" });
       } catch (err) {
-        console.error("Error fetching card data:", err);
+        console.error("Error fetching reimbursement data:", err);
         setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchCardData();
+    fetchReimbursementData();
+  }, [authToken, API_KEY]);
+
+  useEffect(() => {
+    setCards([
+      { label: "Previous Month Credit", icon: "GiWallet", value: "0.00" },
+      { label: "Previous Month Reimbursement (Approved)", icon: "IoBagSharp", value: "0.00" },
+      { label: "Previous Month Salary", icon: "GrMoney", value: "0.00" },
+    ]);
   }, []);
 
   if (loading) {
@@ -85,19 +101,15 @@ const Dashboardcard = () => {
       {cards.map((item, index) => (
         <div className="card" key={index}>
           <div className="icon">
-            {iconMapping[item.icon] ? (
-              iconMapping[item.icon]
-            ) : (
-              <img src={item.icon} alt={item.label} className="custom-icon" />
-            )}
+            {iconMapping[item.icon] || <img src={item.icon} alt={item.label} className="custom-icon" />}
           </div>
           <div className="content">
             <div className="label">{item.label}</div>
             <div className="value">
               {item.label === "Previous Month Credit"
-                ? payrollData.total_previous_month_credit || "0.00"
-                : item.label === "Previous Month Expenses"
-                ? payrollData.total_previous_month_expenses || "0.00"
+                ? "Coming soon!"
+                : item.label === "Previous Month Reimbursement (Approved)"
+                ? reimbursementData.totalApprovedReimbursement || "0.00"
                 : item.label === "Previous Month Salary"
                 ? payrollData.total_previous_month_salary || "0.00"
                 : item.value}

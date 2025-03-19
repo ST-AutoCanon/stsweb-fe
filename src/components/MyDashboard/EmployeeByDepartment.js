@@ -85,7 +85,20 @@ const EmployeeByDepartment = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "bottom" },
+      legend: {
+        position: "bottom",
+        align: "center",
+        labels: {
+          boxWidth: 15,
+          padding: 10,
+        },
+      
+      },      tooltip: {
+        enabled: true, // Show tooltips on hover
+      },
+      datalabels: {
+        display: false, // Completely hide data labels on bars
+      },
     },
     scales: {
       x: {
@@ -121,11 +134,11 @@ const EmployeeByDepartment = () => {
       bar: { maxBarThickness: 3, borderRadius: 5 },
     },
   };
-
+  
   return (
     <div className="employee-department">
       <h3>Employees by Department (Men & Women)</h3>
-      <div className="chart-container">
+      <div className="chart-container-bydepartment">
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
