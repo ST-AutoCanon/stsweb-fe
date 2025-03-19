@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 import {
@@ -20,7 +18,6 @@ const TotalEmployee = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY; // Ensure this is correctly set in your .env
-  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
     const fetchTotalEmployeeData = async () => {
@@ -28,7 +25,6 @@ const TotalEmployee = () => {
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/attendance-status`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${authToken}`,
             "x-api-key": API_KEY,
             "Content-Type": "application/json",
           },
@@ -73,7 +69,7 @@ const TotalEmployee = () => {
     };
 
     fetchTotalEmployeeData();
-  }, [authToken, API_KEY]);
+  }, [API_KEY]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -92,11 +88,11 @@ const TotalEmployee = () => {
       ctx.textBaseline = "middle";
       
       // Adjust the y-coordinate to move the text up
-      const offsetX = -2; // Move text left by 20 pixels (adjust as needed)
-      const offsetY = -10; // Move text upwards by 15 pixels (you can also adjust this value)
+      const offsetX = -2; // Move text left by 2 pixels (adjust as needed)
+      const offsetY = -10; // Move text upwards by 10 pixels (adjust as needed)
       
       ctx.fillText(`${totalEmployees} Employees`, width / 2 + offsetX, height / 2 + offsetY);
-    ctx.restore();
+      ctx.restore();
     },
   };
 
@@ -135,7 +131,6 @@ const TotalEmployee = () => {
         formatter: (value) => value,
         clip: false,
       },
-      
     },
   };
 
@@ -143,7 +138,7 @@ const TotalEmployee = () => {
     <div className="total-employees">
       <h3>Total Employees</h3>
       <div className="admindashtotalemployee-chart">
-      <Doughnut data={chartData} options={options} plugins={[ChartDataLabels, centerTextPlugin]} />
+        <Doughnut data={chartData} options={options} plugins={[ChartDataLabels, centerTextPlugin]} />
       </div>
     </div>
   );

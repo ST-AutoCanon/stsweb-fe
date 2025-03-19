@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import './LoginChart.css';
 import {
@@ -33,7 +29,6 @@ const LoginChart = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,7 +36,6 @@ const LoginChart = () => {
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/login-data-count`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${authToken}`, 
             "x-api-key": API_KEY,  
             "Content-Type": "application/json",
           },
@@ -96,7 +90,7 @@ const LoginChart = () => {
     };
 
     fetchData();
-  }, [authToken, API_KEY]);
+  }, [API_KEY]);
 
   const options = {
     responsive: true,
