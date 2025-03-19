@@ -663,7 +663,7 @@ return (
           <h2 className="table-title">Salary Statement - {selectedMonth} {selectedYear}</h2>
           <input
   type="text"
-  className="search-box"
+  className="salary-search-box"
   placeholder="Search..."
   onChange={filterSalaryData} // Updated function name
 />
