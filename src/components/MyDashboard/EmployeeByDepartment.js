@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import {
@@ -22,7 +20,6 @@ const EmployeeByDepartment = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
     const fetchEmployeeCountByDepartment = async () => {
@@ -30,7 +27,6 @@ const EmployeeByDepartment = () => {
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/employee-count-by-department`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${authToken}`,
             "x-api-key": API_KEY,
             "Content-Type": "application/json",
           },
@@ -79,7 +75,7 @@ const EmployeeByDepartment = () => {
     };
 
     fetchEmployeeCountByDepartment();
-  }, [authToken, API_KEY]);
+  }, [API_KEY]);
 
   const employeeChartOptions = {
     responsive: true,
@@ -92,8 +88,8 @@ const EmployeeByDepartment = () => {
           boxWidth: 15,
           padding: 10,
         },
-      
-      },      tooltip: {
+      },
+      tooltip: {
         enabled: true, // Show tooltips on hover
       },
       datalabels: {
@@ -134,7 +130,7 @@ const EmployeeByDepartment = () => {
       bar: { maxBarThickness: 3, borderRadius: 5 },
     },
   };
-  
+
   return (
     <div className="employee-department">
       <h3>Employees by Department (Men & Women)</h3>

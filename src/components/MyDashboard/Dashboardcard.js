@@ -20,7 +20,6 @@ const Dashboardcard = () => {
   const [reimbursementData, setReimbursementData] = useState({ totalApprovedReimbursement: "0.00" });
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const authToken = localStorage.getItem("authToken");
 
   // Fetch previous month's salary data
   useEffect(() => {
@@ -51,7 +50,7 @@ const Dashboardcard = () => {
     };
 
     fetchPayrollData();
-  }, [authToken, API_KEY]);
+  }, [API_KEY]);
 
   // Fetch previous month's approved reimbursement data
   useEffect(() => {
@@ -82,7 +81,7 @@ const Dashboardcard = () => {
     };
 
     fetchReimbursementData();
-  }, [authToken, API_KEY]);
+  }, [API_KEY]);
 
   useEffect(() => {
     setCards([
