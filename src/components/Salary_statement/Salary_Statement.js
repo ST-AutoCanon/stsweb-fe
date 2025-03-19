@@ -1,5 +1,3 @@
-
-
 import * as XLSX from "xlsx";
 import axios from "axios";
 import "./Salary_Statement.css";
