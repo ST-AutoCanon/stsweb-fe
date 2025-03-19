@@ -1,9 +1,8 @@
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./EmpDashCards.css";
-import { FaFingerprint, FaRegClock, FaMapMarkerAlt, FaDesktop } from "react-icons/fa";
+import { FaFingerprint, FaRegClock, FaMapMarkerAlt, FaDesktop,FaMobileAlt } from "react-icons/fa";
 
 const EmpDashCards = () => {
   const API_KEY = process.env.REACT_APP_API_KEY; 
@@ -68,44 +67,96 @@ const EmpDashCards = () => {
       setErrorMessage("Failed to fetch punch data.");
     }
   };
-
   const getLocationAndDevice = async () => {
     return new Promise((resolve) => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            const userAgent = navigator.userAgent;
-            const isMobile = /Mobi|Android/i.test(userAgent);
-            const device = isMobile ? "Mobile" : "Desktop";
-            const accessToken = "pk.e073d7dc1a8107f3fce9727be20a7434";
-  
-            try {
-              const response = await fetch(
-                `https://us1.locationiq.com/v1/reverse.php?key=${accessToken}&lat=${latitude}&lon=${longitude}&format=json`
-              );
-              const data = await response.json();
-  
-              let location = "Unknown";
-              if (data && data.address) {
-                const { road, suburb, city, state, country } = data.address;
-                location = `${road ? road + ", " : ""}${suburb ? suburb + ", " : ""}${city ? city + ", " : ""}${state ? state + ", " : ""}${country || ""}`.trim();
-              }
-  
-              resolve({ latitude, longitude, location, device });
-            } catch (error) {
-              console.error("Error fetching address:", error);
-              resolve({ latitude, longitude, location: "Unknown", device });
-            }
-          },
-          () => resolve({ latitude: "N/A", longitude: "N/A", location: "Location access denied", device: "Unknown" }),
-          { enableHighAccuracy: true }
-        );
-      } else {
-        resolve({ latitude: "N/A", longitude: "N/A", location: "Not supported", device: "Unknown" });
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition, showError, {
+            enableHighAccuracy: true,
+          });
+        } else {
+          resolve({
+            latitude: "N/A",
+            longitude: "N/A",
+            location: "Geolocation not supported",
+            device: "Unknown",
+          });
+        }
       }
+  
+      async function showPosition(position) {
+        const { latitude, longitude } = position.coords;
+        const device = /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+        const accessToken = "pk.e073d7dc1a8107f3fce9727be20a7434"; // Replace with your API key
+  
+        try {
+          const response = await fetch(
+            `https://us1.locationiq.com/v1/reverse.php?key=${accessToken}&lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await response.json();
+  
+          let location = "Unknown";
+          if (data && data.address) {
+            const { road, suburb, city, state, country } = data.address;
+            location = `${road ? road + ", " : ""}${suburb ? suburb + ", " : ""}${city ? city + ", " : ""}${state ? state + ", " : ""}${country || ""}`.trim();
+          }
+  
+          resolve({ latitude, longitude, location, device });
+        } catch (error) {
+          console.error("Error fetching address:", error);
+          resolve({ latitude, longitude, location: "Unknown", device });
+        }
+      }
+  ////////////////////////////////////////////////////////////////////////////////
+
+  // async function showPosition(position) {
+  //   const { latitude, longitude } = position.coords;
+  //   const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  //   const device = isMobile ? "Mobile" : "Desktop";
+  
+  //   if (isMobile) {
+  //     // For mobile, return latitude and longitude without making API request
+  //     resolve({ latitude, longitude, location: `Lat: ${latitude}, Lon: ${longitude}`, device });
+  //   } else {
+  //     // For Desktop, fetch detailed location using LocationIQ
+  //     const accessToken = "pk.e073d7dc1a8107f3fce9727be20a7434"; // Replace with your API key
+  //     try {
+  //       const response = await fetch(
+  //         `https://us1.locationiq.com/v1/reverse.php?key=${accessToken}&lat=${latitude}&lon=${longitude}&format=json`
+  //       );
+  //       const data = await response.json();
+  
+  //       let location = "Unknown";
+  //       if (data && data.address) {
+  //         const { road, suburb, city, town, village, county, state, country } = data.address;
+  //         const cityName = city || town || village || county || ""; // Ensure we always capture city/town
+  
+  //         location = `${road ? road + ", " : ""}${suburb ? suburb + ", " : ""}${cityName ? cityName + ", " : ""}${state ? state + ", " : ""}${country || ""}`.trim();
+  //       }
+  
+  //       resolve({ latitude, longitude, location, device });
+  //     } catch (error) {
+  //       console.error("Error fetching address:", error);
+  //       resolve({ latitude, longitude, location: "Unknown", device });
+  //     }
+  //   }
+  // }
+  //////////////////////////////////////////
+
+
+      function showError() {
+        resolve({
+          latitude: "N/A",
+          longitude: "N/A",
+          location: "Location access denied",
+          device: "Unknown",
+        });
+      }
+  
+      getLocation();
     });
   };
+  
   
   const handlePunch = async () => {
     if (!API_KEY) {
@@ -181,13 +232,26 @@ const EmpDashCards = () => {
         </div>
       </div>
       <div className="emp-card">
-        <div className="emp-card-content">
+        {/* <div className="emp-card-content">
           <FaDesktop className="emp-icon" />
           <div>
             <span className="emp-text">{punchData.device}</span>
             <span className="emp-label">Device</span>
           </div>
-        </div>
+        </div> */}
+        
+  <div className="emp-card-content">
+    {punchData.device === "Mobile" ? (
+      <FaMobileAlt className="emp-icon" /> // Show mobile icon
+    ) : (
+      <FaDesktop className="emp-icon" /> // Show desktop icon
+    )}
+    <div>
+      <span className="emp-text">{punchData.device}</span>
+      <span className="emp-label">Device</span>
+    </div>
+ 
+</div>
       </div>
       {errorMessage && <p className="error-message">{errorMessage}</p>}
     </div>
