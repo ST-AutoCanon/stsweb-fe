@@ -1,3 +1,5 @@
+
+
 import * as XLSX from "xlsx";
 import axios from "axios";
 import "./Salary_Statement.css";
@@ -42,21 +44,51 @@ const templateUrl = "/templates/template_MAR_2025.xlsx"; // Correct path for pub
 
   const [searchTerm, setSearchTerm] = useState("");
   
-  const handleSearch = (e) => {
+  const [tableHeaders, setTableHeaders] = useState([]);
+  const [prevTableData, setPrevTableData] = useState([]); // ✅ Initialize previous data
+
+
+  const filterSalaryData = (e) => {
     const searchValue = e.target.value.toLowerCase();
     setSearchTerm(searchValue);
   
-    // Filter rows where any cell fully contains the search term
-    const filtered = tableData.filter((row) =>
-      row.some((cell) => cell.toString().toLowerCase().includes(searchValue))
+    const filtered = salaryData.filter((row) =>
+      Object.values(row).some((cell) =>
+        cell?.toString().toLowerCase().includes(searchValue)
+      )
     );
-    
   
-    setFilteredData(filtered); // Store filtered results
+    setFilteredData(filtered);
   };
   
   
-    
+  const handleSearch = (e) => {
+    const searchValue = e.target.value.toLowerCase();
+    setSearchTerm(searchValue);
+
+    if (!searchValue) {
+      setFilteredData(tableData); // Reset when input is cleared
+      return;
+    }
+
+    const employeeIdIndex = tableHeaders.indexOf("Employee ID");
+    const employeeNameIndex = tableHeaders.indexOf("Employee Name");
+
+    const filtered = tableData.filter((row) => {
+      return row.some((cell, index) => {
+        const cellValue = cell.toString().toLowerCase();
+        
+        // 🔹 Match Employee ID or Employee Name directly
+        if (index === employeeIdIndex || index === employeeNameIndex) {
+          return cellValue.includes(searchValue);
+        }
+
+        return false; // Other columns are ignored for search
+      });
+    });
+
+    setFilteredData(filtered);
+  };
 
 
   const validateHeaders = (uploadedHeaders) => {
@@ -90,96 +122,100 @@ const templateUrl = "/templates/template_MAR_2025.xlsx"; // Correct path for pub
 
   const [showNote, setShowNote] = useState(true); // Show note initially
 
-const handleFileChange = (event) => {
-  const selectedFile = event.target.files[0];
-
-  if (!selectedFile) {
-    setFileName("No file chosen");
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+  
+    if (!selectedFile) {
+      setFileName("No file chosen");
+      setError("");
+      setShowNote(true); 
+      return;
+    }
+  
+    setShowNote(false);
+    event.target.value = ""; 
+  
+    const { month, year } = getCurrentMonthYear();
+    const fileNameLower = selectedFile.name.toLowerCase();
+  
+    if (!fileNameLower.includes(year.toString())) {
+      setError(`❌ Wrong year in filename. Expected: ${year}`);
+      setFileName("Invalid file");
+      setTableData([]);
+      return;
+    }
+  
+    if (!fileNameLower.includes(month.toLowerCase())) {
+      setError(`❌ Wrong month in filename. Expected: ${month}`);
+      setFileName("Invalid file");
+      setTableData([]);
+      return;
+    }
+  
+    setFile(selectedFile);
+    setFileName(selectedFile.name);
     setError("");
-    setShowNote(true); // Show note again if no file is selected
-    return;
-  }
-
-  setShowNote(false); // Hide note once file is selected
-
-  // Clear input to allow re-uploading the same file
-  event.target.value = "";
-
-  const { month, year } = getCurrentMonthYear();
-  const fileNameLower = selectedFile.name.toLowerCase();
-
-  if (!fileNameLower.includes(year.toString())) {
-    setError(`❌ Wrong year in filename. Expected: ${year}`);
-    setFileName("Invalid file");
-    setTableData([]);
-    return;
-  }
-
-  if (!fileNameLower.includes(month.toLowerCase())) {
-    setError(`❌ Wrong month in filename. Expected: ${month}`);
-    setFileName("Invalid file");
-    setTableData([]);
-    return;
-  }
-
-  setFile(selectedFile);
-  setFileName(selectedFile.name);
-  setError("");
-  readExcel(selectedFile);
-};
-
+  
+    readExcel(selectedFile);
+  };
+  
+  
     
-    
-
   const readExcel = (file) => {
     const reader = new FileReader();
-
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
+  
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
+  
+      const sheetName = workbook.SheetNames[0]; // Read first sheet
       const sheet = workbook.Sheets[sheetName];
-
-      if (!sheet["!ref"]) {
-        setError("❌ Invalid Excel file: No reference range found.");
-        return;
-      }
-
-      const parsedData = XLSX.utils.sheet_to_json(sheet, {
-        header: 1,
-        defval: "",
-        raw: false,
-      });
-
-      const uploadedHeaders = parsedData[0] || []; // Ensure headers exist
-
-      if (!validateHeaders(uploadedHeaders)) {
-        setError("❌ Incorrect headers. Please upload a valid salary statement.");
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  
+      // 🔹 Check if jsonData is null or empty
+      if (!jsonData || jsonData.length === 0) {
+        setError("❌ Empty file or invalid format");
         setTableData([]);
+        setInvalidCells(new Map());
+        setUpdatedCells(new Map());
         return;
       }
   
-      setHeaders(uploadedHeaders);
+      // Extract headers from the first row
+      const extractedHeaders = jsonData[0];
+  
+      // 🔹 Ensure headers are valid
+      if (!validateHeaders(extractedHeaders)) {
+        setError("❌ Headers not matched");
+        setTableData([]);
+        setInvalidCells(new Map());
+        setUpdatedCells(new Map());
+        return;
+      }
+  
+      console.log("Extracted Headers:", extractedHeaders);
+  
+      // 🔹 Filter out null or empty rows
+      const validData = jsonData.slice(1).filter(row => row && row.length > 0);
+  
+      const previousData = prevTableData.length ? prevTableData : validData; // Use validData if first upload
 
-      const columnTypes = detectColumnTypes(parsedData);
-    const validationErrors = validateData(parsedData, columnTypes);
+      // 🔹 Validate Data & Get Errors
+ // 🔹 Validate Data & Get Errors + Updated Cells
+ const { invalidCells, updatedCells } = validateData(validData, extractedHeaders, prevTableData);
+  
+      // 🔹 Store Data in State
+      setTableHeaders(extractedHeaders);
+      setTableData(validData);
+      setPrevTableData(validData); // ✅ Store the new data for future comparison
 
-    setInvalidCells(new Map(validationErrors)); // Store errors
-
-    if (validationErrors.size > 0) {
-      setError("❌ File contains errors. Please correct and re-upload.");
-      setTableData(parsedData.slice(1)); // Show incorrect data in the table
-      return;
-    }
-
-    setError(""); // Clear error if no issues
-    processData(parsedData);
-  };
-      
-
+      setInvalidCells(invalidCells);
+      setUpdatedCells(updatedCells);
+    };
+  
     reader.readAsArrayBuffer(file);
   };
-
+  
   const processData = (newData) => {
     const columnTypes = detectColumnTypes(newData);
     const validationErrors = validateData(newData, columnTypes);
@@ -212,15 +248,6 @@ const handleFileChange = (event) => {
     setPreviousData(newData);
   };
   
-  const convertToDate = (value) => {
-    if (!isNaN(value) && value > 0) {
-      const excelEpoch = new Date(1899, 11, 30);
-      return new Date(excelEpoch.getTime() + value * 86400000)
-        .toISOString()
-        .split("T")[0]; // Convert to YYYY-MM-DD
-    }
-    return value; // Return original value if it's not a serial number
-  };
   
   const detectColumnTypes = (data) => {
     return data[0].map((_, colIndex) => {
@@ -232,60 +259,152 @@ const handleFileChange = (event) => {
       return "string";
     });
   };
-
-
+  const validateData = (jsonData, headers, prevData = []) => {
+    const invalidCells = new Map();
+    const updatedCells = new Map();
   
+    jsonData.forEach((row, rowIndex) => {
+      if (!row || !Array.isArray(row)) return;
   
-  const validateData = (data, columnTypes) => {
-    let errors = new Map();
+      row.forEach((cell, colIndex) => {
+        let isInvalid = false;
+        let isUpdated = false;
+        let formattedCell = cell; // Store original value before formatting
   
-    data.slice(1).forEach((row, rowIndex) => {
-      row.forEach((cell, cellIndex) => {
-        const columnName = headers[cellIndex] ? headers[cellIndex].trim().toLowerCase() : ""; // Handle undefined headers
-        const cellValue = cell ? cell.toString().trim() : ""; // Ensure cell is not undefined
+        const columnName = headers[colIndex];
   
-        
-        // ✅ Validate Employee ID (Format: STS followed by 3 digits)
-        if (columnName === "employee id" && !/^STS\d{3}$/.test(cellValue)) {
-          markError(errors, rowIndex, cellIndex, "Invalid Employee ID (Format: STS123)");
+        // 🔹 Validate Employee ID
+        if (columnName === "Employee ID") {
+          const empIdPattern = /^STS\d{3}$/;
+          if (!empIdPattern.test(cell)) {
+            isInvalid = true;
+          }
         }
   
-        // ✅ Validate Name, Department, Designation (Must not contain numbers)
-        if (["employee name", "department", "designation"].includes(columnName) && /\d/.test(cellValue)) {
-          markError(errors, rowIndex, cellIndex, "Must not contain numbers");
+        // 🔹 Validate Text Fields (No Numbers)
+        if (["Employee Name", "Department", "Designation"].includes(columnName)) {
+          const namePattern = /^[A-Za-z\s.]+$/;
+          if (!namePattern.test(cell) || cell.trim() === "") {
+            isInvalid = true;
+          }
         }
   
-        // ✅ Validate Joining Date (Correct Date Format)
-        if (columnName === "joining date" && !isValidDate(cellValue)) {
-          markError(errors, rowIndex, cellIndex, "Invalid Date (Expected: YYYY-MM-DD)");
-        }
-  
-        // ✅ Validate Numeric Fields (Salary, Allowances, Deductions)
+        // 🔹 Validate Numeric Fields
         if (
           [
-            "uin number",
-            "basic salary",
-            "house rent allowance (hra)",
-            "other allowances",
-            "total earnings",
-            "provident fund (pf)",
-            "esi",
-            "proffessional tax",
-            "tds",
-            "total deductions",
-            "net salary",
-          ].includes(columnName) &&
-          isNaN(parseFloat(cellValue))
+            "UIN Number",
+            "Basic Salary",
+            "HRA",
+            "Allowances",
+            "Total Earnings",
+            "PF",
+            "ESI",
+            "PT",
+            "TDS",
+            "Total Deductions",
+            "Net Salary",
+          ].includes(columnName)
         ) {
-          markError(errors, rowIndex, cellIndex, "Must be a valid number");
+          if (isNaN(cell) || cell === "") {
+            isInvalid = true;
+          }
+        }
+  
+        // 🔹 Validate and Format "Joining Date"
+        if (columnName === "Joining Date") {
+          const originalValue = cell;
+          formattedCell = convertExcelDate(cell); // Convert Excel date
+  
+          console.log("📅 Debug: Checking Date Validation", {
+            original: originalValue,
+            formatted: formattedCell,
+          });
+  
+          if (!formattedCell || !/^\d{4}-\d{2}-\d{2}$/.test(formattedCell)) {
+            isInvalid = true;
+          } else {
+            row[colIndex] = formattedCell; // ✅ Replace with formatted date
+          }
+        }
+  
+        // ✅ Compare the formatted value correctly
+        if (prevData[rowIndex]) {
+          let prevCell = prevData[rowIndex][colIndex];
+  
+          // Convert previous date if it's an Excel number format
+          if (columnName === "Joining Date" && !/^\d{4}-\d{2}-\d{2}$/.test(prevCell)) {
+            prevCell = convertExcelDate(prevCell);
+          }
+  
+          // ✅ Check if the values are different before marking as updated
+          if (prevCell !== formattedCell) {
+            isUpdated = true;
+          }
+        }
+  
+        // 🔹 Track Invalid Cells (Red)
+        if (isInvalid) {
+          if (!invalidCells.has(rowIndex)) invalidCells.set(rowIndex, new Set());
+          invalidCells.get(rowIndex).add(colIndex);
+        }
+  
+        // 🔹 Track Updated Cells (Green)
+        if (isUpdated) {
+          if (!updatedCells.has(rowIndex)) updatedCells.set(rowIndex, new Set());
+          updatedCells.get(rowIndex).add(colIndex);
         }
       });
     });
   
-    return errors;
-  };
-   
+    console.log("🚨 Debug: Invalid Cells Map:", invalidCells);
+    console.log("🟢 Debug: Updated Cells Map:", updatedCells);
   
+    return { invalidCells, updatedCells };
+  };
+  
+
+const convertExcelDate = (excelDate) => {
+  if (!excelDate || excelDate === "") return ""; // 🔹 Return empty for invalid values
+
+  // 🔹 If it's already in YYYY-MM-DD format, return as is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(excelDate)) {
+      return excelDate;
+  }
+
+  // 🔹 Ensure it's a valid number before converting
+  const numericDate = Number(excelDate);
+  if (isNaN(numericDate) || numericDate < 0) {
+      console.error("🚨 Invalid Excel Date:", excelDate);
+      return ""; // Return empty to avoid errors
+  }
+
+  // 🔹 Convert from Excel date format (starting from 1899-12-30)
+  const date = new Date((numericDate - 25569) * 86400000);
+  
+  // 🔹 Ensure the date is valid
+  if (isNaN(date.getTime())) {
+      console.error("🚨 Error: Invalid date conversion for", excelDate);
+      return "";
+  }
+
+  return date.toISOString().split("T")[0]; // Convert to YYYY-MM-DD
+};
+
+
+      
+  
+    
+  
+  
+  // Helper function to store errors
+  const markError = (errors, rowIndex, colIndex, message) => {
+    if (!errors.has(rowIndex)) {
+      errors.set(rowIndex, new Map()); 
+    }
+    errors.get(rowIndex).set(colIndex, message);
+  };
+  
+   
 
   const trackChanges = (newData) => {
     if (!previousData) return new Map();
@@ -307,12 +426,7 @@ const handleFileChange = (event) => {
     return changedCells;
   };
 
-  const markError = (errors, rowIndex, cellIndex, message) => {
-    if (!errors.has(rowIndex)) {
-      errors.set(rowIndex, new Map());
-    }
-    errors.get(rowIndex).set(cellIndex, message);
-  };
+  
   
   const isValidDate = (dateString) => {
     return !isNaN(Date.parse(dateString));
@@ -321,6 +435,8 @@ const handleFileChange = (event) => {
 
   
   const handleUpload = async () => {
+    console.log("📂 handleUpload() called. Checking file...");
+
     if (!file) {
       setTableData([]); // Clear previous table data
       setSelectedMonthYearData([]); // Ensure other table is hidden
@@ -333,6 +449,19 @@ const handleFileChange = (event) => {
       return;
     }
   
+    const { invalidCells } = validateData(tableData, tableHeaders);
+
+console.log("🚨 Debug: Invalid Cells Before Upload:", invalidCells); // Debug log
+
+// ✅ Fix condition to check Map correctly
+if (invalidCells && invalidCells.size > 0) {
+    setError("❌ Data contains errors. Please correct highlighted fields before uploading.");
+    return;
+} else {
+    console.log("✅ No invalid cells found.");
+    setError(""); // ✅ Clear error if no invalid cells
+}
+
 
     
     const formData = new FormData();
@@ -356,6 +485,7 @@ const handleFileChange = (event) => {
         setTableData(response.data.data);
         setHeaders(Object.keys(response.data[0])); // Extract headers
         setError("");
+        
         setIsFileUploaded(true); // Show the uploaded table
         setIsMonthYearSelected(false); // Hide month-year table
       } else {
@@ -388,15 +518,50 @@ const displayErrors = (errors) => {
   };
   
   const calculateTotalSalary = () => {
-    if (tableData.length === 0) return 0;
+    console.log("🔹 Function Called!");
   
-    const salaryColumnIndex = headers.length - 1; // Last column index
+    if (!tableData || tableData.length === 0) {
+      console.log("❌ tableData is empty!");
+      return 0;
+    }
+    if (!tableHeaders || tableHeaders.length === 0) {
+      console.log("❌ tableHeaders is empty!");
+      return 0;
+    }
   
-    return tableData.reduce((total, row) => {
-      const salary = parseFloat(row[salaryColumnIndex]); // Convert to number
-      return !isNaN(salary) ? total + salary : total; // Sum only valid numbers
-    }, 0);
+    console.log("🔹 Headers:", tableHeaders);
+    console.log("🔹 Table Data:", tableData);
+  
+    // ✅ Find "Net Salary" column index
+    const netSalaryIndex = tableHeaders.findIndex(
+      (header) => header.trim().toLowerCase() === "net salary"
+    );
+  
+    console.log("🔹 Net Salary Index:", netSalaryIndex);
+    if (netSalaryIndex === -1) {
+      console.log("❌ 'Net Salary' column not found in headers!");
+      return 0;
+    }
+  
+    // ✅ Calculate Total Salary
+    let total = 0;
+    tableData.forEach((row, rowIndex) => {
+      console.log(`🔹 Row ${rowIndex}:`, row);
+      
+      const salary = parseFloat(row[netSalaryIndex]?.toString().replace(/,/g, "")); // Convert to number
+      if (!isNaN(salary)) {
+        total += salary;
+        console.log(`✅ Adding Salary: ${salary}`);
+      } else {
+        console.log(`❌ Invalid Salary in row ${rowIndex}:`, row[netSalaryIndex]);
+      }
+    });
+  
+    console.log("🔹 Final Total Salary:", total);
+    return total;
   };
+  
+  
   
   const getCurrentYear = () => new Date().getFullYear();
 
@@ -523,27 +688,7 @@ const fetchSalaryData = async () => {
     setSalaryData([]); // Clear previous data on error
 
   }
-
 };
-// Filter data based on Employee ID or Employee Name
-const filterSalaryData = (e) => {
-  const searchValue = e.target.value.toLowerCase();
-  setSearchTerm(searchValue);
-
-  const filtered = salaryData.filter((row) =>
-    Object.values(row).some((cell) =>
-      cell?.toString().toLowerCase().includes(searchValue)
-    )
-  );
-
-  setFilteredData(filtered);
-};
-
-
-
-
-
-
 
 return (
   <div className="salary-container">
@@ -585,8 +730,7 @@ return (
    </div>
 
     {/* 📌 New Section - Reference File Download */}
-    <div class="reference-container">
-
+    <div className="reference-container">
     <div className="reference-box">
       <p className="reference-text">Template For Your Reference</p>
       <button className="download-template-btn" onClick={handleDownloadTemplate}>
@@ -614,43 +758,43 @@ return (
           </div>
 
           <table className="salary-table">
-            <thead>
-            <tr>
-      {headers.map((header, colIndex) => (
-        <th key={colIndex}>{header}</th>
+          <thead>
+    <tr>
+      {tableHeaders.map((header, index) => (
+        <th key={index}>{header}</th>
       ))}
     </tr>
   </thead>
+  
   <tbody>
+  
   {(searchTerm ? filteredData : tableData).map((row, rowIndex) => (
-    
-    <tr key={rowIndex}>
-      {row.map((cell, colIndex) => {
-        const hasError = invalidCells.has(rowIndex) && invalidCells.get(rowIndex).has(colIndex);
-        const isUpdated = updatedCells.has(rowIndex) && updatedCells.get(rowIndex).has(colIndex);
-        const errorMessage = hasError ? invalidCells.get(rowIndex).get(colIndex) : "";
+      <tr key={rowIndex}>
+        {row.map((cell, colIndex) => { // ✅ Corrected: Ensure colIndex is defined here
+          const isInvalid = invalidCells.has(rowIndex) && invalidCells.get(rowIndex).has(colIndex); // ✅ Fix here
+          const isUpdated = updatedCells.has(rowIndex) && updatedCells.get(rowIndex).has(colIndex);
 
-        return (
-          <td
-            key={colIndex}
-            className={`${hasError ? "error-cell" : ""} ${isUpdated ? "updated-cell" : ""}`}
-            title={errorMessage} // Show error message on hover
-          >
-            {cell}
+          return (
+            <td key={colIndex} style={{ 
+              backgroundColor: isInvalid ? "red" : isUpdated ? "lightgreen" : "white"
+          }}>
+              {cell}
           </td>
-        );
-      })}
-    </tr>
-  ))}
-</tbody>
+          );
+        })}
+      </tr>
+    ))}
+  </tbody>
 
-            <tfoot>
-              <tr>
-              <td colSpan={headers.length} className="sticky-footer">
-              Total Amount: {Math.floor(calculateTotalSalary())}
-                </td>
-              </tr>
-            </tfoot>
+<tfoot>
+  <tr>
+    <td colSpan={tableHeaders.length} className="sticky-footer">
+      Total Amount: {calculateTotalSalary()} {/* Call the function */}
+    </td>
+  </tr>
+</tfoot>
+
+
           </table>
         </div>
       </div>
@@ -691,10 +835,12 @@ return (
 </tbody>
 
   </table>
+
 </div>
 </div>
 </div>
-      </div>
+</div>
+     
     ) : null}
 
     {/* Upload Message */}
