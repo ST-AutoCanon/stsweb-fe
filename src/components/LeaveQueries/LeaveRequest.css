@@ -264,8 +264,7 @@
   font-size: x-large;
 }
 
-/* Disabled Buttons */
-.button-disabled {
+.disabled {
   color: lightgray !important;
   pointer-events: none;
   cursor: not-allowed;
@@ -276,7 +275,7 @@
   border-radius: 12px;
   display: inline-block;
   text-align: center;
-  min-width: 100px;
+  min-width: 80px;
 }
 
 .leave-approved {

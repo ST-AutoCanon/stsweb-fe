@@ -151,7 +151,7 @@
 .rb-modal-content {
   background: #e8e9ea;
   padding: 0%;
-  width: 65%;
+  width: 70%;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -184,7 +184,6 @@
   grid-template-columns: repeat(2, minmax(20%, 1fr));
   gap: 3%;
   padding: 2%;
-  margin-left: 2%;
 }
 .rb-form2-grid {
   display: grid;
@@ -194,13 +193,44 @@
 }
 
 .claim-type {
+  display: flex;
+  margin: 2%;
+  max-width: 100%;
+  overflow-x: auto; /* Allows horizontal scrolling if needed */
+  flex-wrap: wrap; /* Ensures wrapping in smaller screens */
+}
+
+.rb-tabs {
   width: 100%;
   display: flex;
-  padding: 2%;
+  flex-wrap: wrap; /* Allows tabs to wrap if they don't fit */
+  border-bottom: none;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.rb-tab {
+  flex: 1; /* Ensures tabs resize proportionally */
+  min-width: 120px; /* Prevents tabs from becoming too small */
+  padding: 0.5%;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #dadada;
+  border-radius: 5px 5px 0 0;
+  border: 1px solid #949494;
+  transition: background-color 0.3s;
+  text-align: center; /* Centers text */
+  white-space: nowrap; /* Prevents text breaking mid-word */
+}
+
+.rb-tab.active {
+  background-color: #e8e9ea;
+  border-bottom: none;
 }
 
 .claim-icons {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .claim-type select {
@@ -217,18 +247,18 @@
 }
 
 .rb-groups input {
-  padding: 8px;
+  padding: 2%;
   border: 1px solid #ccc;
   background-color: #fff;
   border-radius: 5px;
-  width: 90%;
+  width: 95%;
 }
 
 .rb-groups select {
-  padding: 8px;
+  padding: 2%;
   border: 1px solid #ccc;
   border-radius: 5px;
-  width: 94%;
+  width: 99%;
 }
 
 .reimbursement-form-button {
@@ -267,30 +297,6 @@
   gap: 2%;
   cursor: pointer;
   font-weight: bold;
-}
-
-.rb-tabs {
-  width: 100%;
-  display: flex;
-  border-bottom: none;
-}
-
-.rb-tab {
-  display: flex;
-  justify-content: space-between;
-  padding: 1% 2.6%;
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: bold;
-  background-color: #dadada;
-  border-radius: 5px 5px 0 0;
-  border: 1px solid #949494;
-  transition: background-color 0.3s;
-}
-
-.rb-tab.active {
-  background-color: #e8e9ea;
-  border-bottom: none;
 }
 
 .sub-tabs {
@@ -440,7 +446,7 @@
   border: 1px solid #ccc;
   background-color: #fff;
   border-radius: 5px;
-  width: 94%;
+  width: 96%;
   height: 80px;
 }
 

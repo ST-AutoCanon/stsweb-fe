@@ -10,6 +10,7 @@ import {
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Modal from "../Modal/Modal";
 
 const departmentPositions = {
   Software: [
@@ -112,6 +113,22 @@ const EmployeeDetails = () => {
     }
   };
 
+  // Alert modal state (no title by default)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper functions for alert modal
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
+
   useEffect(() => {
     fetchEmployees();
   }, [searchTerm]);
@@ -144,7 +161,7 @@ const EmployeeDetails = () => {
           [name]: value.trim(),
         }));
       } else {
-        alert("Invalid gender value selected.");
+        showAlert("Invalid gender value selected.");
       }
     } else {
       setFormData((prevState) => ({
@@ -244,7 +261,7 @@ const EmployeeDetails = () => {
       });
 
       setFormModalVisible(false);
-      alert(
+      showAlert(
         "Employee added successfully. A password reset email has been sent."
       );
     } catch (err) {
@@ -279,7 +296,7 @@ const EmployeeDetails = () => {
       }));
     } catch (err) {
       console.error("Error fetching photo:", err);
-      alert("Failed to fetch photo.");
+      showAlert("Failed to fetch photo.");
     }
   };
 
@@ -297,7 +314,7 @@ const EmployeeDetails = () => {
       const employee = response?.data?.data;
 
       if (!employee) {
-        alert("Employee data not found");
+        showAlert("Employee data not found");
         return;
       }
 
@@ -332,7 +349,9 @@ const EmployeeDetails = () => {
       setEmployeeToEdit(true);
     } catch (err) {
       console.error("Error fetching employee:", err);
-      alert(err.response?.data?.message || "Failed to fetch employee details.");
+      showAlert(
+        err.response?.data?.message || "Failed to fetch employee details."
+      );
     }
   };
 
@@ -367,10 +386,10 @@ const EmployeeDetails = () => {
 
       setEditModalVisible(false);
       setEmployeeToEdit(false);
-      alert("Employee updated successfully.");
+      showAlert("Employee updated successfully.");
     } catch (err) {
       console.error("Error updating employee:", err);
-      alert("Failed to update employee.");
+      showAlert("Failed to update employee.");
     } finally {
       setIsLoading(false);
     }
@@ -393,7 +412,7 @@ const EmployeeDetails = () => {
       );
 
       setDeleteEmployeeId(null);
-      alert("Employee Deactivated successfully.");
+      showAlert("Employee Deactivated successfully.");
     } catch (err) {
       console.log("Failed to deactivate employee", err);
       setError("Failed to deactivate employee");
@@ -1213,83 +1232,96 @@ const EmployeeDetails = () => {
       {isLoading ? (
         <div className="loading">Loading...</div>
       ) : (
-        <table className="employee-table">
-          <thead>
-            <tr>
-              <th>Emp ID</th>
-              <th>Emp Name</th>
-              <th>DOJ</th>
-              <th>Status</th>
-              <th>Email ID</th>
-              <th>Contact</th>
-              <th>Department</th>
-              <th>Designation</th>
-              <th>Salary</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.length === 0 ? (
+        <div className="employee-table-container">
+          <table className="employee-table">
+            <thead>
               <tr>
-                <td colSpan="10">No employees found</td>
+                <th>Emp ID</th>
+                <th>Emp Name</th>
+                <th>DOJ</th>
+                <th>Status</th>
+                <th>Email ID</th>
+                <th>Contact</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>Salary</th>
+                <th>Actions</th>
               </tr>
-            ) : (
-              employees.map((employee) => (
-                <tr key={employee.employee_id}>
-                  <td>{employee.employee_id}</td>
-                  <td>{employee.name}</td>
-                  <td>
-                    {(() => {
-                      const date = new Date(employee.joining_date);
-                      const formattedDate = `${date
-                        .getDate()
-                        .toString()
-                        .padStart(2, "0")} ${date.toLocaleString("en-US", {
-                        month: "short",
-                      })} ${date.getFullYear()}`;
-                      return formattedDate;
-                    })()}
-                  </td>
-                  <td
-                    className={
-                      employee.status === "Active"
-                        ? "status-active"
-                        : "status-inactive"
-                    }
-                  >
-                    {employee.status}
-                  </td>
-                  <td>{employee.email}</td>
-                  <td>{employee.phone_number}</td>
-                  <td>{employee.department}</td>
-                  <td>{employee.position}</td>
-                  <td>{employee.salary}</td>
-                  <td>
-                    <div className="actions">
-                      <button
-                        className="edit"
-                        onClick={() => handleEditEmployee(employee.employee_id)}
-                        disabled={employee.status === "Inactive"}
-                      >
-                        <MdOutlineEdit />
-                      </button>
-                      <button
-                        className="deactivate"
-                        onClick={() => {
-                          setDeleteEmployeeId(employee.employee_id);
-                          setModalVisible(true);
-                        }}
-                        disabled={employee.status === "Inactive"}
-                      >
-                        <MdDeleteOutline />
-                      </button>
-                    </div>
-                  </td>
+            </thead>
+            <tbody>
+              {employees.length === 0 ? (
+                <tr>
+                  <td colSpan="10">No employees found</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                employees.map((employee) => (
+                  <tr key={employee.employee_id}>
+                    <td>{employee.employee_id}</td>
+                    <td>{employee.name}</td>
+                    <td>
+                      {(() => {
+                        const date = new Date(employee.joining_date);
+                        const formattedDate = `${date
+                          .getDate()
+                          .toString()
+                          .padStart(2, "0")} ${date.toLocaleString("en-US", {
+                          month: "short",
+                        })} ${date.getFullYear()}`;
+                        return formattedDate;
+                      })()}
+                    </td>
+                    <td
+                      className={
+                        employee.status === "Active"
+                          ? "status-active"
+                          : "status-inactive"
+                      }
+                    >
+                      {employee.status}
+                    </td>
+                    <td>{employee.email}</td>
+                    <td>{employee.phone_number}</td>
+                    <td>{employee.department}</td>
+                    <td>{employee.position}</td>
+                    <td>{employee.salary}</td>
+                    <td>
+                      <div className="actions">
+                        <button
+                          className="edit"
+                          onClick={() =>
+                            handleEditEmployee(employee.employee_id)
+                          }
+                          disabled={employee.status === "Inactive"}
+                        >
+                          <MdOutlineEdit />
+                        </button>
+                        <button
+                          className="deactivate"
+                          onClick={() => {
+                            setDeleteEmployeeId(employee.employee_id);
+                            setModalVisible(true);
+                          }}
+                          disabled={employee.status === "Inactive"}
+                        >
+                          <MdDeleteOutline />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {alertModal.isVisible && (
+        <Modal
+          isVisible={alertModal.isVisible}
+          onClose={closeAlert}
+          buttons={[{ label: "OK", onClick: closeAlert }]}
+        >
+          <p>{alertModal.message}</p>
+        </Modal>
       )}
     </div>
   );

@@ -8,6 +8,7 @@ import { MdOutlineRemoveRedEye } from "react-icons/md";
 
 import Reimbursement from "./Reimbursement"; // Self reimbursement component
 import "./RbTeamLead.css"; // Custom slider styling
+import Modal from "../Modal/Modal"; // Custom alert modal
 
 const RbTeamLead = () => {
   // "team" for team view; "self" for self view.
@@ -25,6 +26,22 @@ const RbTeamLead = () => {
   const [statusUpdates, setStatusUpdates] = useState({});
   const [comments, setComments] = useState({});
   const [statusFilter, setStatusFilter] = useState("pending");
+
+  // Alert modal state (no title by default)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper functions for the alert modal
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
 
   // Get team lead data from localStorage (assumed stored under "dashboardData")
   const teamLeadData = JSON.parse(localStorage.getItem("dashboardData"));
@@ -77,6 +94,7 @@ const RbTeamLead = () => {
       setAttachments(attachmentsMap);
     } catch (error) {
       console.error("Error fetching team reimbursements:", error);
+      showAlert("Error fetching team reimbursements.");
     }
   };
 
@@ -90,7 +108,7 @@ const RbTeamLead = () => {
   const handleOpenAttachments = async (files, claim) => {
     try {
       if (!files || files.length === 0) {
-        alert("No attachments available.");
+        showAlert("No attachments available.");
         return;
       }
 
@@ -106,10 +124,10 @@ const RbTeamLead = () => {
 
           const year = match[1]; // Extracted year
           const month = match[2]; // Extracted month
-          const employeeId = claim.employee_id; // Employee ID from claim
+          const empId = claim.employee_id; // Employee ID from claim
 
           // Construct the correct URL
-          const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${employeeId}/${file.filename}`;
+          const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.filename}`;
 
           const response = await axios.get(fileUrl, {
             headers: {
@@ -135,7 +153,7 @@ const RbTeamLead = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching attachments:", error);
-      alert("Failed to load attachments.");
+      showAlert("Failed to load attachments.");
     }
   };
 
@@ -145,7 +163,7 @@ const RbTeamLead = () => {
 
   const updateStatus = async (id) => {
     if (!statusUpdates[id]) {
-      alert("Please select a status.");
+      showAlert("Please select a status.");
       return;
     }
 
@@ -163,7 +181,7 @@ const RbTeamLead = () => {
     });
 
     if (!approverId) {
-      alert("Approver ID is missing!");
+      showAlert("Approver ID is missing!");
       return;
     }
 
@@ -182,7 +200,8 @@ const RbTeamLead = () => {
         }
       );
 
-      alert(`Reimbursement ${updatedStatus} successfully.`);
+      showAlert(`Reimbursement ${updatedStatus} successfully.`);
+
       setEmployees((prevEmployees) =>
         prevEmployees.map((emp) => ({
           ...emp,
@@ -199,7 +218,7 @@ const RbTeamLead = () => {
       );
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Failed to update status.");
+      showAlert("Failed to update status.");
     }
   };
 
@@ -224,7 +243,7 @@ const RbTeamLead = () => {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      alert("Failed to download file.");
+      showAlert("Failed to download file.");
     }
   };
 
@@ -526,6 +545,14 @@ const RbTeamLead = () => {
           </div>
         </div>
       )}
+      {/* Alert Modal for displaying messages */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

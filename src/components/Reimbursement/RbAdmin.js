@@ -17,6 +17,7 @@ import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import axios from "axios";
+import Modal from "../Modal/Modal"; // Import your custom alert modal
 
 const RbAdmin = () => {
   const [employees, setEmployees] = useState([]);
@@ -32,6 +33,22 @@ const RbAdmin = () => {
   const [statusFilter, setStatusFilter] = useState("pending"); // Default to "pending"
   const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
   const employeeId = employeeData?.employee_id;
+
+  // Alert modal state (no title by default)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper functions for alert modal
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
 
   useEffect(() => {
     fetchEmployees();
@@ -61,6 +78,7 @@ const RbAdmin = () => {
       setAttachments(attachmentsMap);
     } catch (error) {
       console.error("Error fetching employees:", error);
+      showAlert("Error fetching employees.");
     }
   };
 
@@ -74,7 +92,7 @@ const RbAdmin = () => {
   const handleOpenAttachments = async (files, claim) => {
     try {
       if (!files || files.length === 0) {
-        alert("No attachments available.");
+        showAlert("No attachments available.");
         return;
       }
 
@@ -85,15 +103,15 @@ const RbAdmin = () => {
           if (!file?.filename) return null;
 
           // Extract year and month from filename (format: YYYY-MM-DD_XX.png)
-          const match = file.filename.match(/^(\d{4})-(\d{2})-\d{2}/); // Extract YYYY-MM
+          const match = file.filename.match(/^(\d{4})-(\d{2})-\d{2}/);
           if (!match) return null;
 
           const year = match[1]; // Extracted year
           const month = match[2]; // Extracted month
-          const employeeId = claim.employee_id; // Employee ID from claim
+          const empId = claim.employee_id; // Employee ID from claim
 
           // Construct the correct URL
-          const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${employeeId}/${file.filename}`;
+          const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.filename}`;
 
           const response = await axios.get(fileUrl, {
             headers: {
@@ -119,7 +137,7 @@ const RbAdmin = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching attachments:", error);
-      alert("Failed to load attachments.");
+      showAlert("Failed to load attachments.");
     }
   };
 
@@ -151,7 +169,7 @@ const RbAdmin = () => {
 
   const updateStatus = async (id) => {
     if (!statusUpdates[id]) {
-      alert("Please select a status.");
+      showAlert("Please select a status.");
       return;
     }
 
@@ -173,9 +191,9 @@ const RbAdmin = () => {
         }
       );
 
-      alert(`Reimbursement ${updatedStatus} successfully.`);
+      showAlert(`Reimbursement ${updatedStatus} successfully.`);
 
-      // ✅ Update employees state after status change
+      // Update employees state after status change
       setEmployees((prevEmployees) =>
         prevEmployees.map((emp) => ({
           ...emp,
@@ -192,7 +210,7 @@ const RbAdmin = () => {
       );
     } catch (error) {
       console.error("Error updating reimbursement status:", error);
-      alert("Failed to update status.");
+      showAlert("Failed to update status.");
     }
   };
 
@@ -218,7 +236,7 @@ const RbAdmin = () => {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Error downloading reimbursement PDF:", error);
-      alert("Failed to download file.");
+      showAlert("Failed to download file.");
     }
   };
 
@@ -486,6 +504,14 @@ const RbAdmin = () => {
           </div>
         </div>
       )}
+      {/* Alert Modal for displaying messages */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

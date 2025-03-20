@@ -4,6 +4,7 @@ import { FiPaperclip } from "react-icons/fi";
 import io from "socket.io-client";
 import UserAvatar from "./UserAvatar";
 import "./AdminQuery.css";
+import Modal from "../Modal/Modal";
 
 const AdminQuery = () => {
   const API_KEY = process.env.REACT_APP_API_KEY;
@@ -54,6 +55,22 @@ const AdminQuery = () => {
     };
   });
 
+  // Alert modal state (no title by default)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper functions for the alert modal
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
+
   useEffect(() => {
     const fetchQueries = async () => {
       try {
@@ -93,13 +110,13 @@ const AdminQuery = () => {
       console.log("Fetched Messages:", response.data.data); // Debugging step
     } catch (error) {
       console.error("Error fetching messages:", error);
-      alert("Failed to fetch thread messages. Please try again.");
+      showAlert("Failed to fetch thread messages. Please try again.");
     }
   };
 
   const sendMessage = async () => {
     if (!newMessage.trim() && !attachment) {
-      alert("Message or attachment is required.");
+      showAlert("Message or attachment is required.");
       return;
     }
 
@@ -139,7 +156,7 @@ const AdminQuery = () => {
       setAttachmentName("");
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("Failed to send the message. Please try again.");
+      showAlert("Failed to send the message. Please try again.");
     }
   };
 
@@ -224,7 +241,7 @@ const AdminQuery = () => {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Error downloading file:", error);
-      alert("Failed to download file.");
+      showAlert("Failed to download file.");
     }
   };
 
@@ -427,6 +444,14 @@ const AdminQuery = () => {
           )}
         </div>
       </div>
+      {/* Alert Modal for displaying messages */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

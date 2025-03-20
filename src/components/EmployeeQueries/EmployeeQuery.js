@@ -7,6 +7,7 @@ import { TbMessageOff } from "react-icons/tb";
 import io from "socket.io-client";
 import UserAvatar from "./UserAvatar";
 import "./EmployeeQuery.css";
+import Modal from "../Modal/Modal";
 
 const EmployeeQuery = () => {
   const API_KEY = process.env.REACT_APP_API_KEY;
@@ -73,6 +74,22 @@ const EmployeeQuery = () => {
     };
   });
 
+  // Alert modal state (no title by default)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper functions for the alert modal
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
+
   useEffect(() => {
     if (!employeeId) return;
 
@@ -98,7 +115,7 @@ const EmployeeQuery = () => {
   // Start a new thread
   const startThread = async () => {
     if (!recipientRole || !subject || !query) {
-      alert("Please fill out all fields.");
+      showAlert("Please fill out all fields.");
       return;
     }
 
@@ -117,11 +134,11 @@ const EmployeeQuery = () => {
       );
 
       setThreadId(response.data.threadId);
-      alert("Thread started successfully!");
+      showAlert("Thread started successfully!");
       setShowModal(false); // Close the modal after submitting
     } catch (error) {
       console.error("Error starting thread:", error);
-      alert("Failed to start thread. Please try again.");
+      showAlert("Failed to start thread. Please try again.");
     }
   };
 
@@ -174,7 +191,7 @@ const EmployeeQuery = () => {
     const userRole = localStorage.getItem("userRole");
 
     if (!inputMessage.trim() && !attachment) {
-      alert("Message or attachment is required.");
+      showAlert("Message or attachment is required.");
       return;
     }
 
@@ -231,7 +248,7 @@ const EmployeeQuery = () => {
 
   const closeThread = async () => {
     if (!feedback) {
-      alert("Please select your feedback.");
+      showAlert("Please select your feedback.");
       return;
     }
 
@@ -245,7 +262,7 @@ const EmployeeQuery = () => {
         { headers }
       );
 
-      alert("Thread closed successfully.");
+      showAlert("Thread closed successfully.");
       closeFeedbackModal();
 
       // Show the thank-you modal
@@ -259,7 +276,7 @@ const EmployeeQuery = () => {
       setThreads(response.data.threads);
     } catch (error) {
       console.error("Error closing thread:", error);
-      alert("Failed to close thread. Please try again.");
+      showAlert("Failed to close thread. Please try again.");
     }
   };
 
@@ -292,7 +309,7 @@ const EmployeeQuery = () => {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Error downloading file:", error);
-      alert("Failed to download file.");
+      showAlert("Failed to download file.");
     }
   };
 
@@ -665,6 +682,14 @@ const EmployeeQuery = () => {
           )}
         </div>
       </div>
+      {/* Alert Modal for displaying messages */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

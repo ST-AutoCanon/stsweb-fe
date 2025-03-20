@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./LeaveRequest.css";
+import Modal from "../Modal/Modal"; // Adjust the path as needed
 import { MdOutlineCancel } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
 import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 
 const LeaveRequest = () => {
+  // Existing state variables for your form and leave data
   const [isFormVisible, setFormVisible] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
   const [formData, setFormData] = useState({
@@ -21,7 +23,46 @@ const LeaveRequest = () => {
   const [filters, setFilters] = useState({ from_date: "", to_date: "" });
   const [editingId, setEditingId] = useState(null);
 
-  const API_KEY = process.env.REACT_APP_API_KEY;
+  // New state for the alert modal
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper function to show the alert modal instead of calling alert()
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  // Function to close the alert modal
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
+
+  // Reset Form Function
+  const resetForm = () => {
+    setFormData({
+      reason: "",
+      leavetype: "",
+      h_f_day: "Full Day",
+      startDate: "",
+      endDate: "",
+    });
+    setEditingId(null);
+  };
+
+  // Open Modal & Reset Form (for leave request form)
+  const handleOpenModal = () => {
+    resetForm();
+    setFormVisible(true);
+  };
+
+  // Close Modal & Reset Form (for leave request form)
+  const handleCloseModal = () => {
+    resetForm();
+    setFormVisible(false);
+  };
 
   // Retrieve employee details from local storage
   const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
@@ -49,7 +90,7 @@ const LeaveRequest = () => {
       const selfResponse = await fetch(selfFinalUrl, {
         method: "GET",
         headers: {
-          "x-api-key": API_KEY,
+          "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "application/json",
         },
       });
@@ -60,7 +101,7 @@ const LeaveRequest = () => {
         selfRequests = selfResult?.data || [];
       }
 
-      // Fetch team leave requests (Only if the user is a Team Lead)
+      // Fetch team leave requests (only if the user is a Team Lead)
       let teamRequests = [];
       if (role === "Team Lead") {
         const teamUrl = `${process.env.REACT_APP_BACKEND_URL}/team-lead/${employeeId}`;
@@ -75,7 +116,7 @@ const LeaveRequest = () => {
         const teamResponse = await fetch(teamFinalUrl, {
           method: "GET",
           headers: {
-            "x-api-key": API_KEY,
+            "x-api-key": process.env.REACT_APP_API_KEY,
             "Content-Type": "application/json",
           },
         });
@@ -86,14 +127,13 @@ const LeaveRequest = () => {
         }
       }
 
-      // Set state separately
+      // Update state with fetched leave requests
       setLeaveRequests({ self: selfRequests, team: teamRequests });
       setStatusUpdates({});
-
       console.log("Updated Leave Requests:", {
         self: selfRequests,
         team: teamRequests,
-      }); // ✅ Debugging log
+      });
     } catch (error) {
       console.error("Error fetching leave requests:", error);
       setLeaveRequests({ self: [], team: [] });
@@ -125,22 +165,14 @@ const LeaveRequest = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert(data.message || "Leave request updated successfully.");
-
-        // Mark as updated
-        setUpdatedQueries((prev) => {
-          const newSet = new Set(prev);
-          newSet.add(leaveId);
-          return newSet;
-        });
-
-        // Optional: Fetch new data
-        fetchLeaveQueries();
+        showAlert(data.message || "Leave request updated successfully.");
+        fetchLeaveRequests();
       } else {
-        alert(data.message || "Failed to update leave request.");
+        showAlert(data.message || "Failed to update leave request.");
       }
     } catch (error) {
       console.error("Error updating leave request:", error);
+      showAlert("An error occurred while updating the leave request.");
     }
   };
 
@@ -154,13 +186,23 @@ const LeaveRequest = () => {
     }));
   };
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prevData) => {
+      let newFormData = { ...prevData, [name]: value };
+      // Auto-enforce Full Day leave if more than one day is selected
+      if (name === "startDate" || name === "endDate") {
+        const startDate = new Date(newFormData.startDate);
+        const endDate = new Date(newFormData.endDate);
+        if (startDate && endDate) {
+          const dayDifference = (endDate - startDate) / (1000 * 60 * 60 * 24);
+          if (dayDifference >= 1) {
+            newFormData.h_f_day = "Full Day";
+          }
+        }
+      }
+      return newFormData;
+    });
   };
 
   // Handle filters
@@ -174,28 +216,30 @@ const LeaveRequest = () => {
     fetchLeaveRequests();
   };
 
-  // Handle form submission for both new and edited requests
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!employeeId || !name) {
-      alert("Employee data not found. Please log in again.");
+      showAlert("Employee data not found. Please log in again.");
       return;
     }
 
     const startDate = new Date(formData.startDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's date
+    const endDate = new Date(formData.endDate);
 
-    const daysDifference = (startDate - today) / (1000 * 60 * 60 * 24);
-
-    if (
-      (formData.leavetype === "Casual" || formData.leavetype === "Vacation") &&
-      daysDifference < 3
-    ) {
-      alert(
-        "Casual and Vacation leaves must be applied at least 3 days in advance."
+    // Check for existing leave requests with the same date(s)
+    const hasConflict = leaveRequests.self.some((leave) => {
+      const existingStart = new Date(leave.start_date);
+      const existingEnd = new Date(leave.end_date);
+      return (
+        (startDate >= existingStart && startDate <= existingEnd) ||
+        (endDate >= existingStart && endDate <= existingEnd) ||
+        (existingStart >= startDate && existingEnd <= endDate)
       );
+    });
+
+    if (hasConflict) {
+      showAlert("You already have a leave request on the selected date(s).");
       return;
     }
 
@@ -215,36 +259,29 @@ const LeaveRequest = () => {
       const response = await fetch(url, {
         method,
         headers: {
-          "x-api-key": API_KEY,
+          "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          employeeId,
-          ...formData,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (response.ok) {
-        alert(
+        showAlert(
           editingId
             ? "Leave request updated successfully!"
             : "Leave request submitted successfully!"
         );
         setFormVisible(false);
         setEditingId(null);
-        setFormData({
-          reason: "",
-          leavetype: "",
-          h_f_day: "",
-          startDate: "",
-          endDate: "",
-        });
+        resetForm();
         fetchLeaveRequests();
       } else {
         console.error("Failed to submit leave request.");
+        showAlert("Failed to submit leave request.");
       }
     } catch (error) {
       console.error("Error submitting leave request:", error);
+      showAlert("An error occurred while submitting the leave request.");
     }
   };
 
@@ -260,31 +297,58 @@ const LeaveRequest = () => {
     setFormVisible(true);
   };
 
-  // Handle cancel (delete) request
-  const handleCancel = async (id) => {
-    if (window.confirm("Are you sure you want to cancel this leave request?")) {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/cancel/${id}/${employeeId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "x-api-key": API_KEY,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+  // New state for the confirm modal
+  const [confirmModal, setConfirmModal] = useState({
+    isVisible: false,
+    message: "",
+    onConfirm: null,
+  });
 
-        if (response.ok) {
-          alert("Leave request cancelled successfully!");
-          fetchLeaveRequests();
-        } else {
-          console.error("Failed to cancel leave request.");
+  // Helper to show confirm modal
+  const showConfirm = (message, onConfirm) => {
+    setConfirmModal({
+      isVisible: true,
+      message,
+      onConfirm,
+    });
+  };
+
+  // Helper to close confirm modal
+  const closeConfirm = () => {
+    setConfirmModal({ isVisible: false, message: "", onConfirm: null });
+  };
+
+  // Updated handleCancel using the custom confirm modal
+  const handleCancel = (id) => {
+    showConfirm(
+      "Are you sure you want to cancel this leave request?",
+      async () => {
+        try {
+          const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}/cancel/${id}/${employeeId}`,
+            {
+              method: "DELETE",
+              headers: {
+                "x-api-key": process.env.REACT_APP_API_KEY,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.ok) {
+            showAlert("Leave request cancelled successfully!");
+            fetchLeaveRequests();
+          } else {
+            console.error("Failed to cancel leave request.");
+            showAlert("Failed to cancel leave request.");
+          }
+        } catch (error) {
+          console.error("Error cancelling leave request:", error);
+          showAlert("An error occurred while cancelling the leave request.");
         }
-      } catch (error) {
-        console.error("Error cancelling leave request:", error);
+        closeConfirm();
       }
-    }
+    );
   };
 
   return (
@@ -292,7 +356,6 @@ const LeaveRequest = () => {
       <div className="leave-header">
         <h3 className="leave-queries-title">Leave Queries</h3>
       </div>
-
       <div className="leave-filters">
         <label>Date</label>
         <label>From:</label>
@@ -328,10 +391,7 @@ const LeaveRequest = () => {
             <form className="leave-form" onSubmit={handleSubmit}>
               <div className="leave-form-header">
                 <h2>Leave Request Form</h2>
-                <MdOutlineCancel
-                  className="icon"
-                  onClick={() => setFormVisible(false)}
-                />
+                <MdOutlineCancel className="icon" onClick={handleCloseModal} />
               </div>
               <div className="leave-form-grid">
                 <div className="leave-form-group">
@@ -341,7 +401,7 @@ const LeaveRequest = () => {
                     value={formData.leavetype}
                     onChange={handleInputChange}
                   >
-                    <option value=" ">Select</option>
+                    <option value="">Select</option>
                     <option value="Casual">Casual</option>
                     <option value="Sick">Sick</option>
                     <option value="Vacation">Vacation</option>
@@ -349,7 +409,7 @@ const LeaveRequest = () => {
                   </select>
                 </div>
                 <div className="leave-form-group">
-                  <label>Leave Start Date</label>
+                  <label>Start Date</label>
                   <input
                     type="date"
                     name="startDate"
@@ -359,7 +419,7 @@ const LeaveRequest = () => {
                   />
                 </div>
                 <div className="leave-form-group">
-                  <label>Leave End Date</label>
+                  <label>End Date</label>
                   <input
                     type="date"
                     name="endDate"
@@ -370,16 +430,24 @@ const LeaveRequest = () => {
                   />
                 </div>
                 <div className="leave-form-group">
-                  <label>Half or Full Day Leave</label>
+                  <label>Half/Full Day</label>
                   <select
                     name="h_f_day"
                     value={formData.h_f_day}
                     onChange={handleInputChange}
+                    disabled={
+                      formData.startDate &&
+                      formData.endDate &&
+                      new Date(formData.endDate) -
+                        new Date(formData.startDate) >
+                        0
+                    } // Disable if more than 1 day
                   >
                     <option value="Full Day">Full Day</option>
                     <option value="Half Day">Half Day</option>
                   </select>
                 </div>
+
                 <div className="leave-form-group">
                   <label>Leave Reason</label>
                   <input
@@ -395,12 +463,12 @@ const LeaveRequest = () => {
                 <button
                   type="button"
                   className="leave-cancel"
-                  onClick={() => setFormVisible(false)}
+                  onClick={handleCloseModal}
                 >
                   Cancel
                 </button>
                 <button type="submit" className="leave-save">
-                  Save
+                  Submit
                 </button>
               </div>
             </form>
@@ -569,12 +637,36 @@ const LeaveRequest = () => {
                   </td>
                   <td>
                     <MdOutlineEdit
-                      onClick={() => handleEdit(request)}
-                      className="action-button"
+                      onClick={() => {
+                        if (
+                          request.status !== "Approved" &&
+                          request.status !== "Rejected"
+                        ) {
+                          handleEdit(request);
+                        }
+                      }}
+                      className={`action-button ${
+                        request.status === "Approved" ||
+                        request.status === "Rejected"
+                          ? "disabled"
+                          : ""
+                      }`}
                     />
                     <MdDeleteOutline
-                      onClick={() => handleCancel(request.id)}
-                      className="action-button"
+                      onClick={() => {
+                        if (
+                          request.status !== "Approved" &&
+                          request.status !== "Rejected"
+                        ) {
+                          handleCancel(request.id);
+                        }
+                      }}
+                      className={`action-button ${
+                        request.status === "Approved" ||
+                        request.status === "Rejected"
+                          ? "disabled"
+                          : ""
+                      }`}
                     />
                   </td>
                 </tr>
@@ -582,6 +674,25 @@ const LeaveRequest = () => {
           </tbody>
         </table>
       </div>
+      <Modal
+        title={alertModal.title}
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
+      {/* Confirm Modal */}
+      <Modal
+        isVisible={confirmModal.isVisible}
+        onClose={closeConfirm}
+        buttons={[
+          { label: "Cancel", onClick: closeConfirm },
+          { label: "Confirm", onClick: confirmModal.onConfirm },
+        ]}
+      >
+        <p>{confirmModal.message}</p>
+      </Modal>
     </div>
   );
 };

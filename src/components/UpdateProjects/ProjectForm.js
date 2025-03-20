@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./ProjectForm.css";
 import { MdOutlineCancel, MdSearch } from "react-icons/md";
+import Modal from "../Modal/Modal";
 
 const userRole = localStorage.getItem("userRole") || "Employee";
 
@@ -66,6 +67,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
   const userRole = localStorage.getItem("userRole");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [newAttachments, setNewAttachments] = useState([]);
 
   const [formData, setFormData] = useState({
     company_name: "",
@@ -96,6 +98,22 @@ const MultiStepForm = ({ onClose, projectData }) => {
     total_amount: "",
     financialDetails: [],
   });
+
+  // Alert modal state (no title by default)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper functions for the alert modal
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
 
   useEffect(() => {
     axios
@@ -171,7 +189,9 @@ const MultiStepForm = ({ onClose, projectData }) => {
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     setSelectedFiles(files.map((file) => file.name)); // For display
-    setFormData((prev) => ({ ...prev, attachment_url: files })); // For submission
+    setNewAttachments(files); // Store the File objects for submission
+    // Optionally, update formData too if needed:
+    setFormData((prev) => ({ ...prev, attachment_url: files }));
   };
 
   // Handle checkbox change
@@ -373,8 +393,8 @@ const MultiStepForm = ({ onClose, projectData }) => {
     }
 
     // Append each file from attachment_url (if any)
-    if (formData.attachment_url && formData.attachment_url.length > 0) {
-      formData.attachment_url.forEach((file) => {
+    if (newAttachments && newAttachments.length > 0) {
+      newAttachments.forEach((file) => {
         submissionData.append("attachment_url", file);
       });
     }
@@ -393,7 +413,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
       if (!response.ok) {
         throw new Error("Failed to save project");
       }
-      alert("Project saved successfully!");
+      showAlert("Project saved successfully!");
       onClose();
     } catch (error) {
       console.error("Error:", error);
@@ -1586,6 +1606,14 @@ const MultiStepForm = ({ onClose, projectData }) => {
           </button>
         )}
       </div>
+      {/* Alert Modal for displaying messages */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };
