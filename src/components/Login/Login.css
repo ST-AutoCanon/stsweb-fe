@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -10,7 +11,7 @@ body, html {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  
+
   background: #f4f4f4;
 }
 .login-logo {
@@ -26,14 +27,14 @@ body, html {
 .login-container {
   display: flex;
   width: 150%;
- 
+  position: relative;
   height: 80%;
   background: #fff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   overflow: hidden;
   margin-left: -30%;
-  flex:10;
+  flex: 10;
 }
 
 .login-image {
@@ -49,7 +50,7 @@ body, html {
 
 .login-form {
   flex: 12;
-  padding: 30px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -63,11 +64,9 @@ body, html {
 .form-group {
   margin-bottom: 15px;
   text-align: start;
-  
 }
 
-.label
-{
+.label {
   display: block;
   margin-bottom: 5px;
   font-size: 14px;
@@ -88,7 +87,8 @@ body, html {
 }
 
 .form-options {
-  margin-bottom: 20px;
+  width: 100%;
+  margin: 0 0 20px 0;
   text-align: right;
 }
 
@@ -103,7 +103,7 @@ body, html {
   padding: 10px;
   font-size: 16px;
   color: #fff;
-  background-color: #79C42B;
+  background-color: #79c42b;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -111,11 +111,10 @@ body, html {
 }
 
 .btn-login:hover {
-  background-color: #79C42B;
+  background-color: #79c42b;
 }
 /* Login.css */
-.login-page
- {
+.login-page {
   position: fixed; /* Make the login form overlay fixed */
   top: 0;
   left: 0;
@@ -138,11 +137,11 @@ body, html {
 
 .login-close-button {
   position: absolute;
-  top: 23%;
-  left: 51%;
-  right: 320px;/* Set a fixed distance from the right */
+  top: 20px; /* Set a fixed top distance */
+  right: 20px; /* Stick to the right with a fixed distance */
+
   background-color: transparent; /* Transparent background */
-  border: none; /* Re3move default border */
+  border: none; /* Remove default border */
   font-size: 30px; /* Adjust size of the cross '×' */
   font-weight: bold;
   color: rgb(135, 146, 138); /* Initial color */
@@ -155,7 +154,7 @@ body, html {
 }
 
 .login-modal form input {
-  width: 100%;
+  width: 92%;
   padding: 10px;
   margin: 10px 0;
   border: 1px solid #ccc;
@@ -165,7 +164,7 @@ body, html {
 .login-modal form button {
   width: 100%;
   padding: 10px;
-  background-color: #79C42B;
+  background-color: #79c42b;
   border: none;
   border-radius: 4px;
   color: white;
@@ -173,12 +172,12 @@ body, html {
 }
 
 .login-modal form button:hover {
-  background-color: #79C42B;
+  background-color: #79c42b;
 }
 .login-modal form button {
   width: 100%;
   padding: 10px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   border: none;
   border-radius: 4px;
   color: white;
@@ -189,7 +188,7 @@ body, html {
   background-color: #45a049;
 }
 .open-login-btn {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   bottom: 50%;
 
@@ -206,7 +205,7 @@ body, html {
 }
 /* Open Login Button (inside Login component) */
 .btn-open-login {
-  background-color: #4CAF50; /* Green background */
+  background-color: #4caf50; /* Green background */
   color: white; /* White text */
   border: none; /* No border */
   padding: 10px 20px; /* Padding for size */
@@ -225,19 +224,16 @@ body, html {
 }
 
 /* Hover effect for the button */
-.btn-open-login:hover 
-{
+.btn-open-login:hover {
   background-color: #45a049; /* Slightly darker green on hover */
 }
 /* Focus state for better accessibility */
-.btn-open-login:focus
- {
+.btn-open-login:focus {
   outline: none; /* Remove default outline */
   box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); /* Green focus ring */
 }
 /* Active state when button is clicked */
-.btn-open-login:active 
-{
+.btn-open-login:active {
   background-color: #3e8e41; /* Even darker green when clicked */
   transform: scale(0.98); /* Slightly shrink the button */
 }
@@ -278,7 +274,7 @@ body, html {
     color: white;
     cursor: pointer;
   }
-  
+
   .login-image {
     display: none;
     flex: 0;
@@ -332,7 +328,7 @@ body, html {
   }
 
   .login-close-button {
-    margin-top:10%;
+    margin-top: 10%;
     left: 80%;
     font-size: 28px; /* Slightly smaller for mobile */
   }
@@ -344,8 +340,6 @@ body, html {
     margin: 12px auto;
     display: block;
   }
-  
-
 }
 
 @media (max-width: 480px) {

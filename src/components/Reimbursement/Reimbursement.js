@@ -191,6 +191,10 @@ const Reimbursement = () => {
   const handleTransportSubTypeChange = (type) => {
     setFormData({ ...formData, transport_type: type });
     setSelectedSubType(type);
+    if (type === "Outstation") {
+      // Optionally clear the no_of_days value if it’s not applicable:
+      setFormData((prev) => ({ ...prev, no_of_days: "" }));
+    }
   };
 
   const filterClaims = reimbursements.filter(
@@ -208,6 +212,7 @@ const Reimbursement = () => {
   };
 
   const renderDateFields = () => {
+    // If Outstation, always show its dates and ignore no_of_days
     if (selectedSubType === "Outstation") {
       return (
         <>
@@ -647,7 +652,9 @@ const Reimbursement = () => {
                   )}
 
                   <div className="rb-groups">
-                    <label>Total Amount</label>
+                    <label>
+                      Total Amount<span className="asterisk">*</span>
+                    </label>
                     <input
                       type="number"
                       name="total_amount"
@@ -659,7 +666,10 @@ const Reimbursement = () => {
                 </div>
                 <div className="purpose-attachment">
                   <div className="pa-groups">
-                    <label>Purpose Details / Comments</label>
+                    <label>
+                      Purpose Details / Comments
+                      <span className="asterisk">*</span>
+                    </label>
                     <input
                       type="text"
                       name="purpose"
@@ -758,7 +768,9 @@ const Reimbursement = () => {
               </div>
 
               <div className="rb-groups">
-                <label>Total Amount</label>
+                <label>
+                  Total Amount<span className="asterisk">*</span>
+                </label>
                 <input
                   type="number"
                   name="total_amount"
@@ -770,7 +782,10 @@ const Reimbursement = () => {
             </div>
             <div className="purpose-attachment">
               <div className="pa-groups">
-                <label>Purpose Details / Comments</label>
+                <label>
+                  Purpose Details / Comments
+                  <span className="asterisk">*</span>
+                </label>
                 <input
                   type="text"
                   name="purpose"
@@ -849,7 +864,9 @@ const Reimbursement = () => {
               <input type="text" name="reason" value={formData.reason} onChange={handleChange} required />
             </div> */}
               <div className="rb-groups">
-                <label>Total Amount</label>
+                <label>
+                  Total Amount<span className="asterisk">*</span>
+                </label>
                 <input
                   type="number"
                   name="total_amount"
@@ -861,7 +878,10 @@ const Reimbursement = () => {
             </div>
             <div className="purpose-attachment">
               <div className="pa-groups">
-                <label>Purpose Details / Comments</label>
+                <label>
+                  Purpose Details / Comments
+                  <span className="asterisk">*</span>
+                </label>
                 <input
                   type="text"
                   name="purpose"
@@ -952,7 +972,10 @@ const Reimbursement = () => {
               <input type="text" name="reason" value={formData.reason} onChange={handleChange} required />
             </div> */}
               <div className="rb-groups">
-                <label>Total Amount</label>
+                <label>
+                  Total Amount
+                  <span className="asterisk">*</span>
+                </label>
                 <input
                   type="number"
                   name="total_amount"
@@ -964,7 +987,10 @@ const Reimbursement = () => {
             </div>
             <div className="purpose-attachment">
               <div className="pa-groups">
-                <label>Purpose Details / Comments</label>
+                <label>
+                  Purpose Details / Comments
+                  <span className="asterisk">*</span>
+                </label>
                 <input
                   type="text"
                   name="purpose"
@@ -1032,7 +1058,10 @@ const Reimbursement = () => {
               <input type="text" name="misc_description" value={formData.misc_description} onChange={handleChange} required />
             </div> */}
               <div className="rb-groups">
-                <label>Total Amount</label>
+                <label>
+                  Total Amount
+                  <span className="asterisk">*</span>
+                </label>
                 <input
                   type="number"
                   name="total_amount"
@@ -1044,7 +1073,10 @@ const Reimbursement = () => {
             </div>
             <div className="purpose-attachment">
               <div className="pa-groups">
-                <label>Purpose Details / Comments</label>
+                <label>
+                  Purpose Details / Comments
+                  <span className="asterisk">*</span>
+                </label>
                 <input
                   type="text"
                   name="purpose"
@@ -1330,7 +1362,6 @@ const Reimbursement = () => {
                 </div>
               </div>
               {renderClaimSpecificFields()}
-              {renderDateFields()}
               <div className="reimbursement-form-button">
                 <button
                   type="button"
