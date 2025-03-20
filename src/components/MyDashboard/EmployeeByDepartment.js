@@ -12,7 +12,14 @@ import {
 import "./EmployeeByDepartment.css";
 
 // Register chart components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const EmployeeByDepartment = () => {
   const [data, setData] = useState(null);
@@ -24,32 +31,47 @@ const EmployeeByDepartment = () => {
   useEffect(() => {
     const fetchEmployeeCountByDepartment = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/employee-count-by-department`, {
-          method: "GET",
-          headers: {
-            "x-api-key": API_KEY,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/employee-count-by-department`,
+          {
+            method: "GET",
+            headers: {
+              "x-api-key": API_KEY,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `HTTP error! Status: ${response.status} ${response.statusText}`
+          );
         }
 
         const jsonData = await response.json();
         console.log("Full API Response:", jsonData); // Debugging output
 
         // Ensure the response contains `categories`
-        if (!jsonData || !jsonData.categories || !Array.isArray(jsonData.categories)) {
-          throw new Error("Invalid data format: Expected an array in jsonData.categories");
+        if (
+          !jsonData ||
+          !jsonData.categories ||
+          !Array.isArray(jsonData.categories)
+        ) {
+          throw new Error(
+            "Invalid data format: Expected an array in jsonData.categories"
+          );
         }
 
         // Filter and map departments
-        const departments = jsonData.categories.filter(dept => dept.department_name?.trim());
+        const departments = jsonData.categories.filter((dept) =>
+          dept.department_name?.trim()
+        );
 
-        const labels = departments.map(dept => dept.department_name);
-        const menData = departments.map(dept => dept.men || 0);
-        const womenData = departments.map(dept => dept.women || 0);
+        const labels = departments.map((dept) => dept.department_name);
+        const menData = departments.map((dept) => Math.round(dept.men || 0));
+        const womenData = departments.map((dept) =>
+          Math.round(dept.women || 0)
+        );
 
         setData({
           labels,
@@ -110,8 +132,8 @@ const EmployeeByDepartment = () => {
             const words = label.split(" ");
             return words.length > 1
               ? words.slice(0, Math.ceil(words.length / 2)).join(" ") +
-                "\n" +
-                words.slice(Math.ceil(words.length / 2)).join(" ")
+                  "\n" +
+                  words.slice(Math.ceil(words.length / 2)).join(" ")
               : label;
           },
           font: { size: 8 },
@@ -123,7 +145,13 @@ const EmployeeByDepartment = () => {
       y: {
         stacked: true,
         grid: { display: false },
-        ticks: { beginAtZero: true },
+        ticks: {
+          beginAtZero: true,
+          stepSize: 1, // Ensure only whole numbers are displayed
+          callback: function (value) {
+            return Number.isInteger(value) ? value : "";
+          },
+        },
       },
     },
     elements: {

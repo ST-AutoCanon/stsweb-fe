@@ -1,33 +1,35 @@
-.dashboard-logingraph{
-    display: flex;
-    margin-top:5%;
-    gap:20px;
-    flex-direction: row; /* Arrange cards in a row */
-    justify-content: center;
+.dashboard-logingraph {
+  display: flex;
+  margin-top: 5%;
+  gap: 20px;
+  flex-direction: row; /* Arrange cards in a row */
+  justify-content: center;
+}
+.admindashboardpiecharts {
+  display: flex;
+  flex-direction: row; /* Arrange cards in a row */
+  justify-content: center; /* Center the cards horizontally */
+  align-items: center; /* Align them vertically */
+  gap: 25px; /* Space between cards */
+  width: 100%; /* Ensures it spans the full width */
+  max-width: 1200px; /* Prevents stretching on larger screens */
+  margin: 1% auto; /* Centers the container */
+  margin-top: 2.5%;
+}
 
-  }
-  .admindashboardpiecharts {
-    display: flex;
-    grid-template-columns: repeat(3, 1fr); /* Creates 3 equal columns */
-    gap: 20px;
-    align-items: center;
-    margin-top:5%;
-    margin-left:8%;
-  }
-  .dashboard-card-containers {
-  
-    display: flex;
-    margin-top:1%;
-    margin-left:0%;
-    gap:5px;
-    flex-direction: row; /* Arrange cards in a row */
-    justify-content: center; /* Center the cards horizontally */
-  }
+.dashboard-card-containers {
+  display: flex;
+  margin-top: 1%;
+  margin-left: 0%;
+  gap: 5px;
+  flex-direction: row; /* Arrange cards in a row */
+  justify-content: center; /* Center the cards horizontally */
+}
 
-  .dashboard-Projecttable{
-    display: flex;
-    margin-top:5%;
-    gap:20px;
-    flex-direction: row; /* Arrange cards in a row */
-    justify-content: center; /* Center the cards horizontally */
-  }
+.dashboard-Projecttable {
+  display: flex;
+  margin-top: 5%;
+  gap: 20px;
+  flex-direction: row; /* Arrange cards in a row */
+  justify-content: center; /* Center the cards horizontally */
+}

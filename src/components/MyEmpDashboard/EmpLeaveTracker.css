@@ -1,6 +1,6 @@
 /* Employee Leave Tracker Styles */
 .empleavetracker-container {
-  width: 90%;
+  width: 100%;
   margin: 20px auto;
   font-family: Arial, sans-serif;
   border-radius: 8px;
@@ -28,9 +28,13 @@
   padding: 10px;
   text-align: left;
 }
-
+@media (min-width: 1200px) {
+  .empleavetracker-container {
+    max-width: 1100px; /* Limit max width on larger screens */
+  }
+}
 .empleavetracker-table th {
-  background-color:#bebdbd;
+  background-color: #bebdbd;
   color: black;
 }
 
