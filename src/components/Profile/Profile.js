@@ -19,8 +19,8 @@ const Profile = ({ onClose }) => {
           `${process.env.REACT_APP_BACKEND_URL}/employee/${employeeId}`,
           {
             headers: {
-              'x-api-key': API_KEY,
-              'Content-Type': 'application/json',
+              "x-api-key": API_KEY,
+              "Content-Type": "application/json",
             },
           }
         );
@@ -33,9 +33,9 @@ const Profile = ({ onClose }) => {
             `${process.env.REACT_APP_BACKEND_URL}/${profileData.photo_url}`,
             {
               headers: {
-                'x-api-key': API_KEY,
+                "x-api-key": API_KEY,
               },
-              responseType: 'blob', // Get image as a blob
+              responseType: "blob", // Get image as a blob
             }
           );
           const imageUrl = URL.createObjectURL(imageResponse.data);
@@ -69,27 +69,55 @@ const Profile = ({ onClose }) => {
           <img src={avatar} alt="profile-photo" className="profile-photo" />
           <div className="profile-name">
             <h3>{`${profile.first_name} ${profile.last_name}`}</h3>
-            <p>{profile.position} - {profile.department}</p>
+            <p>
+              {profile.position} - {profile.department}
+            </p>
             <p>Employee Id: {profile.employee_id}</p>
           </div>
         </div>
         <div className="profile-details">
-          <p><strong>Email:</strong> {profile.email}</p>
-          <p><strong>Mobile:</strong> {profile.phone_number}</p>
-          <p><strong>Date of Birth:</strong> {new Date(profile.dob).toLocaleDateString()}</p>
-          <p><strong>Address:</strong> {profile.address}</p>
-          <p><strong>Aadhaar Number:</strong> {profile.aadhaar_number}</p>
-          <p><strong>PAN Number:</strong> {profile.pan_number}</p>
-          <p><strong>Gender:</strong> {profile.gender}</p>
-          <p><strong>Marital Status:</strong> {profile.marital_status}</p>
+          <p>
+            <strong>Email:</strong> {profile.email}
+          </p>
+          <p>
+            <strong>Mobile:</strong> {profile.phone_number}
+          </p>
+          <p>
+            <strong>Date of Birth:</strong>{" "}
+            {new Date(profile.dob).toLocaleDateString()}
+          </p>
+          <p>
+            <strong>Address:</strong> {profile.address}
+          </p>
+          <p>
+            <strong>Aadhaar Number:</strong> {profile.aadhaar_number}
+          </p>
+          <p>
+            <strong>PAN Number:</strong> {profile.pan_number}
+          </p>
+          <p>
+            <strong>Gender:</strong> {profile.gender}
+          </p>
+          <p>
+            <strong>Marital Status:</strong> {profile.marital_status}
+          </p>
           {profile.marital_status === "Married" && (
             <>
-              <p><strong>Spouse Name:</strong> {profile.spouse_name}</p>
-              <p><strong>Marriage Anniversary:</strong> {new Date(profile.marriage_date).toLocaleDateString()}</p>
+              <p>
+                <strong>Spouse Name:</strong> {profile.spouse_name}
+              </p>
+              <p>
+                <strong>Marriage Anniversary:</strong>{" "}
+                {new Date(profile.marriage_date).toLocaleDateString()}
+              </p>
             </>
           )}
-          <p><strong>Father's Name:</strong> {profile.father_name}</p>
-          <p><strong>Mother's Name:</strong> {profile.mother_name}</p>
+          <p>
+            <strong>Father's Name:</strong> {profile.father_name}
+          </p>
+          <p>
+            <strong>Mother's Name:</strong> {profile.mother_name}
+          </p>
         </div>
       </div>
     </div>

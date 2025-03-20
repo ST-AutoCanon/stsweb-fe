@@ -12,6 +12,7 @@ import {
 import { GiKnifeFork, GiPencilBrush } from "react-icons/gi";
 import { TbTriangleSquareCircle } from "react-icons/tb";
 import "./Reimbursement.css";
+import Modal from "../Modal/Modal"; // Alert modal component
 
 const claimTypes = [
   {
@@ -71,13 +72,28 @@ const Reimbursement = () => {
     purchasing_item: "",
     accommodation_fees: "",
     no_of_days: "",
-    comments: "",
     total_amount: "",
     meal_type: "",
     stationary: "",
     service_provider: "",
-    attachment: [],
+    attachments: null,
   });
+
+  // Alert modal state (no title by default)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper functions for the alert modal
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
 
   useEffect(() => {
     fetchReimbursements();
@@ -108,7 +124,6 @@ const Reimbursement = () => {
         reimbursementsData.map(async (claim) => {
           try {
             console.log(`Fetching attachments for claim ID: ${claim.id}`);
-            console.log("attachmentdata.....", attachmentsData);
             const attachmentResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${claim.id}/attachments`,
               {
@@ -119,16 +134,11 @@ const Reimbursement = () => {
               }
             );
 
-            console.log(
-              `attachments for claim ${claim.id}:`,
-              attachmentResponse.data
-            );
-
             // Process attachments
             attachmentsData[claim.id] = (
               attachmentResponse.data.attachments || []
             ).map((file) => {
-              const pathParts = file.file_path.split("/"); // Split path by backslash
+              const pathParts = file.file_path.split("/"); // Split path
               const year = pathParts[pathParts.length - 4]; // Extract year
               const month = pathParts[pathParts.length - 3]; // Extract month
               const employeeId = pathParts[pathParts.length - 2]; // Extract employee ID
@@ -155,19 +165,16 @@ const Reimbursement = () => {
       setAttachments(attachmentsData);
     } catch (error) {
       console.error("Error fetching data:", error);
-
       if (error.response) {
-        // Backend returned an error response
         setErrorMessage(
           error.response.data.message || "Failed to fetch reimbursements."
         );
       } else if (error.request) {
-        // Request was made but no response received
         setErrorMessage("No response from server. Please try again.");
       } else {
-        // Other errors
         setErrorMessage("An unexpected error occurred.");
       }
+      showAlert(errorMessage || "Error fetching reimbursements.");
     }
   };
 
@@ -190,16 +197,14 @@ const Reimbursement = () => {
     (claim) => claim.status.toLowerCase() === statusFilter.toLowerCase()
   );
 
-  // Handle change for No of Days selection
   const handleNoOfDaysChange = (event) => {
     setFormData({ ...formData, no_of_days: event.target.value });
   };
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-
     setSelectedFiles(files.map((file) => file.name)); // Updates filenames for display
-    setFormData((prev) => ({ ...prev, attachments: files })); // ✅ Updates actual file data
+    setFormData((prev) => ({ ...prev, attachments: files }));
   };
 
   const renderDateFields = () => {
@@ -286,18 +291,16 @@ const Reimbursement = () => {
   };
 
   const handleEdit = (claim) => {
-    setEditingId(claim.id); // Set the editing ID
-    setShowForm(true); // Show the form
-
-    // Populate form with existing reimbursement details
+    setEditingId(claim.id);
+    setShowForm(true);
+    const existingAttachments = attachments[claim.id] || [];
     setFormData({
       employeeId: claim.employeeId || employeeId,
       department_id: claim.department_id || departmentId,
       claim_type: claim.claim_type || "",
       transport_type: claim.transport_type || "",
-
-      fromDate: claim.fromDate ? claim.fromDate.split("T")[0] : "",
-      toDate: claim.toDate ? claim.toDate.split("T")[0] : "",
+      fromDate: claim.from_date ? claim.from_date.split("T")[0] : "",
+      toDate: claim.to_date ? claim.to_date.split("T")[0] : "",
       date: claim.date ? claim.date.split("T")[0] : "",
       travel_from: claim.travel_from || "",
       travel_to: claim.travel_to || "",
@@ -310,26 +313,24 @@ const Reimbursement = () => {
       total_amount: claim.total_amount || "",
       meal_type: claim.meal_type || "",
       stationary: claim.stationary || "",
-      commments: claim.comments || "",
+      comments: claim.comments || "",
       service_provider: claim.service_provider || "",
-
-      attachments: claim.attachments || [],
+      attachments: existingAttachments,
     });
-
-    // Set transport type or other dependent fields
+    setSelectedFiles(
+      existingAttachments.map((file) => file.file_name || file.name)
+    );
     if (claim.claim_type === "Transportation") {
       setSelectedSubType(claim.transport_type || "");
     }
-
     if (claim.no_of_days) {
       setNoOfDaysType(claim.no_of_days);
     }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload on form submit
-    setSubmitErrorMessage(""); // Clear previous errors
-
+    e.preventDefault();
+    setSubmitErrorMessage("");
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("employeeId", formData.employeeId);
@@ -353,7 +354,6 @@ const Reimbursement = () => {
       formDataToSend.append("stationary", formData.stationary);
       formDataToSend.append("service_provider", formData.service_provider);
 
-      // Append each attachment
       if (formData.attachments && formData.attachments.length > 0) {
         formData.attachments.forEach((file) => {
           formDataToSend.append("attachments", file);
@@ -369,14 +369,12 @@ const Reimbursement = () => {
 
       let response;
       if (editingId) {
-        // Update existing reimbursement
         response = await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${editingId}`,
           formDataToSend,
           config
         );
       } else {
-        // Submit new reimbursement
         response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/reimbursement`,
           formDataToSend,
@@ -384,9 +382,7 @@ const Reimbursement = () => {
         );
       }
 
-      alert("Reimbursement submitted successfully!");
-
-      // Reset form on success
+      showAlert("Reimbursement submitted successfully!");
       setFormData({
         employeeId: employeeId,
         department_id: departmentId,
@@ -408,23 +404,26 @@ const Reimbursement = () => {
         stationary: "",
         comments: "",
         service_provider: "",
-        attachments: [],
+        attachments: null,
       });
-
       setShowForm(false);
-      fetchReimbursements(); // Refresh list after submission
+      fetchReimbursements();
     } catch (error) {
       console.error("Error submitting reimbursement:", error);
-
-      // Ensure error response is properly captured
       if (error.response) {
         setSubmitErrorMessage(
           error.response.data.error ||
             error.response.data.message ||
             "Submission failed."
         );
+        showAlert(
+          error.response.data.error ||
+            error.response.data.message ||
+            "Submission failed."
+        );
       } else {
         setSubmitErrorMessage("An unexpected error occurred.");
+        showAlert("An unexpected error occurred.");
       }
     }
   };
@@ -441,19 +440,91 @@ const Reimbursement = () => {
           body: JSON.stringify(updateData),
         }
       );
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to update reimbursement.");
       }
-
       console.log("Update Response:", data);
     } catch (error) {
       console.error("Error updating reimbursement:", error);
       setUpdateErrorMessage(error.message || "An unexpected error occurred.");
+      showAlert(error.message || "An unexpected error occurred.");
     }
   };
+
+  const deleteReimbursement = async (id) => {
+    if (!id) {
+      console.error("Error: Reimbursement ID is missing.");
+      return;
+    }
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this reimbursement claim?"
+    );
+    if (!confirmDelete) return;
+    try {
+      const response = await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${id}`,
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY,
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      showAlert(response.data.message || "Reimbursement deleted successfully!");
+      fetchReimbursements();
+    } catch (error) {
+      console.error("Error deleting reimbursement:", error);
+      showAlert("Failed to delete the reimbursement.");
+    }
+  };
+
+  const handleOpenAttachments = async (files, claim) => {
+    try {
+      const fetchedFiles = await Promise.all(
+        files.map(async (file) => {
+          if (!file?.file_name) return null;
+          const response = await axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${file.year}/${file.month}/${file.employeeId}/${file.file_name}`,
+            {
+              headers: {
+                "x-api-key": process.env.REACT_APP_API_KEY,
+                Authorization: `Bearer ${authToken}`,
+              },
+              responseType: "blob",
+            }
+          );
+          return {
+            name: file.file_name,
+            url: URL.createObjectURL(
+              new Blob([response.data], {
+                type: response.headers["content-type"],
+              })
+            ),
+          };
+        })
+      );
+      setSelectedFiles(fetchedFiles.filter(Boolean));
+      setSelectedClaim(claim);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+      showAlert("Failed to load attachments.");
+    }
+  };
+
+  const totalAmount = filteredReimbursements.reduce(
+    (sum, claim) => sum + parseFloat(claim.total_amount || 0),
+    0
+  );
+
+  const approvedAmount = filteredReimbursements
+    .filter((claim) => claim.status === "approved")
+    .reduce((sum, claim) => sum + parseFloat(claim.total_amount || 0), 0);
+
+  const rejectedAmount = filteredReimbursements
+    .filter((claim) => claim.status === "rejected")
+    .reduce((sum, claim) => sum + parseFloat(claim.total_amount || 0), 0);
 
   const renderClaimSpecificFields = () => {
     switch (formData.claim_type) {
@@ -747,7 +818,7 @@ const Reimbursement = () => {
       case "Telecommunication":
         return (
           <div className="rb-main-form">
-            <div className="rb-form1-grid">
+            <div className="rb-form2-grid">
               <div className="rb-groups">
                 <label>
                   Date<span className="asterisk">*</span>
@@ -838,7 +909,7 @@ const Reimbursement = () => {
       case "Stationary":
         return (
           <div className="rb-main-form">
-            <div className="rb-form2-grid">
+            <div className="rb-form1-grid">
               <div className="rb-groups">
                 <label>
                   Date<span className="asterisk">*</span>
@@ -1022,89 +1093,6 @@ const Reimbursement = () => {
     }
   };
 
-  const deleteReimbursement = async (id) => {
-    if (!id) {
-      console.error("Error: Reimbursement ID is missing.");
-      return;
-    }
-
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this reimbursement claim?"
-    );
-    if (!confirmDelete) return;
-
-    try {
-      const response = await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${id}`,
-        {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY,
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-
-      alert(response.data.message || "Reimbursement deleted successfully!");
-
-      // Refresh the reimbursement list after deletion
-      fetchReimbursements();
-    } catch (error) {
-      console.error("Error deleting reimbursement:", error);
-      alert("Failed to delete the reimbursement.");
-    }
-  };
-
-  const handleOpenAttachments = async (files, claim) => {
-    try {
-      const fetchedFiles = await Promise.all(
-        files.map(async (file) => {
-          if (!file?.file_name) return null;
-          console.log("fileurl_...............", files);
-
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${file.year}/${file.month}/${file.employeeId}/${file.file_name}`,
-            {
-              headers: {
-                "x-api-key": process.env.REACT_APP_API_KEY,
-                Authorization: `Bearer ${authToken}`,
-              },
-              responseType: "blob",
-            }
-          );
-
-          return {
-            name: file.file_name,
-            url: URL.createObjectURL(
-              new Blob([response.data], {
-                type: response.headers["content-type"],
-              })
-            ),
-          };
-        })
-      );
-
-      setSelectedFiles(fetchedFiles.filter(Boolean)); // Remove null values
-      setSelectedClaim(claim);
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching attachments:", error);
-      alert("Failed to load attachments.");
-    }
-  };
-
-  const totalAmount = filteredReimbursements.reduce(
-    (sum, claim) => sum + parseFloat(claim.total_amount || 0),
-    0
-  );
-
-  const approvedAmount = filteredReimbursements
-    .filter((claim) => claim.status === "approved")
-    .reduce((sum, claim) => sum + parseFloat(claim.total_amount || 0), 0);
-
-  const rejectedAmount = filteredReimbursements
-    .filter((claim) => claim.status === "rejected")
-    .reduce((sum, claim) => sum + parseFloat(claim.total_amount || 0), 0);
-
   return (
     <div className="reimbursement-container">
       <div className="rb-form-header">
@@ -1150,7 +1138,6 @@ const Reimbursement = () => {
             setShowForm(true);
             setEditingId(null); // Reset editing mode when applying a new claim
             setFormData({
-              // Reset form data to default values
               employeeId: employeeId,
               department_id: departmentId,
               claim_type: "",
@@ -1218,7 +1205,7 @@ const Reimbursement = () => {
                       })
                     : "N/A"}
                 </td>
-                <td>{claim.purpose}</td>
+                <td className="rbcomments-column">{claim.purpose}</td>
                 <td>{claim.total_amount}</td>
                 <td>
                   {attachments[claim.id]?.length > 0 ? (
@@ -1278,8 +1265,6 @@ const Reimbursement = () => {
               </tr>
             ))}
           </tbody>
-
-          {/* Footer row displaying totals */}
           <tfoot>
             <tr className="total-row">
               <td
@@ -1312,7 +1297,7 @@ const Reimbursement = () => {
         <div className="rb-modal">
           <div className="rb-modal-content">
             <div className="claim-form-header">
-              <h2 classname="claim-form-title">
+              <h2 className="claim-form-title">
                 {editingId ? "Edit Reimbursement" : "New Reimbursement"}
               </h2>
               <MdOutlineCancel
@@ -1345,6 +1330,7 @@ const Reimbursement = () => {
                 </div>
               </div>
               {renderClaimSpecificFields()}
+              {renderDateFields()}
               <div className="reimbursement-form-button">
                 <button
                   type="button"
@@ -1362,7 +1348,7 @@ const Reimbursement = () => {
         </div>
       )}
 
-      {/* Modal for Attachments */}
+      {/* Modal for Attachments (remains unchanged) */}
       {isModalOpen && (
         <div className="att-modal-overlay">
           <div className="att-modal-content">
@@ -1398,6 +1384,15 @@ const Reimbursement = () => {
           </div>
         </div>
       )}
+
+      {/* Alert Modal for displaying messages */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

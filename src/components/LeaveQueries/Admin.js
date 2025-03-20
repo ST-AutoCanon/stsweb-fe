@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./Admin.css";
+import Modal from "../Modal/Modal"; // Adjust the path as needed
 import { IoSearch } from "react-icons/io5";
 
-// Function to format the date to `YYYY-MM-DD`
+// Function to format the date to YYYY-MM-DD
 const formatDate = (isoDate) => {
   if (!isoDate) return ""; // Handle undefined/null cases
   return new Date(isoDate).toISOString().split("T")[0];
@@ -28,6 +29,26 @@ const Admin = () => {
   const [fromDate, setFromDate] = useState(""); // State for From Date
   const [toDate, setToDate] = useState(""); // State for To Date
   const [statusUpdates, setStatusUpdates] = useState({}); // For updating status dynamically
+
+  // State for tracking updated queries (if needed)
+  const [updatedQueries, setUpdatedQueries] = useState(new Set());
+
+  // New state for the alert modal
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  // Helper function to show the alert modal (no title by default)
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  // Function to close the alert modal
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
 
   // Fetch leave queries from the backend
   const fetchLeaveQueries = async () => {
@@ -59,10 +80,11 @@ const Admin = () => {
         setLeaveQueries(data.data); // Update the leave queries state
         setStatusUpdates({}); // Reset the status updates
       } else {
-        alert("Failed to fetch leave queries");
+        showAlert("Failed to fetch leave queries");
       }
     } catch (error) {
       console.error("Error fetching leave queries:", error);
+      showAlert("An error occurred while fetching leave queries.");
     }
   };
 
@@ -91,22 +113,21 @@ const Admin = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert(data.message || "Leave request updated successfully.");
-
+        showAlert(data.message || "Leave request updated successfully.");
         // Mark as updated
         setUpdatedQueries((prev) => {
           const newSet = new Set(prev);
           newSet.add(leaveId);
           return newSet;
         });
-
-        // Optional: Fetch new data
+        // Optionally, fetch new data
         fetchLeaveQueries();
       } else {
-        alert(data.message || "Failed to update leave request.");
+        showAlert(data.message || "Failed to update leave request.");
       }
     } catch (error) {
       console.error("Error updating leave request:", error);
+      showAlert("An error occurred while updating the leave request.");
     }
   };
 
@@ -285,6 +306,15 @@ const Admin = () => {
           </table>
         </div>
       </div>
+
+      {/* Alert Modal: This will display messages instead of using alert() */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

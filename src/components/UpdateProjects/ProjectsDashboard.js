@@ -156,13 +156,6 @@ const ProjectsDashboard = () => {
         ) : (
           <p>No projects available.</p>
         )}
-        {userRole === "Admin" && activeTab === "Current" && (
-          <div className="add-project-card">
-            <button className="add-card-button" onClick={() => openForm()}>
-              + Add New Project
-            </button>
-          </div>
-        )}
       </div>
 
       {showForm && (
