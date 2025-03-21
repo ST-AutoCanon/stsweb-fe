@@ -31,6 +31,7 @@ const departmentPositions = {
   Design: ["Senior Design Engineer", "Design Engineer", "Design Team Lead"],
   Finance: ["Finance Manager", "Accountant", "Financial Analyst"],
   HR: ["HR Specialist", "HR Team Lead"],
+  CAE: ["CAE Team Lead", "Senior CAE Engineer", "Associate CAE Engineer"],
 };
 
 const EmployeeDetails = () => {
