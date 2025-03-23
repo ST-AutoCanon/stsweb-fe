@@ -119,6 +119,23 @@
   color: white;
   border: none;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+}
+
+.search-text:hover {
+  background-color: #68a822; /* Slightly darker shade */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-text:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.search-text:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .ed-search-icon {
@@ -141,7 +158,23 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+}
+
+.add-employee-button:hover {
+  background-color: #68a822; /* Slightly darker shade */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.add-employee-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.add-employee-button:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .add-employee-button .add-icon {
@@ -210,11 +243,13 @@
   opacity: 0.6;
 }
 
+/* Container for action buttons */
 .actions {
   display: flex;
   gap: 1rem;
 }
 
+/* Common styles for both edit and deactivate buttons */
 button.edit,
 button.deactivate {
   padding: 0;
@@ -222,25 +257,45 @@ button.deactivate {
   font-size: x-large;
   border: none;
   border-radius: 5px;
-  color: white;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
 }
 
+/* Edit button specific styles */
 button.edit {
   background-color: #fff;
   color: #000000;
 }
 
 button.edit:hover {
-  background-color: #fff;
+  background-color: #e6e6e6; /* Slightly darker */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+button.edit:active {
+  transform: scale(0.98);
+}
+
+/* Deactivate button specific styles */
 button.deactivate {
   background-color: #fff;
   color: #000000;
 }
 
 button.deactivate:hover {
-  background-color: #fff;
+  background-color: #e6e6e6; /* Slightly darker */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+button.deactivate:active {
+  transform: scale(0.98);
+}
+
+/* Optional: Focus styles for accessibility */
+button.edit:focus,
+button.deactivate:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .employee-form {
@@ -329,6 +384,8 @@ button.deactivate:hover {
   padding: 1%;
   cursor: pointer;
   font-size: 1vw;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .save-employee-button {
@@ -339,13 +396,32 @@ button.deactivate:hover {
   padding: 1%;
   cursor: pointer;
   font-size: 1vw;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
 }
 
-.cancel-button:hover,
+/* Hover states */
+.cancel-button:hover {
+  background-color: rgba(127, 189, 44, 0.1); /* subtle background change */
+  border-color: #68a822; /* slightly darker border */
+}
+
 .save-employee-button:hover {
-  background-color: #79c42b;
-  color: initial;
-  border-color: initial;
+  background-color: #68a822; /* slightly darker shade */
+}
+
+/* Active states (pressed effect) */
+.cancel-button:active,
+.save-employee-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Focus states for accessibility */
+.cancel-button:focus,
+.save-employee-button:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .emp-modal-overlay {

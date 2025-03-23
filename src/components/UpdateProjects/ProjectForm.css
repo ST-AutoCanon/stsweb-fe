@@ -233,10 +233,23 @@
   border-radius: 5px;
   font-size: small;
   font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
 }
 
 .pj-next-btn:hover {
-  background: #79c42b;
+  background: #68a822; /* Slightly darker */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.pj-next-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.pj-next-btn:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .pj-cancel-btn {
@@ -248,6 +261,23 @@
   background-color: #fff;
   font-size: small;
   font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+}
+
+.pj-cancel-btn:hover {
+  background-color: #f2f2f2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.pj-cancel-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.pj-cancel-btn:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .step-two-grid {
@@ -374,7 +404,7 @@
 }
 
 .milestone-table-container {
-  width: 100%;
+  width: 98%;
   max-height: 300px;
   overflow-y: auto;
 }
@@ -546,6 +576,8 @@ select option[value="Completed"] {
 }
 
 .completed-date {
+  display: flex;
+  width: 90px;
   font-size: small;
   color: #000;
   padding: 8%;
@@ -762,4 +794,27 @@ input[type="checkbox"]:checked::after {
   color: #999;
   font-size: 1.2em;
   margin-left: 80%;
+}
+
+.pj-download {
+  font-size: x-large;
+  color: #00468c;
+  transition: transform 0.1s ease, color 0.1s ease;
+}
+
+.pj-download:active {
+  transform: scale(0.95);
+  color: #003366;
+}
+
+.pj-file-name.disabled {
+  pointer-events: none;
+  color: grey;
+  text-decoration: none;
+  cursor: default;
+}
+
+.pj-custom-file-upload.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }

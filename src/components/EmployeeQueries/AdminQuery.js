@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
 import { FiPaperclip } from "react-icons/fi";
 import io from "socket.io-client";
@@ -12,13 +12,12 @@ const AdminQuery = () => {
   const employeeId = dashboardData.employee_id || null;
   const name = dashboardData.name || null;
   const userRole = localStorage.getItem("userRole") || null;
-  console.log("user role", userRole);
 
   const [queries, setQueries] = useState([]);
   const [selectedQuery, setSelectedQuery] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [attachment, setAttachment] = useState(null);
+  const [attachmentBase64, setAttachmentBase64] = useState(null);
   const [attachmentName, setAttachmentName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,31 +28,66 @@ const AdminQuery = () => {
     "x-api-key": API_KEY,
   };
 
+  const fetchQueries = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/threads`,
+        { headers }
+      );
+      if (response.data && response.data.data) {
+        setQueries(response.data.data);
+      } else {
+        setError("Invalid API response");
+      }
+    } catch (err) {
+      setError("Error fetching data");
+    } finally {
+      setLoading(false);
+    }
+  }, [headers]);
+
+  // Call fetchQueries on mount.
+  useEffect(() => {
+    fetchQueries();
+  }, [fetchQueries]);
+
   // Socket connection setup
   const socket = useRef(null);
 
   useEffect(() => {
-    // Connect to socket.io server
-    socket.current = io(`${process.env.REACT_APP_BACKEND_URL}`, {
-      transports: ["websocket"],
+    socket.current = io(`${process.env.REACT_APP_BACKEND_URL}`);
+
+    socket.current.on("connect", () => {
+      console.log("Socket connected:", socket.current.id);
     });
 
-    // Function to handle received messages
-    const handleReceiveMessage = (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    };
+    socket.current.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
 
-    // Attach listener
-    socket.current.on("receiveMessage", handleReceiveMessage);
+    socket.current.on("disconnect", (reason) => {
+      console.warn("Socket disconnected:", reason);
+    });
+    socket.current.on("receiveMessage", (message) => {
+      console.log("Socket received message ID:", message.id);
+      console.log("received Message", message);
+      setMessages((prevMessages) => {
+        // Only add the message if it doesn't already exist
+        if (prevMessages.some((msg) => msg.id === message.id)) {
+          return prevMessages;
+        }
+        return [...prevMessages, message];
+      });
+      fetchQueries();
+    });
 
-    // Cleanup function to remove listener and disconnect socket
     return () => {
       if (socket.current) {
-        socket.current.off("receiveMessage", handleReceiveMessage);
+        socket.current.off("receiveMessage");
         socket.current.disconnect();
       }
     };
-  });
+  }, []);
 
   // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
@@ -70,28 +104,6 @@ const AdminQuery = () => {
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
-
-  useEffect(() => {
-    const fetchQueries = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/threads`,
-          { headers }
-        );
-        if (response.data && response.data.data) {
-          setQueries(response.data.data);
-        } else {
-          setError("Invalid API response");
-        }
-      } catch (err) {
-        setError("Error fetching data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchQueries();
-  }, []);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -114,49 +126,46 @@ const AdminQuery = () => {
     }
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() && !attachment) {
+  const sendMessage = () => {
+    if (!newMessage.trim() && !attachmentBase64) {
       showAlert("Message or attachment is required.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("sender_id", employeeId);
-    formData.append("recipient_id", selectedQuery.sender_id);
-    formData.append("sender_role", userRole); // This now references the top-level userRole
-    formData.append("message", newMessage);
-    if (attachment) formData.append("attachment", attachment);
+    const payload = {
+      thread_id: selectedQuery.id,
+      sender_id: employeeId,
+      sender_role: userRole,
+      sender_name: name,
+      // For admin queries, you assume that the admin receives from the employee,
+      // so you use selectedQuery.sender_id. (Adjust if needed.)
+      recipient_id: selectedQuery.sender_id,
+      message: newMessage,
+      attachmentBase64: attachmentBase64 || null,
+    };
 
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
-        formData,
-        { headers }
-      );
+    socket.current.emit("sendMessage", payload);
 
-      socket.current.emit("sendMessage", {
-        id: response.data.message_id,
-        sender_id: employeeId,
-        sender_name: name,
-        message: newMessage,
-        attachment_url: response.data.message.attachment_url || null,
-        created_at:
-          response.data.message.created_at || new Date().toISOString(),
-      });
+    setNewMessage("");
+    setAttachmentBase64(null);
+    setAttachmentName("");
 
-      setTimeout(() => {
-        if (chatContainerRef.current) {
-          chatContainerRef.current.scrollTop =
-            chatContainerRef.current.scrollHeight;
-        }
-      }, 100);
+    const fileInputEl = document.getElementById("fileInput");
+    if (fileInputEl) {
+      fileInputEl.value = "";
+    }
+  };
 
-      setNewMessage("");
-      setAttachment(null);
-      setAttachmentName("");
-    } catch (error) {
-      console.error("Error sending message:", error);
-      showAlert("Failed to send the message. Please try again.");
+  const handleAttachmentChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setAttachmentName(file.name); // Save file name if needed.
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // e.target.result will be a base64 data URL, e.g. "data:image/png;base64,..."
+        setAttachmentBase64(e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -179,28 +188,32 @@ const AdminQuery = () => {
   };
 
   const handleSelectQuery = async (query) => {
-    console.log("Selected query:", query); // Debug log
+    console.log("Selected query:", query);
     setSelectedQuery(query);
+    setMessages([]);
 
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages`,
         { headers }
       );
-      setMessages(response.data.data);
+      const fetchedMessages = response.data.data || [];
+
+      setMessages(fetchedMessages);
 
       // Mark messages as read
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages/read`,
-        { sender_id: employeeId }, // sending sender_id as JSON
+        { sender_id: employeeId },
         {
           headers: {
-            "Content-Type": "application/json", // setting the correct content type for JSON
+            "Content-Type": "application/json",
             "x-api-key": API_KEY,
           },
         }
       );
 
+      // Update queries state to mark the current query's unread count as 0
       setQueries((prevQueries) =>
         prevQueries.map((q) =>
           q.id === query.id ? { ...q, unread_message_count: 0 } : q
@@ -296,7 +309,9 @@ const AdminQuery = () => {
                       <p className="name">{query.sender_name}</p>
                       {query.unread_message_count > 0 && (
                         <p className="unread-dot">
-                          {query.unread_message_count}
+                          {query.unread_message_count > 9
+                            ? "9+"
+                            : query.unread_message_count}
                         </p>
                       )}
                       <p className="time">
@@ -371,7 +386,7 @@ const AdminQuery = () => {
                       <p className="message-sender">{message.sender_name}</p>
                     </div>
                     <div className="message">
-                      <p>{message.message}</p>
+                      <p className="message-text">{message.message}</p>
 
                       {/* Show attachment if available */}
                       {message.attachment_url && (
@@ -418,13 +433,7 @@ const AdminQuery = () => {
                   </div>
                   <input
                     type="file"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        setAttachment(file);
-                        setAttachmentName(file.name);
-                      }
-                    }}
+                    onChange={handleAttachmentChange} // Use the new function
                     disabled={selectedQuery.status === "closed"}
                     style={{ display: "none" }}
                     id="fileInput"

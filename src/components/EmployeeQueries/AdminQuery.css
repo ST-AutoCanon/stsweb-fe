@@ -148,8 +148,11 @@
 .message-preview {
   color: gray;
   font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; /* Single line only */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Show ellipsis for clipped text */
+  max-width: 200px; /* Or any suitable width for your design */
+  display: inline-block;
 }
 
 .unread-dot {
@@ -225,6 +228,8 @@
   max-width: 60%;
   padding: 0.5%;
   border-radius: 10px 10px 10px 0;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .left .message {
@@ -308,10 +313,23 @@
   padding: 1.5% 2%;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
 }
 
 .submit-btn:hover {
-  background-color: #7fbd2c;
+  background-color: #68a822; /* Slightly darker */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.submit-btn:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .chat-input .submit-btn:disabled {

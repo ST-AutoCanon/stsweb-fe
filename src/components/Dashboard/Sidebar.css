@@ -50,7 +50,7 @@
 .view-profile-text {
   color: #007bff;
   cursor: pointer;
-  transition: color 0.3s;
+  transition: color 0.3s ease;
 }
 
 .view-profile-text:hover {

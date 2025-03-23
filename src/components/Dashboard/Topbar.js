@@ -45,8 +45,8 @@ const Topbar = () => {
             storedRole === "Admin"
               ? "/images/admin-avatar.png"
               : storedGender === "Female"
-              ? "/images/female-avatar.png"
-              : "/images/male-avatar.png"
+              ? "/images/female-avatar.jpeg"
+              : "/images/male-avatar.jpeg"
           );
         });
     } else {
@@ -56,8 +56,8 @@ const Topbar = () => {
       } else {
         const avatarPath =
           storedGender === "Female"
-            ? "/images/female-avatar.png"
-            : "/images/male-avatar.png";
+            ? "/images/female-avatar.jpeg"
+            : "/images/male-avatar.jpeg";
         setAvatar(avatarPath);
       }
     }
