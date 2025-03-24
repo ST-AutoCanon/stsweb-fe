@@ -86,16 +86,37 @@
 
 .close-btn {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background: #001d4a;
+  top: 0;
+  right: 0;
+  background: #00468c;
   color: white;
   border: none;
   padding: 2% 3%;
   border-radius: 50%;
   cursor: pointer;
   font-size: small;
+  z-index: 10;
 }
 .close-btn:hover {
   background: darkred;
+}
+
+/* Apply interactive effects to Font Awesome icons */
+.fas.fa-calendar-alt,
+.fas.fa-power-off {
+  cursor: pointer;
+  transition: transform 0.1s ease, color 0.3s ease;
+}
+
+/* Hover: scale up slightly and optionally change color */
+.fas.fa-calendar-alt:hover,
+.fas.fa-power-off:hover {
+  transform: scale(1.1);
+  color: #ffca28; /* adjust this color as desired */
+}
+
+/* Active: scale down slightly */
+.fas.fa-calendar-alt:active,
+.fas.fa-power-off:active {
+  transform: scale(0.95);
 }

@@ -24,10 +24,44 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
 }
 
 .add-project-button:hover {
-  background-color: #79c42b;
+  background-color: #68a822; /* slightly darker for hover */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.add-project-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.add-project-button:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
+}
+
+/* For the update icon, you can add a hover effect if needed */
+.pj-update-icon {
+  font-size: xx-large;
+  color: #004dc6;
+  transition: transform 0.1s ease;
+  cursor: pointer;
+}
+
+.pj-update-icon:hover {
+  transform: scale(1.05);
+}
+
+.pj-update-icon:active {
+  transform: scale(0.95);
+}
+
+.pj-update-icon:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .project-tabs {
@@ -108,9 +142,4 @@
   right: 15px;
   font-size: 20px;
   cursor: pointer;
-}
-
-.pj-update-icon {
-  font-size: xx-large;
-  color: #004dc6;
 }

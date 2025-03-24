@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Login.css";
 import Modal from "../Modal/Modal";
 
@@ -11,14 +11,12 @@ const Login = ({ onClose }) => {
   const navigate = useNavigate();
   const idleTimeout = 5 * 60 * 1000;
 
-  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -27,12 +25,18 @@ const Login = ({ onClose }) => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
+  const location = useLocation();
+
   useEffect(() => {
     const handleActivity = () => {
-      localStorage.setItem("lastActivity", Date.now());
+      if (location.pathname !== "/login") {
+        localStorage.setItem("lastActivity", Date.now());
+      }
     };
 
     const checkIdleTime = () => {
+      if (location.pathname === "/login") return;
+
       const lastActivity = localStorage.getItem("lastActivity");
       if (
         lastActivity &&
@@ -44,25 +48,24 @@ const Login = ({ onClose }) => {
       }
     };
 
-    // Set initial activity time
-    localStorage.setItem("lastActivity", Date.now());
+    if (location.pathname !== "/login") {
+      localStorage.setItem("lastActivity", Date.now());
+      checkIdleTime(); // Run check immediately
+    }
 
-    // Event listeners to detect activity
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
     window.addEventListener("click", handleActivity);
 
-    // Check idle time every minute
     const interval = setInterval(checkIdleTime, 60000);
 
-    // Cleanup
     return () => {
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
       window.removeEventListener("click", handleActivity);
       clearInterval(interval);
     };
-  }, [navigate]);
+  }, [navigate, location]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -132,10 +135,10 @@ const Login = ({ onClose }) => {
         "sidebarMenu",
         JSON.stringify(data.message.sidebarMenu)
       );
-      localStorage.setItem("lastActivity", Date.now()); // Set initial activity time
+      localStorage.setItem("lastActivity", Date.now());
 
       closeModal();
-      navigate("/dashboard"); // Redirect all users to a common dashboard
+      navigate("/dashboard");
     } catch (error) {
       setErrorMessage("An unexpected error occurred.");
     }

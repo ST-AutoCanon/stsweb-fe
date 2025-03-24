@@ -135,8 +135,11 @@
 .emp-message-preview {
   color: gray;
   font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; /* Single line only */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Show ellipsis for clipped text */
+  max-width: 200px; /* Or any suitable width for your design */
+  display: inline-block;
 }
 
 .emp-unread-dot {
@@ -210,8 +213,10 @@
 
 .emp-message {
   max-width: 60%;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 0.5%;
+  border-radius: 10px 10px 10px 0;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .left .emp-message {
@@ -261,7 +266,7 @@
 
 .attachment-suffix {
   position: absolute;
-  right: 40px; /* leave space for the icon */
+  right: 80px;
   top: 50%;
   transform: translateY(-50%);
   color: #333;
@@ -287,6 +292,7 @@
   color: #333;
 }
 
+/* For employee submit button, same interactive styles */
 .emp-submit-btn {
   background-color: #7fbd2c;
   width: 10%;
@@ -295,10 +301,23 @@
   padding: 1.5% 2%;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
 }
 
 .emp-submit-btn:hover {
-  background-color: #7fbd2c;
+  background-color: #68a822; /* Slightly darker */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.emp-submit-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.emp-submit-btn:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .emp-chat-input .submit-btn:disabled {
@@ -360,16 +379,6 @@
 .emp-close-button {
   font-size: 1.5vw;
   cursor: pointer;
-}
-
-.compose-button {
-  background-color: #0078ce;
-  padding: 1% 2%;
-  color: #fff;
-  align-items: center;
-  border-radius: 5px;
-  font-size: 20px;
-  border: none;
 }
 
 .compose-icon {
@@ -508,6 +517,33 @@
   gap: 2%;
 }
 
+.compose-button {
+  background-color: #0078ce;
+  padding: 1% 2%;
+  color: #fff;
+  align-items: center;
+  border-radius: 5px;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+}
+
+.compose-button:hover {
+  background-color: #006bb3; /* Slightly darker blue */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.compose-button:active {
+  transform: scale(0.98);
+}
+
+.compose-button:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
+}
+
 .close-thread-button {
   background-color: #ffffff;
   border: 2px solid #0078ce;
@@ -516,8 +552,29 @@
   border-radius: 5px;
   padding: 0.5%;
   font-size: medium;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+}
+
+.close-thread-button:hover {
+  background-color: #f2f2f2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.close-thread-button:active {
+  transform: scale(0.98);
+}
+
+.close-thread-button:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .close-thread-icon {
   font-size: medium;
+}
+
+.message-text {
+  padding: 0 1%;
 }

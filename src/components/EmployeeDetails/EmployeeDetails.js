@@ -12,32 +12,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Modal from "../Modal/Modal";
 
-const departmentPositions = {
-  Software: [
-    "Software Team Lead",
-    "Senior Software Engineer",
-    "Associate Software Engineer",
-    "Senior Test Engineer",
-    "Test Engineer",
-    "Senior Network Engineer",
-    "Network Engineer",
-    "Technical Engineer",
-  ],
-  Homologation: [
-    "Homologation Specialist",
-    "Homologation Team Lead",
-    "Homologation Engineer",
-  ],
-  Design: ["Senior Design Engineer", "Design Engineer", "Design Team Lead"],
-  Finance: ["Finance Manager", "Accountant", "Financial Analyst"],
-  HR: ["HR Specialist", "HR Team Lead"],
-  CAE: ["CAE Team Lead", "Senior CAE Engineer", "Associate CAE Engineer"],
-};
-
 const EmployeeDetails = () => {
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     first_name: "",
@@ -73,6 +52,60 @@ const EmployeeDetails = () => {
 
   const API_KEY = process.env.REACT_APP_API_KEY;
 
+  useEffect(() => {
+    axios
+      .get(`${process.env.REACT_APP_BACKEND_URL}/departments`, {
+        headers: {
+          "x-api-key": process.env.REACT_APP_API_KEY,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setDepartments(response.data.departments);
+      })
+      .catch((err) => {
+        console.error("Error fetching departments:", err);
+      });
+  }, []);
+
+  const generatePositions = (deptName, role) => {
+    if (!deptName) return [];
+    const positions = [];
+    const roleLower = role.toLowerCase();
+
+    if (deptName === "HR") {
+      if (roleLower === "manager") {
+        positions.push("HR Manager");
+        return positions;
+      }
+      positions.push("HR Specialist", "HR Coordinator");
+      return positions;
+    }
+
+    if (deptName === "Finance") {
+      if (roleLower === "manager") {
+        positions.push("Finance Manager");
+        return positions;
+      }
+      positions.push("Accountant", "Financial Analyst");
+      return positions;
+    }
+
+    // Default positions for other departments
+    if (roleLower === "manager") {
+      positions.push(`${deptName} Manager`);
+      return positions;
+    }
+
+    positions.push(
+      `Senior ${deptName} Engineer`,
+      `${deptName} Engineer`,
+      `Associate ${deptName} Engineer`
+    );
+
+    return positions;
+  };
+
   const fetchEmployees = async () => {
     setIsLoading(true);
     try {
@@ -83,7 +116,6 @@ const EmployeeDetails = () => {
         params.push(`search=${encodeURIComponent(searchTerm)}`);
       }
 
-      // Format dates properly
       if (fromDate) {
         params.push(`fromDate=${format(fromDate, "yyyy-MM-dd")}`);
       }
@@ -114,14 +146,12 @@ const EmployeeDetails = () => {
     }
   };
 
-  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -146,7 +176,7 @@ const EmployeeDetails = () => {
         ...prevState,
         [name]: value,
         department: value === "Admin" ? "" : prevState.department,
-        position: value.includes("Team Lead") ? "" : prevState.position,
+        position: value.includes("Manager") ? "" : prevState.position,
       }));
     } else if (name === "department") {
       setFormData((prevState) => ({
@@ -265,6 +295,8 @@ const EmployeeDetails = () => {
       showAlert(
         "Employee added successfully. A password reset email has been sent."
       );
+
+      fetchEmployees();
     } catch (err) {
       console.log(err);
 
@@ -388,6 +420,8 @@ const EmployeeDetails = () => {
       setEditModalVisible(false);
       setEmployeeToEdit(false);
       showAlert("Employee updated successfully.");
+
+      fetchEmployees();
     } catch (err) {
       console.error("Error updating employee:", err);
       showAlert("Failed to update employee.");
@@ -403,7 +437,7 @@ const EmployeeDetails = () => {
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/admin/employees/${deleteEmployeeId}/deactivate`,
-        {}, // Empty request body
+        {}, 
         {
           headers: {
             "x-api-key": API_KEY,
@@ -414,6 +448,8 @@ const EmployeeDetails = () => {
 
       setDeleteEmployeeId(null);
       showAlert("Employee Deactivated successfully.");
+
+      fetchEmployees();
     } catch (err) {
       console.log("Failed to deactivate employee", err);
       setError("Failed to deactivate employee");
@@ -421,6 +457,13 @@ const EmployeeDetails = () => {
       setModalVisible(false);
     }
   };
+
+  const positions =
+    formData.department &&
+    formData.role &&
+    formData.role.toLowerCase() !== "admin"
+      ? generatePositions(formData.department, formData.role)
+      : [];
 
   return (
     <div className="employee-details-container">
@@ -678,8 +721,7 @@ const EmployeeDetails = () => {
                     <option value="">Select Role</option>
                     <option value="Admin">Admin</option>
                     <option value="Employee">Employee</option>
-                    <option value="Finance Manager">Finance Manager</option>
-                    <option value="Team Lead">Team Lead</option>
+                    <option value="Manager">Manager</option>
                   </select>
                 </div>
 
@@ -692,11 +734,12 @@ const EmployeeDetails = () => {
                     value={formData.department || ""}
                     onChange={handleInputChange}
                     disabled={formData.role === "Admin"}
+                    required
                   >
                     <option value="">Select Department</option>
-                    {Object.keys(departmentPositions).map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.name}>
+                        {dept.name}
                       </option>
                     ))}
                   </select>
@@ -708,28 +751,15 @@ const EmployeeDetails = () => {
                     name="position"
                     value={formData.position || ""}
                     onChange={handleInputChange}
-                    disabled={!formData.department && formData.role === "Admin"}
+                    disabled={formData.role === "Admin" || !formData.department}
+                    required
                   >
                     <option value="">Select Position</option>
-                    {formData.department &&
-                      (formData.role.toLowerCase().includes("team lead")
-                        ? departmentPositions[formData.department]?.filter(
-                            (pos) => pos.toLowerCase().includes("team lead")
-                          )
-                        : formData.role.toLowerCase().includes("manager")
-                        ? departmentPositions[formData.department]?.filter(
-                            (pos) => pos.toLowerCase().includes("manager")
-                          )
-                        : departmentPositions[formData.department]?.filter(
-                            (pos) =>
-                              !pos.toLowerCase().includes("team lead") &&
-                              !pos.toLowerCase().includes("manager")
-                          )
-                      ).map((pos) => (
-                        <option key={pos} value={pos}>
-                          {pos}
-                        </option>
-                      ))}
+                    {positions.map((pos) => (
+                      <option key={pos} value={pos}>
+                        {pos}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group">
@@ -1008,8 +1038,7 @@ const EmployeeDetails = () => {
                     <option value="">Select Role</option>
                     <option value="Admin">Admin</option>
                     <option value="Employee">Employee</option>
-                    <option value="Finance Manager">Finance Manager</option>
-                    <option value="Team Lead">Team Lead</option>
+                    <option value="Manager">Manager</option>
                   </select>
                 </div>
 
@@ -1021,12 +1050,13 @@ const EmployeeDetails = () => {
                     name="department"
                     value={formData.department || ""}
                     onChange={handleInputChange}
-                    disabled={formData.role === "Admin"} // Admin role doesn't need a department
+                    disabled={formData.role === "Admin"}
+                    required
                   >
                     <option value="">Select Department</option>
-                    {Object.keys(departmentPositions).map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.name}>
+                        {dept.name}
                       </option>
                     ))}
                   </select>
@@ -1038,29 +1068,15 @@ const EmployeeDetails = () => {
                     name="position"
                     value={formData.position || ""}
                     onChange={handleInputChange}
-                    disabled={!formData.department && formData.role === "Admin"}
+                    disabled={formData.role === "Admin" || !formData.department}
+                    required
                   >
                     <option value="">Select Position</option>
-                    {formData.department &&
-                      (formData.role.toLowerCase().includes("team lead")
-                        ? departmentPositions[formData.department]
-                            ?.filter((pos) =>
-                              pos.toLowerCase().includes("team lead")
-                            )
-                            .map((pos) => (
-                              <option key={pos} value={pos}>
-                                {pos}
-                              </option>
-                            ))
-                        : departmentPositions[formData.department]
-                            ?.filter(
-                              (pos) => !pos.toLowerCase().includes("team lead")
-                            )
-                            .map((pos) => (
-                              <option key={pos} value={pos}>
-                                {pos}
-                              </option>
-                            )))}
+                    {positions.map((pos) => (
+                      <option key={pos} value={pos}>
+                        {pos}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group">

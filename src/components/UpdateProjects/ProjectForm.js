@@ -2,9 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./ProjectForm.css";
 import { MdOutlineCancel, MdSearch } from "react-icons/md";
+import { FiDownload } from "react-icons/fi";
 import Modal from "../Modal/Modal";
 
 const userRole = localStorage.getItem("userRole") || "Employee";
+const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
+const userPosition = dashboardData.position || null;
 
 const rolePermissions = {
   Admin: {
@@ -15,15 +18,19 @@ const rolePermissions = {
     allowedSteps: [1, 2, 3],
     editable: { 1: false, 2: false, 3: false },
   },
-  "Finance Manager": {
-    allowedSteps: [1, 2, 3, 4],
-    editable: { 1: false, 2: false, 3: false, 4: true },
-  },
-  "Team Lead": {
+  Manager: {
     allowedSteps: [1, 2, 3],
     editable: { 1: false, 2: false, 3: true },
   },
 };
+
+// Special case for Finance Manager (if role is "Manager" and position is "Finance Manager")
+if (userRole === "Manager" && userPosition === "Finance Manager") {
+  rolePermissions.Manager = {
+    allowedSteps: [1, 2, 3, 4],
+    editable: { 1: false, 2: false, 3: false, 4: true },
+  };
+}
 
 const { allowedSteps, editable } =
   rolePermissions[userRole] || rolePermissions.Employee;
@@ -37,7 +44,7 @@ const getStatusBgColor = (status) => {
     case "Completed":
       return "#d4edda";
     default:
-      return "#f7f7f7";
+      return "transparent";
   }
 };
 
@@ -172,7 +179,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
   }, [searchQuery, filterType, allEmployees]);
 
   const stsOwners = allEmployees.filter(
-    (emp) => emp.role === "Admin" || emp.role === "Team Lead"
+    (emp) => emp.role === "Admin" || emp.role === "Manager"
   );
 
   const filterEmployees = (employeesList, type) => {
@@ -402,7 +409,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
     try {
       const response = await fetch(url, {
         method,
-        // Remove "Content-Type" header so the browser sets it correctly
+        credentials: "include",
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
         },
@@ -414,7 +421,10 @@ const MultiStepForm = ({ onClose, projectData }) => {
         throw new Error("Failed to save project");
       }
       showAlert("Project saved successfully!");
-      onClose();
+      // Wait a moment (or you can remove this delay if you want the user to close the alert manually)
+      setTimeout(() => {
+        onClose();
+      }, 2000); // 2 seconds delay
     } catch (error) {
       console.error("Error:", error);
     }
@@ -431,10 +441,10 @@ const MultiStepForm = ({ onClose, projectData }) => {
   );
   const visibleCount = visibleSteps.length;
 
-  let totalLineWidth = "68%"; // for 4 steps
+  let totalLineWidth = "68%";
   let lineLeft = "16%";
   if (visibleCount === 3) {
-    totalLineWidth = "60%"; // for 3 steps
+    totalLineWidth = "60%";
     lineLeft = "20%";
   }
 
@@ -443,7 +453,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
   const currentIndex = visibleSteps.indexOf(currentStepName);
   const progressValue =
     maxIndex > 0 ? (currentIndex / maxIndex) * parseFloat(totalLineWidth) : 0;
-  const progressPercent = `${progressValue}%`; // e.g. "30%"
+  const progressPercent = `${progressValue}%`;
 
   const categories = [
     "Website Design",
@@ -777,6 +787,65 @@ const MultiStepForm = ({ onClose, projectData }) => {
     return "pj-step-item";
   };
 
+  const downloadAllAttachments = async (projectId) => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/projects/${projectId}/attachments/download`,
+        {
+          method: "GET",
+          credentials: "include", // to send session cookies if needed
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch attachments");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `project-${projectId}-attachments.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading attachments:", error);
+    }
+  };
+
+  const openAttachment = async (fileName) => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/pjattachments/${fileName}`,
+        {
+          method: "GET",
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY, // Include API key here
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch the file.");
+      }
+
+      // Convert response to a Blob
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Open file in a new window
+      window.open(blobUrl, "_blank");
+
+      // Revoke the object URL after some time to free memory
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    } catch (error) {
+      console.error("Error opening attachment:", error);
+    }
+  };
+
   return (
     <div className="pj-form-container">
       <div className="pj-form-header">
@@ -990,7 +1059,15 @@ const MultiStepForm = ({ onClose, projectData }) => {
                     {Array.isArray(selectedFiles) &&
                     selectedFiles.length > 0 ? (
                       selectedFiles.map((fileName, index) => (
-                        <p key={index} className="pj-file-name">
+                        <p
+                          key={index}
+                          className={`pj-file-name ${
+                            !editable[1] ? "disabled" : ""
+                          }`}
+                          onClick={() =>
+                            editable[1] && openAttachment(fileName)
+                          }
+                        >
                           {fileName}
                         </p>
                       ))
@@ -1006,11 +1083,13 @@ const MultiStepForm = ({ onClose, projectData }) => {
                       className="pj-hidden-file-input"
                       name="attachment_url"
                       onChange={handleFileUpload}
-                      readOnly={!editable[1]}
+                      disabled={!editable[1]} // Use disabled instead of readOnly
                     />
                     <label
                       htmlFor="fileInput"
-                      className="pj-custom-file-upload"
+                      className={`pj-custom-file-upload ${
+                        !editable[1] ? "disabled" : ""
+                      }`}
                     >
                       Browse
                     </label>
@@ -1206,7 +1285,12 @@ const MultiStepForm = ({ onClose, projectData }) => {
                 </thead>
                 <tbody>
                   {formData.milestones.map((milestone, index) => (
-                    <tr key={index}>
+                    <tr
+                      key={index}
+                      style={{
+                        backgroundColor: getStatusBgColor(milestone.status),
+                      }}
+                    >
                       <td>{index + 1}</td>
                       <td>
                         <input
@@ -1215,9 +1299,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                           value={milestone.details}
                           onChange={(e) => handleMilestoneChange(index, e)}
                           readOnly={!editable[3]}
-                          style={{
-                            backgroundColor: getStatusBgColor(milestone.status),
-                          }}
                         />
                       </td>
                       <td>
@@ -1227,9 +1308,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                           value={formatDate(milestone.start_date)}
                           onChange={(e) => handleMilestoneChange(index, e)}
                           readOnly={!editable[3]}
-                          style={{
-                            backgroundColor: getStatusBgColor(milestone.status),
-                          }}
                         />
                       </td>
                       <td>
@@ -1240,9 +1318,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                           onChange={(e) => handleMilestoneChange(index, e)}
                           min={milestone.start_date}
                           readOnly={!editable[3]}
-                          style={{
-                            backgroundColor: getStatusBgColor(milestone.status),
-                          }}
                         />
                       </td>
                       <td>
@@ -1268,9 +1343,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                           value={milestone.dependency}
                           onChange={(e) => handleMilestoneChange(index, e)}
                           readOnly={!editable[3]}
-                          style={{
-                            backgroundColor: getStatusBgColor(milestone.status),
-                          }}
                         />
                       </td>
                       <td>
@@ -1279,9 +1351,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                           value={milestone.assigned_to || ""}
                           onChange={(e) => handleMilestoneChange(index, e)}
                           disabled={!editable[3]}
-                          style={{
-                            backgroundColor: getStatusBgColor(milestone.status),
-                          }}
                         >
                           <option value="">Responsible By</option>
                           {stsOwners.map((emp) => (
@@ -1369,6 +1438,13 @@ const MultiStepForm = ({ onClose, projectData }) => {
                   readOnly
                 />
               </div>
+              <div className="project-finance-group">
+                <label>Project Documents</label>
+                <FiDownload
+                  className="pj-download"
+                  onClick={() => downloadAllAttachments(projectData.id)}
+                />
+              </div>
             </div>
             <div className="main-finance">
               <h5 className="payout-details">Payout Details</h5>
@@ -1388,7 +1464,14 @@ const MultiStepForm = ({ onClose, projectData }) => {
                   </thead>
                   <tbody>
                     {formData.financialDetails.map((finance, index) => (
-                      <tr key={index}>
+                      <tr
+                        key={index}
+                        style={{
+                          backgroundColor: getStatusBgColor(
+                            formData.milestones[index]?.status
+                          ),
+                        }}
+                      >
                         <td>{index + 1}</td>
                         <td>
                           <input
@@ -1396,11 +1479,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                             value={finance.milestone_details}
                             onChange={(e) => handleFinanceChange(index, e)}
                             readOnly={!editable[4]}
-                            style={{
-                              backgroundColor: getStatusBgColor(
-                                formData.milestones[index]?.status
-                              ),
-                            }}
                           />
                         </td>
                         <td>
@@ -1412,11 +1490,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                                 value={finance.m_actual_percentage}
                                 onChange={(e) => handleFinanceChange(index, e)}
                                 readOnly={!editable[4]}
-                                style={{
-                                  backgroundColor: getStatusBgColor(
-                                    formData.milestones[index]?.status
-                                  ),
-                                }}
                               />
                             </div>
                             <span>%</span>
@@ -1426,11 +1499,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                               value={finance.m_actual_amount}
                               onChange={(e) => handleFinanceChange(index, e)}
                               readOnly
-                              style={{
-                                backgroundColor: getStatusBgColor(
-                                  formData.milestones[index]?.status
-                                ),
-                              }}
                             />
                           </div>
                         </td>
@@ -1443,11 +1511,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                                 value={finance.m_tds_percentage}
                                 onChange={(e) => handleFinanceChange(index, e)}
                                 readOnly={!editable[4]}
-                                style={{
-                                  backgroundColor: getStatusBgColor(
-                                    formData.milestones[index]?.status
-                                  ),
-                                }}
                               />
                             </div>
                             <span>%</span>
@@ -1457,11 +1520,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                               value={finance.m_tds_amount}
                               onChange={(e) => handleFinanceChange(index, e)}
                               readOnly
-                              style={{
-                                backgroundColor: getStatusBgColor(
-                                  formData.milestones[index]?.status
-                                ),
-                              }}
                             />
                           </div>
                         </td>
@@ -1474,11 +1532,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                                 value={finance.m_gst_percentage}
                                 onChange={(e) => handleFinanceChange(index, e)}
                                 readOnly={!editable[4]}
-                                style={{
-                                  backgroundColor: getStatusBgColor(
-                                    formData.milestones[index]?.status
-                                  ),
-                                }}
                               />
                             </div>
                             <span>%</span>
@@ -1488,11 +1541,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                               value={finance.m_gst_amount}
                               onChange={(e) => handleFinanceChange(index, e)}
                               readOnly
-                              style={{
-                                backgroundColor: getStatusBgColor(
-                                  formData.milestones[index]?.status
-                                ),
-                              }}
                             />
                           </div>
                         </td>
@@ -1503,11 +1551,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                             value={finance.m_total_amount}
                             onChange={(e) => handleFinanceChange(index, e)}
                             readOnly={!editable[4]}
-                            style={{
-                              backgroundColor: getStatusBgColor(
-                                formData.milestones[index]?.status
-                              ),
-                            }}
                           />
                         </td>
                         <td>
@@ -1517,11 +1560,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
                               handleStatusChange(index, e.target.value)
                             }
                             disabled={!editable[4]}
-                            style={{
-                              backgroundColor: getFinanceStatusColor(
-                                finance.status
-                              ),
-                            }}
                           >
                             <option value="not Initiated">not Initiated</option>
                             <option value="Pending">Pending</option>
@@ -1606,11 +1644,18 @@ const MultiStepForm = ({ onClose, projectData }) => {
           </button>
         )}
       </div>
-      {/* Alert Modal for displaying messages */}
       <Modal
         isVisible={alertModal.isVisible}
-        onClose={closeAlert}
-        buttons={[{ label: "OK", onClick: closeAlert }]}
+        onClose={closeAlert} // This closes the modal
+        buttons={[
+          {
+            label: "OK",
+            onClick: () => {
+              closeAlert();
+              onClose(); // Now close the form/modal after user acknowledges the alert
+            },
+          },
+        ]}
       >
         <p>{alertModal.message}</p>
       </Modal>

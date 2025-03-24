@@ -23,8 +23,8 @@ const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
             role === "Admin"
               ? "/images/admin-avatar.png"
               : gender === "Female"
-              ? "/images/female-avatar.png"
-              : "/images/male-avatar.png"
+              ? "/images/female-avatar.jpeg"
+              : "/images/male-avatar.jpeg"
           );
         });
     } else {
@@ -33,8 +33,8 @@ const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
         role === "Admin"
           ? "/images/admin-avatar.png"
           : gender === "Female"
-          ? "/images/female-avatar.png"
-          : "/images/male-avatar.png"
+          ? "/images/female-avatar.jpeg"
+          : "/images/male-avatar.jpeg"
       );
     }
   }, [photoUrl, role, gender, apiKey]);

@@ -41,36 +41,42 @@ const HolidayCalendar = ({ closeCalendar }) => {
   const tileClassName = ({ date, view }) => {
     if (view !== "month") return "";
     const holiday = getHoliday(date);
-    return holiday
-      ? holiday.type === "Government"
-        ? "govt-holiday"
-        : "company-holiday"
-      : "";
+    if (holiday) {
+      return holiday.type === "Government" ? "govt-holiday" : "company-holiday";
+    }
+    return "";
   };
 
   const tileContent = ({ date, view }) => {
     if (view !== "month") return null;
 
-    if (date.getDay() === 0) {
-      return (
-        <div
-          className="sunday-dot"
-          data-tooltip-id="sunday-tooltip"
-          data-tooltip-content="Sunday"
-        ></div>
-      );
+    const isSunday = date.getDay() === 0;
+    const holiday = getHoliday(date);
+    const hasTooltip = isSunday || holiday;
+
+    if (!hasTooltip) return null;
+    let tooltipContent = isSunday ? "Sunday" : "";
+    if (holiday) {
+      tooltipContent = holiday.occasion;
     }
 
-    const holiday = getHoliday(date);
-    return holiday ? (
+    return (
       <div
-        className="holiday-dot"
+        className="tile-tooltip-overlay"
         data-tooltip-id="holiday-tooltip"
-        data-tooltip-content={holiday.occasion}
-      ></div>
-    ) : null;
+        data-tooltip-content={tooltipContent}
+        onClick={() => handleChange(date)}
+      >
+        {isSunday && !holiday && <div className="sunday-dot" />}
+        {holiday && holiday.type === "Government" && (
+          <div className="holiday-dot govt-dot" />
+        )}
+        {holiday && holiday.type === "Company" && (
+          <div className="holiday-dot company-dot" />
+        )}
+      </div>
+    );
   };
-
   const handleChange = (newDate) => {
     if (newDate.getFullYear() === currentYear) {
       setDate(newDate);
@@ -79,24 +85,35 @@ const HolidayCalendar = ({ closeCalendar }) => {
 
   return (
     <div className="calendar-container">
-      {/* Close Button */}
       <button className="close-btn" onClick={closeCalendar}>
         X
       </button>
 
-      <Calendar
-        onChange={handleChange}
-        value={date}
-        minDate={new Date(currentYear, 0, 1)}
-        maxDate={new Date(currentYear, 11, 31)}
-        maxDetail="month"
-        tileDisabled={({ date }) => date.getFullYear() !== currentYear}
-        tileClassName={tileClassName}
-        tileContent={tileContent}
-        prev2Label={null}
-        next2Label={null}
-      />
-      <Tooltip id="holiday-tooltip" place="top" effect="solid" />
+      <div className="calendar-wrapper">
+        <Calendar
+          onChange={handleChange}
+          value={date}
+          minDate={new Date(currentYear, 0, 1)}
+          maxDate={new Date(currentYear, 11, 31)}
+          maxDetail="month"
+          tileDisabled={({ date }) => date.getFullYear() !== currentYear}
+          tileClassName={tileClassName}
+          tileContent={tileContent}
+          prev2Label={null}
+          next2Label={null}
+        />
+        <Tooltip id="holiday-tooltip" place="top" effect="solid" />
+        <div className="holiday-legend-top">
+          <div className="legend-item">
+            <div className="color-box govt"></div>
+            <span>Government</span>
+          </div>
+          <div className="legend-item">
+            <div className="color-box company"></div>
+            <span>Company</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

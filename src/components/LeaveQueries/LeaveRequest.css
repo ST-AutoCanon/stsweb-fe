@@ -38,7 +38,7 @@
   font-size: large;
 }
 
-/* Buttons */
+/* Buttons: Filter & Leave Form */
 .filter-button,
 .leave-form-button {
   margin-left: auto;
@@ -50,26 +50,82 @@
   color: white;
   border: none;
   border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
 }
 
 .filter-button:hover,
 .leave-form-button:hover {
   background-color: #003366;
   opacity: 0.9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Modal */
-.leave-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.filter-button:active,
+.leave-form-button:active {
+  transform: scale(0.98);
+}
+
+.filter-button:focus,
+.leave-form-button:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
+}
+
+/* Save Button */
+.leave-save {
+  background-color: #7ac142;
+  color: white;
+  font-size: medium;
+  padding: 1%;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+  width: 25%;
+}
+
+.leave-save:hover {
+  background-color: #69a535;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.leave-save:active {
+  transform: scale(0.98);
+}
+
+.leave-save:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
+}
+
+/* Cancel Button */
+.leave-cancel {
+  border: 1px solid #7ac142;
+  background-color: white;
+  color: #7ac142;
+  font-size: medium;
+  padding: 1%;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+  width: 25%;
+}
+
+.leave-cancel:hover {
+  background-color: #f2f2f2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.leave-cancel:active {
+  transform: scale(0.98);
+}
+
+.leave-cancel:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
 }
 
 .leave-modal-content {
@@ -175,40 +231,6 @@
   grid-column: span 3;
 }
 
-/* Save Button */
-.leave-save {
-  background-color: #7ac142;
-  color: white;
-  font-size: medium;
-  padding: 1%;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: 0.3s;
-  width: 25%;
-}
-
-/* Cancel Button */
-.leave-cancel {
-  border: 1px solid #7ac142;
-  background-color: white;
-  color: #7ac142;
-  font-size: medium;
-  padding: 1%;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: 0.3s;
-  width: 25%;
-}
-
-.leave-save:hover {
-  background-color: #69a535;
-}
-
-.leave-cancel:hover {
-  background-color: #f2f2f2;
-}
-
 /* Table Container */
 .leave-request-table {
   height: 500px;
@@ -254,22 +276,6 @@
   background-color: #fff;
 }
 
-/* Edit & Delete Buttons */
-.button-edit {
-  font-size: x-large;
-  margin-right: 5%;
-}
-
-.button-delete {
-  font-size: x-large;
-}
-
-.disabled {
-  color: lightgray !important;
-  pointer-events: none;
-  cursor: not-allowed;
-}
-
 .leave-status-label {
   padding: 6px 12px;
   border-radius: 12px;
@@ -289,4 +295,40 @@
 .action-button {
   font-size: x-large;
   margin: 0 5%;
+}
+
+/* Edit & Delete Buttons */
+.button-edit,
+.button-delete {
+  font-size: x-large;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.3s ease;
+}
+
+.button-edit {
+  margin-right: 5%;
+}
+
+.button-edit:hover,
+.button-delete:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.button-edit:active,
+.button-delete:active {
+  transform: scale(0.95);
+}
+
+.button-edit:focus,
+.button-delete:focus {
+  outline: 2px solid #ffca28;
+  outline-offset: 2px;
+}
+
+/* Disabled styling for any element with .disabled */
+.disabled {
+  color: lightgray !important;
+  pointer-events: none;
+  cursor: not-allowed;
 }

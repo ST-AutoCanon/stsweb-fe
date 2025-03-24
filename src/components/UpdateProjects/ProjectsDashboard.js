@@ -9,9 +9,14 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("en-GB", options);
 };
 
-const ProjectCard = ({ projectData, onUpdate, userRole }) => {
+const ProjectCard = ({ projectData, onUpdate, userRole, userPosition }) => {
   const { company, project, startDate, endDate, clientPOC, stsPOC, milestone } =
     projectData;
+
+  // Check if the user can raise invoices (Admin or Finance Manager)
+  const canRaiseInvoice =
+    userRole === "Admin" ||
+    (userRole === "Manager" && userPosition === "Finance Manager");
 
   return (
     <div className="add-project-card" style={{ cursor: "pointer" }}>
@@ -40,7 +45,7 @@ const ProjectCard = ({ projectData, onUpdate, userRole }) => {
       <p className="project-label">Milestone Status</p>
       <p className="project-value">Phase {milestone}</p>
       <p className="project-value">
-        {userRole !== "Employee" && userRole !== "Team Lead" && (
+        {canRaiseInvoice && (
           <button className="add-project-button">+ Raise Invoice</button>
         )}
       </p>
@@ -54,20 +59,22 @@ const ProjectsDashboard = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState("Current");
 
-  // Get the user role from localStorage
   const userRole = localStorage.getItem("userRole") || "Admin";
-  // Retrieve the dashboard data and extract employeeId
   const dashboardData = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   );
   const employeeId = dashboardData.employeeId;
+  const userPosition = dashboardData.position;
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Use general API for Admin & Finance Manager; otherwise, use employee-specific endpoint.
+        // Use general API for Admin and Finance Manager; otherwise, use employee-specific endpoint
         let url = `${process.env.REACT_APP_BACKEND_URL}/projects`;
-        if (userRole === "Employee" || userRole === "Team Lead") {
+        if (
+          userRole === "Employee" ||
+          (userRole === "Manager" && userPosition !== "Finance Manager")
+        ) {
           url = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects?employeeId=${employeeId}`;
         }
         const response = await fetch(url, {
@@ -150,7 +157,8 @@ const ProjectsDashboard = () => {
                 key={proj.id}
                 projectData={proj}
                 onUpdate={openForm}
-                userRole={userRole} // Pass the role here
+                userRole={userRole}
+                userPosition={userPosition}
               />
             ))
         ) : (
