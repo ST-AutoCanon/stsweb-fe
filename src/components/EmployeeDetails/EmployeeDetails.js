@@ -52,6 +52,7 @@ const EmployeeDetails = () => {
 
   const API_KEY = process.env.REACT_APP_API_KEY;
 
+  // Fetch dynamic departments from API
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/departments`, {
@@ -61,6 +62,7 @@ const EmployeeDetails = () => {
         },
       })
       .then((response) => {
+        // Extract the departments array from the API response
         setDepartments(response.data.departments);
       })
       .catch((err) => {
@@ -76,25 +78,25 @@ const EmployeeDetails = () => {
     if (deptName === "HR") {
       if (roleLower === "manager") {
         positions.push("HR Manager");
-        return positions;
+        return positions; // ✅ Exit early
       }
       positions.push("HR Specialist", "HR Coordinator");
-      return positions;
+      return positions; // ✅ Exit early
     }
 
     if (deptName === "Finance") {
       if (roleLower === "manager") {
         positions.push("Finance Manager");
-        return positions;
+        return positions; // ✅ Exit early
       }
       positions.push("Accountant", "Financial Analyst");
-      return positions;
+      return positions; // ✅ Exit early
     }
 
     // Default positions for other departments
     if (roleLower === "manager") {
       positions.push(`${deptName} Manager`);
-      return positions;
+      return positions; // ✅ Exit early
     }
 
     positions.push(
@@ -116,6 +118,7 @@ const EmployeeDetails = () => {
         params.push(`search=${encodeURIComponent(searchTerm)}`);
       }
 
+      // Format dates properly
       if (fromDate) {
         params.push(`fromDate=${format(fromDate, "yyyy-MM-dd")}`);
       }
@@ -146,12 +149,14 @@ const EmployeeDetails = () => {
     }
   };
 
+  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
+  // Helper functions for alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -437,7 +442,7 @@ const EmployeeDetails = () => {
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/admin/employees/${deleteEmployeeId}/deactivate`,
-        {}, 
+        {}, // Empty request body
         {
           headers: {
             "x-api-key": API_KEY,
@@ -746,7 +751,9 @@ const EmployeeDetails = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Position</label>
+                  <label>
+                    Position<span className="required">*</span>
+                  </label>
                   <select
                     name="position"
                     value={formData.position || ""}
@@ -1063,7 +1070,9 @@ const EmployeeDetails = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Position</label>
+                  <label>
+                    Position<span className="required">*</span>
+                  </label>
                   <select
                     name="position"
                     value={formData.position || ""}

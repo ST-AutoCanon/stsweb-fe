@@ -26,7 +26,8 @@
 .empleavetracker-table td {
   border: 1px solid #ddd;
   padding: 10px;
-  text-align: left;
+  text-align: center;
+  
 }
 @media (min-width: 1200px) {
   .empleavetracker-container {
@@ -43,30 +44,37 @@
 }
 
 .empleavetracker-status-approved {
-  background-color: #d4edda;
+  background-color: #d7f2ce;
   color: #155724;
-  font-weight: bold;
+
   text-align: center;
-  padding: 5px;
-  border-radius: 4px;
+  padding: 6px 6px;
+ 
+ display: block;
+  border-radius: 20px;
+  min-width: 80px;
 }
 
 .empleavetracker-status-rejected {
-  background-color: #f8d7da;
+  background-color: #ffe5d2;
   color: #721c24;
-  font-weight: bold;
   text-align: center;
-  padding: 5px;
-  border-radius: 4px;
+  padding: 6px 6px;
+ 
+ display: block;
+  border-radius: 20px;
+  min-width: 80px;
 }
 
 .empleavetracker-status-pending {
   background-color: #fff3cd;
   color: #856404;
-  font-weight: bold;
   text-align: center;
-  padding: 5px;
-  border-radius: 4px;
+  padding: 6px 6px;
+ 
+ display: block;
+  border-radius: 20px;
+  min-width: 80px;
 }
 
 .empleavetracker-status-default {

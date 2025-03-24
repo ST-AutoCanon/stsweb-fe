@@ -25,6 +25,7 @@
   background-color: #f8fafb;
   overflow-y: auto;
   border-radius: 10px;
+  margin-bottom: 5%;
 }
 
 .emp-chat-container {
@@ -33,6 +34,7 @@
   background-color: #ffffff;
   overflow-y: auto;
   border-radius: 10px;
+  margin-bottom: 5%;
 }
 
 .emp-header {
@@ -88,10 +90,11 @@
   display: flex;
   align-items: center;
   padding: 10px;
+  margin: 2%;
   cursor: pointer;
-  border-radius: 5px;
   transition: 0.2s;
   position: relative;
+  border-bottom: 2px solid #ccc;
 }
 
 .emp-query-item:hover,
@@ -99,7 +102,7 @@
   background: #ffffff;
   border-radius: 0;
   margin: 2%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .emp-profile-pic {
@@ -129,17 +132,18 @@
 .emp-time {
   font-size: 12px;
   color: gray;
-  margin: 0;
+  margin: 10px;
 }
 
 .emp-message-preview {
   color: gray;
   font-size: 14px;
-  white-space: nowrap; /* Single line only */
-  overflow: hidden; /* Hide overflowing text */
-  text-overflow: ellipsis; /* Show ellipsis for clipped text */
-  max-width: 200px; /* Or any suitable width for your design */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
   display: inline-block;
+  margin: 0;
 }
 
 .emp-unread-dot {
@@ -147,6 +151,8 @@
   right: 10px;
   width: 15px;
   height: 15px;
+  margin: 0%;
+  padding: 0;
   font-size: small;
   color: #fff;
   text-align: center;
@@ -160,7 +166,7 @@
 
 .emp-time,
 .emp-message-preview {
-  margin-left: 10px;
+  margin: 0 0 0 10px;
 }
 
 .emp-query-header .name {
@@ -578,3 +584,4 @@
 .message-text {
   padding: 0 1%;
 }
+
