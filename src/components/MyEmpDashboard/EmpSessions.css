@@ -38,3 +38,8 @@
   font-weight: bold;
   color: #333;
 }
+.chart-center-label p
+{
+  margin-top: 10%;
+  color: #333;
+}

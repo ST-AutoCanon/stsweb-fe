@@ -1,3 +1,5 @@
+
+
 /* src/components/Profile/Profile.css */
 .profile-popup {
   position: fixed;
@@ -20,7 +22,7 @@
   margin-top: 5%;
   width: 100%;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border: 10px solid #001d4a;
+  border: 10px solid #00468c;
 }
 
 .profile-close {
@@ -29,7 +31,7 @@
   right: 10px;
   font-size: x-large;
   cursor: pointer;
-  color: #001d4a;
+  color: #00468c;
   transition: color 0.2s;
 }
 

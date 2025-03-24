@@ -6,11 +6,19 @@ import { MdOutlineCancel } from "react-icons/md";
 const Profile = ({ onClose }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [avatar, setAvatar] = useState("/images/profile-avatar.png");
+  // Start with an empty string; avatar will be determined by gender
+  const [avatar, setAvatar] = useState("");
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employeeId || null;
+
+  // Helper to determine default avatar based on gender
+  const getDefaultAvatar = (gender) => {
+    return gender === "Female"
+      ? "/images/female-avatar.jpeg"
+      : "/images/male-avatar.jpeg";
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -27,22 +35,31 @@ const Profile = ({ onClose }) => {
         const profileData = response.data.data;
         setProfile(profileData);
 
-        // If photo_url exists, fetch the image as blob and set it as avatar
+        // If photo_url exists, try to fetch the image as blob and set it as avatar
         if (profileData.photo_url) {
-          const imageResponse = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/${profileData.photo_url}`,
-            {
-              headers: {
-                "x-api-key": API_KEY,
-              },
-              responseType: "blob", // Get image as a blob
-            }
-          );
-          const imageUrl = URL.createObjectURL(imageResponse.data);
-          setAvatar(imageUrl);
+          try {
+            const imageResponse = await axios.get(
+              `${process.env.REACT_APP_BACKEND_URL}/${profileData.photo_url}`,
+              {
+                headers: {
+                  "x-api-key": API_KEY,
+                },
+                responseType: "blob",
+              }
+            );
+            const imageUrl = URL.createObjectURL(imageResponse.data);
+            setAvatar(imageUrl);
+          } catch (error) {
+            console.error("Error fetching photo, using default avatar:", error);
+            setAvatar(getDefaultAvatar(profileData.gender));
+          }
+        } else {
+          // No photo_url, so set avatar based on gender
+          setAvatar(getDefaultAvatar(profileData.gender));
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
+        // In case of error, if profile is not fetched, the avatar remains unset
       } finally {
         setLoading(false);
       }
@@ -125,3 +142,6 @@ const Profile = ({ onClose }) => {
 };
 
 export default Profile;
+
+
+

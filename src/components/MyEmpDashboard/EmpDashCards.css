@@ -42,8 +42,10 @@
 }
 
 .emp-card:not(.emp-punch-in):not(.emp-punched-out) .emp-text {
-  color: #3498db; /* Set text color to blue */
+  color: #004DC6; /* Set text color to blue */
 }
+
+
 
 .emp-card-content {
   display: flex;
@@ -53,7 +55,15 @@
 }
 
 .emp-icon {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
+  
+  background: rgba(200, 200, 200, 0.2); /* Light grey background */
+  padding: 10px; /* Space around the icon */
+  border-radius: 8px; /* Rounded corners */
+  display: inline-flex; /* Keep it centered */
+  align-items: center; /* Vertical alignment */
+  justify-content: center; /* Horizontal alignment */
+ 
 }
 
 .emp-text {
@@ -65,4 +75,69 @@
   font-size: 0.8rem;
   color: #555;
   display: block;
+}
+
+
+@media (max-width: 768px) {
+  .emp-dash-cards {
+    flex-direction: column; /* Stack cards vertically */
+    align-items: center; /* Center align cards */
+    gap: 20px; /* Increase gap for better spacing */
+    width: 100%;
+  }
+
+  .emp-card {
+    width: 100%; /* Make cards take most of the screen width */
+    max-width: 380px; /* Prevent excessive width */
+    padding: 20px; /* Slightly increase padding for better touch experience */
+    width: 300px;
+  }
+  emp-card emp-punch-in
+  {
+    width: 120%;
+  }
+  .emp-card-content {
+    flex-direction: row; /* Keep content inline */
+    gap: 15px; /* Reduce gap slightly */
+  }
+ 
+  .emp-punch-button {
+    font-weight: bold;
+    cursor: pointer;
+    width: 120%;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .emp-punch-button:active {
+    transform: scale(0.95);
+  }
+  .emp-icon {
+    font-size: 1.6rem; /* Slightly reduce icon size */
+  }
+
+  .emp-text {
+    font-size: 0.9rem; /* Slightly reduce text size */
+    text-align: center;
+    
+  }
+
+  .emp-label {
+    font-size: 0.75rem; /* Adjust label size */
+  }
+
+ 
+
+  @media (max-width: 768px) {
+    .emp-punch-in,
+    .emp-punched-out {
+      width: 340px; /* Make the first card bigger */
+      height: 80px; /* Increase height */
+      font-size: 1.2rem; /* Increase text size */
+    }
+  
+    .emp-punch-in .emp-icon,
+    .emp-punched-out .emp-icon {
+      font-size: 2rem; /* Make the icon slightly bigger */
+    }
+  }
 }

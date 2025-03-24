@@ -32,6 +32,7 @@ const EmpDashCards = () => {
     }
   }, [employeeId]);
 
+
   const fetchPunchData = async () => {
     try {
       if (!API_KEY) throw new Error("API Key is missing.");
@@ -42,6 +43,7 @@ const EmpDashCards = () => {
           "x-api-key": API_KEY
         },
       });
+
   
       console.log("🔹 API Response:", response.data);
   
@@ -61,12 +63,14 @@ const EmpDashCards = () => {
         setIsPunchedIn(latestPunch.punch_status === "Punch In");
       } else {
         console.warn("⚠️ No punch data found.");
+        // setErrorMessage("No punch records found. Please punch in for the first time.");
       }
     } catch (error) {
       console.error("❌ Error fetching punch data:", error);
-      setErrorMessage("Failed to fetch punch data.");
+      // setErrorMessage(error.response ? "No punch data available" : "Failed to connect to server");
     }
   };
+  
   const getLocationAndDevice = async () => {
     return new Promise((resolve) => {
       function getLocation() {
@@ -170,6 +174,7 @@ const EmpDashCards = () => {
 
     setLoading(true);
     setErrorMessage("");
+    
 
     try {
       const { location, device } = await getLocationAndDevice();
