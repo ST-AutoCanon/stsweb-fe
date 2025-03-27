@@ -103,7 +103,7 @@ const LeaveRequest = () => {
 
       // Fetch team leave requests (only if the user is a Team Lead)
       let teamRequests = [];
-      if (role === "Team Lead") {
+      if (role === "Manager") {
         const teamUrl = `${process.env.REACT_APP_BACKEND_URL}/team-lead/${employeeId}`;
         const teamParams = new URLSearchParams();
         if (filters.from_date)
@@ -219,27 +219,73 @@ const LeaveRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!employeeId || !name) {
-      showAlert("Employee data not found. Please log in again.");
+    // Define today's date and minimum allowed start date for Casual/Vacation leaves
+    const today = new Date();
+    const minStartDate = new Date();
+    minStartDate.setDate(today.getDate() + 3);
+
+    // Basic required field validation
+    if (
+      !formData.leavetype ||
+      !formData.startDate ||
+      !formData.endDate ||
+      !formData.reason
+    ) {
+      showAlert("Please fill in all required fields.");
       return;
     }
 
-    const startDate = new Date(formData.startDate);
-    const endDate = new Date(formData.endDate);
+    // Validate date range (end date should not be before start date)
+    const newStart = new Date(formData.startDate);
+    const newEnd = new Date(formData.endDate);
+    if (newEnd < newStart) {
+      showAlert("End date cannot be earlier than start date.");
+      return;
+    }
 
-    // Check for existing leave requests with the same date(s)
+    // Check for advance notice requirement for Casual or Vacation leave
+    if (
+      (formData.leavetype === "Casual" || formData.leavetype === "Vacation") &&
+      newStart < minStartDate
+    ) {
+      showAlert(
+        "You need to apply for Casual or Vacation leave at least 3 days in advance."
+      );
+      return;
+    }
+
+    // Overlapping validation for all leave types (full-day or half-day)
+    const newDay = newStart.toISOString().split("T")[0];
+    const newEndDay = newEnd.toISOString().split("T")[0];
+
     const hasConflict = leaveRequests.self.some((leave) => {
       const existingStart = new Date(leave.start_date);
       const existingEnd = new Date(leave.end_date);
-      return (
-        (startDate >= existingStart && startDate <= existingEnd) ||
-        (endDate >= existingStart && endDate <= existingEnd) ||
-        (existingStart >= startDate && existingEnd <= endDate)
-      );
+      const existingStartDay = existingStart.toISOString().split("T")[0];
+      const existingEndDay = existingEnd.toISOString().split("T")[0];
+
+      // If the new leave is a single day or is marked as "Half Day"
+      if (newDay === newEndDay || formData.h_f_day === "Half Day") {
+        // Conflict if an existing leave falls on the same day
+        return existingStartDay === newDay;
+      } else {
+        // For multi-day full-day leaves, use range overlap check
+        return (
+          (newStart >= existingStart && newStart <= existingEnd) ||
+          (newEnd >= existingStart && newEnd <= existingEnd) ||
+          (existingStart >= newStart && existingEnd <= newEnd)
+        );
+      }
     });
 
     if (hasConflict) {
       showAlert("You already have a leave request on the selected date(s).");
+      return;
+    }
+
+    // Verify employee data is available
+    if (!employeeId || !name) {
+      showAlert("Employee data not found. Please log in again.");
       return;
     }
 
@@ -476,7 +522,7 @@ const LeaveRequest = () => {
         </div>
       )}
 
-      {role === "Team Lead" && (
+      {role === "Manager" && (
         <>
           {/* Team Leave Requests Table */}
           <h4 className="my-leaves">Team Leave Requests</h4>

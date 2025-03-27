@@ -55,7 +55,9 @@ const Reimbursement = () => {
   const [updateErrorMessage, setUpdateErrorMessage] = useState("");
   const [submitErrorMessage, setSubmitErrorMessage] = useState("");
   const [date, setDate] = useState("");
-  const [statusFilter, setStatusFilter] = useState("pending"); // Default to "pending"
+  const [statusFilter, setStatusFilter] = useState(
+    role === "Admin" ? "approved" : "pending"
+  );
   const [formData, setFormData] = useState({
     employeeId: employeeId,
     department_id: departmentId,
@@ -358,6 +360,8 @@ const Reimbursement = () => {
       formDataToSend.append("meal_type", formData.meal_type);
       formDataToSend.append("stationary", formData.stationary);
       formDataToSend.append("service_provider", formData.service_provider);
+
+      formDataToSend.append("role", role);
 
       if (formData.attachments && formData.attachments.length > 0) {
         formData.attachments.forEach((file) => {
@@ -1128,7 +1132,9 @@ const Reimbursement = () => {
   return (
     <div className="reimbursement-container">
       <div className="rb-form-header">
-        {role !== "Team Lead" && <h2>Reimbursement Requests</h2>}
+        {role !== "Manager" && role !== "Admin" && (
+          <h2>Reimbursement Requests</h2>
+        )}
       </div>
 
       <div className="filter-container">
@@ -1206,15 +1212,16 @@ const Reimbursement = () => {
               <th>Date</th>
               <th>Purpose</th>
               <th>Amount</th>
-              <th>Attachments</th>
+              <th>Attachment</th>
               <th>Status</th>
               <th>Comments</th>
+              <th>Payment Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {filterClaims.map((claim, index) => (
-              <tr key={index}>
+              <tr key={claim.id}>
                 <td>{index + 1}</td>
                 <td>{claim.claim_type}</td>
                 <td>
@@ -1266,8 +1273,13 @@ const Reimbursement = () => {
                     {claim.status}
                   </span>
                 </td>
-                <td className="rbcomments-column">{claim.approver_comments}</td>
+                <td className="rbcomments-column">
+                  {claim.approver_comments || "No comments"}
+                </td>
+                <td>{claim.payment_status}</td>
                 <td>
+                  {/* In self view, employees cannot edit reimbursement details */}
+                  <span className="action-label"></span>
                   <MdOutlineEdit
                     className={`icon ${
                       claim.status.toLowerCase() !== "pending"
@@ -1379,7 +1391,7 @@ const Reimbursement = () => {
         </div>
       )}
 
-      {/* Modal for Attachments (remains unchanged) */}
+      {/* Modal for Attachments */}
       {isModalOpen && (
         <div className="att-modal-overlay">
           <div className="att-modal-content">
@@ -1416,7 +1428,7 @@ const Reimbursement = () => {
         </div>
       )}
 
-      {/* Alert Modal for displaying messages */}
+      {/* Alert Modal */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}
