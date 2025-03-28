@@ -90,7 +90,7 @@ const Topbar = () => {
             document.getElementById("portal-root")
           )}
 
-        <i className="fas fa-power-off" onClick={() => navigate("/login")}></i>
+        <i className="fas fa-power-off" onClick={() => navigate("/")}></i>
       </div>
     </div>
   );

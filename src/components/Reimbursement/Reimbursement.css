@@ -120,7 +120,7 @@
 .delete-icon {
   cursor: pointer;
   margin: 0 5px;
-  font-size: 18px;
+  font-size: x-large;
 }
 
 .edit-icon:hover {
@@ -494,4 +494,8 @@
   color: grey;
   pointer-events: none; /* Prevents clicking */
   opacity: 0.5; /* Makes it look disabled */
+}
+
+.actions-column {
+  min-width: 75px;
 }

@@ -81,6 +81,21 @@ const Reimbursement = () => {
     attachments: null,
   });
 
+  // At the top of your component
+  const [confirmModal, setConfirmModal] = useState({
+    isVisible: false,
+    message: "",
+    onConfirm: null,
+  });
+
+  const showConfirm = (message, onConfirm) => {
+    setConfirmModal({ isVisible: true, message, onConfirm });
+  };
+
+  const closeConfirm = () => {
+    setConfirmModal({ isVisible: false, message: "", onConfirm: null });
+  };
+
   // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
@@ -466,26 +481,32 @@ const Reimbursement = () => {
       console.error("Error: Reimbursement ID is missing.");
       return;
     }
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this reimbursement claim?"
-    );
-    if (!confirmDelete) return;
-    try {
-      const response = await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${id}`,
-        {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY,
-            Authorization: `Bearer ${authToken}`,
-          },
+
+    showConfirm(
+      "Are you sure you want to delete this reimbursement claim?",
+      async () => {
+        try {
+          const response = await axios.delete(
+            `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${id}`,
+            {
+              headers: {
+                "x-api-key": process.env.REACT_APP_API_KEY,
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
+          showAlert(
+            response.data.message || "Reimbursement deleted successfully!"
+          );
+          fetchReimbursements();
+        } catch (error) {
+          console.error("Error deleting reimbursement:", error);
+          showAlert("Failed to delete the reimbursement.");
+        } finally {
+          closeConfirm();
         }
-      );
-      showAlert(response.data.message || "Reimbursement deleted successfully!");
-      fetchReimbursements();
-    } catch (error) {
-      console.error("Error deleting reimbursement:", error);
-      showAlert("Failed to delete the reimbursement.");
-    }
+      }
+    );
   };
 
   const handleOpenAttachments = async (files, claim) => {
@@ -1244,7 +1265,9 @@ const Reimbursement = () => {
                       })
                     : "N/A"}
                 </td>
-                <td className="rbcomments-column">{claim.purpose}</td>
+                <td>
+                  <div className="rbadmin-comments">{claim.purpose}</div>
+                </td>
                 <td>{claim.total_amount}</td>
                 <td>
                   {attachments[claim.id]?.length > 0 ? (
@@ -1257,7 +1280,7 @@ const Reimbursement = () => {
                       <MdOutlineRemoveRedEye className="eye-icon" /> View
                     </button>
                   ) : (
-                    "No Attachments"
+                    "Not Attached"
                   )}
                 </td>
                 <td>
@@ -1273,15 +1296,17 @@ const Reimbursement = () => {
                     {claim.status}
                   </span>
                 </td>
-                <td className="rbcomments-column">
-                  {claim.approver_comments || "No comments"}
+                <td>
+                  <div className="rbadmin-comments">
+                    {claim.approver_comments || "No comments"}
+                  </div>
                 </td>
                 <td>{claim.payment_status}</td>
-                <td>
+                <td className="actions-column">
                   {/* In self view, employees cannot edit reimbursement details */}
                   <span className="action-label"></span>
                   <MdOutlineEdit
-                    className={`icon ${
+                    className={`edit-icon ${
                       claim.status.toLowerCase() !== "pending"
                         ? "disabled-icon"
                         : ""
@@ -1294,7 +1319,7 @@ const Reimbursement = () => {
                     }}
                   />
                   <MdDeleteOutline
-                    className={`icon ${
+                    className={`delete-icon ${
                       claim.status.toLowerCase() !== "pending"
                         ? "disabled-icon"
                         : ""
@@ -1312,7 +1337,7 @@ const Reimbursement = () => {
           <tfoot>
             <tr className="total-row">
               <td
-                colSpan="5"
+                colSpan="4"
                 style={{
                   textAlign: "right",
                   color: "#949494",
@@ -1324,11 +1349,11 @@ const Reimbursement = () => {
                   Rs {totalAmount}
                 </span>
               </td>
-              <td colSpan="2" style={{ textAlign: "right" }}>
+              <td colSpan="3" style={{ textAlign: "right" }}>
                 Amount Approved: Rs{" "}
                 <span style={{ fontWeight: "bold" }}>{approvedAmount}</span>
               </td>
-              <td colSpan="2" style={{ textAlign: "right" }}>
+              <td colSpan="3" style={{ textAlign: "right" }}>
                 Amount Rejected: Rs{" "}
                 <span style={{ fontWeight: "bold" }}>{rejectedAmount}</span>
               </td>
@@ -1427,6 +1452,16 @@ const Reimbursement = () => {
           </div>
         </div>
       )}
+      <Modal
+        isVisible={confirmModal.isVisible}
+        onClose={closeConfirm}
+        buttons={[
+          { label: "Cancel", onClick: closeConfirm },
+          { label: "Confirm", onClick: confirmModal.onConfirm },
+        ]}
+      >
+        <p>{confirmModal.message}</p>
+      </Modal>
 
       {/* Alert Modal */}
       <Modal

@@ -148,11 +148,13 @@
 .status-dropdown option[value="Approved"],
 .status-dropdown[value="Approved"] {
   background-color: #d7f2ce;
+  color: #000;
 }
 
 .status-dropdown option[value="Rejected"],
 .status-dropdown[value="Rejected"] {
   background-color: #ffe5d2;
+  color: #000;
 }
 
 .status-approved {

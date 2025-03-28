@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from "react";
 import "./LeaveRequest.css";
-import Modal from "../Modal/Modal"; // Adjust the path as needed
+import Modal from "../Modal/Modal";
 import { MdOutlineCancel } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
 import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 
+// Updated helper: If dateStr is already in "YYYY-MM-DD" format, return it directly.
+const parseLocalDate = (dateStr) => {
+  if (!dateStr) return "";
+  if (dateStr.length === 10) return dateStr;
+  const d = new Date(dateStr);
+  d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+  return d.toISOString().split("T")[0];
+};
+
 const LeaveRequest = () => {
-  // Existing state variables for your form and leave data
   const [isFormVisible, setFormVisible] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
   const [formData, setFormData] = useState({
@@ -16,31 +24,27 @@ const LeaveRequest = () => {
     startDate: "",
     endDate: "",
   });
-  const [leaveRequests, setLeaveRequests] = useState({
-    self: [],
-    team: [],
-  });
+  const [leaveRequests, setLeaveRequests] = useState({ self: [], team: [] });
   const [filters, setFilters] = useState({ from_date: "", to_date: "" });
   const [editingId, setEditingId] = useState(null);
-
-  // New state for the alert modal
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
+  const [confirmModal, setConfirmModal] = useState({
+    isVisible: false,
+    message: "",
+    onConfirm: null,
+  });
 
-  // Helper function to show the alert modal instead of calling alert()
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
-
-  // Function to close the alert modal
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  // Reset Form Function
   const resetForm = () => {
     setFormData({
       reason: "",
@@ -52,19 +56,16 @@ const LeaveRequest = () => {
     setEditingId(null);
   };
 
-  // Open Modal & Reset Form (for leave request form)
   const handleOpenModal = () => {
     resetForm();
     setFormVisible(true);
   };
 
-  // Close Modal & Reset Form (for leave request form)
   const handleCloseModal = () => {
     resetForm();
     setFormVisible(false);
   };
 
-  // Retrieve employee details from local storage
   const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
   const employeeId = employeeData?.employeeId;
   const name = employeeData?.name;
@@ -78,7 +79,6 @@ const LeaveRequest = () => {
 
   const fetchLeaveRequests = async () => {
     try {
-      // Fetch self leave requests
       const selfUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
       const selfParams = new URLSearchParams();
       if (filters.from_date) selfParams.append("from_date", filters.from_date);
@@ -86,7 +86,6 @@ const LeaveRequest = () => {
       const selfFinalUrl = selfParams.toString()
         ? `${selfUrl}?${selfParams.toString()}`
         : selfUrl;
-
       const selfResponse = await fetch(selfFinalUrl, {
         method: "GET",
         headers: {
@@ -94,14 +93,11 @@ const LeaveRequest = () => {
           "Content-Type": "application/json",
         },
       });
-
       let selfRequests = [];
       if (selfResponse.ok) {
         const selfResult = await selfResponse.json();
         selfRequests = selfResult?.data || [];
       }
-
-      // Fetch team leave requests (only if the user is a Team Lead)
       let teamRequests = [];
       if (role === "Manager") {
         const teamUrl = `${process.env.REACT_APP_BACKEND_URL}/team-lead/${employeeId}`;
@@ -112,7 +108,6 @@ const LeaveRequest = () => {
         const teamFinalUrl = teamParams.toString()
           ? `${teamUrl}?${teamParams.toString()}`
           : teamUrl;
-
         const teamResponse = await fetch(teamFinalUrl, {
           method: "GET",
           headers: {
@@ -120,14 +115,11 @@ const LeaveRequest = () => {
             "Content-Type": "application/json",
           },
         });
-
         if (teamResponse.ok) {
           const teamResult = await teamResponse.json();
           teamRequests = teamResult?.message?.data || [];
         }
       }
-
-      // Update state with fetched leave requests
       setLeaveRequests({ self: selfRequests, team: teamRequests });
       setStatusUpdates({});
       console.log("Updated Leave Requests:", {
@@ -140,12 +132,10 @@ const LeaveRequest = () => {
     }
   };
 
-  // Update leave request status
   const handleUpdate = async (leaveId) => {
     try {
       const update = statusUpdates[leaveId];
       if (!update) return;
-
       const response = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/admin/leave/${leaveId}`,
         {
@@ -157,13 +147,10 @@ const LeaveRequest = () => {
           body: JSON.stringify(update),
         }
       );
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
-
       if (data.success) {
         showAlert(data.message || "Leave request updated successfully.");
         fetchLeaveRequests();
@@ -179,24 +166,17 @@ const LeaveRequest = () => {
   const handleStatusChange = (leaveId, key, value) => {
     setStatusUpdates((prev) => ({
       ...prev,
-      [leaveId]: {
-        ...prev[leaveId],
-        [key]: value,
-      },
+      [leaveId]: { ...prev[leaveId], [key]: value },
     }));
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => {
-      let newFormData = { ...prevData, [name]: value };
-      // Auto-enforce Full Day leave if more than one day is selected
+      const newFormData = { ...prevData, [name]: value };
       if (name === "startDate" || name === "endDate") {
-        const startDate = new Date(newFormData.startDate);
-        const endDate = new Date(newFormData.endDate);
-        if (startDate && endDate) {
-          const dayDifference = (endDate - startDate) / (1000 * 60 * 60 * 24);
-          if (dayDifference >= 1) {
+        if (newFormData.startDate && newFormData.endDate) {
+          if (newFormData.endDate > newFormData.startDate) {
             newFormData.h_f_day = "Full Day";
           }
         }
@@ -205,7 +185,6 @@ const LeaveRequest = () => {
     });
   };
 
-  // Handle filters
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prevFilters) => ({ ...prevFilters, [name]: value }));
@@ -218,13 +197,13 @@ const LeaveRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Define today's date and minimum allowed start date for Casual/Vacation leaves
+    // Compute minimum allowed start date (today + 3 days)
     const today = new Date();
-    const minStartDate = new Date();
-    minStartDate.setDate(today.getDate() + 3);
+    const minStartDateObj = new Date(today);
+    minStartDateObj.setDate(today.getDate() + 3);
+    const minStartDateStr = minStartDateObj.toISOString().split("T")[0];
 
-    // Basic required field validation
+    // Required field check (applies to both new and edit)
     if (
       !formData.leavetype ||
       !formData.startDate ||
@@ -234,73 +213,30 @@ const LeaveRequest = () => {
       showAlert("Please fill in all required fields.");
       return;
     }
-
-    // Validate date range (end date should not be before start date)
-    const newStart = new Date(formData.startDate);
-    const newEnd = new Date(formData.endDate);
-    if (newEnd < newStart) {
+    if (formData.endDate < formData.startDate) {
       showAlert("End date cannot be earlier than start date.");
       return;
     }
-
-    // Check for advance notice requirement for Casual or Vacation leave
+    // Only for new submissions, enforce advance notice.
     if (
+      !editingId &&
       (formData.leavetype === "Casual" || formData.leavetype === "Vacation") &&
-      newStart < minStartDate
+      formData.startDate < minStartDateStr
     ) {
       showAlert(
         "You need to apply for Casual or Vacation leave at least 3 days in advance."
       );
       return;
     }
-
-    // Overlapping validation for all leave types (full-day or half-day)
-    const newDay = newStart.toISOString().split("T")[0];
-    const newEndDay = newEnd.toISOString().split("T")[0];
-
-    const hasConflict = leaveRequests.self.some((leave) => {
-      const existingStart = new Date(leave.start_date);
-      const existingEnd = new Date(leave.end_date);
-      const existingStartDay = existingStart.toISOString().split("T")[0];
-      const existingEndDay = existingEnd.toISOString().split("T")[0];
-
-      // If the new leave is a single day or is marked as "Half Day"
-      if (newDay === newEndDay || formData.h_f_day === "Half Day") {
-        // Conflict if an existing leave falls on the same day
-        return existingStartDay === newDay;
-      } else {
-        // For multi-day full-day leaves, use range overlap check
-        return (
-          (newStart >= existingStart && newStart <= existingEnd) ||
-          (newEnd >= existingStart && newEnd <= existingEnd) ||
-          (existingStart >= newStart && existingEnd <= newEnd)
-        );
-      }
-    });
-
-    if (hasConflict) {
-      showAlert("You already have a leave request on the selected date(s).");
-      return;
-    }
-
-    // Verify employee data is available
     if (!employeeId || !name) {
       showAlert("Employee data not found. Please log in again.");
       return;
     }
-
-    const requestData = {
-      employeeId,
-      name,
-      ...formData,
-    };
-
+    const requestData = { employeeId, name, ...formData };
     const url = editingId
       ? `${process.env.REACT_APP_BACKEND_URL}/edit/${editingId}`
       : `${process.env.REACT_APP_BACKEND_URL}/employee/leave`;
-
     const method = editingId ? "PUT" : "POST";
-
     try {
       const response = await fetch(url, {
         method,
@@ -310,7 +246,7 @@ const LeaveRequest = () => {
         },
         body: JSON.stringify(requestData),
       });
-
+      const responseData = await response.json();
       if (response.ok) {
         showAlert(
           editingId
@@ -322,8 +258,8 @@ const LeaveRequest = () => {
         resetForm();
         fetchLeaveRequests();
       } else {
-        console.error("Failed to submit leave request.");
-        showAlert("Failed to submit leave request.");
+        console.error("Failed to submit leave request:", responseData.message);
+        showAlert(responseData.message || "Failed to submit leave request.");
       }
     } catch (error) {
       console.error("Error submitting leave request:", error);
@@ -332,39 +268,24 @@ const LeaveRequest = () => {
   };
 
   const handleEdit = (request) => {
+    // Ensure h_f_day is set (default to "Full Day" if missing)
     setFormData({
       reason: request.reason,
       leavetype: request.leave_type,
-      h_f_day: request.h_f_day,
-      startDate: request.start_date ? request.start_date.split("T")[0] : "",
-      endDate: request.end_date ? request.end_date.split("T")[0] : "",
+      h_f_day: request.h_f_day || "Full Day",
+      startDate: parseLocalDate(request.start_date),
+      endDate: parseLocalDate(request.end_date),
     });
     setEditingId(request.id);
     setFormVisible(true);
   };
 
-  // New state for the confirm modal
-  const [confirmModal, setConfirmModal] = useState({
-    isVisible: false,
-    message: "",
-    onConfirm: null,
-  });
-
-  // Helper to show confirm modal
   const showConfirm = (message, onConfirm) => {
-    setConfirmModal({
-      isVisible: true,
-      message,
-      onConfirm,
-    });
+    setConfirmModal({ isVisible: true, message, onConfirm });
   };
-
-  // Helper to close confirm modal
   const closeConfirm = () => {
     setConfirmModal({ isVisible: false, message: "", onConfirm: null });
   };
-
-  // Updated handleCancel using the custom confirm modal
   const handleCancel = (id) => {
     showConfirm(
       "Are you sure you want to cancel this leave request?",
@@ -380,7 +301,6 @@ const LeaveRequest = () => {
               },
             }
           );
-
           if (response.ok) {
             showAlert("Leave request cancelled successfully!");
             fetchLeaveRequests();
@@ -411,6 +331,7 @@ const LeaveRequest = () => {
           value={filters.from_date}
           onChange={handleFilterChange}
           className="date-filter-input"
+          min={new Date().toISOString().split("T")[0]}
         />
         <label>To:</label>
         <input
@@ -419,6 +340,7 @@ const LeaveRequest = () => {
           value={filters.to_date}
           onChange={handleFilterChange}
           className="date-filter-input"
+          min={new Date().toISOString().split("T")[0]}
         />
         <button className="filter-button" onClick={handleFilterSubmit}>
           <IoSearch /> Search
@@ -462,6 +384,7 @@ const LeaveRequest = () => {
                     value={formData.startDate}
                     onChange={handleInputChange}
                     required
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
                 <div className="leave-form-group">
@@ -484,16 +407,13 @@ const LeaveRequest = () => {
                     disabled={
                       formData.startDate &&
                       formData.endDate &&
-                      new Date(formData.endDate) -
-                        new Date(formData.startDate) >
-                        0
-                    } // Disable if more than 1 day
+                      formData.endDate > formData.startDate
+                    }
                   >
                     <option value="Full Day">Full Day</option>
                     <option value="Half Day">Half Day</option>
                   </select>
                 </div>
-
                 <div className="leave-form-group">
                   <label>Leave Reason</label>
                   <input
@@ -524,7 +444,6 @@ const LeaveRequest = () => {
 
       {role === "Manager" && (
         <>
-          {/* Team Leave Requests Table */}
           <h4 className="my-leaves">Team Leave Requests</h4>
           <div className="leave-request-table">
             <table className="leave-requests">
@@ -553,11 +472,9 @@ const LeaveRequest = () => {
                         : currentStatus === "Rejected"
                         ? "status-rejected"
                         : "";
-
                     const isAlreadyUpdated = leave.status !== "pending";
                     const isUpdating =
                       update.status && update.status !== leave.status;
-
                     return (
                       <tr
                         key={leave.leave_id}
@@ -565,10 +482,8 @@ const LeaveRequest = () => {
                       >
                         <td>{leave.employee_id}</td>
                         <td>{leave.leave_type}</td>
-                        <td>
-                          {new Date(leave.start_date).toLocaleDateString()}
-                        </td>
-                        <td>{new Date(leave.end_date).toLocaleDateString()}</td>
+                        <td>{parseLocalDate(leave.start_date)}</td>
+                        <td>{parseLocalDate(leave.end_date)}</td>
                         <td>{leave.H_F_day}</td>
                         <td className="comments-col">
                           <div className="comment-preview">{leave.reason}</div>
@@ -584,7 +499,7 @@ const LeaveRequest = () => {
                               )
                             }
                             className={`status-dropdown ${statusClass}`}
-                            disabled={isAlreadyUpdated} // Disable dropdown if already updated in DB
+                            disabled={isAlreadyUpdated}
                           >
                             <option value="pending">Pending</option>
                             <option value="Approved">Approved</option>
@@ -622,9 +537,9 @@ const LeaveRequest = () => {
                             }`}
                             onClick={() => handleUpdate(leave.leave_id)}
                             disabled={
-                              isAlreadyUpdated || // Disable if already updated
-                              !isUpdating || // Disable if no new status is selected
-                              (currentStatus === "Rejected" && !update.comments) // Require comments if rejecting
+                              isAlreadyUpdated ||
+                              !isUpdating ||
+                              (currentStatus === "Rejected" && !update.comments)
                             }
                           >
                             {isAlreadyUpdated ? "Updated" : "Update"}
@@ -639,7 +554,6 @@ const LeaveRequest = () => {
         </>
       )}
 
-      {/* Self Leave Requests Table */}
       <h4 className="my-leaves">My Leave Requests</h4>
       <div className="leave-request-table">
         <table className="leave-requests">
@@ -661,8 +575,8 @@ const LeaveRequest = () => {
               .map((request) => (
                 <tr key={request.id}>
                   <td>{request.leave_type}</td>
-                  <td>{new Date(request.start_date).toLocaleDateString()}</td>
-                  <td>{new Date(request.end_date).toLocaleDateString()}</td>
+                  <td>{parseLocalDate(request.start_date)}</td>
+                  <td>{parseLocalDate(request.end_date)}</td>
                   <td>{request.H_F_day}</td>
                   <td>{request.reason}</td>
                   <td>
@@ -728,7 +642,6 @@ const LeaveRequest = () => {
       >
         <p>{alertModal.message}</p>
       </Modal>
-      {/* Confirm Modal */}
       <Modal
         isVisible={confirmModal.isVisible}
         onClose={closeConfirm}

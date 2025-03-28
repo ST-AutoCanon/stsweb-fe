@@ -19,6 +19,8 @@ const EmployeeDetails = () => {
   const [departments, setDepartments] = useState([]);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
+    domain: "",
+    employee_type: "",
     first_name: "",
     last_name: "",
     dob: "",
@@ -275,6 +277,8 @@ const EmployeeDetails = () => {
       );
 
       setFormData({
+        domain: "",
+        employee_type: "",
         first_name: "",
         last_name: "",
         dob: "",
@@ -358,6 +362,8 @@ const EmployeeDetails = () => {
 
       setFormData({
         employee_id: employee.employee_id,
+        domain: employee.domain || "",
+        employee_type: employee.employee_type || "",
         first_name: employee.first_name || "",
         last_name: employee.last_name || "",
         dob: employee.dob || "",
@@ -546,6 +552,8 @@ const EmployeeDetails = () => {
             onClick={() => {
               setError("");
               setFormData({
+                domain: "",
+                employee_type: "",
                 first_name: "",
                 last_name: "",
                 father_name: "",
@@ -588,7 +596,46 @@ const EmployeeDetails = () => {
                 />
               </div>
               {error ? <p className="errors">{error}</p> : null}
+              <div className="radio-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="domain"
+                    value="ST"
+                    checked={formData.domain === "ST"}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  ST
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="domain"
+                    value="STS"
+                    checked={formData.domain === "STS"}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  STS
+                </label>
+              </div>
               <div className="form-grid">
+                <div className="form-group">
+                  <label>
+                    Employee Type:
+                    <select
+                      name="employee_type"
+                      value={formData.employee_type}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select</option>
+                      <option value="Permanent">Permanent</option>
+                      <option value="Consultant">Consultant</option>
+                    </select>
+                  </label>
+                </div>
                 <div className="form-group">
                   <label>
                     First Name<span className="required">*</span>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import Modal from "../Modal/Modal";
 
@@ -9,7 +9,6 @@ const Login = ({ onClose }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
   const navigate = useNavigate();
-  const idleTimeout = 5 * 60 * 1000;
 
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
@@ -24,48 +23,6 @@ const Login = ({ onClose }) => {
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
-
-  const location = useLocation();
-
-  useEffect(() => {
-    const handleActivity = () => {
-      if (location.pathname !== "/login") {
-        localStorage.setItem("lastActivity", Date.now());
-      }
-    };
-
-    const checkIdleTime = () => {
-      if (location.pathname === "/login") return;
-
-      const lastActivity = localStorage.getItem("lastActivity");
-      if (
-        lastActivity &&
-        Date.now() - parseInt(lastActivity, 10) > idleTimeout
-      ) {
-        showAlert("You have been logged out due to inactivity.");
-        localStorage.clear();
-        navigate("/login");
-      }
-    };
-
-    if (location.pathname !== "/login") {
-      localStorage.setItem("lastActivity", Date.now());
-      checkIdleTime(); // Run check immediately
-    }
-
-    window.addEventListener("mousemove", handleActivity);
-    window.addEventListener("keydown", handleActivity);
-    window.addEventListener("click", handleActivity);
-
-    const interval = setInterval(checkIdleTime, 60000);
-
-    return () => {
-      window.removeEventListener("mousemove", handleActivity);
-      window.removeEventListener("keydown", handleActivity);
-      window.removeEventListener("click", handleActivity);
-      clearInterval(interval);
-    };
-  }, [navigate, location]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -135,6 +92,7 @@ const Login = ({ onClose }) => {
         "sidebarMenu",
         JSON.stringify(data.message.sidebarMenu)
       );
+      // Set lastActivity only on login
       localStorage.setItem("lastActivity", Date.now());
 
       closeModal();

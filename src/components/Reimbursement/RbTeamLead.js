@@ -474,7 +474,7 @@ const RbTeamLead = () => {
                                       View
                                     </button>
                                   ) : (
-                                    "No Attachments"
+                                    "Not Attached"
                                   )}
                                 </td>
                                 <td>
