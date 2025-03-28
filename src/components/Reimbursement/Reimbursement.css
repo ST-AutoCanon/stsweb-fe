@@ -74,7 +74,7 @@
 .reimbursement-table th,
 .reimbursement-table td {
   border: 2px solid #d9d9d9;
-  padding: 10px;
+  padding: 0.5%;
   text-align: center;
 }
 
@@ -86,22 +86,18 @@
   background-color: #fff;
 }
 
-.reimbursement-table td:nth-child(9) {
-  background-color: #f2f2f2;
-}
-
-.reimbursement-table td.rbcomments-column {
-  max-width: 200px; /* Adjust width as needed */
+.rbcomments-column {
+  max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.reimbursement-table td.rbcomments-column:hover {
+.rbcomments-column:hover {
   white-space: normal;
   overflow-y: auto;
   text-overflow: unset;
-  max-height: 100px;
+  max-height: 500px;
 }
 
 .status {
@@ -124,7 +120,7 @@
 .delete-icon {
   cursor: pointer;
   margin: 0 5px;
-  font-size: 18px;
+  font-size: x-large;
 }
 
 .edit-icon:hover {
@@ -340,7 +336,7 @@
 }
 
 .rb-status-label {
-  padding: 6px 12px;
+  padding: 6px;
   border-radius: 12px;
   display: inline-block;
   text-align: center;
@@ -365,7 +361,7 @@
   justify-content: space-around;
   align-items: center;
   padding: 3%;
-  width: 100px;
+  width: 90px;
   border: none;
   border-radius: 50px;
   background-color: #f2f2f2;
@@ -498,4 +494,8 @@
   color: grey;
   pointer-events: none; /* Prevents clicking */
   opacity: 0.5; /* Makes it look disabled */
+}
+
+.actions-column {
+  min-width: 75px;
 }

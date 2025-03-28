@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { FiPaperclip } from "react-icons/fi";
-import io from "socket.io-client";
 import UserAvatar from "./UserAvatar";
 import "./AdminQuery.css";
 import Modal from "../Modal/Modal";
@@ -9,7 +8,7 @@ import Modal from "../Modal/Modal";
 const AdminQuery = () => {
   const API_KEY = process.env.REACT_APP_API_KEY;
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
-  const employeeId = dashboardData.employee_id || null;
+  const employeeId = dashboardData.employeeId || null;
   const name = dashboardData.name || null;
   const userRole = localStorage.getItem("userRole") || null;
 
@@ -28,7 +27,8 @@ const AdminQuery = () => {
     "x-api-key": API_KEY,
   };
 
-  const fetchQueries = useCallback(async () => {
+  // Fetch threads once on mount
+  const fetchQueries = async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/threads`,
@@ -44,59 +44,19 @@ const AdminQuery = () => {
     } finally {
       setLoading(false);
     }
-  }, [headers]);
+  };
 
-  // Call fetchQueries on mount.
   useEffect(() => {
     fetchQueries();
-  }, [fetchQueries]);
+  }, []); // Empty dependency array ensures this runs once on mount
 
-  // Socket connection setup
-  const socket = useRef(null);
-
-  useEffect(() => {
-    socket.current = io(`${process.env.REACT_APP_BACKEND_URL}`);
-
-    socket.current.on("connect", () => {
-      console.log("Socket connected:", socket.current.id);
-    });
-
-    socket.current.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-    });
-
-    socket.current.on("disconnect", (reason) => {
-      console.warn("Socket disconnected:", reason);
-    });
-    socket.current.on("receiveMessage", (message) => {
-      console.log("Socket received message ID:", message.id);
-      console.log("received Message", message);
-      setMessages((prevMessages) => {
-        // Only add the message if it doesn't already exist
-        if (prevMessages.some((msg) => msg.id === message.id)) {
-          return prevMessages;
-        }
-        return [...prevMessages, message];
-      });
-      fetchQueries();
-    });
-
-    return () => {
-      if (socket.current) {
-        socket.current.off("receiveMessage");
-        socket.current.disconnect();
-      }
-    };
-  }, []);
-
-  // Alert modal state (no title by default)
+  // Alert modal state
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -119,14 +79,13 @@ const AdminQuery = () => {
         { headers }
       );
       setMessages(response.data.data);
-      console.log("Fetched Messages:", response.data.data); // Debugging step
     } catch (error) {
       console.error("Error fetching messages:", error);
       showAlert("Failed to fetch thread messages. Please try again.");
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.trim() && !attachmentBase64) {
       showAlert("Message or attachment is required.");
       return;
@@ -137,32 +96,40 @@ const AdminQuery = () => {
       sender_id: employeeId,
       sender_role: userRole,
       sender_name: name,
-      // For admin queries, you assume that the admin receives from the employee,
-      // so you use selectedQuery.sender_id. (Adjust if needed.)
       recipient_id: selectedQuery.sender_id,
       message: newMessage,
       attachmentBase64: attachmentBase64 || null,
     };
 
-    socket.current.emit("sendMessage", payload);
-
-    setNewMessage("");
-    setAttachmentBase64(null);
-    setAttachmentName("");
-
-    const fileInputEl = document.getElementById("fileInput");
-    if (fileInputEl) {
-      fileInputEl.value = "";
+    try {
+      // Send message via HTTP POST
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
+        payload,
+        { headers }
+      );
+      // Clear inputs
+      setNewMessage("");
+      setAttachmentBase64(null);
+      setAttachmentName("");
+      const fileInputEl = document.getElementById("fileInput");
+      if (fileInputEl) {
+        fileInputEl.value = "";
+      }
+      // Refresh only the messages for the selected thread
+      await fetchMessages(selectedQuery.id);
+    } catch (err) {
+      console.error("Error sending message:", err);
+      showAlert("Failed to send message. Please try again.");
     }
   };
 
   const handleAttachmentChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setAttachmentName(file.name); // Save file name if needed.
+      setAttachmentName(file.name);
       const reader = new FileReader();
       reader.onload = (e) => {
-        // e.target.result will be a base64 data URL, e.g. "data:image/png;base64,..."
         setAttachmentBase64(e.target.result);
       };
       reader.readAsDataURL(file);
@@ -176,19 +143,12 @@ const AdminQuery = () => {
         { sender_id: employeeId },
         { headers }
       );
-
-      setQueries((prevQueries) =>
-        prevQueries.map((query) =>
-          query.id === threadId ? { ...query, unread_message_count: 0 } : query
-        )
-      );
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
   };
 
   const handleSelectQuery = async (query) => {
-    console.log("Selected query:", query);
     setSelectedQuery(query);
     setMessages([]);
 
@@ -198,7 +158,6 @@ const AdminQuery = () => {
         { headers }
       );
       const fetchedMessages = response.data.data || [];
-
       setMessages(fetchedMessages);
 
       // Mark messages as read
@@ -211,13 +170,6 @@ const AdminQuery = () => {
             "x-api-key": API_KEY,
           },
         }
-      );
-
-      // Update queries state to mark the current query's unread count as 0
-      setQueries((prevQueries) =>
-        prevQueries.map((q) =>
-          q.id === query.id ? { ...q, unread_message_count: 0 } : q
-        )
       );
     } catch (error) {
       console.error("Error fetching messages or marking as read:", error);
@@ -233,22 +185,20 @@ const AdminQuery = () => {
 
   const downloadAttachment = async (url) => {
     try {
-      const filename = url.split("/").pop(); // Extract filename from URL
-
+      const filename = url.split("/").pop();
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/attachments/${filename}`,
         {
           headers: {
             "x-api-key": API_KEY,
           },
-          responseType: "blob", // Ensures file download
+          responseType: "blob",
         }
       );
-
       const blob = new Blob([response.data]);
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
-      link.setAttribute("download", filename); // Use extracted filename
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -296,7 +246,6 @@ const AdminQuery = () => {
                   }`}
                   onClick={() => handleSelectQuery(query)}
                 >
-                  {/* Use UserAvatar here */}
                   <UserAvatar
                     photoUrl={query.photo_url}
                     role={query.role}
@@ -359,7 +308,6 @@ const AdminQuery = () => {
               </div>
 
               <div className="chat-messages" ref={chatContainerRef}>
-                {/* Show Feedback and Note for Closed Queries */}
                 {selectedQuery.status === "closed" &&
                   selectedQuery.feedback && (
                     <div className="message-container feedback-message">
@@ -387,8 +335,6 @@ const AdminQuery = () => {
                     </div>
                     <div className="message">
                       <p className="message-text">{message.message}</p>
-
-                      {/* Show attachment if available */}
                       {message.attachment_url && (
                         <button
                           className="emp-attachment"
@@ -411,7 +357,6 @@ const AdminQuery = () => {
               </div>
 
               <div className="chat-input">
-                {/* Input field container */}
                 <div className="input-container">
                   <div className="input-wrapper">
                     <input
@@ -433,7 +378,7 @@ const AdminQuery = () => {
                   </div>
                   <input
                     type="file"
-                    onChange={handleAttachmentChange} // Use the new function
+                    onChange={handleAttachmentChange}
                     disabled={selectedQuery.status === "closed"}
                     style={{ display: "none" }}
                     id="fileInput"
@@ -453,7 +398,6 @@ const AdminQuery = () => {
           )}
         </div>
       </div>
-      {/* Alert Modal for displaying messages */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

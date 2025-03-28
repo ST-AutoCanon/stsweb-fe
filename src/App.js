@@ -24,9 +24,7 @@ import Tooling from "./components/Tooling/Tooling";
 import MainAbout from "./components/MainAbout/MainAbout";
 import CardLayout from "./components/CardLayout/CardLayout";
 //import CircularDesign from './components/CircularDesign/CircularDesign';
-import OtherServiceFirst from './components/OtherServiceFirst/OtherServiceFirst';
-
-
+import OtherServiceFirst from "./components/OtherServiceFirst/OtherServiceFirst";
 
 import "./App.css";
 import MajorProjects from "./components/MajorProjects/MajorProjects";
@@ -54,25 +52,25 @@ import "./App.css";
 import Broucherfirst from "./components/Broucherfirst/Broucherfirst";
 import Feedbackform from "./components/Feedbackform/Feedbackform";
 
-import Dashboad from "./components/Dashboard/Dashboard.js";
+import ProtectedLayout from "./components/Login/ProtecttedLayout";
+import Dashboard from "./components/Dashboard/Dashboard.js";
 import Sidebar from "./components/Dashboard/Sidebar.js";
 import Topbar from "./components/Dashboard/Topbar.js";
+import Profile from "./components/Profile/Profile.js";
 
 import LoginChart from "./components/MyDashboard/LoginChart.js";
 
 import MyEmpDashboard from "./components/MyEmpDashboard/MyEmpDashboard.js";
-import EmpDashcards from "./components/MyEmpDashboard/EmpDashCards.js"
+import EmpDashcards from "./components/MyEmpDashboard/EmpDashCards.js";
 import EmpSessions from "./components/MyEmpDashboard/EmpSessions.js";
 import EmpWorkDays from "./components/MyEmpDashboard/EmpWorkDays.js";
 import EmpReImbursement from "./components/MyEmpDashboard/EmpReImbursement.js";
 
 import SalaryStatement from "./components/Salary_statement/Salary_Statement.js";
 
-
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
   return (
-    
     <Router>
       <div className="App">
         {/* Navbar */}
@@ -82,7 +80,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/About" element={<About />} />
-          <Route path="/ScrollTop" element={<ScrollToTop/>}/>
+          <Route path="/ScrollTop" element={<ScrollToTop />} />
           <Route path="/Services" element={<Services />} />
           <Route path="/Homologation" element={<Homologation />} />
           <Route path="/ReachUs" element={<ReachUs />} />
@@ -91,47 +89,63 @@ function App() {
           <Route path="/ResetPassword" element={<ResetPassword />} />
           <Route path="/MainAbout" element={<MainAbout />} />
           <Route path="/OtherServices" element={<OtherServices />} />
-          <Route path="/ITNetworkFirst" element={<ITNetworkFirst/>}/>
+          <Route path="/ITNetworkFirst" element={<ITNetworkFirst />} />
           <Route path="/ValueEngineering" element={<ValueEngineering />} />
-          <Route path="/EngineeringServiceFirst" element={<EngineeringServiceFirst/>}/>
-          <Route path="/OtherServiceFirst" element={<OtherServiceFirst/>} />
-          <Route path="/ChatbotApplication" element={<ChatbotApplication/>} />
-          <Route path="/ITConsulting" element={<ITConsulting/>} />
-          <Route path="/ThreeDModeling" element={<ThreeDModeling/>} />
-          <Route path="/SoftwareDevelopment" element={<SoftwareDevelopment/>} />
-          <Route path="/TestingAndQA" element={<TestingAndQA/>} />
-          <Route path="/WebsiteDesign" element={<WebsiteDesign/>} />
-          <Route path="/CircularDesignEngg" element={<CircularDesignEngg/>} />
-          <Route path="/CAEAnalysis" element={<CAEAnalysis/>} />
-          <Route path="/Drafting" element={<Drafting/>} />
-          <Route path="/StaffingAndTraining" element={<StaffingAndTrainingServices/>} />
-          <Route path="/StylingProductDesign" element={<StylingProductDesign/>} />
-          <Route path="/PlantLayoutAndPlanningServices" element={<PlantLayoutPlanningServices/>} />
-          <Route path="/CircularDesignNew" element={<CircularDesignNew/>} />
-          <Route path="/Brouchure" element={<Broucher/>} />
-          <Route path="/Broucherfirst" element={<Broucherfirst/>} />
-          <Route path="/Gallery" element={<Gallery/>} />
-          <Route path="/ReachUs" element={<ReachUs/>} />
-          <Route path="/Reachusfirst" element={<Reachusfirst/>} />
-          <Route path="/HomologationFirst" element={<HomologationFirst/>} />
-          <Route path="/Feedbackform" element={<Feedbackform/>} />
-          <Route path="/KnowMoreFirstPage" element={<KnowMoreFirstPage/>}/>
-          <Route path="/Broucher" element={<Broucher/>}/>
-          <Route path="/Dashboard" element={<Dashboad/>}/>
-          <Route path="/Sidebar" element={<Sidebar/>}/>
-          <Route path="/Topbar" element={<Topbar/>}/>
+          <Route
+            path="/EngineeringServiceFirst"
+            element={<EngineeringServiceFirst />}
+          />
+          <Route path="/OtherServiceFirst" element={<OtherServiceFirst />} />
+          <Route path="/ChatbotApplication" element={<ChatbotApplication />} />
+          <Route path="/ITConsulting" element={<ITConsulting />} />
+          <Route path="/ThreeDModeling" element={<ThreeDModeling />} />
+          <Route
+            path="/SoftwareDevelopment"
+            element={<SoftwareDevelopment />}
+          />
+          <Route path="/TestingAndQA" element={<TestingAndQA />} />
+          <Route path="/WebsiteDesign" element={<WebsiteDesign />} />
+          <Route path="/CircularDesignEngg" element={<CircularDesignEngg />} />
+          <Route path="/CAEAnalysis" element={<CAEAnalysis />} />
+          <Route path="/Drafting" element={<Drafting />} />
+          <Route
+            path="/StaffingAndTraining"
+            element={<StaffingAndTrainingServices />}
+          />
+          <Route
+            path="/StylingProductDesign"
+            element={<StylingProductDesign />}
+          />
+          <Route
+            path="/PlantLayoutAndPlanningServices"
+            element={<PlantLayoutPlanningServices />}
+          />
+          <Route path="/CircularDesignNew" element={<CircularDesignNew />} />
+          <Route path="/Brouchure" element={<Broucher />} />
+          <Route path="/Broucherfirst" element={<Broucherfirst />} />
+          <Route path="/Gallery" element={<Gallery />} />
+          <Route path="/ReachUs" element={<ReachUs />} />
+          <Route path="/Reachusfirst" element={<Reachusfirst />} />
+          <Route path="/HomologationFirst" element={<HomologationFirst />} />
+          <Route path="/Feedbackform" element={<Feedbackform />} />
+          <Route path="/KnowMoreFirstPage" element={<KnowMoreFirstPage />} />
+          <Route path="/Broucher" element={<Broucher />} />
 
-          <Route path="/LoginChart" element={<LoginChart/>}/>
-          <Route path="/MyEmpDashboard" element={<MyEmpDashboard/>}/>
-          <Route path="/EmpDashCards" element={<EmpDashcards/>}/>
-          
-          <Route path="/EmpSessions" element={<EmpSessions/>}/>
-          <Route path="/EmpWorkDays" element={<EmpWorkDays/>}/>
-          <Route path="/EmpReImbursement" element={<EmpReImbursement/>}/>
-          <Route path="/Salary_Statement" element={<SalaryStatement/>}/>
+          <Route element={<ProtectedLayout />}>
+            <Route path="/Dashboard" element={<Dashboard />} />
+            <Route path="/Sidebar" element={<Sidebar />} />
+            <Route path="/Topbar" element={<Topbar />} />
+            <Route path="/Profile" element={<Profile />} />
+          </Route>
 
+          <Route path="/LoginChart" element={<LoginChart />} />
+          <Route path="/MyEmpDashboard" element={<MyEmpDashboard />} />
+          <Route path="/EmpDashCards" element={<EmpDashcards />} />
 
-
+          <Route path="/EmpSessions" element={<EmpSessions />} />
+          <Route path="/EmpWorkDays" element={<EmpWorkDays />} />
+          <Route path="/EmpReImbursement" element={<EmpReImbursement />} />
+          <Route path="/Salary_Statement" element={<SalaryStatement />} />
 
           <Route
             path="/EngineeringServices"
@@ -148,7 +162,6 @@ function App() {
         {/* Footer */}
         {/* <HomologationFirst /> */}
         <Footer />
-        
       </div>
     </Router>
   );

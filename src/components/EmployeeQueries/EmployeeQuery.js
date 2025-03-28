@@ -4,7 +4,6 @@ import { BiEdit } from "react-icons/bi";
 import { MdOutlineCancel } from "react-icons/md";
 import { FiPaperclip } from "react-icons/fi";
 import { TbMessageOff } from "react-icons/tb";
-import io from "socket.io-client";
 import UserAvatar from "./UserAvatar";
 import "./EmployeeQuery.css";
 import Modal from "../Modal/Modal";
@@ -35,7 +34,6 @@ const EmployeeQuery = () => {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [threadToClose, setThreadToClose] = useState(null);
-  const [threads, setThreads] = useState([]);
 
   const headers = {
     "x-api-key": API_KEY,
@@ -48,51 +46,13 @@ const EmployeeQuery = () => {
     { value: "very satisfied", stars: 4 },
   ];
 
-  // Socket connection setup
-  const socket = useRef(null);
-
-  useEffect(() => {
-    socket.current = io(`${process.env.REACT_APP_BACKEND_URL}`);
-
-    socket.current.on("connect", () => {
-      console.log("Socket connected:", socket.current.id);
-    });
-
-    socket.current.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-    });
-
-    socket.current.on("disconnect", (reason) => {
-      console.warn("Socket disconnected:", reason);
-    });
-
-    socket.current.on("receiveMessage", (message) => {
-      console.log("Received message via socket:", message);
-      setMessages((prevMessages) => {
-        if (prevMessages.some((msg) => msg.id === message.id)) {
-          return prevMessages;
-        }
-        return [...prevMessages, message];
-      });
-      fetchEmpQueries();
-    });
-
-    return () => {
-      if (socket.current) {
-        socket.current.off("receiveMessage");
-        socket.current.disconnect();
-      }
-    };
-  }, []);
-
-  // Alert modal state (no title by default)
+  // Alert modal state
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -101,6 +61,7 @@ const EmployeeQuery = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
+  // Fetch employee queries once on mount
   const fetchEmpQueries = async () => {
     try {
       const response = await axios.get(
@@ -121,6 +82,19 @@ const EmployeeQuery = () => {
     if (!employeeId) return;
     fetchEmpQueries();
   }, [employeeId]);
+
+  const fetchMessages = async (threadId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/threads/${threadId}/messages`,
+        { headers }
+      );
+      setMessages(response.data.data);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      showAlert("Failed to fetch thread messages. Please try again.");
+    }
+  };
 
   const startThread = async () => {
     if (!recipientRole || !subject || !query) {
@@ -145,7 +119,7 @@ const EmployeeQuery = () => {
       setThreadId(response.data.threadId);
       showAlert("Thread started successfully!");
       setShowModal(false);
-
+      // Re-fetch threads so the new thread appears in the list
       await fetchEmpQueries();
     } catch (error) {
       console.error("Error starting thread:", error);
@@ -167,16 +141,16 @@ const EmployeeQuery = () => {
       // Mark messages as read
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages/read`,
-        { sender_id: employeeId }, // sending sender_id as JSON
+        { sender_id: employeeId },
         {
           headers: {
-            "Content-Type": "application/json", // setting the correct content type for JSON
+            "Content-Type": "application/json",
             "x-api-key": API_KEY,
           },
         }
       );
 
-      // Update the queries state and set unread_message_count to 0
+      // Update local queries state to set unread_message_count to 0
       setQueries((prevQueries) =>
         prevQueries.map((q) =>
           q.id === query.id ? { ...q, unread_message_count: 0 } : q
@@ -198,7 +172,8 @@ const EmployeeQuery = () => {
     }
   }, [messages]);
 
-  const handleSendMessage = () => {
+  // New send message function using axios instead of websockets
+  const handleSendMessage = async () => {
     if (!selectedQuery) return;
 
     if (!inputMessage.trim() && !attachmentBase64) {
@@ -206,39 +181,45 @@ const EmployeeQuery = () => {
       return;
     }
     const recipientId = selectedQuery.recipient_id;
-    console.log("Computed recipientId:", recipientId);
     const payload = {
       thread_id: selectedQuery.id,
       sender_id: employeeId,
       sender_role: userRole,
       recipient_id: recipientId,
       sender_name: name,
-      message: inputMessage, // can be empty if attachment is provided
+      message: inputMessage,
       attachmentBase64: attachmentBase64 || null,
     };
 
-    // Emit the payload to the server.
-    socket.current.emit("sendMessage", payload);
-
-    // Clear the input and attachment state.
-    setInputMessage("");
-    setAttachmentBase64(null);
-    setAttachmentName("");
-
-    // If you also want to reset the file input element itself:
-    const fileInputEl = document.getElementById("fileInput");
-    if (fileInputEl) {
-      fileInputEl.value = "";
+    try {
+      // Send message via HTTP POST
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
+        payload,
+        { headers }
+      );
+      // Clear input and attachment state
+      setInputMessage("");
+      setAttachmentBase64(null);
+      setAttachmentName("");
+      const fileInputEl = document.getElementById("fileInput");
+      if (fileInputEl) {
+        fileInputEl.value = "";
+      }
+      // Re-fetch messages for the selected thread
+      await fetchMessages(selectedQuery.id);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      showAlert("Failed to send message. Please try again.");
     }
   };
 
   const handleAttachmentChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setAttachmentName(file.name); // Save file name if needed.
+      setAttachmentName(file.name);
       const reader = new FileReader();
       reader.onload = (e) => {
-        // e.target.result will be something like "data:image/png;base64,..."
         setAttachmentBase64(e.target.result);
       };
       reader.readAsDataURL(file);
@@ -246,8 +227,8 @@ const EmployeeQuery = () => {
   };
 
   const openFeedbackModal = (threadId) => {
-    setThreadToClose(threadId); // Correctly set threadToClose here
-    setShowFeedbackModal(true); // Open the feedback modal
+    setThreadToClose(threadId);
+    setShowFeedbackModal(true);
   };
 
   const closeThread = async () => {
@@ -269,15 +250,13 @@ const EmployeeQuery = () => {
       showAlert("Thread closed successfully.");
       closeFeedbackModal();
 
-      // Show the thank-you modal
-      setShowThankYouModal(true);
-
-      // Refresh threads after closing
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/threads/employee/${employeeId}`,
-        { headers }
+      // Update local queries state to mark the thread as closed
+      setQueries((prevQueries) =>
+        prevQueries.map((q) =>
+          q.id === threadToClose ? { ...q, status: "closed" } : q
+        )
       );
-      setThreads(response.data.threads);
+      setShowThankYouModal(true);
     } catch (error) {
       console.error("Error closing thread:", error);
       showAlert("Failed to close thread. Please try again.");
@@ -292,22 +271,20 @@ const EmployeeQuery = () => {
 
   const downloadAttachment = async (url) => {
     try {
-      const filename = url.split("/").pop(); // Extract filename from URL
-
+      const filename = url.split("/").pop();
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/attachments/${filename}`,
         {
           headers: {
             "x-api-key": API_KEY,
           },
-          responseType: "blob", // Ensures file download
+          responseType: "blob",
         }
       );
-
       const blob = new Blob([response.data]);
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
-      link.setAttribute("download", filename); // Use extracted filename
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -362,7 +339,6 @@ const EmployeeQuery = () => {
                     }`}
                     onClick={() => handleSelectQuery(query)}
                   >
-                    {/* Use UserAvatar here */}
                     <UserAvatar
                       photoUrl={query.photo_url}
                       role={query.role}
@@ -384,7 +360,10 @@ const EmployeeQuery = () => {
                           {query.updated_at
                             ? new Date(query.updated_at).toLocaleTimeString(
                                 [],
-                                { hour: "2-digit", minute: "2-digit" }
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
                               )
                             : "N/A"}
                         </p>
@@ -496,7 +475,6 @@ const EmployeeQuery = () => {
                   </span>
                 </p>
 
-                {/* Star Rating */}
                 <div className="stars-container">
                   {feedbackOptions.map((option, index) => (
                     <span
@@ -514,7 +492,6 @@ const EmployeeQuery = () => {
                   ))}
                 </div>
 
-                {/* Feedback Textarea */}
                 <div>
                   <label className="employee-query-label">Feedback</label>
                   <textarea
@@ -527,7 +504,6 @@ const EmployeeQuery = () => {
                 </div>
               </div>
 
-              {/* Buttons */}
               <button
                 className="empform-cancel-button"
                 onClick={closeFeedbackModal}
@@ -560,7 +536,7 @@ const EmployeeQuery = () => {
                   onClick={() => setShowThankYouModal(false)}
                 >
                   Close
-                </button>{" "}
+                </button>
               </div>
             </div>
           </div>
@@ -610,15 +586,11 @@ const EmployeeQuery = () => {
                   >
                     <div className="emp-message-header">
                       <p className="emp-message-sender">
-                        {message.sender_id === employeeId
-                          ? message.sender_name
-                          : message.sender_name}
+                        {message.sender_name}
                       </p>
                     </div>
                     <div className="emp-message">
                       <p className="message-text">{message.message}</p>
-
-                      {/* Show attachment if available */}
                       {message.attachment_url && (
                         <button
                           className="emp-attachment"
@@ -640,7 +612,6 @@ const EmployeeQuery = () => {
                 ))}
               </div>
               <div className="emp-chat-input">
-                {/* Input field container */}
                 <div className="input-container">
                   <div className="input-wrapper">
                     <input
@@ -662,7 +633,7 @@ const EmployeeQuery = () => {
                   </div>
                   <input
                     type="file"
-                    onChange={handleAttachmentChange} // Use the new function that converts to base64.
+                    onChange={handleAttachmentChange}
                     disabled={selectedQuery.status === "closed"}
                     style={{ display: "none" }}
                     id="fileInput"
@@ -684,7 +655,6 @@ const EmployeeQuery = () => {
           )}
         </div>
       </div>
-      {/* Alert Modal for displaying messages */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

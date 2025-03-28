@@ -18,7 +18,6 @@ import Reimbursement from "../Reimbursement/Reimbursement";
 import RbAdmin from "../Reimbursement/RbAdmin";
 import RbTeamLead from "../Reimbursement/RbTeamLead";
 
-
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [activeItem, setActiveItem] = useState(""); // Track active menu item
@@ -41,12 +40,13 @@ const Sidebar = ({ setActiveContent }) => {
 
     // Set default active content (Dashboard) on first load
     if (setActiveContent) {
-      } if (userRole === "Admin") {
-        setActiveContent(<MyDashboard />);
-        setActiveItem("/dashboard");
-      } else {
-        setActiveContent(<MyEmpDashboard />);
-      }
+    }
+    if (userRole === "Admin") {
+      setActiveContent(<MyDashboard />);
+      setActiveItem("/dashboard");
+    } else {
+      setActiveContent(<MyEmpDashboard />);
+    }
   }, [setActiveContent, userRole]);
 
   const handleMenuClick = (item) => {
@@ -54,7 +54,9 @@ const Sidebar = ({ setActiveContent }) => {
 
     switch (item.path) {
       case "/dashboard":
-        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />);
+        setActiveContent(
+          userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />
+        );
         break;
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);
@@ -62,38 +64,38 @@ const Sidebar = ({ setActiveContent }) => {
       case "/addDepartment":
         setActiveContent(<AddDepartment />);
         break;
-        case "/updateProjects":
+      case "/updateProjects":
         setActiveContent(<UpdateProject />);
         break;
       case "/leaveQueries":
-         if (userRole === "Admin") {
+        if (userRole === "Admin") {
           setActiveContent(<LeaveQueries />);
         } else {
           setActiveContent(<LeaveRequest />);
         }
         break;
 
-        
-        
-        case "/Salary_Statement":
+      case "/Salary_Statement":
         setActiveContent(<Salary_Statement />);
         break;
-        case "/payrollSummary":
+      case "/payrollSummary":
         setActiveContent(<PayrollSummary />);
         break;
-      
-        case "/reimbursement":
-          if (userRole === "Admin") {
-              setActiveContent(<RbAdmin />);
-          } else if (userRole === "Team Lead") {
-              setActiveContent(<RbTeamLead />);
-          } else {
-              setActiveContent(<Reimbursement />);
-          }
-          break;
+
+      case "/reimbursement":
+        if (userRole === "Admin") {
+          setActiveContent(<RbAdmin />);
+        } else if (userRole === "Manager") {
+          setActiveContent(<RbTeamLead />);
+        } else {
+          setActiveContent(<Reimbursement />);
+        }
+        break;
 
       case "/employeeQueries":
-        setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
+        setActiveContent(
+          userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />
+        );
         break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
@@ -117,14 +119,17 @@ const Sidebar = ({ setActiveContent }) => {
       <ul>
         {menuItems.length > 0 ? (
           menuItems.map((item, index) => {
-            const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
+            const IconComponent =
+              MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
             return (
               <li
                 key={index}
                 className={activeItem === item.path ? "active" : ""}
                 onClick={() => handleMenuClick(item)}
               >
-                <span className="icon"><IconComponent /></span>
+                <span className="icon">
+                  <IconComponent />
+                </span>
                 <span className="menu-text">{item.label}</span>
               </li>
             );
