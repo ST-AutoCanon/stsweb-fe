@@ -46,7 +46,6 @@ const EmployeeQuery = () => {
     { value: "very satisfied", stars: 4 },
   ];
 
-  // Alert modal state
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
@@ -61,7 +60,6 @@ const EmployeeQuery = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  // Fetch employee queries once on mount
   const fetchEmpQueries = async () => {
     try {
       const response = await axios.get(
@@ -119,7 +117,6 @@ const EmployeeQuery = () => {
       setThreadId(response.data.threadId);
       showAlert("Thread started successfully!");
       setShowModal(false);
-      // Re-fetch threads so the new thread appears in the list
       await fetchEmpQueries();
     } catch (error) {
       console.error("Error starting thread:", error);
@@ -131,14 +128,12 @@ const EmployeeQuery = () => {
     setSelectedQuery(query);
 
     try {
-      // Fetch messages for the selected query
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages`,
         { headers }
       );
       setMessages(response.data.data);
 
-      // Mark messages as read
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages/read`,
         { sender_id: employeeId },
@@ -150,7 +145,6 @@ const EmployeeQuery = () => {
         }
       );
 
-      // Update local queries state to set unread_message_count to 0
       setQueries((prevQueries) =>
         prevQueries.map((q) =>
           q.id === query.id ? { ...q, unread_message_count: 0 } : q
@@ -172,7 +166,6 @@ const EmployeeQuery = () => {
     }
   }, [messages]);
 
-  // New send message function using axios instead of websockets
   const handleSendMessage = async () => {
     if (!selectedQuery) return;
 
@@ -192,13 +185,12 @@ const EmployeeQuery = () => {
     };
 
     try {
-      // Send message via HTTP POST
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
         payload,
         { headers }
       );
-      // Clear input and attachment state
+
       setInputMessage("");
       setAttachmentBase64(null);
       setAttachmentName("");
@@ -206,7 +198,7 @@ const EmployeeQuery = () => {
       if (fileInputEl) {
         fileInputEl.value = "";
       }
-      // Re-fetch messages for the selected thread
+
       await fetchMessages(selectedQuery.id);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -250,7 +242,6 @@ const EmployeeQuery = () => {
       showAlert("Thread closed successfully.");
       closeFeedbackModal();
 
-      // Update local queries state to mark the thread as closed
       setQueries((prevQueries) =>
         prevQueries.map((q) =>
           q.id === threadToClose ? { ...q, status: "closed" } : q

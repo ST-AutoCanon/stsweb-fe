@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
-import Modal from "../Modal/Modal";
 
 const idleTimeout = 5 * 60 * 1000;
 
@@ -8,27 +7,20 @@ const ProtectedLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const chatContainerRef = useRef(null);
-  const [idleModalVisible, setIdleModalVisible] = useState(false);
 
+  // Update user activity timestamp
   const updateActivity = () => {
     localStorage.setItem("lastActivity", Date.now());
   };
 
+  // Check if the user is idle and log them out if necessary
   const checkIdleTime = () => {
     const lastActivity = localStorage.getItem("lastActivity");
-    if (
-      lastActivity &&
-      Date.now() - parseInt(lastActivity, 10) > idleTimeout &&
-      !idleModalVisible
-    ) {
-      setIdleModalVisible(true);
+    if (lastActivity && Date.now() - parseInt(lastActivity, 10) > idleTimeout) {
+      localStorage.clear();
+      sessionStorage.setItem("loggedOutDueToInactivity", "true");
+      navigate("/");
     }
-  };
-
-  const handleIdleModalClose = () => {
-    setIdleModalVisible(false);
-    localStorage.clear();
-    navigate("/");
   };
 
   useEffect(() => {
@@ -46,7 +38,7 @@ const ProtectedLayout = () => {
       window.removeEventListener("click", updateActivity);
       clearInterval(interval);
     };
-  }, [navigate, idleModalVisible]);
+  }, [navigate]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -55,20 +47,7 @@ const ProtectedLayout = () => {
     }
   });
 
-  return (
-    <>
-      {idleModalVisible && (
-        <Modal
-          isVisible={idleModalVisible}
-          onClose={handleIdleModalClose}
-          buttons={[{ label: "OK", onClick: handleIdleModalClose }]}
-        >
-          <p>You have been logged out due to inactivity.</p>
-        </Modal>
-      )}
-      <Outlet />
-    </>
-  );
+  return <Outlet />;
 };
 
 export default ProtectedLayout;

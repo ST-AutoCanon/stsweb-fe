@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import Modal from "../Modal/Modal";
@@ -8,6 +8,7 @@ const Login = ({ onClose }) => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
+  const [idleModalVisible, setIdleModalVisible] = useState(false);
   const navigate = useNavigate();
 
   const [alertModal, setAlertModal] = useState({
@@ -15,6 +16,18 @@ const Login = ({ onClose }) => {
     title: "",
     message: "",
   });
+
+  // Check if user was logged out due to inactivity
+  useEffect(() => {
+    if (sessionStorage.getItem("loggedOutDueToInactivity")) {
+      setIdleModalVisible(true);
+      sessionStorage.removeItem("loggedOutDueToInactivity");
+    }
+  }, []);
+
+  const handleIdleModalClose = () => {
+    setIdleModalVisible(false);
+  };
 
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
@@ -158,6 +171,15 @@ const Login = ({ onClose }) => {
             </div>
           </div>
         </div>
+        {idleModalVisible && (
+          <Modal
+            isVisible={idleModalVisible}
+            onClose={handleIdleModalClose}
+            buttons={[{ label: "OK", onClick: handleIdleModalClose }]}
+          >
+            <p>You have been logged out due to inactivity.</p>
+          </Modal>
+        )}
         {/* Alert Modal for displaying messages */}
         <Modal
           isVisible={alertModal.isVisible}
