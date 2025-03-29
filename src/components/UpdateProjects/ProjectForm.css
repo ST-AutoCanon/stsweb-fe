@@ -487,10 +487,15 @@ select option[value="Completed"] {
   align-items: center;
 }
 
+.project-finance-main {
+  width: 100%;
+}
+
 .project-finance {
   display: flex;
   justify-content: flex-start;
   width: 100%;
+  padding: 0 6%;
 }
 
 .project-finance-group {
@@ -606,7 +611,7 @@ select option[value="Completed"] {
   padding: 2%;
   border: 1px solid #ccc;
   border-radius: 5px;
-  width: 80%;
+  width: 150px;
 }
 
 .step-four-group input {

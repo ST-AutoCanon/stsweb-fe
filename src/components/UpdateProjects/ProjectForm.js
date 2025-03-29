@@ -1373,77 +1373,79 @@ const MultiStepForm = ({ onClose, projectData }) => {
 
         {allowedSteps.includes(4) && step === 4 && (
           <div className="pj-step-four">
-            <div className="project-finance">
-              <div className="project-finance-group">
-                <label>Project Amount</label>
-                <input
-                  type="number"
-                  name="project_amount"
-                  value={formData?.project_amount || ""}
-                  onChange={handleChange}
-                  readOnly={!editable[4]}
-                />
-              </div>
-              <div className="project-finance-group">
-                <label>TDS</label>
-                <div className="step-four-group">
-                  <div className="small-input">
-                    <input
-                      type="number"
-                      name="tds_percentage"
-                      value={formData?.tds_percentage || ""}
-                      onChange={handleChange}
-                      readOnly={!editable[4]}
-                    />
-                  </div>
-                  <span>%</span>
+            <div className="project-finance-main">
+              <div className="project-finance">
+                <div className="project-finance-group">
+                  <label>Project Amount</label>
                   <input
                     type="number"
-                    name="tds_amount"
-                    value={formData?.tds_amount || ""}
+                    name="project_amount"
+                    value={formData?.project_amount || ""}
+                    onChange={handleChange}
+                    readOnly={!editable[4]}
+                  />
+                </div>
+                <div className="project-finance-group">
+                  <label>TDS</label>
+                  <div className="step-four-group">
+                    <div className="small-input">
+                      <input
+                        type="number"
+                        name="tds_percentage"
+                        value={formData?.tds_percentage || ""}
+                        onChange={handleChange}
+                        readOnly={!editable[4]}
+                      />
+                    </div>
+                    <span>%</span>
+                    <input
+                      type="number"
+                      name="tds_amount"
+                      value={formData?.tds_amount || ""}
+                      onChange={handleChange}
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="project-finance-group">
+                  <label>GST</label>
+                  <div className="step-four-group">
+                    <div className="small-input">
+                      <input
+                        type="number"
+                        name="gst_percentage"
+                        value={formData?.gst_percentage || ""}
+                        onChange={handleChange}
+                        readOnly={!editable[4]}
+                      />
+                    </div>
+                    <span>%</span>
+                    <input
+                      type="number"
+                      name="gst_amount"
+                      value={formData?.gst_amount || ""}
+                      onChange={handleChange}
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="project-finance-group">
+                  <label>Total Amount</label>
+                  <input
+                    type="number"
+                    name="total_amount"
+                    value={formData?.total_amount || ""}
                     onChange={handleChange}
                     readOnly
                   />
                 </div>
-              </div>
-              <div className="project-finance-group">
-                <label>GST</label>
-                <div className="step-four-group">
-                  <div className="small-input">
-                    <input
-                      type="number"
-                      name="gst_percentage"
-                      value={formData?.gst_percentage || ""}
-                      onChange={handleChange}
-                      readOnly={!editable[4]}
-                    />
-                  </div>
-                  <span>%</span>
-                  <input
-                    type="number"
-                    name="gst_amount"
-                    value={formData?.gst_amount || ""}
-                    onChange={handleChange}
-                    readOnly
+                <div className="project-finance-group">
+                  <label>Project Docs</label>
+                  <FiDownload
+                    className="pj-download"
+                    onClick={() => downloadAllAttachments(projectData.id)}
                   />
                 </div>
-              </div>
-              <div className="project-finance-group">
-                <label>Total Amount</label>
-                <input
-                  type="number"
-                  name="total_amount"
-                  value={formData?.total_amount || ""}
-                  onChange={handleChange}
-                  readOnly
-                />
-              </div>
-              <div className="project-finance-group">
-                <label>Project Documents</label>
-                <FiDownload
-                  className="pj-download"
-                  onClick={() => downloadAllAttachments(projectData.id)}
-                />
               </div>
             </div>
             <div className="main-finance">

@@ -27,7 +27,6 @@ const AdminQuery = () => {
     "x-api-key": API_KEY,
   };
 
-  // Fetch threads once on mount
   const fetchQueries = async () => {
     try {
       const response = await axios.get(
@@ -48,9 +47,8 @@ const AdminQuery = () => {
 
   useEffect(() => {
     fetchQueries();
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
-  // Alert modal state
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
@@ -102,13 +100,11 @@ const AdminQuery = () => {
     };
 
     try {
-      // Send message via HTTP POST
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
         payload,
         { headers }
       );
-      // Clear inputs
       setNewMessage("");
       setAttachmentBase64(null);
       setAttachmentName("");
@@ -116,7 +112,6 @@ const AdminQuery = () => {
       if (fileInputEl) {
         fileInputEl.value = "";
       }
-      // Refresh only the messages for the selected thread
       await fetchMessages(selectedQuery.id);
     } catch (err) {
       console.error("Error sending message:", err);
