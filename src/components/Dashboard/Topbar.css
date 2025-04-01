@@ -1,5 +1,5 @@
 /* Topbar container */
-.topbar {
+.topbar1 {
   display: flex;
   justify-content: space-between; /* Space between profile and icons */
   align-items: center; /* Vertically align items */
@@ -17,6 +17,7 @@
   margin-left: -20%;
 
   /* margin-top: 6%; */
+
 }
 
 /* Profile section styling */
@@ -24,7 +25,7 @@
   display: flex;
   align-items: center; /* Align profile items vertically */
   margin-left: 7%;
-  margin-bottom: 1%;
+  margin-bottom:1%;
 }
 
 .profile-img {
@@ -32,15 +33,17 @@
   height: 60px;
   border-radius: 50%;
   margin-left: -15%;
+  
 }
 
 .profile-info {
-  margin-left: 10%;
-
-  gap: 5px;
-  white-space: nowrap;
+  margin-left:10%;
+  
+  gap: 5px; 
+  white-space: nowrap; 
   display: flex;
-  flex-direction: column;
+  flex-direction: column;  
+  
 }
 .profile-namedash {
   font-size: 16px;
@@ -48,20 +51,22 @@
   font-weight: bold;
   display: inline-block;
   max-width: 100%;
+  
 }
 .profile-designation {
   font-size: 14px;
   color: #777;
-  margin-right: 30%;
+  margin-right:30%;
   display: inline-block;
 }
 
+
 .icon-section {
   display: flex;
-  gap: 40%;
+  gap: 40%; 
   margin-right: 5%;
   font-size: 200%;
-  margin-bottom: 2%;
+  margin-bottom:2% ;
 }
 
 .icon {
@@ -71,52 +76,113 @@
 }
 
 .icon:hover {
-  transform: scale(1.1);
+  transform: scale(1.1); 
 }
 
+
 .calendar-dropdown {
-  position: absolute;
-  top: 150px;
-  right: 0.1%;
-  font-size: small;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+position: absolute;
+top: 50px;
+right: 0.1%;
+font-size: small;
+background: white;
+border-radius: 10px;
+box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .close-btn {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: #00468c;
-  color: white;
-  border: none;
-  padding: 2% 3%;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: small;
-  z-index: 10;
+position: absolute;
+top: 5px;
+right: 5px;
+background: #00468C;
+color: white;
+border: none;
+padding: 1% 2%;
+border-radius: 50%;
+cursor: pointer;
+font-size: small;
 }
 .close-btn:hover {
-  background: darkred;
+background: darkred;
 }
 
-/* Apply interactive effects to Font Awesome icons */
-.fas.fa-calendar-alt,
-.fas.fa-power-off {
-  cursor: pointer;
-  transition: transform 0.1s ease, color 0.3s ease;
-}
 
-/* Hover: scale up slightly and optionally change color */
-.fas.fa-calendar-alt:hover,
-.fas.fa-power-off:hover {
-  transform: scale(1.1);
-  color: #ffca28; /* adjust this color as desired */
-}
 
-/* Active: scale down slightly */
-.fas.fa-calendar-alt:active,
-.fas.fa-power-off:active {
-  transform: scale(0.95);
+
+
+
+/* Mobile view adjustments */
+@media screen and (max-width: 768px) {
+  .topbar1 {
+    padding: 0px; /* Reduce padding */
+    height: 15%; /* Allow height to adjust */
+    margin-left: 0; /* Remove negative margin */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center;
+    margin-top: 0%;
+    background-color:#001D4A ;
+  }
+
+  .profile-section {
+    flex-direction: column;
+    text-align: left;
+    margin-right: 60%;
+    margin-top: 10%;
+    z-index: 1000;
+
+  }
+
+  .profile-img {
+    width: 50px;
+    height: 50px;
+    margin-right: 140%;
+    
+   
+  }
+
+  .profile-info {
+    margin-left: 0;
+    align-items: flex-start;
+    margin-left: 45%;
+    margin-top: -60%;
+    color:aliceblue;
+  
+  
+    
+  }
+
+  .icon-section {
+    position: absolute; /* Take it out of normal flow */
+    top:50px; /* Move it further upwards */
+    right: 0%; /* Align it to the right */
+    gap: 20px; /* Reduce space between icons */
+    font-size: 120%; /* Reduce icon size */
+    /* Make sure it's above everything */
+    background: #001D4A; /* Optional: Prevent text overlap */
+    padding: 5px; /* Adjust padding */
+    color: aliceblue;
+    border-radius: 5px; /* Smooth look */
+  }
+  
+  
+
+  .icon {
+    font-size: 80%;
+ 
+  }
+
+  .calendar-dropdown {
+    top: 50px; /* Adjust dropdown position */
+    margin-right: 150%;
+background: #00468C;
+color: white;
+    font-size: small;
+    width: 60%; /* Make it more mobile-friendly */
+  }
+
+  .close-btn {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+  
 }

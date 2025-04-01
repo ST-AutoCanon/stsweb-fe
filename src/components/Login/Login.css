@@ -137,20 +137,20 @@ html {
 
 .login-close-button {
   position: absolute;
-  top: 20px; /* Set a fixed top distance */
-  right: 20px; /* Stick to the right with a fixed distance */
+  top: 20px!important; /* Set a fixed top distance */
+  right: 20px!important; /* Stick to the right with a fixed distance */
 
-  background-color: transparent; /* Transparent background */
-  border: none; /* Remove default border */
-  font-size: 30px; /* Adjust size of the cross '×' */
-  font-weight: bold;
-  color: rgb(135, 146, 138); /* Initial color */
-  cursor: pointer; /* Show pointer cursor on hover */
-  transition: color 0.3s ease; /* Smooth color transition */
+  background-color: transparent!important; /* Transparent background */
+  border: none!important; /* Remove default border */
+  font-size: 30px!important; /* Adjust size of the cross '×' */
+  font-weight: bold!important;
+  color: rgb(135, 146, 138)!important; /* Initial color */
+  cursor: pointer!important; /* Show pointer cursor on hover */
+  transition: color 0.3s ease!important; /* Smooth color transition */
 }
 
 .login-close-button:hover {
-  color: rgb(136, 117, 117); /* Change color on hover */
+  color: rgb(136, 117, 117)!important; /* Change color on hover */
 }
 
 .login-modal form input {
@@ -329,9 +329,9 @@ html {
   }
 
   .login-close-button {
-    margin-top: 10%;
-    left: 80%;
-    font-size: 28px; /* Slightly smaller for mobile */
+    margin-top: 0%!important;
+    left: 80% !important;
+    font-size: 28px!important; /* Slightly smaller for mobile */
   }
 
   .open-login-btn {

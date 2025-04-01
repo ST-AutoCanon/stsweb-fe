@@ -585,3 +585,343 @@
   padding: 0 1%;
 }
 
+
+
+
+@media (max-width: 768px) {
+  /* Container Adjustments */
+  .emp-query-container {
+    height: 100%; /* Full height to fit screen */
+    display: flex;
+    height: 125vh;
+    width: 98%;
+    border-radius: 10px 30px 30px 10px;
+    
+    flex-direction: column;
+    overflow: hidden; /* Prevent unnecessary scroll */
+  }
+
+  .emp-query-content {
+    flex-direction: column; /* Stack sidebar & chat */
+    gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 0; /* Allow it to take full space */
+  }
+
+  /* Sidebar Adjustments */
+  .emp-sidebar {
+    width: 96%; /* Full width */
+
+    /* overflow-x: auto; */
+    /* padding: 10px 0; */
+    /* white-space: nowrap;
+    background: #f8f9fa; /* Light background */
+ 
+    border-bottom: 1px solid #ddd;
+  }
+
+  /* Query List Adjustments */
+  .emp-query-list {
+    height: auto; /* Dynamic height */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: hidden; /* Remove vertical scroll */
+    display: flex;
+    flex-wrap: nowrap; /* Keep items in one row */
+    gap: 10px;
+    padding: 5px;
+    margin-top: -5%;
+    align-items: center;
+  }
+
+  .emp-query-list::-webkit-scrollbar {
+    height: 5px; /* Slightly larger for usability */
+  }
+
+  .emp-query-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3); /* More visible scrollbar */
+    border-radius: 10px;
+  }
+
+  /* Chat Section */
+  .emp-chat-container {
+    width: 100%;
+    /* flex-grow: 1; /* Expand to fill space */
+    display: flex;
+    /* height: 50%; */
+    height: 84vh;
+    flex-direction: column;
+    border-radius: 10px 30px 30px 10px;
+ 
+    justify-content: space-between; 
+  }
+
+  .emp-chat-messages {
+    max-height: calc(100vh - 300px); /* Adjust for screen space */
+    overflow-y: auto;
+    padding: 10px;
+  }
+
+  /* Input Field */
+  .input-container {
+    display: flex;
+    gap: 5px;
+    margin-top: 0%;
+    margin-right: -2%;
+    padding: 10px;
+    align-items: center;
+    background: white;
+   
+  }
+
+  .input-container input {
+    flex-grow: 1; /* Fill available space */
+    font-size: 14px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  /* Submit Button */
+  .emp-submit-btn {
+    width: auto;
+    padding: 10px 15px;
+    font-size: 14px;
+    background: #7fbd2c;
+    color: white;
+    margin-right: 9%;
+    border-radius: 5px;
+    border: none;
+  }
+
+  /* Modal */
+  @media (max-width: 768px) {
+    .employee-query-modal {
+      width: 80%; /* Adjust modal width */
+      top: 5%;
+      padding: 3%;
+    }
+  
+    .employee-query-textarea,
+    .employee-query-input,
+    .employee-query-select {
+      font-size: 0.9rem;
+      padding: 8px;
+    }
+  
+    .emp-form-header {
+      padding: 5%;
+      font-size: 1rem;
+    }
+  
+    .emp-close-button {
+      font-size: 6vw!important; /* Increase close button size */
+    }
+  
+    .employee-query-form {
+      width: 100%;
+      padding: 5%;
+      margin-left: -4%;
+    }
+  
+    .employee-query-button {
+      width: 100%; /* Full width for better tapability */
+      font-size: 1rem;
+      padding: 10px;
+      margin: 10px 0px 10px 0px;
+    }
+  
+    .empform-cancel-button {
+      width: 100%;
+      margin: 10px 0;
+      font-size: 1rem;
+      padding: 10px;
+    }
+  
+    .stars-container {
+      font-size: 20px;
+      justify-content: center;
+      gap: 5px;
+    }
+  
+    .feedback-options {
+      padding: 3%;
+    }
+  
+    .thank-you {
+      font-size: 1rem;
+    }
+  
+    .thank-button {
+      flex-direction: column;
+    }
+  
+    .thank-close {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+    }
+  }
+  
+
+  /* Profile Picture */
+  .emp-profile-pic {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    border-radius: 50%;
+  }
+
+  /* Cancel Button */
+  .empform-cancel-button {
+    width: auto;
+    margin: 0 auto;
+  }
+
+  /* Stars Rating */
+  .stars-container {
+    font-size: 20px;
+  }
+  .attachment-icon
+  {
+    margin-right: 5%;
+  }
+  .end {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 8%;
+    gap: 2%;
+  }
+
+
+
+
+
+
+  
+.emp-message-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-message-header {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 8px;
+  color: #555;
+  text-align: left; /* Default alignment for left */
+}
+.message-time
+{
+  font-size: 65%;
+}
+
+
+.emp-message-container.right .emp-message-header {
+  text-align: right; /* Align to the right for 'You' */
+  
+}
+
+.emp-message-container.left .emp-message-header {
+  text-align: left; /* Align to the left for others' names */
+}
+
+.emp-message {
+  max-width: 60%;
+  padding: 10px;
+ 
+  border-radius: 10px;
+}
+
+.left .emp-message {
+  background: #dbeafe;
+  align-self: flex-start;
+}
+
+.right .emp-message {
+  background: #001f3f;
+  color: white;
+
+  align-self: flex-end;
+}
+.emp-name {
+  font-size: 70%;
+  margin-top: 20%;
+}
+.emp-message-time {
+  font-size: 3px;
+  color: gray;
+  display: block;
+  margin-top: 10px;
+}
+.emp-message-preview {
+  color: gray;
+  font-size: 10px;
+  margin-left: 0%;
+  margin-top: 5%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+ 
+.compose-button {
+  background-color: #0078ce;
+  padding: 1% 2%;
+  color: #fff;
+  align-items: center;
+  border-radius: 5px;
+  font-size: 15px;
+  border: none;
+  margin-right: 20px;
+  margin-top: 17px;
+}
+.compose-icon {
+  padding: 0;
+  font-size: medium;
+  margin-bottom: -3%;
+}
+.toggle-switch
+{
+  width: 45%;
+}
+.emp-message
+{
+  padding: -20%;
+}
+
+.emp-message p{
+  padding-bottom: -40px;
+  font-size:80%;
+}
+emp-message-header
+{
+  padding-top:  10px;
+
+
+}
+emp-message-sender
+{
+  padding: 0px;
+}
+.empform-cancel-button {
+  width: auto;
+  margin: 0 auto;
+}
+.emp-close-button {
+  font-size: 100%;
+  cursor: pointer;
+}
+
+.emp-unread-dot {
+  top: 5px;
+  right: 10px;
+  width: 25px;
+  height: 15px;
+  margin-top: 0%;
+  padding: 0;
+  font-size: small;
+  color: #fff;
+  text-align: center;
+  background-color: #0078ce;
+  border-radius: 50%;
+}
+}

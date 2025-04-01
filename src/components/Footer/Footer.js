@@ -1,15 +1,24 @@
 
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
+
 import { useNavigate } from "react-router-dom"; // To handle navigation
 import "./Footer.css";
 import { FaLinkedin, FaEnvelope, FaPhone } from 'react-icons/fa'; // LinkedIn and Email icons
 import FeedBack from '../Feedbackform/Feedbackform.js'
+
  
 
 const Footer = () => {
+
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [modalKey, setModalKey] = useState(0); // Key to force remount the modal
+  const location = useLocation();
+  const hiddenPages = ["/Login", "/dashboard", ""]; // Define pages where footer should be hidden
+
+  const isHidden = hiddenPages.includes(location.pathname);
+
 
   // Open modal
   const openModal = () => {
@@ -22,7 +31,7 @@ const Footer = () => {
     setIsModalOpen(false);
   };
   return (
-    <footer className="footer">
+    <footer className={`footer ${isHidden ? "hide-footer-mobile" : ""}`}>
       <div className="footer-container">
         {/* QR Code Section */}
         <div className="footer-logo">

@@ -45,7 +45,7 @@
 .main-content {
   flex: 1; /* Main content takes the remaining space */
   /* overflow-y: auto; Enable scrolling for the main content */
-  background-color: #E8E9EA;
+  background-color: #ddd;
  
   height:0%; /* Full height minus Topbar height */
   box-sizing: border-box; /* Include padding in width/height */
@@ -53,7 +53,7 @@
 
 .main-content h1{
   
-  background-color: #E8E9EA;
+  background-color: #ddd;
  
 }
 
@@ -72,4 +72,70 @@
   margin-top: 6%;
  padding: 0px;
   background-color:#E8E9EA;
+}
+
+
+
+/* ///////////////////////////////////////// */
+
+
+@media screen and (max-width: 768px) {
+  /* STACK CONTENT IN COLUMN */
+  .content-container {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* MAKE SIDEBAR ABSOLUTE TO AVOID SHIFTING CONTENT */
+  .sidebar {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: auto;
+    background-color: white;
+    display: none;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    /* transition: transform 0.3s ease-in-out; */
+    /* transform: translateY(-100%); */
+    margin-left: 0%;
+    z-index: 100; /* Above overlay */
+  }
+
+  /* SHOW SIDEBAR WHEN TOGGLED */
+  .sidebar.sidebar-open {
+    transform: translateY(0);
+  }
+
+  .Dashboarddesign
+  {
+    height:100vh;
+  padding: 0px;
+  
+ border-radius: 5px;
+  background-color: white;
+  }
+
+  /* MAIN CONTENT FULL WIDTH */
+  .main-content {
+    width: 100%;
+    flex: 1;
+  }
+
+  /* ADD SPACE IN TOPBAR FOR HAMBURGER */
+  .topbar {
+    margin-top: -20%;
+    position: relative;
+    padding-left: 30%;
+    padding: 0;
+    background-color: #001D4A;
+  }
+  .Dashboard123
+{
+
+
+  margin-top: -5%;
+ padding: 0px;
+  background-color:#E8E9EA;
+}
 }

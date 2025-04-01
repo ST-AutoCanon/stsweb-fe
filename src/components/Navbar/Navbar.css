@@ -143,13 +143,38 @@
   height: 3px;
   background-color: white;
   margin: 3px 0;
-  gap: 5px;
+  gap: 3px;
   border-radius: 15%;
   z-index: 20;
 }
 
+.navbar button {
+  background-color: transparent;
+  color: white;
+  border: none;
+  padding: 0px 0px;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.navbar button:hover {
+  background-color: #79C42B;
+  color: white;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .hide-navbar-mobile {
+    display: none !important;
+  }
+}
+
 /* Mobile-specific styles */
 @media (max-width: 768px) {
+  /* Hide navbar completely in mobile view for specific pages */
+
   .hamburger {
     display: flex;
     margin-right: 10%;
@@ -162,6 +187,7 @@
     padding: none;
     justify-content: space-evenly;
     gap: 200px;
+    z-index: 1000;
     
   }
   .nav-links {
@@ -281,19 +307,4 @@
   }
 }
 
-.navbar button {
-  background-color: transparent;
-  color: white;
-  border: none;
-  padding: 0px 0px;
-  font-size: 1.2rem;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
-}
 
-.navbar button:hover {
-  background-color: #79C42B;
-  color: white;
-  transform: scale(1.05);
-}

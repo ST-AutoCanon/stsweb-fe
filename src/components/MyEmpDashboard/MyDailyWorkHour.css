@@ -96,3 +96,14 @@
 .work-hour-box.red {
     background-color: #ff4d4d;
 }
+@media (max-width: 768px) 
+{
+.work-hour-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+}

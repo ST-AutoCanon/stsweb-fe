@@ -141,3 +141,13 @@
   transform: translateX(-50%);
   z-index: 10;
 }
+
+@media (max-width: 768px) 
+{
+  .empleavetracker-container {
+    overflow-x: auto;
+    padding: 30px;
+    width: 88%;
+    display: none;
+  }
+}

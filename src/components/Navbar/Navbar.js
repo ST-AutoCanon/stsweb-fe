@@ -9,6 +9,11 @@ const Navbar = () => {
   const [knowMoreDropdownOpen, setKnowMoreDropdownOpen] = useState(false); // KnowMore dropdown state
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for showing the popup
   const navigate = useNavigate();
+  const hiddenPages = [ "/dashboard", "/SomeOtherPage"];
+
+  // Check if the current path is in the hiddenPages array
+  const isHidden = hiddenPages.includes(location.pathname);
+
 
   // Toggles the mobile menu
   const toggleMenu = () => {
@@ -46,6 +51,8 @@ const Navbar = () => {
     setMenuOpen(false);   // Close the mobile menu
   };
 
+
+  
   // Close the Login modal
   const CloseModal = () => {
     setIsModalOpen(false); // Trigger modal close by updating state to false
@@ -53,7 +60,10 @@ const Navbar = () => {
 
   return (
     <>
+          <nav className={`navbar ${isHidden ? "hide-navbar-mobile" : ""}`}>
+
       <nav className="navbar">
+
         <div className="logo">
           <img src="/images/STS-Logo.png" alt="Logo" />
         </div>
@@ -175,6 +185,7 @@ const Navbar = () => {
 
       {/* Show Login component in a modal-like fashion */}
       {isModalOpen && <Login onClose={CloseModal} />} {/* Render the Login modal when isModalOpen is true */}
+      </nav>
     </>
   );
 };
