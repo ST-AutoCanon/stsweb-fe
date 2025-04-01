@@ -239,11 +239,7 @@ html {
   transform: scale(0.98); /* Slightly shrink the button */
 }
 
-.error-messages {
-  font-size: 14px;
-  color: red;
-  margin-bottom: 2%;
-}
+
 
 /* General styles remain the same */
 
