@@ -345,3 +345,328 @@
   pointer-events: none;
   cursor: not-allowed;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Hide table on mobile */
+@media (max-width: 768px) {
+  .desktop-view {
+    display: none;
+  }
+  .mobile-view {
+    display: block;
+    
+  }
+  
+}
+
+/* Hide cards on desktop */
+@media (min-width: 769px) {
+  .mobile-view {
+    display: none;
+  }
+}
+
+/* Card Layout Styling */
+.leave-card {
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 10px 0;
+  padding: 15px;
+  transition: 0.3s;
+  margin-bottom: 25px; 
+}
+
+.leave-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.leave-type {
+  font-size: 16px;
+  color: #333;
+}
+
+
+
+.leave-approved {
+  background: #d7f2ce;
+  color: #2e7d32;
+}
+
+.leave-rejected {
+  background: #ffe5d2;
+  color: #d32f2f;
+}
+
+.leave-details p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.leave-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.action-button {
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+}
+
+.action-button.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+
+
+
+/* Mobile View */
+@media (max-width: 768px) {
+
+  /* Container */
+  .leave-container {
+    margin: 0 5%;
+    align-items: stretch;
+  }
+
+  /* Header */
+  .leave-header {
+    font-size: medium;
+    text-align: start;
+    
+  }
+
+  /* Filters Section */
+  .leave-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+  }
+
+  .leave-filters label {
+    font-size: small;
+  }
+
+  /* Date Inputs */
+  .date-filter-input {
+    width: 94%;
+    font-size: medium;
+    padding: 10px;
+  }
+
+  /* Buttons */
+  .filter-button,
+  .leave-form-button {
+    width: 100%;
+    font-size: medium;
+    padding: 10px;
+  }
+
+  /* Leave Modal */
+  .leave-modal-content {
+    width: 90%;
+    max-height: 90vh;
+  }
+
+  /* Leave Form */
+  .leave-form {
+    padding: 5%;
+  }
+
+  .leave-form-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  /* Grid Adjustments */
+  .leave-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .leave-form-group {
+    width: 100%;
+    padding: 0;
+  }
+
+  .leave-form label {
+    font-size: small;
+  }
+
+  .leave-form input,
+  .leave-form select {
+    width: 100%;
+    padding: 10px;
+    font-size: small;
+  }
+
+  /* Buttons - Bottom Section */
+  .leave-form-actions {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .leave-save,
+  .leave-cancel {
+    width: 100%;
+    font-size: medium;
+  }
+
+  /* Table */
+  .leave-request-table {
+    height: auto;
+    overflow-x: scroll;
+    width: 100%;
+  }
+
+  .leave-requests {
+    font-size: small;
+  }
+}
+
+
+
+/* Responsive */
+@media (max-width: 768px) {
+
+  /* Header Section */
+  .leave-form-header {
+    align-items: flex-start;
+    color: white;
+    background-color: #00468c;
+    padding: 10px 15px;
+  }
+
+  .leave-form-header h2 {
+    font-size: 1.2rem;
+    margin: 0;
+    margin-top: 4%;
+  }
+
+  .leave-form-header .icon {
+    cursor: pointer;
+    font-size: 1.5rem;
+    margin-left: auto;
+    margin-top: -8%;
+  }
+
+  /* Leave Form Grid */
+  .leave-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    margin-left: 0;
+  }
+
+  .leave-form-group {
+    margin-top: 0;
+    padding: 0;
+    width: 100%;
+  }
+
+  /* Form Actions */
+  .leave-form-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 10px;
+    gap: 85px;
+    width: 90%;
+  }
+
+  /* Leave Table */
+  .leave-requests th,
+  .leave-requests td {
+    font-size: 0.9rem;
+    padding: 10px;
+    text-align: left;
+  }
+
+  /* Label Adjustments */
+  .leave-status-label {
+    margin-left: 50%;
+    
+  }
+
+  /* My Leaves Section */
+  .my-leaves {
+    width: 100%;
+    text-align: left;
+    margin: 4%;
+  }
+
+  /* Buttons (Equal Size) */
+  .filter-button,
+  .leave-form-button,
+  .leave-save,
+  .leave-cancel {
+    width: 100%; /* Equal width for buttons */
+    padding: 12px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    text-align: center; /* Align text in center */
+    box-sizing: border-box;
+  }
+
+  /* Responsive Input/Select (Equal Size) */
+  .leave-form input,
+  .leave-form select {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  /* Date Filter Inputs (Equal Size) */
+  .date-filter-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  /* Modal */
+  .leave-modal-content {
+    width: 95%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .leave-container {
+   height: 100vh;
+  }
+}

@@ -22,7 +22,7 @@ const ProjectsTable = () => {
     }, []);
 
     return (
-        <div className="projects-container">
+        <div className="adminprojects-container">
             <div className="tabs">
                 <div 
                     className={`tab ${activeTab === "previous" ? "active" : ""}`} 

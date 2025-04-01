@@ -18,10 +18,14 @@ import Reimbursement from "../Reimbursement/Reimbursement";
 import RbAdmin from "../Reimbursement/RbAdmin";
 import RbTeamLead from "../Reimbursement/RbTeamLead";
 
+
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
-  const [activeItem, setActiveItem] = useState(""); // Track active menu item
+  const [activeItem, setActiveItem] = useState("");
   const [showProfile, setShowProfile] = useState(false);
+  const [activeNav, setActiveNav] = useState("/dashboard");
+  const [showMobileMenu, setShowMobileMenu] = useState(false); // State for mobile popup
+
   const employeeId = localStorage.getItem("employeeId");
   const userRole = localStorage.getItem("userRole");
 
@@ -38,25 +42,34 @@ const Sidebar = ({ setActiveContent }) => {
       }
     }
 
+ 
+    
+    
     // Set default active content (Dashboard) on first load
     if (setActiveContent) {
-    }
-    if (userRole === "Admin") {
-      setActiveContent(<MyDashboard />);
-      setActiveItem("/dashboard");
-    } else {
-      setActiveContent(<MyEmpDashboard />);
-    }
+      } if (userRole === "Admin") {
+        setActiveContent(<MyDashboard />);
+        
+        setActiveItem("/dashboard");
+      } else {
+        setActiveContent(<MyEmpDashboard />);
+      }
   }, [setActiveContent, userRole]);
 
+  
+
+  
+
+
   const handleMenuClick = (item) => {
-    setActiveItem(item.path); // Update active menu item
+    setActiveItem(item.path);
+    setActiveNav(item.path);
+    setShowMobileMenu(false); // Close popup when selecting an item
+
 
     switch (item.path) {
       case "/dashboard":
-        setActiveContent(
-          userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />
-        );
+        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />);
         break;
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);
@@ -64,54 +77,53 @@ const Sidebar = ({ setActiveContent }) => {
       case "/addDepartment":
         setActiveContent(<AddDepartment />);
         break;
-      case "/updateProjects":
+        case "/updateProjects":
         setActiveContent(<UpdateProject />);
         break;
       case "/leaveQueries":
-        if (userRole === "Admin") {
+         if (userRole === "Admin") {
           setActiveContent(<LeaveQueries />);
         } else {
           setActiveContent(<LeaveRequest />);
         }
         break;
 
-      case "/Salary_Statement":
+        case "/Salary_Statement":
         setActiveContent(<Salary_Statement />);
         break;
-      case "/payrollSummary":
+        case "/payrollSummary":
         setActiveContent(<PayrollSummary />);
         break;
-
-      case "/reimbursement":
-        if (userRole === "Admin") {
-          setActiveContent(<RbAdmin />);
-        } else if (userRole === "Manager") {
-          setActiveContent(<RbTeamLead />);
-        } else {
-          setActiveContent(<Reimbursement />);
-        }
-        break;
+      
+        case "/reimbursement":
+          if (userRole === "Admin") {
+              setActiveContent(<RbAdmin />);
+          } else if (userRole === "Team Lead") {
+              setActiveContent(<RbTeamLead />);
+          } else {
+              setActiveContent(<Reimbursement />);
+          }
+          break;
 
       case "/employeeQueries":
-        setActiveContent(
-          userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />
-        );
+        setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
         break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }
   };
 
-  const toggleProfile = () => {
-    setShowProfile(!showProfile);
-  };
+  // const toggleProfile = () => {
+  //   setShowProfile(!showProfile);
+  // };
 
   return (
+    <>
+    {/* Sidebar (Desktop) */}
     <div className="sidebar">
-      {/* Conditionally render View Profile if not Admin */}
       {userRole !== "Admin" && (
         <div className="view-profile">
-          <span onClick={toggleProfile} className="view-profile-text">
+          <span onClick={() => setShowProfile(!showProfile)} className="view-profile-text">
             View Profile
           </span>
         </div>
@@ -119,17 +131,14 @@ const Sidebar = ({ setActiveContent }) => {
       <ul>
         {menuItems.length > 0 ? (
           menuItems.map((item, index) => {
-            const IconComponent =
-              MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
+            const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
             return (
               <li
                 key={index}
                 className={activeItem === item.path ? "active" : ""}
                 onClick={() => handleMenuClick(item)}
               >
-                <span className="icon">
-                  <IconComponent />
-                </span>
+                <span className="icon"><IconComponent /></span>
                 <span className="menu-text">{item.label}</span>
               </li>
             );
@@ -138,11 +147,73 @@ const Sidebar = ({ setActiveContent }) => {
           <p className="no-menu">No menu items available</p>
         )}
       </ul>
-      {showProfile && (
-        <Profile employeeId={employeeId} onClose={toggleProfile} />
-      )}
+      {showProfile && <Profile employeeId={employeeId} onClose={() => setShowProfile(false)} />}
     </div>
-  );
+
+    {/* Bottom Navigation for Mobile */}
+    <div className="bottom-nav">
+      <button
+        className={activeNav === "/dashboard" ? "active" : ""}
+        onClick={() => handleMenuClick({ path: "/dashboard" })}
+      >
+        <MdIcons.MdHome />
+      </button>
+      <button
+        className={activeNav === "/employeeQueries" ? "active" : ""}
+        onClick={() => handleMenuClick({ path: "/employeeQueries" })}
+      >
+        <MdIcons.MdOutlineContactPhone />
+      </button>
+      <button
+        className={activeNav === "/leaveQueries" ? "active" : ""}
+        onClick={() => handleMenuClick({ path: "/leaveQueries" })}
+      >
+        <MdIcons.MdOutlineCommentBank />
+      </button>
+      <button
+        className={activeNav === "/reimbursement" ? "active" : ""}
+        onClick={() => handleMenuClick({ path: "/reimbursement" })}
+      >
+        <MdIcons.MdCurrencyRupee />
+      </button>
+      <button
+        onClick={() => setShowMobileMenu(true)} // Show popup menu
+      >
+        <MdIcons.MdMenu />
+      </button>
+    </div>
+
+    {/* Mobile Sidebar Popup */}
+    {showMobileMenu && (
+      <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)}>
+        <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+          <button className="close-menu" onClick={() => setShowMobileMenu(false)}>
+            ✖
+          </button>
+          <ul>
+            {menuItems.length > 0 ? (
+              menuItems.map((item, index) => {
+                const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
+                return (
+                  <li
+                    key={index}
+                    className={activeItem === item.path ? "active" : ""}
+                    onClick={() => handleMenuClick(item)}
+                  >
+                    <span className="icon"><IconComponent /></span>
+                    <span className="menu-text">{item.label}</span>
+                  </li>
+                );
+              })
+            ) : (
+              <p className="no-menu">No menu items available</p>
+            )}
+          </ul>
+        </div>
+      </div>
+    )}
+  </>
+);
 };
 
 export default Sidebar;

@@ -55,15 +55,16 @@
 }
 
 .emp-icon {
-  font-size: 1.6rem;
-  
+  font-size: 1.8rem;
+  font-size: 1.8rem;
   background: rgba(200, 200, 200, 0.2); /* Light grey background */
   padding: 10px; /* Space around the icon */
   border-radius: 8px; /* Rounded corners */
   display: inline-flex; /* Keep it centered */
   align-items: center; /* Vertical alignment */
   justify-content: center; /* Horizontal alignment */
- 
+  width: 20px; /* Set fixed width */
+  height: 20px; /* Set fixed height */
 }
 
 .emp-text {

@@ -311,6 +311,7 @@ const RbTeamLead = () => {
   return (
     <div className="rb-admin">
       <h2>Reimbursement Requests</h2>
+
       <div className="tabs-container">
         <button
           className={`tab ${view === "team" ? "active" : ""}`}
@@ -359,6 +360,8 @@ const RbTeamLead = () => {
               <FaSearch /> Search
             </button>
           </div>
+
+          
           <div className="rb-atable-container">
             {employees.map((employee) => {
               const filteredClaims = employee.claims.filter(
@@ -648,6 +651,8 @@ const RbTeamLead = () => {
           </div>
         </div>
       )}
+
+
       {/* Payment Modal */}
       {isPaymentModalOpen && (
         <Modal

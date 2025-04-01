@@ -183,6 +183,12 @@ floginbtn ul {
 .social-icons2{
   display: none;
 }
+@media (max-width: 768px) {
+  .hide-footer-mobile {
+    display: none;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .footer-container {
