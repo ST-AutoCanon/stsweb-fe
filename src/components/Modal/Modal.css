@@ -23,6 +23,9 @@
 .modal-title {
   margin-top: 0;
   font-size: 1.5rem;
+  opacity: 1!important;
+  z-index: 99999!important;
+  margin-left: 10%;
 }
 
 .modal-body {

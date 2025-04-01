@@ -9,7 +9,7 @@ const Navbar = () => {
   const [knowMoreDropdownOpen, setKnowMoreDropdownOpen] = useState(false); // KnowMore dropdown state
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for showing the popup
   const navigate = useNavigate();
-  const hiddenPages = [ "/dashboard", "/SomeOtherPage"];
+  const hiddenPages = [ "/dashboard", "/Login"];
 
   // Check if the current path is in the hiddenPages array
   const isHidden = hiddenPages.includes(location.pathname);

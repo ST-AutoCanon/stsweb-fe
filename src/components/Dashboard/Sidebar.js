@@ -56,10 +56,6 @@ const Sidebar = ({ setActiveContent }) => {
       }
   }, [setActiveContent, userRole]);
 
-  
-
-  
-
 
   const handleMenuClick = (item) => {
     setActiveItem(item.path);
@@ -113,9 +109,9 @@ const Sidebar = ({ setActiveContent }) => {
     }
   };
 
-  // const toggleProfile = () => {
-  //   setShowProfile(!showProfile);
-  // };
+  const toggleProfile = () => {
+    setShowProfile(!showProfile);
+  };
 
   return (
     <>
