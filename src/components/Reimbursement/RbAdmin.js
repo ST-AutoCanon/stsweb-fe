@@ -523,34 +523,21 @@ const RbAdmin = () => {
                                 <td>
                                   {claim.status === "approved" ||
                                   claim.status === "rejected" ? (
-                                    <span
-                                      className={`status-label ${claim.status}`}
-                                    >
-                                      <span className="status-dot"></span>
-                                      {claim.status
-                                        ? claim.status.charAt(0).toUpperCase() +
-                                          claim.status.slice(1)
-                                        : "N/A"}
-                                    </span>
+                                    <div className="rbadmin-comments">
+                                      {claim.approver_comments || "No comments"}
+                                    </div>
                                   ) : (
-                                    <select
-                                      className="rb-status-dropdown"
-                                      value={
-                                        statusUpdates[claim.id] ||
-                                        claim.status ||
-                                        ""
-                                      }
+                                    <input
+                                      type="text"
+                                      placeholder="Enter comments"
+                                      value={comments[claim.id] || ""}
                                       onChange={(e) =>
-                                        handleStatusChange(
-                                          claim.id,
-                                          e.target.value
-                                        )
+                                        setComments((prev) => ({
+                                          ...prev,
+                                          [claim.id]: e.target.value,
+                                        }))
                                       }
-                                    >
-                                      <option value="">Pending</option>
-                                      <option value="approved">Approve</option>
-                                      <option value="rejected">Reject</option>
-                                    </select>
+                                    />
                                   )}
                                 </td>
                                 <td>

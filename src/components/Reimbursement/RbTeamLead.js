@@ -536,32 +536,21 @@ const RbTeamLead = () => {
                                 <td>
                                   {rb.status === "approved" ||
                                   rb.status === "rejected" ? (
-                                    <span
-                                      className={`status-label ${rb.status}`}
-                                    >
-                                      <span className="status-dot"></span>
-                                      {rb.status
-                                        ? rb.status.charAt(0).toUpperCase() +
-                                          rb.status.slice(1)
-                                        : "N/A"}
-                                    </span>
+                                    <div className="rbadmin-comments">
+                                      {rb.approver_comments || "No comments"}
+                                    </div>
                                   ) : (
-                                    <select
-                                      className="rb-status-dropdown"
-                                      value={
-                                        statusUpdates[rb.id] || rb.status || ""
-                                      }
+                                    <input
+                                      type="text"
+                                      placeholder="Enter comments"
+                                      value={comments[rb.id] || ""}
                                       onChange={(e) =>
-                                        handleStatusChange(
-                                          rb.id,
-                                          e.target.value
-                                        )
+                                        setComments((prev) => ({
+                                          ...prev,
+                                          [rb.id]: e.target.value,
+                                        }))
                                       }
-                                    >
-                                      <option value="">Pending</option>
-                                      <option value="approved">Approve</option>
-                                      <option value="rejected">Reject</option>
-                                    </select>
+                                    />
                                   )}
                                 </td>
                                 <td>
