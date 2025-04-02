@@ -181,9 +181,10 @@ const EmployeeDetails = () => {
     if (name === "role") {
       setFormData((prevState) => ({
         ...prevState,
-        [name]: value,
+        role: value,
+        // If role is Admin, clear department and position
         department: value === "Admin" ? "" : prevState.department,
-        position: value.includes("Manager") ? "" : prevState.position,
+        position: value === "Admin" ? "" : prevState.position,
       }));
     } else if (name === "department") {
       setFormData((prevState) => ({
@@ -338,7 +339,6 @@ const EmployeeDetails = () => {
       }));
     } catch (err) {
       console.error("Error fetching photo:", err);
-      showAlert("Failed to fetch photo.");
     }
   };
 
@@ -963,8 +963,46 @@ const EmployeeDetails = () => {
                 />
               </div>
               {error ? <p className="errors">{error}</p> : null}
+              <div className="radio-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="domain"
+                    value="ST"
+                    checked={formData.domain === "ST"}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  ST
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="domain"
+                    value="STS"
+                    checked={formData.domain === "STS"}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  STS
+                </label>
+              </div>
               <div className="form-grid">
-                {/* First Name */}
+                <div className="form-group">
+                  <label>
+                    Employee Type:
+                    <select
+                      name="employee_type"
+                      value={formData.employee_type}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select</option>
+                      <option value="Permanent">Permanent</option>
+                      <option value="Consultant">Consultant</option>
+                    </select>
+                  </label>
+                </div>
                 <div className="form-group">
                   <label>
                     First Name<span className="required">*</span>
@@ -1242,21 +1280,6 @@ const EmployeeDetails = () => {
                     }
                   />
                 </div>
-                {formData.photo && (
-                  <div className="form-group">
-                    <label>Photo:</label>
-                    <img
-                      src={formData.photo}
-                      alt="Employee Photo"
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => window.open(formData.photo, "_blank")}
-                    />
-                  </div>
-                )}
               </div>
               {/* Button Group */}
               <div className="button-group">

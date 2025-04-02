@@ -121,9 +121,6 @@
   transform: scale(0.95);
 }
 
-
-
-
 /* Mobile view adjustments */
 @media screen and (max-width: 768px) {
   .topbar1 {
@@ -133,7 +130,7 @@
     flex-direction: column; /* Stack items vertically */
     align-items: center;
     margin-top: 0%;
-    background-color:#001D4A ;
+    background-color: #001d4a;
   }
 
   .profile-section {
@@ -142,15 +139,12 @@
     margin-right: 60%;
     margin-top: 10%;
     z-index: 1000;
-
   }
 
   .profile-img {
     width: 50px;
     height: 50px;
     margin-right: 140%;
-    
-   
   }
 
   .profile-info {
@@ -158,44 +152,36 @@
     align-items: flex-start;
     margin-left: 45%;
     margin-top: -60%;
-    color:aliceblue;
-  
-  
-    
+    color: aliceblue;
   }
 
   .icon-section {
     position: absolute; /* Take it out of normal flow */
-    top:50px; /* Move it further upwards */
+    top: 50px; /* Move it further upwards */
     right: 0%; /* Align it to the right */
     gap: 20px; /* Reduce space between icons */
     font-size: 120%; /* Reduce icon size */
     /* Make sure it's above everything */
-    background: #001D4A; /* Optional: Prevent text overlap */
+    background: #001d4a; /* Optional: Prevent text overlap */
     padding: 5px; /* Adjust padding */
     color: aliceblue;
     border-radius: 5px; /* Smooth look */
   }
-  
-  
 
   .icon {
     font-size: 80%;
- 
   }
 
   .calendar-dropdown {
-    top: 50px; /* Adjust dropdown position */
-    margin-right: 150%;
-background: #00468C;
-color: white;
+    top: 0px; /* Adjust dropdown position */
+    margin-top: 80%;
     font-size: small;
-    width: 60%; /* Make it more mobile-friendly */
+    margin-right: 5%;
+    /* Make it more mobile-friendly */
   }
 
   .close-btn {
     font-size: 12px;
     padding: 5px 8px;
   }
-  
 }

@@ -112,7 +112,10 @@ const AdminQuery = () => {
       if (fileInputEl) {
         fileInputEl.value = "";
       }
+      // Fetch updated messages
       await fetchMessages(selectedQuery.id);
+      // Refetch queries to update preview messages and timestamps
+      await fetchQueries();
     } catch (err) {
       console.error("Error sending message:", err);
       showAlert("Failed to send message. Please try again.");

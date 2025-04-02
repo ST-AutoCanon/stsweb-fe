@@ -112,6 +112,10 @@
   overflow: visible;
 }
 
+.rb-sub-table td:nth-child(4) {
+  text-align: right;
+}
+
 .update-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
