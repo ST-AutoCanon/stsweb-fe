@@ -226,6 +226,11 @@
   text-align: center;
 }
 
+.employee-table td:nth-child(9) {
+  min-width: 75px;
+  text-align: right;
+}
+
 .status-active {
   color: #029d02;
   font-weight: bold;
@@ -246,7 +251,7 @@
 /* Container for action buttons */
 .actions {
   display: flex;
-  gap: 1rem;
+  gap: 10%;
 }
 
 /* Common styles for both edit and deactivate buttons */
@@ -441,7 +446,6 @@ button.deactivate:focus {
   background-color: #e8e9ea;
   padding: 0;
   width: 70%;
-  top: 6%;
   position: relative;
 }
 

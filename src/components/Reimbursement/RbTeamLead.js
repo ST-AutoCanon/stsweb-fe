@@ -361,7 +361,6 @@ const RbTeamLead = () => {
             </button>
           </div>
 
-          
           <div className="rb-atable-container">
             {employees.map((employee) => {
               const filteredClaims = employee.claims.filter(
@@ -537,26 +536,40 @@ const RbTeamLead = () => {
                                 <td>
                                   {rb.status === "approved" ||
                                   rb.status === "rejected" ? (
-                                    <div className="rbadmin-comments">
-                                      {rb.approver_comments || "No comments"}
-                                    </div>
+                                    <span
+                                      className={`status-label ${rb.status}`}
+                                    >
+                                      <span className="status-dot"></span>
+                                      {rb.status
+                                        ? rb.status.charAt(0).toUpperCase() +
+                                          rb.status.slice(1)
+                                        : "N/A"}
+                                    </span>
                                   ) : (
-                                    <input
-                                      type="text"
-                                      placeholder="Enter comments"
-                                      value={comments[rb.id] || ""}
-                                      onChange={(e) =>
-                                        setComments((prev) => ({
-                                          ...prev,
-                                          [rb.id]: e.target.value,
-                                        }))
+                                    <select
+                                      className="rb-status-dropdown"
+                                      value={
+                                        statusUpdates[rb.id] || rb.status || ""
                                       }
-                                    />
+                                      onChange={(e) =>
+                                        handleStatusChange(
+                                          rb.id,
+                                          e.target.value
+                                        )
+                                      }
+                                    >
+                                      <option value="">Pending</option>
+                                      <option value="approved">Approve</option>
+                                      <option value="rejected">Reject</option>
+                                    </select>
                                   )}
                                 </td>
                                 <td>
-                                  {rb.status === "approved" ? (
-                                    rb.payment_status === "pending" ? (
+                                  {rb.status?.toLowerCase().trim() ===
+                                  "approved" ? (
+                                    !rb.payment_status ||
+                                    rb.payment_status?.toLowerCase().trim() ===
+                                      "pending" ? (
                                       <button
                                         className="pending-payment-btn"
                                         onClick={() => {
@@ -570,9 +583,11 @@ const RbTeamLead = () => {
                                     ) : (
                                       <span>
                                         {rb.payment_status
-                                          .charAt(0)
-                                          .toUpperCase() +
-                                          rb.payment_status.slice(1)}
+                                          ? rb.payment_status
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                            rb.payment_status.slice(1)
+                                          : "N/A"}
                                         {rb.paid_date
                                           ? ` (${new Date(
                                               rb.paid_date
@@ -651,7 +666,6 @@ const RbTeamLead = () => {
           </div>
         </div>
       )}
-
 
       {/* Payment Modal */}
       {isPaymentModalOpen && (

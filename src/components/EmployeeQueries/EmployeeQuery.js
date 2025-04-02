@@ -173,6 +173,7 @@ const EmployeeQuery = () => {
       showAlert("Message or attachment is required.");
       return;
     }
+
     const recipientId = selectedQuery.recipient_id;
     const payload = {
       thread_id: selectedQuery.id,
@@ -199,7 +200,11 @@ const EmployeeQuery = () => {
         fileInputEl.value = "";
       }
 
+      // Fetch updated messages
       await fetchMessages(selectedQuery.id);
+
+      // **Fetch updated queries list to update preview message and timestamp**
+      await fetchEmpQueries();
     } catch (error) {
       console.error("Error sending message:", error);
       showAlert("Failed to send message. Please try again.");

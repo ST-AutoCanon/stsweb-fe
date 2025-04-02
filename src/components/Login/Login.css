@@ -56,6 +56,10 @@ html {
   justify-content: center;
 }
 
+.error-messages {
+  color: red;
+}
+
 .h2 {
   margin-bottom: 20px;
   color: #333;
@@ -137,20 +141,20 @@ html {
 
 .login-close-button {
   position: absolute;
-  top: 20px!important; /* Set a fixed top distance */
-  right: 20px!important; /* Stick to the right with a fixed distance */
+  top: 20px !important; /* Set a fixed top distance */
+  right: 20px !important; /* Stick to the right with a fixed distance */
 
-  background-color: transparent!important; /* Transparent background */
-  border: none!important; /* Remove default border */
-  font-size: 30px!important; /* Adjust size of the cross '×' */
-  font-weight: bold!important;
-  color: rgb(135, 146, 138)!important; /* Initial color */
-  cursor: pointer!important; /* Show pointer cursor on hover */
-  transition: color 0.3s ease!important; /* Smooth color transition */
+  background-color: transparent !important; /* Transparent background */
+  border: none !important; /* Remove default border */
+  font-size: 30px !important; /* Adjust size of the cross '×' */
+  font-weight: bold !important;
+  color: rgb(135, 146, 138) !important; /* Initial color */
+  cursor: pointer !important; /* Show pointer cursor on hover */
+  transition: color 0.3s ease !important; /* Smooth color transition */
 }
 
 .login-close-button:hover {
-  color: rgb(136, 117, 117)!important; /* Change color on hover */
+  color: rgb(136, 117, 117) !important; /* Change color on hover */
 }
 
 .login-modal form input {
@@ -225,7 +229,7 @@ html {
 
 /* Hover effect for the button */
 .btn-open-login:hover {
-  background-color: #3e8e41; 
+  background-color: #3e8e41;
   transform: scale(0.98); /* Slightly darker green on hover */
 }
 /* Focus state for better accessibility */
@@ -238,8 +242,6 @@ html {
   background-color: #3e8e41; /* Even darker green when clicked */
   transform: scale(0.98); /* Slightly shrink the button */
 }
-
-
 
 /* General styles remain the same */
 
@@ -325,9 +327,9 @@ html {
   }
 
   .login-close-button {
-    margin-top: 0%!important;
+    margin-top: 0% !important;
     left: 80% !important;
-    font-size: 28px!important; /* Slightly smaller for mobile */
+    font-size: 28px !important; /* Slightly smaller for mobile */
   }
 
   .open-login-btn {

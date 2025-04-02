@@ -523,26 +523,43 @@ const RbAdmin = () => {
                                 <td>
                                   {claim.status === "approved" ||
                                   claim.status === "rejected" ? (
-                                    <div className="rbadmin-comments">
-                                      {claim.approver_comments || "No comments"}
-                                    </div>
+                                    <span
+                                      className={`status-label ${claim.status}`}
+                                    >
+                                      <span className="status-dot"></span>
+                                      {claim.status
+                                        ? claim.status.charAt(0).toUpperCase() +
+                                          claim.status.slice(1)
+                                        : "N/A"}
+                                    </span>
                                   ) : (
-                                    <input
-                                      type="text"
-                                      placeholder="Enter comments"
-                                      value={comments[claim.id] || ""}
-                                      onChange={(e) =>
-                                        setComments((prev) => ({
-                                          ...prev,
-                                          [claim.id]: e.target.value,
-                                        }))
+                                    <select
+                                      className="rb-status-dropdown"
+                                      value={
+                                        statusUpdates[claim.id] ||
+                                        claim.status ||
+                                        ""
                                       }
-                                    />
+                                      onChange={(e) =>
+                                        handleStatusChange(
+                                          claim.id,
+                                          e.target.value
+                                        )
+                                      }
+                                    >
+                                      <option value="">Pending</option>
+                                      <option value="approved">Approve</option>
+                                      <option value="rejected">Reject</option>
+                                    </select>
                                   )}
                                 </td>
                                 <td>
-                                  {claim.status === "approved" ? (
-                                    claim.payment_status === "pending" ? (
+                                  {claim.status?.toLowerCase().trim() ===
+                                  "approved" ? (
+                                    !claim.payment_status ||
+                                    claim.payment_status
+                                      ?.toLowerCase()
+                                      .trim() === "pending" ? (
                                       <button
                                         className="pending-payment-btn"
                                         onClick={() => {
@@ -556,9 +573,11 @@ const RbAdmin = () => {
                                     ) : (
                                       <span>
                                         {claim.payment_status
-                                          .charAt(0)
-                                          .toUpperCase() +
-                                          claim.payment_status.slice(1)}
+                                          ? claim.payment_status
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                            claim.payment_status.slice(1)
+                                          : "N/A"}
                                         {claim.paid_date
                                           ? ` (${new Date(
                                               claim.paid_date

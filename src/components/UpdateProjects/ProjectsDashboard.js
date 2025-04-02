@@ -59,7 +59,7 @@ const ProjectsDashboard = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState("Current");
 
-  const userRole = localStorage.getItem("userRole") || "Admin";
+  const userRole = localStorage.getItem("userRole") || "Employee";
   const dashboardData = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   );
