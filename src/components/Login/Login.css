@@ -57,7 +57,9 @@ html {
 }
 
 .error-messages {
+  font-size: 14px;
   color: red;
+  margin-bottom: 2%;
 }
 
 .h2 {
