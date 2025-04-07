@@ -1224,7 +1224,7 @@ const Reimbursement = () => {
 
       {errorMessage && <p className="error-message">{errorMessage}</p>}
 
-      <div className="reimbursement-table-scroll">
+  <div className="reimbursement-table-scroll">
         <table className="reimbursement-table">
           <thead>
             <tr>
@@ -1360,7 +1360,85 @@ const Reimbursement = () => {
             </tr>
           </tfoot>
         </table>
+      
+
+ 
+{/* Cards for Mobile View */}
+<div className="rb-reimbursement-cards">
+  {filterClaims.map((claim, index) => (
+    <div className="rb-reimbursement-card" key={claim.id}>
+      {/* Status inside the card */}
+      <div className="rb-card-header">
+        <span className={`rb-status ${claim.status.toLowerCase()}`}>
+          {claim.status}
+        </span>
       </div>
+
+      <div className="rb-card-body">
+        <p>
+          <strong>Sl No:</strong> {index + 1}
+        </p>
+        <p>
+          <strong>Claim Type:</strong> {claim.claim_type}
+        </p>
+        <p>
+          <strong>Date:</strong>{" "}
+          {claim.date
+            ? new Date(claim.date).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "N/A"}
+        </p>
+        <p>
+          <strong>Purpose:</strong> {claim.purpose}
+        </p>
+        <p>
+          <strong>Amount:</strong> Rs {claim.total_amount}
+        </p>
+        
+        <p>
+          <strong>Comments:</strong> {claim.approver_comments || "No comments"}
+        </p>
+      </div>
+
+      <div className="rb-card-footer">
+        {attachments[claim.id]?.length > 0 ? (
+          <button
+            className="rb-attachments-btn"
+            onClick={() => handleOpenAttachments(attachments[claim.id], claim)}
+          >
+            <MdOutlineRemoveRedEye className="rb-eye-icon" /> View
+          </button>
+        ) : (
+          <span className="rb-no-attachment">No Attachment</span>
+        )}
+
+        {claim.status.toLowerCase() === "pending" && (
+          <div className="rb-card-actions">
+            <MdOutlineEdit
+              className="rb-edit-icon"
+              onClick={() => {
+                handleEdit(claim);
+                setShowForm(true);
+              }}
+            />
+            <MdDeleteOutline
+              className="rb-delete-icon"
+              onClick={() => deleteReimbursement(claim.id)}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+
+
+
+</div>
+   
 
       {showForm && (
         <div className="rb-modal">

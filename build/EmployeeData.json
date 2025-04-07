@@ -1,0 +1,21 @@
+{
+    "totalEmployees": 80,
+    "categories": [
+      {
+        "label": "Present",
+        "count": 50,
+        "color": "#004DC6"
+      },
+      {
+        "label": "Sick Leave",
+        "count": 120,
+        "color": "#438CFF"
+      },
+      {
+        "label": "Other Absence",
+        "count": 70,
+        "color": "#C7DDFF"
+      }
+    ]
+  }
+  
