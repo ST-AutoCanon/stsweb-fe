@@ -1,0 +1,26 @@
+{
+    "projects": [
+      {
+        "projectName": "Project Alpha",
+        "dept": "Engineering",
+        "startDate": "01 Jan 2023",
+        "endDate": "30 June 2023",
+        "comments": "Completed on time"
+      },
+      {
+        "projectName": "Project Beta",
+        "dept": "HR",
+        "startDate": "1Mar 2023",
+        "endDate": "1 Dec 2023",
+        "comments": "In progress"
+      },
+      {
+        "projectName": "Project Gamma",
+        "dept": "Marketing",
+        "startDate": "10 Feb 2023",
+        "endDate": "30 Nov 2023",
+        "comments": "Delayed due to resource issues"
+      }
+    ]
+  }
+  

@@ -1,0 +1,20 @@
+{
+    "dashboardCards": [
+      {
+        "icon": "FaUserGroup",
+        "label": "Previous Month Credit",
+        "value": "11,00,000"
+      },
+      {
+        "icon": "GiWallet",
+        "label": "Previous Month Expenses",
+        "value": "1,50,000"
+      },
+      {
+        "icon": "IoBagSharp",
+        "label": "Previous Month Salary",
+        "value": "1,60,746"
+      }
+    ]
+  }
+  

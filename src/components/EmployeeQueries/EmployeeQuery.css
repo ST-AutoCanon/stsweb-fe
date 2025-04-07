@@ -595,6 +595,7 @@
     display: flex;
     height: 125vh;
     width: 98%;
+    
     border-radius: 10px 30px 30px 10px;
     
     flex-direction: column;
@@ -607,6 +608,7 @@
     display: flex;
     flex-wrap: wrap;
     flex-grow: 0; /* Allow it to take full space */
+    
   }
 
   /* Sidebar Adjustments */

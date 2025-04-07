@@ -503,3 +503,408 @@
 .actions-column {
   min-width: 75px;
 }
+
+.rb-reimbursement-cards {
+  display: none;
+}
+
+
+
+
+
+/* Responsive Mobile View */
+@media (max-width: 768px) {
+  
+  .reimbursement-table
+  {
+    display: none;
+  }
+  
+  .filter-container {
+    flex-direction: column;
+    
+    margin: 4%;
+    gap: 10px;
+    padding: 15px;
+  }
+  .rb-form-header
+  {
+    margin: 8%;
+  }
+  .filter-container label {
+    font-size: 13px;
+    margin-right: 80%;
+  }
+
+  .filter-container select
+  {
+    width: 100%;
+    font-size: medium;
+    padding: 10px;
+  }
+  .filter-container input {
+    width: 94%;
+    font-size: medium;
+    padding: 10px;
+  }
+  
+  .search-btn, 
+  .apply-btn {
+    width: 100%;
+    font-size: 13px;
+    padding: 12px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .reimbursement-table-wrapper {
+    display: none;
+  }
+  
+  .rb-reimbursement-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 8%;
+  }
+  
+  .rb-reimbursement-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .rb-card-header {
+    display: flex;
+    flex-direction: column;  /* Arrange items in a row */
+    justify-content: space-between;  /* Push items apart */
+    align-items: center;  /* Align items properly */
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-left: 70%;
+  }
+
+  .rb-status {
+    font-size: 14px;
+    font-weight: bold;
+    color: green;  /* Change based on status */
+  }
+  
+  .rb-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .rb-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Reduce gap for better UX */
+  }
+  .rb-form1-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Reduce gap for better UX */
+  }
+  .rb-form2-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Reduce gap for better UX */
+  }
+  .rb-form3-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Reduce gap for better UX */
+  }
+  .rb-groups {
+    flex-direction: column; /* Stack elements in a column */
+    align-items: stretch; /* Ensure full width */
+    gap: 10px; /* Spacing between fields */
+  }
+
+  .rb-groups label {
+    display: block; /* Place label above input */
+    margin-bottom: 5px; /* Spacing between label and input */
+    font-size: 15px;
+  }
+
+  .rb-groups input
+  {
+    width: 95%;
+    padding: 10px;
+  }
+  .rb-groups select {
+    padding: 10px;
+    width: 100%; /* Make inputs/selects full width */
+    display: block; /* Ensure they stack */
+  }
+  
+
+  .hidden-file-input
+  {
+   display: none;
+  }
+ 
+  .purpose-attachment
+  {
+    display: flex;
+    flex-direction: column!important;
+    gap: 5px;
+  }
+  .pa-groups {
+    flex-direction: column!important; /* Stack elements in a column */
+    align-items: stretch; /* Ensure full width */
+    gap: 10px; /* Spacing between fields */
+  }
+  
+  .pa-groups label {
+    display: block; /* Place label above input */
+    margin-bottom: 5px; /* Spacing between label and input */
+    font-size: 15px;
+  }
+  
+  .pa-groups input {
+    padding: 2%;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    border-radius: 5px;
+    width: 96%;
+    height: 80px;
+  }
+ .custom-file-upload
+ {
+  margin-left: -40px;
+  padding: 10px;
+ }
+ .hidden-file-input
+ {
+  display: none !important;
+ }
+
+ 
+
+
+  
+  .rb-card-body p {
+    margin: 5px 0;
+  }
+  
+  .rb-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .rb-card-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .rb-edit-icon,
+  .rb-delete-icon {
+    cursor: pointer;
+    font-size: 20px;
+  }
+}
+
+
+/* Mobile View */
+@media (max-width: 768px) {
+  .rb-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px;
+  
+  }
+
+  .rb-modal-content {
+    width: 92%;
+    max-width: 100%;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+    max-height: 90vh;
+    
+  }
+
+  .claim-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .claim-form-title {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .claim-form-close {
+    font-size: 24px;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  .rb-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .rb-tab {
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f3f3f3;
+    transition: all 0.3s ease;
+  }
+
+  .rb-tab.active {
+    background: #79c42b;
+    color: white;
+    font-weight: 600;
+  }
+
+  .reimbursement-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+  }
+
+  
+  .reimbursement-form input
+  {
+    display: flex;
+    flex-direction: column;
+    
+    
+  }
+  .reimbursement-form select {
+    width: 60%;
+    
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    transition: border 0.3s ease;
+  }
+
+  .reimbursement-form input:focus
+  {
+    width: 95%;
+  }
+  .reimbursement-form select:focus {
+    border-color: #79c42b;
+    background: white;
+
+  }
+
+  .reimbursement-form-button {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+  }
+
+
+  .rb-radio {
+    
+    
+    padding: 0%;
+    font-weight: bold;
+    font-size: 20%;
+  }
+  .rb-radio-options
+  {
+    font-size: 20%;
+  }
+  .rb-radio label
+  {
+    font-size: medium;
+  }
+
+  .rb-close,
+  .rb-submit {
+    width: 100%;
+    font-size: 14px;
+    padding: 14px;
+
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-items: stretch; 
+  }
+
+  .rb-close {
+    background: #ddd;
+    color: #333;
+  }
+
+  .rb-submit {
+    background: #79c42b;
+    color: white;
+    
+  }
+
+  .rb-close:hover {
+    background: #bbb;
+  }
+
+  .rb-submit:hover {
+    background: #79c42b;
+  }
+
+  
+
+
+  
+}
+
+
+@media (max-width: 768px) {
+  .sub-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .sub-tab {
+    flex: 1;
+    max-width: 140px;
+    background-color: white;
+    color: black;
+    padding: 12px;
+    border: 2px solid #79c42b;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+
+  
+
+  .sub-tab.active {
+    background-color: #79c42b;
+    color: white;
+    border-color: #79c42b;
+  }
+ 
+}
+
