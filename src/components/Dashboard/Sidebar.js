@@ -17,6 +17,7 @@ import PayrollSummary from "../PayrollSummary/PayrollSummary";
 import Reimbursement from "../Reimbursement/Reimbursement";
 import RbAdmin from "../Reimbursement/RbAdmin";
 import RbTeamLead from "../Reimbursement/RbTeamLead";
+import Assets from "../Assets/assets";
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -84,12 +85,13 @@ const Sidebar = ({ setActiveContent }) => {
         }
         break;
 
-      case "/payrollSummary":
-        if (userRole === "Admin" && userPosition !== "Finance Manager") {
-          setActiveContent(<Salary_Statement />);
-        } else {
-          setActiveContent(<PayrollSummary />);
-        }
+      
+        case "/Salary_Statement":
+        setActiveContent(<Salary_Statement />);
+        
+        break;
+        case "/payrollSummary":
+        setActiveContent(<PayrollSummary />);
         break;
 
       case "/reimbursement":
@@ -107,6 +109,10 @@ const Sidebar = ({ setActiveContent }) => {
           userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />
         );
         break;
+        case "/assets":
+            setActiveContent(<Assets />);
+            break;
+
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }
