@@ -85,12 +85,13 @@ const Sidebar = ({ setActiveContent }) => {
         }
         break;
 
-      case "/payrollSummary":
-        if (userRole === "Admin" && userPosition !== "Finance Manager") {
-          setActiveContent(<Salary_Statement />);
-        } else {
-          setActiveContent(<PayrollSummary />);
-        }
+      
+        case "/Salary_Statement":
+        setActiveContent(<Salary_Statement />);
+        
+        break;
+        case "/payrollSummary":
+        setActiveContent(<PayrollSummary />);
         break;
 
       case "/reimbursement":

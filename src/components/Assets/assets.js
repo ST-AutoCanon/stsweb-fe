@@ -88,7 +88,7 @@ const handleAssignedToChange = async (e) => {
   if (value.length >= 1) {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/assets/search-employees?q=${value}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
         {
           headers: {
             "x-api-key": API_KEY,
@@ -121,7 +121,7 @@ const handleAssignedToInputChange = async (e, index) => {
   if (value.length >= 1) {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/assets/search-employees?q=${value}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
         {
           headers: {
             "x-api-key": API_KEY,
@@ -181,7 +181,7 @@ const handleSuggestionSelect = (name, index) => {
   useEffect(() => {
     if (assetId) {
 
-        fetch(`http://localhost:5000/api/assets/assigned/${assetId}`, {
+        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`, {
             method: "GET",
             headers: {
                 "x-api-key": API_KEY,  // Use the API key in the header
@@ -222,8 +222,8 @@ const handleSuggestionSelect = (name, index) => {
     const fetchAssignments = async () => {
       try {
         const [assetsResponse, assignmentsResponse] = await Promise.all([
-          axios.get('http://localhost:5000/assets/list'),
-          axios.get('http://localhost:5000/api/assignments')
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/assets/list`),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/assignments`)
         ]);
         setAssets(assetsResponse.data);
         setAssignedAssets(assignmentsResponse.data);
@@ -241,7 +241,7 @@ const handleSuggestionSelect = (name, index) => {
     try {
       console.log("Fetching assets...");
       
-      const response = await axios.get("http://localhost:5000/assets/list", {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/assets/list`, {
         headers: {
           "Content-Type": "Application/JSON", // Ensure correct content type
           "x-api-key": API_KEY, // If needed
@@ -272,7 +272,7 @@ const handleSuggestionSelect = (name, index) => {
   };
   const viewDocument = async (path) => {
     try {
-        const response = await axios.get(`http://localhost:5000/uploads/${path}`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/uploads/${path}`, {
             headers: { "x-api-key": API_KEY },
             responseType: "blob", // Ensure the file is treated as a blob
         });
@@ -587,7 +587,7 @@ if (!firstAssignment.returnDate) {
     console.log("📤 Sending First Assignment:", firstAssignment);
 
     const response = await axios.post(
-      "http://localhost:5000/api/assets/assign",
+      `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
       firstAssignment,
       {
         headers: {
@@ -617,7 +617,7 @@ const handleDownloadDocument = async (documentPath) => {
     const fileName = documentPath.split("/").pop();
 
     const response = await axios.get(
-      `http://localhost:5000/assets/download/${fileName}`,
+      `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`,
       {
         headers: {
           "x-api-key": API_KEY,
@@ -650,7 +650,7 @@ const handleViewDocument = async (documentPath) => {
   }
 
   try {
-    const response = await axios.get(`http://localhost:5000/${documentPath.replace(/^\/?uploads\//, "uploads/")}`, {
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/${documentPath.replace(/^\/?uploads\//, "uploads/")}`, {
       headers: {
         "x-api-key": API_KEY, // Send API key
       },
@@ -695,7 +695,7 @@ const handleViewDocument = async (documentPath) => {
   
     try {
       const response = await axios.post(
-        "http://localhost:5000/assets/add",
+        `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
         formData,
         {
           headers: {
@@ -724,7 +724,7 @@ const handleViewDocument = async (documentPath) => {
 
   const fetchAssignedAssets = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/assets/assigned", {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned`, {
         headers: {
           "Content-Type": "application/json",
           "x-api-key": API_KEY,
@@ -757,7 +757,7 @@ useEffect(() => {
       console.log(`📡 Fetching data for Asset ID: ${assetId}`);
   
       const response = await axios.get(
-        `http://localhost:5000/api/assets/assigned/${assetId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -807,7 +807,7 @@ useEffect(() => {
   
   const handleSaveReturnDate = async () => {
     try {
-        const response = await axios.put('http://localhost:5000/api/assets/return-date', {
+        const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/assets/return-date`, {
             assetId: formData.assetId,
             employeeName: formData.employeeName,
             returnDate: formData.returnDate,
@@ -843,7 +843,7 @@ useEffect(() => {
 const [assetCounts, setAssetCounts] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/assets/counts", {
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/assets/counts`, {
       headers: {
         "x-api-key": API_KEY,
         "Content-Type": "application/json",
@@ -941,7 +941,7 @@ const [assetCounts, setAssetCounts] = useState([]);
   
   useEffect(() => {
     if (  assetId) {
-      fetch(`http://localhost:5000/api/assets/assigned/${assetId}`)
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`)
         .then(res => res.json())
         .then(data => {
           if (data.length > 0 && Array.isArray(data[0].assignments)) {
@@ -1215,7 +1215,7 @@ const groupedAssetCounts = assetCounts.reduce((acc, item) => {
         if (Array.isArray(assignedData) && assignedData.length > 0) {
           const latestAssignment = assignedData[assignedData.length - 1];
           if (latestAssignment.status === "Decommissioned") {
-            return "#ffcccc"; // Light red background for decommissioned rows
+            return "#e7d9d9"; // Light red background for decommissioned rows
           }
         }
       } catch (error) {
