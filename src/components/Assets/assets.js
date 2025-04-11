@@ -154,28 +154,7 @@ const handleSuggestionSelect = (name, index) => {
 
 
   const { assetId } = useParams(); // Get assetId from the URL
-  // useEffect(() => {
-  //   const fetchAssignedAssets = async () => {
-  //     try {
-  //       const response = await axios.get(
-  //         "http://localhost:5000/api/assets/assigned/FUR-TBL-002",
-  //         {
-  //           headers: {
-  //             "Content-Type": "Application/JSON", // Ensure correct content type
-  //             "x-api-key": API_KEY, // If needed
-  //           },
-  //         }
-  //       );
-  //       console.log("✅ Assigned Assets:", response.data);
-  //       setAssignedAssets(response.data[0]?.assignments || []);
-  //     } catch (error) {
-  //       console.error("❌ Error fetching assigned assets:", error);
-  //     }
-  //   };
-    
   
-  //   fetchAssignedAssets();
-  // }, []);
   const [selectedAssetId, setSelectedAssetId] = useState(null);
 
   useEffect(() => {
@@ -285,59 +264,7 @@ const handleSuggestionSelect = (name, index) => {
         showAlert("Failed to open document. Check console logs.");
     }
 };
-// const openAssignPopup = (asset) => {
-//   const assetId = asset.id;
 
-//   setSelectedAsset(asset); // Store full asset details
-//   setSelectedAssetId(assetId); // Store ID if needed elsewhere
-
-//   try {
-//     let parsed = [];
-
-//     if (asset.assigned_to) {
-//       parsed = typeof asset.assigned_to === "string"
-//         ? JSON.parse(asset.assigned_to)
-//         : asset.assigned_to;
-//     }
-
-//     // Store the full list of assignment rows for this asset
-//     setAssignmentRowsByAsset((prev) => ({
-//       ...prev,
-//       [assetId]: parsed.length
-//         ? parsed
-//         : [{
-//             assignedTo: "",
-//             startDate: "",
-//             returnDate: "",
-//             status: "Pending",
-//             comments: ""
-//           }]
-//     }));
-//   } catch (err) {
-//     console.error("Error parsing assigned_to:", err);
-//     // Default to 1 empty row
-//     setAssignmentRowsByAsset((prev) => ({
-//       ...prev,
-//       [assetId]: [{
-//         assignedTo: "",
-//         startDate: "",
-//         returnDate: "",
-//         status: "Pending",
-//         comments: ""
-//       }]
-//     }));
-//   }
-
-//   // Reset controlled states (if you're using individual states)
-//   setAssignedTo("");
-//   setStartDate("");
-//   setReturnDate("");
-//   setComments("");
-//   setAssigningStatus("Pending");
-
-//   // Show popup
-//   setShowAssignPopup(true);
-// };
 const openAssignPopup = (asset) => {
   const assetId = asset.id;
   setSelectedAssetId(assetId);
@@ -399,154 +326,8 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}`; // Format: YYYY-MM-DD
 };
 
-
-// const handleAssign = async () => {
-//   const assetAssignment = {
-//     assetId: selectedAsset?.asset_id || "",
-//     name: assignedTo?.name || assignedTo, // Ensure name is a string
-//     startDate: formatDate(startDate),  // Convert date format
-//     returnDate: formatDate(returnDate), // Convert date format
-//     comments: comments || "", // Ensure comments are not undefined
-//     status: assigningStatus || "Pending",
-//   };
-  
-
-//   try {
-//     const response = await fetch("http://localhost:5000/api/assets/assign", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         "x-api-key": API_KEY, // Add API Key here
-
-//       },
-//       body: JSON.stringify(assetAssignment),
-//     });
-
-//     const data = await response.json();
-//     if (response.ok) {
-      
-//       closeAssignPopup();
-//     }
-//      else {
-//       alert(`Error: ${data.message}`);
-//     }
-//     alert("Asset assigned successfully!");
-//       fetchAssets(); // Refresh data after assigning
-//   } catch (error) {
-//     console.error("Error assigning asset:", error); // Log the full error object
-//     alert(`Error assigning asset: ${error.response?.data?.message || error.message || "Unknown error"}`);
-//   }
-  
-// };
 const [fieldErrors, setFieldErrors] = useState({});
 
-// const handleAssign = async () => {
-//   const rows = assignmentRowsByAsset[selectedAssetId] || [];
-//   const errors = {};
-//   let hasValidRow = false;
-
-//   console.log("🧾 Assignment Rows:", rows);
-
-//   rows.forEach((row, index) => {
-//     const rowErrors = {};
-
-//     const assignedToValue =
-//       typeof row.assignedTo === "string"
-//         ? row.assignedTo.trim()
-//         : row.assignedTo?.name?.trim?.() || "";
-
-//     const startDateValue = row.startDate
-//       ? typeof row.startDate === "string"
-//         ? row.startDate.trim()
-//         : row.startDate.toString().trim()
-//       : "";
-
-//     const statusValue = row.status?.toString().trim() || "";
-
-//     console.log(`Row ${index + 1}:`, {
-//       assignedToValue,
-//       startDateValue,
-//       statusValue,
-//     });
-
-//     if (!assignedToValue) rowErrors.assignedTo = true;
-//     if (!startDateValue) rowErrors.startDate = true;
-//     if (!statusValue) rowErrors.status = true;
-
-//     if (Object.keys(rowErrors).length > 0) {
-//       errors[index] = rowErrors;
-//     } else {
-//       hasValidRow = true;
-//     }
-//   });
-
-//   setFieldErrors(errors);
-
-//   if (!hasValidRow) {
-//     alert("Please fill at least one complete assignment row.");
-//     return;
-//   }
-
-//   const validAssignments = rows
-//     .filter(row => {
-//       const assignedToValue =
-//         typeof row.assignedTo === "string"
-//           ? row.assignedTo.trim()
-//           : row.assignedTo?.name?.trim?.() || "";
-
-//       const startDateValue = row.startDate
-//         ? typeof row.startDate === "string"
-//           ? row.startDate.trim()
-//           : row.startDate.toString().trim()
-//         : "";
-
-//       const statusValue = row.status?.toString().trim() || "";
-
-//       return assignedToValue && startDateValue && statusValue;
-//     })
-//     .map(row => ({
-//       assetId: selectedAsset?.asset_id || "",
-//       name:
-//         typeof row.assignedTo === "string"
-//           ? row.assignedTo.trim()
-//           : row.assignedTo?.name?.trim(),
-//       startDate: formatDate(row.startDate),
-//       returnDate: row.returnDate ? formatDate(row.returnDate) : null,
-//       comments: row.comments || "",
-//       status: row.status,
-//     }));
-
-//   console.log("✅ Valid Assignments to Submit:", validAssignments);
-
-//   if (validAssignments.length === 0) {
-//     alert("Please fill at least one complete assignment row.");
-//     return;
-//   }
-
-//   try {
-//     const response = await fetch("http://localhost:5000/api/assets/assign", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         "x-api-key": API_KEY,
-//       },
-//       body: JSON.stringify({ assignments: validAssignments }),
-//     });
-
-//     const data = await response.json();
-
-//     if (response.ok) {
-//       alert("Assets assigned successfully!");
-//       closeAssignPopup();
-//       fetchAssets();
-//     } else {
-//       alert(`Error: ${data.message}`);
-//     }
-//   } catch (error) {
-//     console.error("❌ Error assigning asset:", error);
-//     alert("Failed to assign assets.");
-//   }
-// };
 
 const handleAssign = async () => {
   try {
@@ -662,7 +443,7 @@ const handleViewDocument = async (documentPath) => {
     window.open(fileURL, "_blank");
   } catch (error) {
     console.error("Error opening document:", error.response?.data || error.message);
-    showAlert("Failed to open document. Check console logs.");
+    showAlert("Failed to open document.");
   }
 };
 
@@ -989,13 +770,24 @@ const groupedAssetCounts = assetCounts.reduce((acc, item) => {
   acc[category].subcategories.push({ sub_category, sub_category_count });
   return acc;
 }, {});
+const [searchTerm, setSearchTerm] = useState("");
 
 
+// First, sort the assets by asset_code descending
+const sortedAssets = [...assets].sort((a, b) => {
+  const numA = parseInt(a.asset_code?.split("-")[2] || "0", 10);
+  const numB = parseInt(b.asset_code?.split("-")[2] || "0", 10);
+  return numB - numA; // Descending order
+});
+
+// Then filter the sorted assets
+const filteredAssets = sortedAssets.filter((asset) =>
+  (asset.asset_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+  (asset.asset_id?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+  (asset.asset_code?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+);
 
 
-
-
-  
 
 
 
@@ -1184,24 +976,46 @@ const groupedAssetCounts = assetCounts.reduce((acc, item) => {
 
       
       {/* Display Assets in Table */}
+      <div className="assets-table-wrapper">
+
       <div className="assets-table">
         <table>
-          <thead>
+        
+    <caption style={{ captionSide: "top", padding: "10px", textAlign: "left" }}>
+    <div className="asset-search-container">
+
+    <label htmlFor="searchInput" className="asset-table-search-label">
+      Search:
+    </label>
+    <input
+      type="text"
+      placeholder="Search by Asset_ID,Asset_code.."
+      className="asset-table-search-input"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+    </div>
+  </caption>
+              <thead>
             <tr>
               <th>Asset_ID</th>
+              <th>Asset Code</th> 
+
               <th>Asset Name</th>
               <th>Configuration</th>
               <th>Purchased Date</th>
               <th>Assigned To</th>
               <th>Category</th>
-              <th>Sub-Category</th>
+              
               <th>Status</th>
               <th>Document</th>
             </tr>
           </thead>
           <tbody>
-            {assets.length > 0 ? (
-              assets.map((asset) => (
+          
+            {(filteredAssets.length > 0 ? filteredAssets : sortedAssets).length > 0 ? (
+  (filteredAssets.length > 0 ? filteredAssets : sortedAssets).map((asset) => (
+
 <tr
   key={asset.id}
   style={{
@@ -1226,6 +1040,7 @@ const groupedAssetCounts = assetCounts.reduce((acc, item) => {
   }}
 >
                   <td> {asset.asset_id}</td>
+                  <td>{asset.asset_code}</td>
                   <td>{asset.asset_name}</td>
                   <td>{asset.configuration}</td>
                   <td>{new Date(asset.valuation_date).toISOString().split("T")[0]}</td>
@@ -1270,7 +1085,7 @@ const groupedAssetCounts = assetCounts.reduce((acc, item) => {
         const latestAssignment = assignedData[assignedData.length - 1];
 
         if (latestAssignment.status === "Decommissioned") {
-          showAlert("Error: This device is decommissioned and cannot be assigned.");
+          showAlert(" This device is decommissioned and cannot be assigned.");
           
           return; // Stop execution
         }
@@ -1292,7 +1107,6 @@ const groupedAssetCounts = assetCounts.reduce((acc, item) => {
 </td>
 
           <td>{asset.category}</td>
-                  <td>{asset.sub_category}</td>
 
 <td
   style={{
@@ -1373,6 +1187,8 @@ const groupedAssetCounts = assetCounts.reduce((acc, item) => {
             )}
           </tbody>
         </table>
+        </div>
+
       </div>
 
 
