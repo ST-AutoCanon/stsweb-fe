@@ -156,12 +156,51 @@
 }
 
 .assets-container {
-  max-width: 1000px;  /* You can reduce this to 800px or 600px as needed */
+  max-width: 1200px;  /* You can reduce this to 800px or 600px as needed */
   margin: 0 auto;      /* Centers the container */
   padding: 0px;       /* Smaller padding */
   border-radius: 8px;
 }
 
+
+/* Style for the caption container */
+.table-caption {
+  caption-side: top;
+  padding: 10px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Label styling */
+.asset-table-search-label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 8px; /* 👈 adds space between label and input */
+
+}
+
+/* Input box styling */
+.asset-table-search-input {
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 160px;
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.asset-table-search-input:focus {
+  border-color: #28a745; /* soft green border on focus */
+}
+.asset-search-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
 
 
 
@@ -384,7 +423,6 @@ margin: 20px auto;
 background: #f9f9f9;
 border-radius: 10px;
 box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-overflow: auto; /* Enables scrolling */
 max-height: 450px; /* Adjust height */
 position: relative;
 border: 1px solid #ddd;
@@ -398,7 +436,12 @@ background-color: white;
 border-radius: 8px;
 table-layout: auto; /* Ensures correct column width */
 }
-
+.assets-table-wrapper {
+  margin-top:20px;
+  max-height: 300px; /* Adjust height as needed */
+  overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
 /* Sticky Header */
 .assets-table thead {
 background-color: #00468C;
@@ -440,7 +483,7 @@ background-color: #e0e0e0;
 
 /* Table Data Cells */
 .assets-table td {
-padding: 5px;
+padding: 3px;
 text-align: center;
 font-size: 12px; /* Reduced font size */
 border: 1px solid #ccc; /* Grid lines */
