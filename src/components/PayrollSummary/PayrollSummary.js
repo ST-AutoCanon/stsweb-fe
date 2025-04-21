@@ -185,44 +185,107 @@ const PayrollSummary = () => {
                   <td>Basic Salary</td>
                   <td>₹{payrollData.basic_salary}</td>
                   <td>Provident Fund (PF)</td>
-                  <td>₹{payrollData.provident_fund_pf || 0}</td>
+                  <td>₹{payrollData.pf || 0}</td>
                 </tr>
                 <tr>
                   <td>HRA</td>
-                  <td>₹{payrollData.house_rent_allowance_hra || 0}</td>
+                  <td>₹{payrollData.hra || 0}</td>
                   <td>ESI / Insurance</td>
-                  <td>₹{payrollData.esi || 0}</td>
+                  <td>₹{payrollData.insurance || 0}</td>
                 </tr>
                 <tr>
                   <td>Other Allowances</td>
-                  <td>₹{payrollData.other_allowances || 0}</td>
+                  <td>₹{payrollData.allowance || 0}</td>
                   <td>Professional Tax</td>
-                  <td>₹{payrollData.tax_deduction || 0}</td>
+                  <td>₹{payrollData.pt || 0}</td>
                 </tr>
+                
                 <tr>
                   <td></td>
                   <td></td>
                   <td>TDS</td>
                   <td>₹{payrollData.tds || 0}</td>
                 </tr>
+                {payrollData.special_allowance > 0 && (
+  <tr>
+    <td>Bonus</td>
+    <td>₹{payrollData.special_allowance}</td>
+    <td></td>
+    <td></td>
+  </tr>
+)}
+ {payrollData.rnrbonus > 0 && (
+    <tr>
+      <td>Rewards And Recognition</td>
+      <td>₹{payrollData.rnrbonus}</td>
+      <td></td>
+      <td></td>
+    </tr>
+  )}
+                {payrollData.advance_recovery > 0 && (
+  <tr>
+    <td></td>
+    <td></td>
+    <td>Advance Recovery</td>
+    <td>₹{payrollData.advance_recovery}</td>
+  </tr>
+)}
                 <tr className="total-row">
                   <td><strong>Gross Earnings</strong></td>
                   <td><strong>₹{payrollData.total_earnings}</strong></td>
                   <td><strong>Total Deductions</strong></td>
                   <td><strong>₹{payrollData.total_deductions}</strong></td>
                 </tr>
+                
                 <tr className="net-salary-row">
                   <td colSpan="2"><strong>Net Salary</strong></td>
                   <td colSpan="2"><strong>₹{Math.floor(payrollData.net_salary)}</strong></td>
                   </tr>
               </tbody>
             </table>
+            {(payrollData.advance_taken || payrollData.advance_recovery) && (
+  <div className="advance-section">
+    <h3>Salary Advance</h3>
+    <table className="advance-table">
+      <thead>
+        <tr>
+          <th>Total Advance Taken</th>
+          <th>Advance Recovery This Month</th>
+        </tr>
+        
+      </thead>
+      
+      <tbody>
+        <tr>
+          <td>₹{payrollData.salary_advance || 0}</td>
+          <td>₹{payrollData.advance_recovery || 0}</td>
+        </tr>
+      </tbody>
+      <tr className="net-salary-row">
+  <td
+    colSpan="2"
+    style={{
+      textAlign: "left",
+      paddingLeft: "8px",
+      backgroundColor: "white",
+      color: "black"
+    }}
+  >
+    <strong>Net Salary: ₹{Math.floor(payrollData.net_salary)}</strong>
+  </td>
+</tr>
+
+
+    </table>
+  </div>
+)}
 
             {/* Download Button */}
             <button onClick={() => generatePayslipPDF(payrollData, selectedDate,bankDetails,attendance)} className="payroll-download-btn">
               Download PDF
             </button>
           </div>
+          
         </>
       ) : (
         <p>No payroll data available for this month.</p>

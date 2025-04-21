@@ -84,3 +84,11 @@
   color: #777;
   padding: 2%;
 }
+
+
+
+.profile-assets {
+  flex: 1;
+  min-width: 300px;
+  margin-left: 30px;
+}

@@ -84,39 +84,86 @@ const generatePayslipPDF = (payrollData, selectedDate, bankDetails, attendance) 
   doc.setFont("times", "normal").text(`${payrollData.uin_number || "N/A"}`, 60, 98);
 
   // Right side details
-  doc.setFont("times", "bold").text("Employee ID:", 120, 70);
-  doc.setFont("times", "normal").text(`${payrollData.employee_id}`, 160, 70);
+  doc.setFont("times", "bold").text("Employee ID:", 110, 70);
+  doc.setFont("times", "normal").text(`${payrollData.employee_id}`, 150, 70);
 
-  doc.setFont("times", "bold").text("Designation:", 120, 77);
-  doc.setFont("times", "normal").text(`${payrollData.designation.toUpperCase()}`, 160, 77);
+  doc.setFont("times", "bold").text("Designation:", 110, 77);
+  doc.setFont("times", "normal").text(`${payrollData.designation.toUpperCase()}`, 150, 77);
 
-  doc.setFont("times", "bold").text("Account No:", 120, 84);
-  doc.setFont("times", "normal").text(`${bankDetails.account_number} (${bankDetails.bank_name})`, 160, 84);
+  doc.setFont("times", "bold").text("Account No:", 110, 84);
+  doc.setFont("times", "normal").text(`${bankDetails.account_number} (${bankDetails.bank_name})`, 150, 84);
 
-  doc.setFont("times", "bold").text("Leaves Taken:", 120, 91);
-  doc.setFont("times", "normal").text(`${attendance?.leave_count}`, 160, 91);
+  doc.setFont("times", "bold").text("Leaves Taken:", 110, 91);
+  doc.setFont("times", "normal").text(`${attendance?.leave_count}`, 150, 91);
 
-  doc.setFont("times", "bold").text("Branch Name:", 120, 98); // Added Branch Name
-  doc.setFont("times", "normal").text(`${bankDetails.branch_name || "N/A"}`, 160, 98);
+  doc.setFont("times", "bold").text("Branch Name:", 110, 98); // Added Branch Name
+  doc.setFont("times", "normal").text(`${bankDetails.branch_name || "N/A"}`, 150, 98);
 
   // Tables
   autoTable(doc, { startY: 105, styles: { fontSize: 10, lineColor: [0, 0, 0], lineWidth: 0.3 }, theme: "grid" });
 
+  const earningsRows = [
+    ["Basic", `${payrollData.basic_salary}`, "PF", `${payrollData.pf || 0}`],
+    ["HRA", `${payrollData.hra || 0}`, "ESI/INSURANCE", `${payrollData.insurance || 0}`],
+    ["Other Allowance", `${payrollData.allowance || 0}`, "Professional Tax", `${payrollData.pt || 0}`]
+  ];
+  
+  // Conditionally add Special Allowance
+  if (payrollData.special_allowance && payrollData.special_allowance != 0) {
+    earningsRows.push(["Bonus", `${payrollData.special_allowance}`, "", ""]);
+  }
+
+  if (payrollData.rnrbonus && payrollData.rnrbonus != 0) {
+    earningsRows.push(["Rewards And Recognition", `${payrollData.rnrbonus}`, "", ""]);
+  }
+  
+  // Conditionally add Advance Taken
+  if (payrollData.advance_taken && payrollData.advance_taken != 0) {
+    earningsRows.push(["", "", "Advance Taken", `${payrollData.advance_taken}`]);
+  }
+  
+  // Conditionally add Advance Recovery
+  if (payrollData.advance_recovery && payrollData.advance_recovery != 0) {
+    earningsRows.push(["", "", "Advance Recovery", `${payrollData.advance_recovery}`]);
+  }
+  
+  
+  // Add gross and total rows at the end
+  earningsRows.push(
+    ["", "", "TDS", `${payrollData.tds}`],
+    ["Gross Earnings", `${Math.floor(payrollData.total_earnings)}`, "Total Deductions", `${payrollData.total_deductions}`]
+  );
+  
   autoTable(doc, {
     startY: doc.lastAutoTable.finalY + 5,
     head: [["Earnings", "Amount", "Deductions", "Amount"]],
-    body: [
-      ["Basic", `${payrollData.basic_salary}`, "PF", `${payrollData.provident_fund_pf || 0}`],
-      ["HRA", `${payrollData.house_rent_allowance_hra || 0}`, "ESI/INSURANCE", `${payrollData.esi || 0}`],
-      ["Other Allowance", `${payrollData.other_allowances || 0}`, "Professional Tax", `${payrollData.tax_deduction || 0}`],
-      ["", "", "TDS", `${payrollData.tds}`],
-      ["Gross Earnings", `${Math.floor(payrollData.total_earnings)}`, "Total Deductions", `${payrollData.total_deductions}`],
-    ],
+    body: earningsRows,
     styles: { fontSize: 10, lineColor: [0, 0, 0], lineWidth: 0.3 },
     theme: "grid",
-    headStyles: { fillColor: [0, 29, 74], textColor: [255, 255, 255] }
+    headStyles: { fillColor: [130, 218, 254], textColor: [0, 0, 0] } // Text color set to black
   });
+  
+  
+// Check if Advance Taken or Advance Recovery exists
+if (payrollData.advance_taken || payrollData.advance_recovery) {
+  const advanceRows = [
+    ["Advance Taken", `${payrollData.salary_advance || 0}`],
+    ["Advance Recovery", `${payrollData.advance_recovery || 0}`]
+  ];
 
+  // Add table for Advance Taken and Recovery before Net Salary table
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 4,
+    body: advanceRows,
+    styles: { fontSize: 10, fontStyle: "bold", lineColor: [0, 0, 0], lineWidth: 0.3 },
+    columnStyles: {
+      0: { cellWidth: 58 }, // Make label column narrower
+      1: { cellWidth: 124 }, // Value column
+    },
+    margin: { left: 14 }, // Shift entire table more to the left
+    theme: "grid",
+  });
+}
   autoTable(doc, {
     startY: doc.lastAutoTable.finalY + 4,
     body: [
@@ -124,6 +171,10 @@ const generatePayslipPDF = (payrollData, selectedDate, bankDetails, attendance) 
       ["Net Salary (in words)", netSalaryWords],
     ],
     styles: { fontSize: 10, fontStyle: "bold", lineColor: [0, 0, 0], lineWidth: 0.3 },
+    columnStyles: {
+      0: { cellWidth: 58 }, // Make label column narrower
+      1: { cellWidth: 124 }, // Value column
+    },
     theme: "grid",
   });
 

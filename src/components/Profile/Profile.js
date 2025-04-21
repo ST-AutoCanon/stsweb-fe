@@ -12,6 +12,7 @@ const Profile = ({ onClose }) => {
   const API_KEY = process.env.REACT_APP_API_KEY;
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employeeId || null;
+  const [assignedAssets, setAssignedAssets] = useState([]); // Added state for assigned assets
 
   // Helper to determine default avatar based on gender
   const getDefaultAvatar = (gender) => {
@@ -65,8 +66,27 @@ const Profile = ({ onClose }) => {
       }
     };
 
+    const fetchAssignedAssets = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned-assets/${employeeId}`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+            },
+          }
+        );
+        setAssignedAssets(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching assigned assets:", error);
+      }
+    };
+
+
     if (employeeId) {
       fetchProfile();
+      fetchAssignedAssets(); // Fetch assigned assets
+
     }
   }, [employeeId, API_KEY]);
 
@@ -77,7 +97,7 @@ const Profile = ({ onClose }) => {
   if (!profile) {
     return <div className="profile-popup">No profile data available.</div>;
   }
-
+``
   return (
     <div className="profile-popup">
       <div className="profile-content">
@@ -135,7 +155,23 @@ const Profile = ({ onClose }) => {
           <p>
             <strong>Mother's Name:</strong> {profile.mother_name}
           </p>
+          
         </div>
+        {/* Display assigned assets */}
+        <div className="profile-assets">
+
+        <p><strong>Assigned Assets:</strong></p>
+{assignedAssets.length > 0 ? (
+  assignedAssets.map((asset) => (
+    <p key={asset.asset_id}>
+      • <strong>{asset.asset_id}</strong> - {asset.asset_name}
+    </p>
+  ))
+) : (
+  <p>No assets assigned.</p>
+)}
+
+      </div>
       </div>
     </div>
   );
