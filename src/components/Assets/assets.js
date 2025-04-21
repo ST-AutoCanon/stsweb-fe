@@ -130,8 +130,11 @@ const handleAssignedToInputChange = async (e, index) => {
         }
       );
 
-      const names = response.data.data.map((emp) => emp.name);
-      setPopupSuggestions((prev) => ({ ...prev, [index]: names }));
+      const suggestions = response.data.data.map((emp) => ({
+        name: emp.name,
+        employeeId: emp.employee_id,
+      }));
+      setPopupSuggestions((prev) => ({ ...prev, [index]: suggestions }));
     } catch (err) {
       console.error("Suggestion error:", err);
     }
@@ -139,10 +142,12 @@ const handleAssignedToInputChange = async (e, index) => {
     setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
   }
 };
-const handleSuggestionSelect = (name, index) => {
-  updateAssignment(index, "assignedTo", name);
+const handleSuggestionSelect = (selectedEmp, index) => {
+  updateAssignment(index, "assignedTo", selectedEmp.name);
+  updateAssignment(index, "employeeId", selectedEmp.employeeId); // Save ID
   setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
 };
+
 
   
   useEffect(() => {
@@ -184,6 +189,39 @@ const handleSuggestionSelect = (name, index) => {
     }
 }, [assetId]);
 
+  // Handling employee input changes
+  const handleAssignedToChange2 = async (e) => {
+    const value = e.target.value;
+    setAssignedTo(value);
+  
+    // If the input is empty, clear the suggestions and hide the dropdown
+    if (value.length === 0) {
+      setEmployeeSuggestions([]); 
+    } else {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+  
+        console.log("API response:", response.data); // Debugging API response
+  
+        const suggestions = response.data.data.map((emp) => ({
+          name: emp.name,
+          employeeId: emp.employee_id,
+        }));
+  
+        setEmployeeSuggestions(suggestions); // Set suggestions based on API response
+      } catch (err) {
+        console.error("Suggestion error:", err);
+      }
+    }
+  };
   
 
 
@@ -341,6 +379,8 @@ const handleAssign = async () => {
     const firstAssignment = {
       assetId: selectedAsset?.asset_id,
       assignedTo: rows[0].assignedTo,
+      employeeId: rows[0].employeeId,          // ✅ must be included
+
       startDate: rows[0].startDate,
       returnDate: rows[0].returnDate,
       status: rows[0].assigningStatus,
@@ -894,53 +934,53 @@ const filteredAssets = sortedAssets.filter((asset) =>
       <input type="date" value={valuationDate} onChange={(e) => setValuationDate(e.target.value)} />
       </div>
 
-<div className="row" style={{ position: "relative" }}>
+      <div className="row" style={{ position: "relative" }}>
   <label>Assigned To</label>
   <input
     type="text"
     placeholder="Enter Assignee Name"
     value={assignedTo}
-    onChange={handleAssignedToChange}
-    onBlur={handleBlur} 
+    onChange={handleAssignedToChange2}
+    onBlur={handleBlur}
     autoComplete="off"
   />
 
   {employeeSuggestions.length > 0 && (
     <ul
       style={{
-    position: "absolute",
-    top: "100%",
-        left: "160px", // 👈 moves box to the right
-
-    right: 0, // 👈 shifts box to the right
-    backgroundColor: "#fff",
-    border: "1px solid #ccc",
-    zIndex: 999,
-    maxHeight: "150px",
-    overflowY: "auto",
-    listStyle: "none",
-    padding: "0",
-    margin: "0",
-    width: "100%", // matches input
-    maxWidth: "250px", // optional
-  }}
+        position: "absolute",
+        top: "100%",
+        left: "0",
+        backgroundColor: "#fff",
+        border: "1px solid #ccc",
+        zIndex: 999,
+        maxHeight: "150px",
+        overflowY: "auto",
+        listStyle: "none",
+        padding: "0",
+        margin: "0",
+        width: "100%",
+        maxWidth: "250px",
+      }}
     >
-      {employeeSuggestions.map((name, index) => (
+      {employeeSuggestions.map((emp, index) => (
         <li
           key={index}
-          onClick={() => handleSelectSuggestion(name)}
+          onClick={() => handleSelectSuggestion(emp)}
           style={{
             padding: "8px",
             cursor: "pointer",
             borderBottom: "1px solid #eee",
           }}
         >
-          {name}
+          {emp.name} ({emp.employeeId}) {/* Displaying name and employee ID */}
         </li>
       ))}
     </ul>
   )}
 </div>
+
+
 
 
 
@@ -1250,39 +1290,40 @@ const filteredAssets = sortedAssets.filter((asset) =>
     autoComplete="off"
   />
 
-  {popupSuggestions[index]?.length > 0 && (
-    <ul
-      style={{
-        position: "absolute",
-        top: "100%",
-        left: "20px",
-        background: "#fff",
-        border: "1px solid #ccc",
-        zIndex: 9999,
-        width: "250px",
-        listStyle: "none",
-        padding: 0,
-        margin: 0,
-        maxHeight: "150px",
-        overflowY: "auto",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }}
-    >
-      {popupSuggestions[index].map((name, i) => (
-        <li
-          key={i}
-          onClick={() => handleSuggestionSelect(name, index)}
-          style={{
-            padding: "8px",
-            cursor: "pointer",
-            borderBottom: "1px solid #eee",
-          }}
-        >
-          {name}
-        </li>
-      ))}
-    </ul>
-  )}
+{popupSuggestions[index]?.length > 0 && (
+  <ul
+    style={{
+      position: "absolute",
+      top: "100%",
+      left: "0px",
+      background: "#fff",
+      border: "1px solid #ccc",
+      zIndex: 9999,
+      width: "250px",
+      listStyle: "none",
+      padding: 0,
+      margin: 0,
+      maxHeight: "150px",
+      overflowY: "auto",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    }}
+  >
+    {popupSuggestions[index].map((emp, i) => (
+      <li
+        key={i}
+        onClick={() => handleSuggestionSelect(emp, index)}
+        style={{
+          padding: "8px",
+          cursor: "pointer",
+          borderBottom: "1px solid #eee",
+        }}
+      >
+        {emp.name} ({emp.employeeId})
+      </li>
+    ))}
+  </ul>
+)}
+
 </div>
 
 <input

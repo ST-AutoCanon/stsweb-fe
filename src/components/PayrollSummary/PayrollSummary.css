@@ -83,7 +83,6 @@
 }
 
 .payslip-table tr.net-salary-row {
-  background: white;
   font-weight: bold;
 }
 
@@ -114,11 +113,24 @@
   margin-top: 10px;
 }
 
-@media (max-width: 768px) 
-{
-.payroll-container
-{
-  display: none;
-  
+
+
+.advance-section {
+  margin-top: 2rem;
 }
+
+.advance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.advance-table th,
+.advance-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.advance-table th {
+  background-color: #f2f2f2;
 }
