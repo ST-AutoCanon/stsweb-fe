@@ -149,6 +149,7 @@
 .empId-rows span {
   color: #000;
   font-weight: bold;
+  margin-right: 2%;
 }
 
 .status-label {
