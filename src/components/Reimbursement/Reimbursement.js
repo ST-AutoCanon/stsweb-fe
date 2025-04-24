@@ -70,6 +70,7 @@ const Reimbursement = () => {
     date: "",
     travel_from: "",
     travel_to: "",
+    meals_objective: "",
     purpose: "",
     purchasing_item: "",
     accommodation_fees: "",
@@ -184,7 +185,8 @@ const Reimbursement = () => {
       console.error("Error fetching data:", error);
       if (error.response) {
         setErrorMessage(
-          error.response.data.message || "Failed to fetch reimbursements."
+          error.response.data.message ||
+            "We ran into a problem fetching reimbursements."
         );
       } else if (error.request) {
         setErrorMessage("No response from server. Please try again.");
@@ -326,6 +328,7 @@ const Reimbursement = () => {
       date: claim.date ? claim.date.split("T")[0] : "",
       travel_from: claim.travel_from || "",
       travel_to: claim.travel_to || "",
+      meals_objective: claim.meals_objective || "",
       purpose: claim.purpose || "",
       purchasing_item: claim.purchasing_item || "",
       accommodation_fees: claim.accommodation_fees || "",
@@ -365,6 +368,7 @@ const Reimbursement = () => {
       formDataToSend.append("date", formData.date);
       formDataToSend.append("travel_from", formData.travel_from);
       formDataToSend.append("travel_to", formData.travel_to);
+      formDataToSend.append("meals_objective", formData.meals_objective);
       formDataToSend.append("purpose", formData.purpose);
       formDataToSend.append("da", formData.da);
       formDataToSend.append("transport_amount", formData.transport_amount);
@@ -417,6 +421,7 @@ const Reimbursement = () => {
         date: "",
         travel_from: "",
         travel_to: "",
+        meals_objective: "",
         purpose: "",
         transport_amount: "",
         da: "",
@@ -438,12 +443,12 @@ const Reimbursement = () => {
         setSubmitErrorMessage(
           error.response.data.error ||
             error.response.data.message ||
-            "Submission failed."
+            "This type of file cannot be uploaded."
         );
         showAlert(
           error.response.data.error ||
             error.response.data.message ||
-            "Submission failed."
+            "This type of file cannot be uploaded."
         );
       } else {
         setSubmitErrorMessage("An unexpected error occurred.");
@@ -466,7 +471,9 @@ const Reimbursement = () => {
       );
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Failed to update reimbursement.");
+        throw new Error(
+          data.message || "Reimbursement update did not go through."
+        );
       }
       console.log("Update Response:", data);
     } catch (error) {
@@ -501,7 +508,7 @@ const Reimbursement = () => {
           fetchReimbursements();
         } catch (error) {
           console.error("Error deleting reimbursement:", error);
-          showAlert("Failed to delete the reimbursement.");
+          showAlert("There was an issue deleting the reimbursement.");
         } finally {
           closeConfirm();
         }
@@ -539,7 +546,7 @@ const Reimbursement = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching attachments:", error);
-      showAlert("Failed to load attachments.");
+      showAlert("Could not load attachments. Please try again.");
     }
   };
 
@@ -695,7 +702,7 @@ const Reimbursement = () => {
                       Purpose Details / Comments
                       <span className="asterisk">*</span>
                     </label>
-                    <input
+                    <textarea
                       type="text"
                       name="purpose"
                       value={formData.purpose}
@@ -778,10 +785,10 @@ const Reimbursement = () => {
                 </select>
               </div>
               <div className="rb-groups">
-                <label>Purpose</label>
+                <label>Meal's objective </label>
                 <select
-                  name="purpose"
-                  value={formData.purpose}
+                  name="meals_objective"
+                  value={formData.meals_objective}
                   onChange={handleChange}
                   required
                 >
@@ -811,7 +818,7 @@ const Reimbursement = () => {
                   Purpose Details / Comments
                   <span className="asterisk">*</span>
                 </label>
-                <input
+                <textarea
                   type="text"
                   name="purpose"
                   value={formData.purpose}
@@ -907,7 +914,7 @@ const Reimbursement = () => {
                   Purpose Details / Comments
                   <span className="asterisk">*</span>
                 </label>
-                <input
+                <textarea
                   type="text"
                   name="purpose"
                   value={formData.purpose}
@@ -1016,7 +1023,7 @@ const Reimbursement = () => {
                   Purpose Details / Comments
                   <span className="asterisk">*</span>
                 </label>
-                <input
+                <textarea
                   type="text"
                   name="purpose"
                   value={formData.purpose}
@@ -1102,7 +1109,7 @@ const Reimbursement = () => {
                   Purpose Details / Comments
                   <span className="asterisk">*</span>
                 </label>
-                <input
+                <textarea
                   type="text"
                   name="purpose"
                   value={formData.purpose}
@@ -1206,6 +1213,7 @@ const Reimbursement = () => {
               date: "",
               travel_from: "",
               travel_to: "",
+              meals_objective: "",
               purpose: "",
               purchasing_item: "",
               accommodation_fees: "",
@@ -1224,14 +1232,14 @@ const Reimbursement = () => {
 
       {errorMessage && <p className="error-message">{errorMessage}</p>}
 
-  <div className="reimbursement-table-scroll">
+      <div className="reimbursement-table-scroll">
         <table className="reimbursement-table">
           <thead>
             <tr>
               <th>Sl No</th>
               <th>Claim Type</th>
               <th>Date</th>
-              <th>Purpose</th>
+              <th>Meal's objective </th>
               <th>Amount</th>
               <th>Attachment</th>
               <th>Status</th>
@@ -1360,85 +1368,82 @@ const Reimbursement = () => {
             </tr>
           </tfoot>
         </table>
-      
 
- 
-{/* Cards for Mobile View */}
-<div className="rb-reimbursement-cards">
-  {filterClaims.map((claim, index) => (
-    <div className="rb-reimbursement-card" key={claim.id}>
-      {/* Status inside the card */}
-      <div className="rb-card-header">
-        <span className={`rb-status ${claim.status.toLowerCase()}`}>
-          {claim.status}
-        </span>
+        {/* Cards for Mobile View */}
+        <div className="rb-reimbursement-cards">
+          {filterClaims.map((claim, index) => (
+            <div className="rb-reimbursement-card" key={claim.id}>
+              {/* Status inside the card */}
+              <div className="rb-card-header">
+                <span className={`rb-status ${claim.status.toLowerCase()}`}>
+                  {claim.status}
+                </span>
+              </div>
+
+              <div className="rb-card-body">
+                <p>
+                  <strong>Sl No:</strong> {index + 1}
+                </p>
+                <p>
+                  <strong>Claim Type:</strong> {claim.claim_type}
+                </p>
+                <p>
+                  <strong>Date:</strong>{" "}
+                  {claim.date
+                    ? new Date(claim.date).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "N/A"}
+                </p>
+                <p>
+                  <strong>Purpose:</strong> {claim.purpose}
+                </p>
+                <p>
+                  <strong>Amount:</strong> Rs {claim.total_amount}
+                </p>
+
+                <p>
+                  <strong>Comments:</strong>{" "}
+                  {claim.approver_comments || "No comments"}
+                </p>
+              </div>
+
+              <div className="rb-card-footer">
+                {attachments[claim.id]?.length > 0 ? (
+                  <button
+                    className="rb-attachments-btn"
+                    onClick={() =>
+                      handleOpenAttachments(attachments[claim.id], claim)
+                    }
+                  >
+                    <MdOutlineRemoveRedEye className="rb-eye-icon" /> View
+                  </button>
+                ) : (
+                  <span className="rb-no-attachment">No Attachment</span>
+                )}
+
+                {claim.status.toLowerCase() === "pending" && (
+                  <div className="rb-card-actions">
+                    <MdOutlineEdit
+                      className="rb-edit-icon"
+                      onClick={() => {
+                        handleEdit(claim);
+                        setShowForm(true);
+                      }}
+                    />
+                    <MdDeleteOutline
+                      className="rb-delete-icon"
+                      onClick={() => deleteReimbursement(claim.id)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-
-      <div className="rb-card-body">
-        <p>
-          <strong>Sl No:</strong> {index + 1}
-        </p>
-        <p>
-          <strong>Claim Type:</strong> {claim.claim_type}
-        </p>
-        <p>
-          <strong>Date:</strong>{" "}
-          {claim.date
-            ? new Date(claim.date).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
-            : "N/A"}
-        </p>
-        <p>
-          <strong>Purpose:</strong> {claim.purpose}
-        </p>
-        <p>
-          <strong>Amount:</strong> Rs {claim.total_amount}
-        </p>
-        
-        <p>
-          <strong>Comments:</strong> {claim.approver_comments || "No comments"}
-        </p>
-      </div>
-
-      <div className="rb-card-footer">
-        {attachments[claim.id]?.length > 0 ? (
-          <button
-            className="rb-attachments-btn"
-            onClick={() => handleOpenAttachments(attachments[claim.id], claim)}
-          >
-            <MdOutlineRemoveRedEye className="rb-eye-icon" /> View
-          </button>
-        ) : (
-          <span className="rb-no-attachment">No Attachment</span>
-        )}
-
-        {claim.status.toLowerCase() === "pending" && (
-          <div className="rb-card-actions">
-            <MdOutlineEdit
-              className="rb-edit-icon"
-              onClick={() => {
-                handleEdit(claim);
-                setShowForm(true);
-              }}
-            />
-            <MdDeleteOutline
-              className="rb-delete-icon"
-              onClick={() => deleteReimbursement(claim.id)}
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  ))}
-</div>
-
-
-
-</div>
-   
 
       {showForm && (
         <div className="rb-modal">

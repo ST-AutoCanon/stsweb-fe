@@ -258,7 +258,7 @@
 }
 
 .comments-col:hover .comment-preview {
-  max-height: 500px;
+  max-height: 1000px;
 }
 
 /* Responsive design */

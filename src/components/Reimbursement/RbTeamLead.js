@@ -17,8 +17,8 @@ const RbTeamLead = () => {
   // States for team view
   const [employees, setEmployees] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [submittedFrom, setSubmittedFrom] = useState("");
+  const [submittedTo, setSubmittedTo] = useState("");
   const [attachments, setAttachments] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -76,12 +76,15 @@ const RbTeamLead = () => {
   const teamLeadId = teamLeadData?.employeeId;
   const departmentId = teamLeadData?.department_id || null;
 
-  // Only fetch team reimbursements when "team" view is active.
   useEffect(() => {
     if (view === "team") {
-      fetchEmployees();
+      fetchEmployees(); // Initial fetch, without filters
     }
-  }, [fromDate, toDate, view]);
+  }, [view]);
+
+  const handleSearch = () => {
+    fetchEmployees(); // Now uses current submittedFrom and submittedTo values
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -92,7 +95,11 @@ const RbTeamLead = () => {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
-          params: { departmentId, fromDate, toDate },
+          params: {
+            departmentId, // ← add this
+            submittedFrom: submittedFrom || null,
+            submittedTo: submittedTo || null,
+          },
         }
       );
 
@@ -109,19 +116,14 @@ const RbTeamLead = () => {
 
       setEmployees(Object.values(grouped));
 
-      // Build attachments mapping
       const attachmentsMap = {};
       response.data.forEach((claim) => {
-        if (claim.attachments) {
-          attachmentsMap[claim.id] = claim.attachments;
-        }
+        attachmentsMap[claim.id] = claim.attachments || [];
       });
-
-      console.log("Attachments Map:", attachmentsMap);
       setAttachments(attachmentsMap);
     } catch (error) {
-      console.error("Error fetching team reimbursements:", error);
-      showAlert("Error fetching team reimbursements.");
+      console.error("Error fetching employees:", error);
+      showAlert("Error fetching employees.");
     }
   };
 
@@ -175,7 +177,7 @@ const RbTeamLead = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching attachments:", error);
-      showAlert("Failed to load attachments.");
+      showAlert("No attachments found for this screen .");
     }
   };
 
@@ -202,13 +204,6 @@ const RbTeamLead = () => {
     const teamLeadData = JSON.parse(localStorage.getItem("dashboardData"));
     const approverId = teamLeadData?.employeeId;
 
-    console.log("Sending Payload:", {
-      status: updatedStatus,
-      approver_comments: approverComment,
-      approver_id: approverId,
-      project,
-    });
-
     if (!approverId) {
       showAlert("Approver ID is missing!");
       return;
@@ -221,6 +216,7 @@ const RbTeamLead = () => {
           status: updatedStatus,
           approver_comments: approverComment,
           approver_id: approverId,
+          project: project, // ← add this
         },
         {
           headers: {
@@ -246,7 +242,7 @@ const RbTeamLead = () => {
       );
     } catch (error) {
       console.error("Error updating status:", error);
-      showAlert("Failed to update status.");
+      showAlert("Status update was not successful. Try again later.");
     }
   };
 
@@ -274,7 +270,7 @@ const RbTeamLead = () => {
       fetchEmployees(); // Refresh data
     } catch (error) {
       console.error("Error updating payment status:", error);
-      showAlert("Failed to update payment status.");
+      showAlert("Could not update payment status. Please try again.");
     }
   };
 
@@ -289,17 +285,42 @@ const RbTeamLead = () => {
           responseType: "blob",
         }
       );
+
+      const cd = response.headers["content-disposition"];
+      console.log("Content-Disposition:", cd); // DEBUGGING
+
+      let filename = "";
+
+      if (cd) {
+        const filenameRegex = /filename[^;=\n]*=(['"]?)([^;\n]*)\1/;
+        const matches = filenameRegex.exec(cd);
+        if (matches != null && matches[2]) {
+          filename = matches[2];
+        }
+      }
+
+      // Fallback if backend doesn't set it
+      if (!filename) {
+        filename = `Reimbursement_${claim.id}.pdf`;
+      }
+
+      // Ensure .pdf extension
+      if (!filename.toLowerCase().endsWith(".pdf")) {
+        filename += ".pdf";
+      }
+
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Reimbursement_${claim.id}.pdf`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading PDF:", error);
-      showAlert("Failed to download file.");
+      console.error("Error downloading reimbursement PDF:", error);
+      showAlert("There was an issue downloading the file.");
     }
   };
 
@@ -341,19 +362,19 @@ const RbTeamLead = () => {
               </select>
             </div>
             <div className="rb-filter-group">
-              <label>From Date:</label>
+              <label>Submitted From:</label>
               <input
                 type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                value={submittedFrom}
+                onChange={(e) => setSubmittedFrom(e.target.value)}
               />
             </div>
             <div className="rb-filter-group">
-              <label>To Date:</label>
+              <label>Submitted To</label>
               <input
                 type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                value={submittedTo}
+                onChange={(e) => setSubmittedTo(e.target.value)}
               />
             </div>
             <button className="rb-search" onClick={fetchEmployees}>
@@ -375,7 +396,8 @@ const RbTeamLead = () => {
                     onClick={() => toggleRow(employee.employee_id)}
                   >
                     <div className="empId-rows">
-                      Employee ID - <span>{employee.employee_id}</span>
+                      <span>{employee.claims[0].employee_name}</span>
+                      <span>{employee.employee_id}</span>
                     </div>
                     <div className="emp-rows">
                       Total Amount Claiming: Rs{" "}
@@ -525,6 +547,9 @@ const RbTeamLead = () => {
                                       }
                                     >
                                       <option value="">Select</option>
+                                      <option value="STS CLAIM">
+                                        STS CLAIM
+                                      </option>
                                       {projects.map((project, index) => (
                                         <option key={index} value={project}>
                                           {project}
@@ -533,6 +558,7 @@ const RbTeamLead = () => {
                                     </select>
                                   )}
                                 </td>
+
                                 <td>
                                   {rb.status === "approved" ||
                                   rb.status === "rejected" ? (
@@ -722,7 +748,9 @@ const RbTeamLead = () => {
                   fetchEmployees(); // Refresh data
                 } catch (error) {
                   console.error("Error updating payment status:", error);
-                  showAlert("Failed to update payment status.");
+                  showAlert(
+                    "Payment status couldn't be updated at the moment."
+                  );
                 }
               }}
             >

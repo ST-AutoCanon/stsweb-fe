@@ -11,8 +11,8 @@ import Modal from "../Modal/Modal";
 const RbAdmin = () => {
   const [employees, setEmployees] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [submittedFrom, setSubmittedFrom] = useState("");
+  const [submittedTo, setSubmittedTo] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -22,7 +22,7 @@ const RbAdmin = () => {
   const [comments, setComments] = useState({});
   const [statusFilter, setStatusFilter] = useState("pending");
   const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
-  const employeeId = employeeData?.employee_id;
+  const employeeId = employeeData?.employeeId;
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPaymentClaim, setSelectedPaymentClaim] = useState(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState("");
@@ -76,13 +76,16 @@ const RbAdmin = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursements`,
         {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY,
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+          params: {
+            submittedFrom: submittedFrom || null,
+            submittedTo: submittedTo || null,
           },
-          params: { fromDate, toDate },
         }
       );
       setEmployees(response.data);
+
+      // NEW: flatten out claims to build attachments map
       const attachmentsMap = {};
       response.data.forEach((employee) => {
         employee.claims.forEach((claim) => {
@@ -141,7 +144,7 @@ const RbAdmin = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching attachments:", error);
-      showAlert("Failed to load attachments.");
+      showAlert("No attachments found for this screen .");
     }
   };
 
@@ -190,6 +193,7 @@ const RbAdmin = () => {
 
     const updatedStatus = statusUpdates[id];
     const approverComment = comments?.[id] || "";
+    const employeeId = employeeData?.employeeId;
 
     try {
       await axios.put(
@@ -224,7 +228,7 @@ const RbAdmin = () => {
       );
     } catch (error) {
       console.error("Error updating reimbursement status:", error);
-      showAlert("Failed to update status.");
+      showAlert("Status update was not successful. Try again later.");
     }
   };
 
@@ -260,7 +264,7 @@ const RbAdmin = () => {
       );
     } catch (error) {
       console.error("Error updating payment status:", error);
-      showAlert("Failed to update payment status.");
+      showAlert("Payment status couldn't be updated at the moment.");
     }
   };
 
@@ -275,17 +279,42 @@ const RbAdmin = () => {
           responseType: "blob",
         }
       );
+
+      const cd = response.headers["content-disposition"];
+      console.log("Content-Disposition:", cd); // DEBUGGING
+
+      let filename = "";
+
+      if (cd) {
+        const filenameRegex = /filename[^;=\n]*=(['"]?)([^;\n]*)\1/;
+        const matches = filenameRegex.exec(cd);
+        if (matches != null && matches[2]) {
+          filename = matches[2];
+        }
+      }
+
+      // Fallback if backend doesn't set it
+      if (!filename) {
+        filename = `Reimbursement_${claim.id}.pdf`;
+      }
+
+      // Ensure .pdf extension
+      if (!filename.toLowerCase().endsWith(".pdf")) {
+        filename += ".pdf";
+      }
+
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Reimbursement_${claim.id}.pdf`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading reimbursement PDF:", error);
-      showAlert("Failed to download file.");
+      showAlert("There was an issue downloading the file.");
     }
   };
 
@@ -326,19 +355,19 @@ const RbAdmin = () => {
               </select>
             </div>
             <div className="rb-filter-group">
-              <label>From Date:</label>
+              <label>Submitted From:</label>
               <input
                 type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                value={submittedFrom}
+                onChange={(e) => setSubmittedFrom(e.target.value)}
               />
             </div>
             <div className="rb-filter-group">
-              <label>To Date:</label>
+              <label>Submitted To</label>
               <input
                 type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                value={submittedTo}
+                onChange={(e) => setSubmittedTo(e.target.value)}
               />
             </div>
             <button className="rb-search" onClick={fetchEmployees}>
@@ -348,6 +377,7 @@ const RbAdmin = () => {
           {/* Employee List */}
           <div className="rb-atable-container">
             {employees.map((employee) => {
+              console.log(employee);
               const filteredClaims = employee.claims.filter(
                 (rb) => rb.status.toLowerCase() === statusFilter.toLowerCase()
               );
@@ -359,7 +389,12 @@ const RbAdmin = () => {
                     onClick={() => toggleRow(employee.employee_id)}
                   >
                     <div className="empId-rows">
-                      Employee ID - <span>{employee.employee_id}</span>
+                      <span className="employee-name">
+                        {employee.claims[0]?.employee_name} -
+                      </span>
+                      <span className="employee-id">
+                        [{employee.employee_id}]
+                      </span>
                     </div>
                     <div className="emp-rows">
                       Total Amount Claiming: Rs{" "}
@@ -501,6 +536,7 @@ const RbAdmin = () => {
                                         claim.project}
                                     </div>
                                   ) : (
+                                    // When status is pending, render the dropdown
                                     <select
                                       className="rb-status-dropdown"
                                       value={projectSelections[claim.id] || ""}
@@ -512,6 +548,9 @@ const RbAdmin = () => {
                                       }
                                     >
                                       <option value="">Select</option>
+                                      <option value="STS CLAIM">
+                                        STS CLAIM
+                                      </option>
                                       {projects.map((project, index) => (
                                         <option key={index} value={project}>
                                           {project}
@@ -699,7 +738,9 @@ const RbAdmin = () => {
                   fetchEmployees(); // Refresh data
                 } catch (error) {
                   console.error("Error updating payment status:", error);
-                  showAlert("Failed to update payment status.");
+                  showAlert(
+                    "Could not update payment status. Please try again."
+                  );
                 }
               }}
             >

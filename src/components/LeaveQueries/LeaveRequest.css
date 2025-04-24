@@ -346,27 +346,6 @@
   cursor: not-allowed;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* Hide table on mobile */
 @media (max-width: 768px) {
   .desktop-view {
@@ -374,9 +353,7 @@
   }
   .mobile-view {
     display: block;
-    
   }
-  
 }
 
 /* Hide cards on desktop */
@@ -394,7 +371,7 @@
   margin: 10px 0;
   padding: 15px;
   transition: 0.3s;
-  margin-bottom: 25px; 
+  margin-bottom: 25px;
 }
 
 .leave-header {
@@ -402,15 +379,12 @@
   justify-content: space-between;
   font-weight: bold;
   margin-bottom: 10px;
- 
 }
 
 .leave-type {
   font-size: 16px;
   color: #333;
 }
-
-
 
 .leave-approved {
   background: #d7f2ce;
@@ -446,24 +420,18 @@
   pointer-events: none;
 }
 
-
-
-
 /* Mobile View */
 @media (max-width: 768px) {
-
   /* Container */
   .leave-container {
-    margin:8%;
+    margin: 8%;
     align-items: stretch;
-
   }
 
   /* Header */
   .leave-header {
     font-size: medium;
     text-align: start;
-    
   }
 
   /* Filters Section */
@@ -556,11 +524,8 @@
   }
 }
 
-
-
 /* Responsive */
 @media (max-width: 768px) {
-
   /* Header Section */
   .leave-form-header {
     align-items: flex-start;
@@ -619,7 +584,6 @@
   /* Label Adjustments */
   .leave-status-label {
     margin-left: 50%;
-    
   }
 
   /* My Leaves Section */
@@ -669,6 +633,6 @@
   }
 
   .leave-container {
-   height: 100vh;
+    height: 100vh;
   }
 }
