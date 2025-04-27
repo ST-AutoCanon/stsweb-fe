@@ -105,7 +105,7 @@
 .pj-form-grid {
   display: grid;
   justify-content: center;
-  grid-template-columns: repeat(3, minmax(20%, 1fr));
+  grid-template-columns: repeat(4, minmax(20%, 1fr));
   gap: 2%;
   padding: 1%;
 }
@@ -145,7 +145,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 2%;
-  margin: 0 4%;
+  margin: 0 3.2%;
 }
 
 .pj-description {

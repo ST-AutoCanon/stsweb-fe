@@ -80,25 +80,35 @@ const EmployeeDetails = () => {
     if (deptName === "HR") {
       if (roleLower === "manager") {
         positions.push("HR Manager");
-        return positions; // ✅ Exit early
+        return positions;
       }
       positions.push("HR Specialist", "HR Coordinator");
-      return positions; // ✅ Exit early
+      return positions;
     }
 
     if (deptName === "Finance") {
       if (roleLower === "manager") {
         positions.push("Finance Manager");
-        return positions; // ✅ Exit early
+        return positions;
       }
       positions.push("Accountant", "Financial Analyst");
-      return positions; // ✅ Exit early
+      return positions;
+    }
+
+    if (deptName === "Office Support") {
+      if (roleLower === "manager") {
+        positions.push("Office Support Manager");
+        return positions;
+      }
+      // General office support roles
+      positions.push("Office Staff", "General Staff");
+      return positions;
     }
 
     // Default positions for other departments
     if (roleLower === "manager") {
       positions.push(`${deptName} Manager`);
-      return positions; // ✅ Exit early
+      return positions;
     }
 
     positions.push(
@@ -178,7 +188,22 @@ const EmployeeDetails = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "role") {
+    // Capitalize first letter for first_name and last_name
+    if (
+      name === "first_name" ||
+      name === "last_name" ||
+      name === "father_name" ||
+      name === "mother_name"
+    ) {
+      const capitalizedValue =
+        value.length > 0
+          ? value.charAt(0).toUpperCase() + value.slice(1)
+          : value;
+      setFormData((prevState) => ({
+        ...prevState,
+        [name]: capitalizedValue,
+      }));
+    } else if (name === "role") {
       setFormData((prevState) => ({
         ...prevState,
         role: value,
@@ -1338,7 +1363,6 @@ const EmployeeDetails = () => {
                 <th>Status</th>
                 <th>Email ID</th>
                 <th>Contact</th>
-                <th>Department</th>
                 <th>Designation</th>
                 <th>Salary</th>
                 <th>Actions</th>
@@ -1377,7 +1401,6 @@ const EmployeeDetails = () => {
                     </td>
                     <td>{employee.email}</td>
                     <td>{employee.phone_number}</td>
-                    <td>{employee.department}</td>
                     <td>{employee.position}</td>
                     <td>{employee.salary}</td>
                     <td>

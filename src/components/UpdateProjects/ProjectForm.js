@@ -4,6 +4,8 @@ import "./ProjectForm.css";
 import { MdOutlineCancel, MdSearch } from "react-icons/md";
 import { FiDownload } from "react-icons/fi";
 import Modal from "../Modal/Modal";
+import { Country, State } from "country-state-city";
+import MonthlyScheduleTable from "./MonthlyScheduleTable";
 
 const userRole = localStorage.getItem("userRole") || "Employee";
 const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
@@ -24,7 +26,6 @@ const rolePermissions = {
   },
 };
 
-// Special case for Finance Manager (if role is "Manager" and position is "Finance Manager")
 if (userRole === "Manager" && userPosition === "Finance Manager") {
   rolePermissions.Manager = {
     allowedSteps: [1, 2, 3, 4],
@@ -61,7 +62,7 @@ const getFinanceStatusColor = (status) => {
   }
 };
 
-const MultiStepForm = ({ onClose, projectData }) => {
+const ProjectForm = ({ onClose, projectData, onSuccess }) => {
   const dropdownRef = useRef(null);
   const [step, setStep] = useState(1);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -75,11 +76,16 @@ const MultiStepForm = ({ onClose, projectData }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [newAttachments, setNewAttachments] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
 
   const [formData, setFormData] = useState({
+    country: "",
+    state: "",
     company_name: "",
     project_name: "",
-    project_poc: "",
+    project_poc_name: "",
+    project_poc_contact: "",
     company_gst: "",
     company_pan: "",
     company_address: "",
@@ -89,6 +95,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
     service_mode: "",
     service_location: "",
     project_status: "",
+    payment_type: "",
     description: "",
     attachment_url: [],
     sts_owner_id: "",
@@ -98,6 +105,9 @@ const MultiStepForm = ({ onClose, projectData }) => {
     key_considerations: [],
     milestones: [],
     project_amount: "",
+    monthly_fixed_amount: "",
+    service_description: "",
+    month_year: "",
     tds_percentage: "",
     tds_amount: "",
     gst_percentage: "",
@@ -106,14 +116,35 @@ const MultiStepForm = ({ onClose, projectData }) => {
     financialDetails: [],
   });
 
-  // Alert modal state (no title by default)
+  const handleMonthlyFixedAmountChange = (newAmount, newDescription) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      monthly_fixed_amount: newAmount,
+      service_description: newDescription,
+    }));
+  };
+
+  const handleFinancialDetailsChange = (detailsObj) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      financialDetails: detailsObj.financialDetails,
+      project_amount: detailsObj.project_amount,
+      tds_percentage: detailsObj.tds_percentage,
+      tds_amount: detailsObj.tds_amount,
+      gst_percentage: detailsObj.gst_percentage,
+      gst_amount: detailsObj.gst_amount,
+      total_amount: detailsObj.total_amount,
+      service_description: detailsObj.service_description,
+      month_year: detailsObj.month_year,
+    }));
+  };
+
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -384,14 +415,11 @@ const MultiStepForm = ({ onClose, projectData }) => {
       : `${process.env.REACT_APP_BACKEND_URL}/projects`;
     const method = projectData ? "PUT" : "POST";
 
-    // Create a FormData object
     const submissionData = new FormData();
 
-    // Append form fields (excluding attachments)
     for (const key in formData) {
       if (key !== "attachment_url") {
         let value = formData[key];
-        // If value is an object (or array), stringify it
         if (typeof value === "object") {
           value = JSON.stringify(value);
         }
@@ -399,7 +427,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
       }
     }
 
-    // Append each file from attachment_url (if any)
     if (newAttachments && newAttachments.length > 0) {
       newAttachments.forEach((file) => {
         submissionData.append("attachment_url", file);
@@ -415,45 +442,26 @@ const MultiStepForm = ({ onClose, projectData }) => {
         },
         body: submissionData,
       });
+
       console.log("Submitting formData:", formData);
 
       if (!response.ok) {
         throw new Error("Failed to save project");
       }
+
       showAlert("Project saved successfully!");
-      // Wait a moment (or you can remove this delay if you want the user to close the alert manually)
+
+      // ✅ Trigger refetch via onSuccess
+      if (onSuccess) onSuccess();
+
+      // Close the modal after a short delay
       setTimeout(() => {
         onClose();
-      }, 2000); // 2 seconds delay
+      }, 2000);
     } catch (error) {
       console.error("Error:", error);
     }
   };
-
-  const steps = [
-    "Project Details",
-    "STS Owners",
-    "Milestone",
-    "Financial Details",
-  ];
-  const visibleSteps = steps.filter((_, index) =>
-    allowedSteps.includes(index + 1)
-  );
-  const visibleCount = visibleSteps.length;
-
-  let totalLineWidth = "68%";
-  let lineLeft = "16%";
-  if (visibleCount === 3) {
-    totalLineWidth = "60%";
-    lineLeft = "20%";
-  }
-
-  const maxIndex = visibleCount - 1;
-  const currentStepName = steps[step - 1];
-  const currentIndex = visibleSteps.indexOf(currentStepName);
-  const progressValue =
-    maxIndex > 0 ? (currentIndex / maxIndex) * parseFloat(totalLineWidth) : 0;
-  const progressPercent = `${progressValue}%`;
 
   const categories = [
     "Website Design",
@@ -471,14 +479,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
     "Staffing and Training services",
   ];
 
-  const nextStep = () => {
-    if (step < steps.length) setStep(step + 1);
-  };
-
-  const prevStep = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
@@ -490,59 +490,56 @@ const MultiStepForm = ({ onClose, projectData }) => {
         return newData;
       }
 
-      let projectAmount = parseFloat(prevData.project_amount) || 0;
-      let tdsPercentage = parseFloat(prevData.tds_percentage) || 0;
-      let gstPercentage = parseFloat(prevData.gst_percentage) || 0;
+      let projectAmount =
+        parseFloat(
+          name === "project_amount" ? value : prevData.project_amount
+        ) || 0;
+      let tdsPercentage =
+        parseFloat(
+          name === "tds_percentage" ? value : prevData.tds_percentage
+        ) || 0;
+      let gstPercentage =
+        parseFloat(
+          name === "gst_percentage" ? value : prevData.gst_percentage
+        ) || 0;
 
       let tdsAmount = (tdsPercentage / 100) * projectAmount;
       let gstAmount = (gstPercentage / 100) * projectAmount;
       let totalAmount = projectAmount - tdsAmount + gstAmount;
 
+      // Shared recalculation logic for financialDetails
+      const updatedFinancialDetails = (prevData.financialDetails || []).map(
+        (fd) => {
+          const actualAmount = parseFloat(fd.m_actual_amount) || 0;
+          const mActualPercentage = projectAmount
+            ? ((actualAmount / projectAmount) * 100).toFixed(2)
+            : "0";
+
+          return {
+            ...fd,
+            m_actual_percentage: mActualPercentage,
+          };
+        }
+      );
+
+      newData = {
+        ...newData,
+        financialDetails: updatedFinancialDetails,
+      };
+
+      // Apply individual updates
       if (name === "project_amount") {
-        projectAmount = parseFloat(value) || 0;
-        tdsAmount = (tdsPercentage / 100) * projectAmount;
-        gstAmount = (gstPercentage / 100) * projectAmount;
-        totalAmount = projectAmount - tdsAmount + gstAmount;
-
-        let updatedFinancialDetails = (prevData.financialDetails || []).map(
-          (fd) => {
-            if (fd.m_actual_percentage) {
-              const mActualPercent = parseFloat(fd.m_actual_percentage) || 0;
-              const newActualAmount = (mActualPercent / 100) * projectAmount;
-              const mTdsPercentage = parseFloat(fd.m_tds_percentage) || 0;
-              const mGstPercentage = parseFloat(fd.m_gst_percentage) || 0;
-              const newTdsAmount = (mTdsPercentage / 100) * newActualAmount;
-              const newGstAmount = (mGstPercentage / 100) * newActualAmount;
-              const newTotalAmount =
-                newActualAmount - newTdsAmount + newGstAmount;
-              return {
-                ...fd,
-                m_actual_amount: newActualAmount,
-                m_tds_amount: newTdsAmount,
-                m_gst_amount: newGstAmount,
-                m_total_amount: newTotalAmount.toFixed(2),
-              };
-            }
-            return fd;
-          }
-        );
-
-        return {
+        newData = {
           ...newData,
-          project_amount: projectAmount,
+          project_amount: value,
           tds_amount: tdsAmount.toFixed(2),
           gst_amount: gstAmount.toFixed(2),
           total_amount: totalAmount.toFixed(2),
-          financialDetails: updatedFinancialDetails,
         };
       }
 
       if (name === "tds_percentage") {
-        tdsPercentage = parseFloat(value) || 0;
-        tdsAmount = (tdsPercentage / 100) * projectAmount;
-        totalAmount = projectAmount - tdsAmount + gstAmount;
-
-        return {
+        newData = {
           ...newData,
           tds_percentage: value,
           tds_amount: tdsAmount.toFixed(2),
@@ -551,11 +548,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
       }
 
       if (name === "gst_percentage") {
-        gstPercentage = parseFloat(value) || 0;
-        gstAmount = (gstPercentage / 100) * projectAmount;
-        totalAmount = projectAmount - tdsAmount + gstAmount;
-
-        return {
+        newData = {
           ...newData,
           gst_percentage: value,
           gst_amount: gstAmount.toFixed(2),
@@ -563,7 +556,10 @@ const MultiStepForm = ({ onClose, projectData }) => {
         };
       }
 
-      return { ...newData, [name]: value };
+      return {
+        ...newData,
+        [name]: value,
+      };
     });
   };
 
@@ -647,6 +643,27 @@ const MultiStepForm = ({ onClose, projectData }) => {
         };
       }
 
+      if (name === "m_tds_amount") {
+        const tdsAmount = parseFloat(value) || 0;
+        const actualAmount =
+          parseFloat(newFinanceDetails[index].m_actual_amount) || 0;
+        const gstAmount =
+          parseFloat(newFinanceDetails[index].m_gst_amount) || 0;
+
+        const tdsPercentage = actualAmount
+          ? ((tdsAmount / actualAmount) * 100).toFixed(2)
+          : "0";
+
+        const totalAmount = (actualAmount - tdsAmount + gstAmount).toFixed(2);
+
+        newFinanceDetails[index] = {
+          ...newFinanceDetails[index],
+          m_tds_amount: tdsAmount,
+          m_tds_percentage: tdsPercentage,
+          m_total_amount: totalAmount,
+        };
+      }
+
       if (name === "m_gst_percentage") {
         const percentValue = parseFloat(value) || 0;
         const actual =
@@ -675,6 +692,60 @@ const MultiStepForm = ({ onClose, projectData }) => {
       };
     });
   };
+
+  useEffect(() => {
+    if (formData.project_amount) {
+      const projectAmount = parseFloat(formData.project_amount) || 0;
+
+      const updatedFinancialDetails = formData.financialDetails.map(
+        (detail) => {
+          let actualAmount = parseFloat(detail.m_actual_amount) || 0;
+          let tdsAmount = parseFloat(detail.m_tds_amount) || 0;
+          let gstAmount = parseFloat(detail.m_gst_amount) || 0;
+
+          let updatedDetail = { ...detail };
+
+          // Recalculate m_actual_percentage from m_actual_amount
+          if (
+            (!detail.m_actual_percentage ||
+              detail.m_actual_percentage === "") &&
+            detail.m_actual_amount
+          ) {
+            const recalculatedPercentage = projectAmount
+              ? ((actualAmount / projectAmount) * 100).toFixed(2)
+              : "0";
+            updatedDetail.m_actual_percentage = recalculatedPercentage;
+          }
+
+          // Recalculate m_tds_percentage from m_tds_amount
+          if (
+            (!detail.m_tds_percentage || detail.m_tds_percentage === "") &&
+            detail.m_tds_amount &&
+            actualAmount
+          ) {
+            const recalculatedTdsPercentage = actualAmount
+              ? ((tdsAmount / actualAmount) * 100).toFixed(2)
+              : "0";
+            updatedDetail.m_tds_percentage = recalculatedTdsPercentage;
+          }
+
+          // Recalculate m_total_amount
+          updatedDetail.m_total_amount = (
+            actualAmount -
+            tdsAmount +
+            gstAmount
+          ).toFixed(2);
+
+          return updatedDetail;
+        }
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        financialDetails: updatedFinancialDetails,
+      }));
+    }
+  }, [formData.project_amount, formData.financialDetails]);
 
   const addMilestone = () => {
     const newMilestone = {
@@ -793,7 +864,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
         `${process.env.REACT_APP_BACKEND_URL}/projects/${projectId}/attachments/download`,
         {
           method: "GET",
-          credentials: "include", // to send session cookies if needed
+          credentials: "include",
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -823,7 +894,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
         {
           method: "GET",
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY, // Include API key here
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         }
       );
@@ -832,17 +903,105 @@ const MultiStepForm = ({ onClose, projectData }) => {
         throw new Error("Failed to fetch the file.");
       }
 
-      // Convert response to a Blob
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
 
-      // Open file in a new window
       window.open(blobUrl, "_blank");
 
-      // Revoke the object URL after some time to free memory
       setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
     } catch (error) {
       console.error("Error opening attachment:", error);
+    }
+  };
+
+  useEffect(() => {
+    const countryList = Country.getAllCountries().map((country) => ({
+      code: country.isoCode,
+      name: country.name,
+    }));
+    setCountries(countryList);
+  }, []);
+
+  useEffect(() => {
+    if (formData.country) {
+      const stateList = State.getStatesOfCountry(formData.country).map(
+        (state) => ({
+          code: state.isoCode,
+          name: state.name,
+        })
+      );
+      setStates(stateList);
+    } else {
+      setStates([]);
+    }
+  }, [formData.country]);
+
+  const steps = [
+    "Project Details",
+    "STS Owners",
+    "Milestone",
+    "Financial Details",
+  ];
+
+  const adjustedSteps =
+    formData.payment_type === "Monthly Scheduled"
+      ? [steps[0], steps[1], steps[3]]
+      : steps.filter((_, index) => allowedSteps.includes(index + 1));
+
+  const visibleCount = adjustedSteps.length;
+  let totalLineWidth = "68%";
+  let lineLeft = "16%";
+
+  if (visibleCount === 3) {
+    totalLineWidth = "60%";
+    lineLeft = "20%";
+  }
+
+  const maxIndex = visibleCount - 1;
+
+  let currentStepName;
+  if (formData.payment_type === "Monthly Scheduled") {
+    if (step === 1 || step === 2 || step === 4) {
+      currentStepName = steps[step === 4 ? 3 : step - 1];
+    } else {
+      currentStepName = steps[3];
+    }
+  } else {
+    currentStepName = steps[step - 1];
+  }
+
+  const currentIndex = adjustedSteps.indexOf(currentStepName);
+  const progressValue =
+    maxIndex > 0 ? (currentIndex / maxIndex) * parseFloat(totalLineWidth) : 0;
+  const progressPercent = `${progressValue}%`;
+
+  useEffect(() => {
+    if (formData.payment_type === "Monthly Scheduled") {
+      if (![1, 2, 4].includes(step)) {
+        setStep(4);
+      }
+    } else {
+      if (!allowedSteps.includes(step)) {
+        setStep(1);
+      }
+    }
+  }, [step, formData.payment_type, allowedSteps]);
+
+  const nextStep = () => {
+    const currentVisibleIndex = adjustedSteps.indexOf(currentStepName);
+    if (currentVisibleIndex < adjustedSteps.length - 1) {
+      const nextStepName = adjustedSteps[currentVisibleIndex + 1];
+      const nextStepNum = steps.indexOf(nextStepName) + 1;
+      setStep(nextStepNum);
+    }
+  };
+
+  const prevStep = () => {
+    const currentVisibleIndex = adjustedSteps.indexOf(currentStepName);
+    if (currentVisibleIndex > 0) {
+      const prevStepName = adjustedSteps[currentVisibleIndex - 1];
+      const prevStepNum = steps.indexOf(prevStepName) + 1;
+      setStep(prevStepNum);
     }
   };
 
@@ -854,7 +1013,6 @@ const MultiStepForm = ({ onClose, projectData }) => {
         </h2>
         <MdOutlineCancel className="pj-close-btn" onClick={onClose} />
       </div>
-      {/* Step Navigation */}
       <div
         className="pj-step-navigation"
         style={{
@@ -865,26 +1023,24 @@ const MultiStepForm = ({ onClose, projectData }) => {
       >
         <div className="pj-step-bg"></div>
         <div className="pj-step-line"></div>
-        {steps
-          .filter((_, index) => allowedSteps.includes(index + 1))
-          .map((stepName, index) => (
-            <div key={index} className="pj-step-item">
-              <div
-                className={`pj-step-circle ${
-                  allowedSteps[index] < step
-                    ? "completed"
-                    : allowedSteps[index] === step
-                    ? "active"
-                    : ""
-                }`}
-              ></div>
-              {stepName}
-            </div>
-          ))}
+        {adjustedSteps.map((stepName, index) => (
+          <div key={index} className="pj-step-item">
+            <div
+              className={`pj-step-circle ${
+                index < currentIndex
+                  ? "completed"
+                  : index === currentIndex
+                  ? "active"
+                  : ""
+              }`}
+            ></div>
+            {stepName}
+          </div>
+        ))}
       </div>
       {/* Form Steps */}
       <div className="pj-form-content">
-        {allowedSteps.includes(1) && step === 1 && (
+        {step === 1 && (
           <div className="pj-step-one">
             <div className="pj-form-grid">
               <div className="pj-form-group">
@@ -908,11 +1064,21 @@ const MultiStepForm = ({ onClose, projectData }) => {
                 />
               </div>
               <div className="pj-form-group">
-                <label>Project POC</label>
+                <label>Project POC Name</label>
                 <input
                   type="text"
-                  name="project_poc"
-                  value={formData.project_poc}
+                  name="project_poc_name"
+                  value={formData.project_poc_name}
+                  onChange={handleChange}
+                  readOnly={!editable[1]}
+                />
+              </div>
+              <div className="pj-form-group">
+                <label>Project POC Contact</label>
+                <input
+                  type="number"
+                  name="project_poc_contact"
+                  value={formData.project_poc_contact}
                   onChange={handleChange}
                   readOnly={!editable[1]}
                 />
@@ -946,6 +1112,38 @@ const MultiStepForm = ({ onClose, projectData }) => {
                   onChange={handleChange}
                   readOnly={!editable[1]}
                 />
+              </div>
+              <div className="pj-form-group">
+                <label>Country (Company Located at)</label>
+                <select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  disabled={!editable[1]}
+                >
+                  <option value="">Select Country</option>
+                  {countries.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pj-form-group">
+                <label>State (Company Located at)</label>
+                <select
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  disabled={!editable[1]}
+                >
+                  <option value="">Select State</option>
+                  {states.map((state) => (
+                    <option key={state.code} value={state.name}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="pj-form-group1">
                 <label className="project-category">Project Category</label>
@@ -1040,6 +1238,19 @@ const MultiStepForm = ({ onClose, projectData }) => {
                   <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
+              <div className="pj-form-group">
+                <label>Payment Type</label>
+                <select
+                  name="payment_type"
+                  value={formData.payment_type}
+                  onChange={handleChange}
+                  disabled={!editable[1]}
+                >
+                  <option value=" ">Select Payment Type</option>
+                  <option value="Monthly Scheduled">Monthly Scheduled</option>
+                  <option value="Service Scheduled">Service Scheduled</option>
+                </select>
+              </div>
             </div>
             <div className="pj-form-row">
               <div className="pj-description">
@@ -1099,7 +1310,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
             </div>
           </div>
         )}
-        {allowedSteps.includes(2) && step === 2 && (
+        {step === 2 && (
           <div className="pj-step-two">
             <div className="step-two-grid">
               <div className="pj-form-group2">
@@ -1261,7 +1472,7 @@ const MultiStepForm = ({ onClose, projectData }) => {
           </div>
         )}
 
-        {allowedSteps.includes(3) && step === 3 && (
+        {formData.payment_type !== "Monthly Scheduled" && step === 3 && (
           <div className="pj-step-three">
             <button
               className="add-milestone-btn"
@@ -1371,272 +1582,305 @@ const MultiStepForm = ({ onClose, projectData }) => {
           </div>
         )}
 
-        {allowedSteps.includes(4) && step === 4 && (
+        {((formData.payment_type === "Monthly Scheduled" && step === 4) ||
+          (!["Monthly Scheduled"].includes(formData.payment_type) &&
+            step === 4)) && (
           <div className="pj-step-four">
-            <div className="project-finance-main">
-              <div className="project-finance">
-                <div className="project-finance-group">
-                  <label>Project Amount</label>
-                  <input
-                    type="number"
-                    name="project_amount"
-                    value={formData?.project_amount || ""}
-                    onChange={handleChange}
-                    readOnly={!editable[4]}
-                  />
-                </div>
-                <div className="project-finance-group">
-                  <label>TDS</label>
-                  <div className="step-four-group">
-                    <div className="small-input">
+            {formData.payment_type === "Monthly Scheduled" ? (
+              <MonthlyScheduleTable
+                initialFinancialDetails={formData.financialDetails}
+                monthlyFixedAmount={formData.monthly_fixed_amount}
+                service_description={formData.service_description}
+                onFinancialDetailsChange={handleFinancialDetailsChange}
+                onMonthlyFixedAmountChange={handleMonthlyFixedAmountChange}
+              />
+            ) : (
+              <>
+                <div className="project-finance-main">
+                  <div className="project-finance">
+                    <div className="project-finance-group">
+                      <label>Project Amount</label>
                       <input
                         type="number"
-                        name="tds_percentage"
-                        value={formData?.tds_percentage || ""}
+                        name="project_amount"
+                        value={formData?.project_amount || ""}
                         onChange={handleChange}
                         readOnly={!editable[4]}
                       />
                     </div>
-                    <span>%</span>
-                    <input
-                      type="number"
-                      name="tds_amount"
-                      value={formData?.tds_amount || ""}
-                      onChange={handleChange}
-                      readOnly
-                    />
-                  </div>
-                </div>
-                <div className="project-finance-group">
-                  <label>GST</label>
-                  <div className="step-four-group">
-                    <div className="small-input">
-                      <input
-                        type="number"
-                        name="gst_percentage"
-                        value={formData?.gst_percentage || ""}
-                        onChange={handleChange}
-                        readOnly={!editable[4]}
-                      />
-                    </div>
-                    <span>%</span>
-                    <input
-                      type="number"
-                      name="gst_amount"
-                      value={formData?.gst_amount || ""}
-                      onChange={handleChange}
-                      readOnly
-                    />
-                  </div>
-                </div>
-                <div className="project-finance-group">
-                  <label>Total Amount</label>
-                  <input
-                    type="number"
-                    name="total_amount"
-                    value={formData?.total_amount || ""}
-                    onChange={handleChange}
-                    readOnly
-                  />
-                </div>
-                <div className="project-finance-group">
-                  <label>Project Docs</label>
-                  <FiDownload
-                    className="pj-download"
-                    onClick={() => downloadAllAttachments(projectData.id)}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="main-finance">
-              <h5 className="payout-details">Payout Details</h5>
-              <div className="finance-table-container">
-                <table className="finance-table">
-                  <thead>
-                    <tr>
-                      <th>Sl no</th>
-                      <th>Milestone Details</th>
-                      <th>Amount (Incl tax)</th>
-                      <th>TDS</th>
-                      <th>GST</th>
-                      <th>Total Amount</th>
-                      <th>Status</th>
-                      <th>Received Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {formData.financialDetails.map((finance, index) => (
-                      <tr
-                        key={index}
-                        style={{
-                          backgroundColor: getStatusBgColor(
-                            formData.milestones[index]?.status
-                          ),
-                        }}
-                      >
-                        <td>{index + 1}</td>
-                        <td>
-                          <input
-                            type="text"
-                            value={finance.milestone_details}
-                            onChange={(e) => handleFinanceChange(index, e)}
-                            readOnly={!editable[4]}
-                          />
-                        </td>
-                        <td>
-                          <div className="step-four-group2">
-                            <div className="small-input2">
-                              <input
-                                type="number"
-                                name="m_actual_percentage"
-                                value={finance.m_actual_percentage}
-                                onChange={(e) => handleFinanceChange(index, e)}
-                                readOnly={!editable[4]}
-                              />
-                            </div>
-                            <span>%</span>
-                            <input
-                              type="number"
-                              name="m_actual_amount"
-                              value={finance.m_actual_amount}
-                              onChange={(e) => handleFinanceChange(index, e)}
-                              readOnly
-                            />
-                          </div>
-                        </td>
-                        <td>
-                          <div className="step-four-group2">
-                            <div className="small-input2">
-                              <input
-                                type="number"
-                                name="m_tds_percentage"
-                                value={finance.m_tds_percentage}
-                                onChange={(e) => handleFinanceChange(index, e)}
-                                readOnly={!editable[4]}
-                              />
-                            </div>
-                            <span>%</span>
-                            <input
-                              type="number"
-                              name="m_tds_amount"
-                              value={finance.m_tds_amount}
-                              onChange={(e) => handleFinanceChange(index, e)}
-                              readOnly
-                            />
-                          </div>
-                        </td>
-                        <td>
-                          <div className="step-four-group2">
-                            <div className="small-input2">
-                              <input
-                                type="number"
-                                name="m_gst_percentage"
-                                value={finance.m_gst_percentage}
-                                onChange={(e) => handleFinanceChange(index, e)}
-                                readOnly={!editable[4]}
-                              />
-                            </div>
-                            <span>%</span>
-                            <input
-                              type="number"
-                              name="m_gst_amount"
-                              value={finance.m_gst_amount}
-                              onChange={(e) => handleFinanceChange(index, e)}
-                              readOnly
-                            />
-                          </div>
-                        </td>
-                        <td>
+                    <div className="project-finance-group">
+                      <label>TDS</label>
+                      <div className="step-four-group">
+                        <div className="small-input">
                           <input
                             type="number"
-                            name="m_total_amount"
-                            value={finance.m_total_amount}
-                            onChange={(e) => handleFinanceChange(index, e)}
+                            name="tds_percentage"
+                            value={formData?.tds_percentage || ""}
+                            onChange={handleChange}
                             readOnly={!editable[4]}
                           />
-                        </td>
-                        <td>
-                          <select
-                            value={finance.status}
-                            onChange={(e) =>
-                              handleStatusChange(index, e.target.value)
-                            }
-                            disabled={!editable[4]}
+                        </div>
+                        <span>%</span>
+                        <input
+                          type="number"
+                          name="tds_amount"
+                          value={formData?.tds_amount || ""}
+                          onChange={handleChange}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="project-finance-group">
+                      <label>GST</label>
+                      <div className="step-four-group">
+                        <div className="small-input">
+                          <input
+                            type="number"
+                            name="gst_percentage"
+                            value={formData?.gst_percentage || ""}
+                            onChange={handleChange}
+                            readOnly={!editable[4]}
+                          />
+                        </div>
+                        <span>%</span>
+                        <input
+                          type="number"
+                          name="gst_amount"
+                          value={formData?.gst_amount || ""}
+                          onChange={handleChange}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="project-finance-group">
+                      <label>Total Amount</label>
+                      <input
+                        type="number"
+                        name="total_amount"
+                        value={formData?.total_amount || ""}
+                        onChange={handleChange}
+                        readOnly
+                      />
+                    </div>
+                    {projectData && projectData.id && (
+                      <div className="project-finance-group">
+                        <label>Project Docs</label>
+                        <FiDownload
+                          className="pj-download"
+                          onClick={() => downloadAllAttachments(projectData.id)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="main-finance">
+                  <h5 className="payout-details">Payout Details</h5>
+                  <div className="finance-table-container">
+                    <table className="finance-table">
+                      <thead>
+                        <tr>
+                          <th>Sl no</th>
+                          <th>Milestone Details</th>
+                          <th>Amount (Excl tax)</th>
+                          <th>TDS</th>
+                          <th>GST</th>
+                          <th>Total Amount</th>
+                          <th>Status</th>
+                          <th>Received Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {formData.financialDetails.map((finance, index) => (
+                          <tr
+                            key={index}
+                            style={{
+                              backgroundColor: getStatusBgColor(
+                                formData.milestones[index]?.status
+                              ),
+                            }}
                           >
-                            <option value="not Initiated">not Initiated</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Received">Received</option>
-                          </select>
-                        </td>
-                        <td>
-                          {finance.status === "Received" &&
-                          finance.completed_date ? (
-                            <span className="completed-date">
-                              📅 {finance.completed_date}
+                            <td>{index + 1}</td>
+                            <td>
+                              <input
+                                type="text"
+                                value={finance.milestone_details}
+                                onChange={(e) => handleFinanceChange(index, e)}
+                                readOnly={!editable[4]}
+                              />
+                            </td>
+                            <td>
+                              <div className="step-four-group2">
+                                <div className="small-input2">
+                                  <input
+                                    type="number"
+                                    name="m_actual_percentage"
+                                    value={finance.m_actual_percentage}
+                                    onChange={(e) =>
+                                      handleFinanceChange(index, e)
+                                    }
+                                    readOnly={!editable[4]}
+                                  />
+                                </div>
+                                <span>%</span>
+                                <input
+                                  type="number"
+                                  name="m_actual_amount"
+                                  value={finance.m_actual_amount}
+                                  onChange={(e) =>
+                                    handleFinanceChange(index, e)
+                                  }
+                                  readOnly
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div className="step-four-group2">
+                                <div className="small-input2">
+                                  <input
+                                    type="number"
+                                    name="m_tds_percentage"
+                                    value={finance.m_tds_percentage}
+                                    onChange={(e) =>
+                                      handleFinanceChange(index, e)
+                                    }
+                                    readOnly={!editable[4]}
+                                  />
+                                </div>
+                                <span>%</span>
+                                <input
+                                  type="number"
+                                  name="m_tds_amount"
+                                  value={finance.m_tds_amount}
+                                  onChange={(e) =>
+                                    handleFinanceChange(index, e)
+                                  }
+                                  readOnly
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div className="step-four-group2">
+                                <div className="small-input2">
+                                  <input
+                                    type="number"
+                                    name="m_gst_percentage"
+                                    value={finance.m_gst_percentage}
+                                    onChange={(e) =>
+                                      handleFinanceChange(index, e)
+                                    }
+                                    readOnly={!editable[4]}
+                                  />
+                                </div>
+                                <span>%</span>
+                                <input
+                                  type="number"
+                                  name="m_gst_amount"
+                                  value={finance.m_gst_amount}
+                                  onChange={(e) =>
+                                    handleFinanceChange(index, e)
+                                  }
+                                  readOnly
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                name="m_total_amount"
+                                value={finance.m_total_amount}
+                                onChange={(e) => handleFinanceChange(index, e)}
+                                readOnly={!editable[4]}
+                              />
+                            </td>
+                            <td>
+                              <select
+                                value={finance.status}
+                                onChange={(e) =>
+                                  handleStatusChange(index, e.target.value)
+                                }
+                                disabled={!editable[4]}
+                              >
+                                <option value="not Initiated">
+                                  not Initiated
+                                </option>
+                                <option value="Pending">Pending</option>
+                                <option value="Received">Received</option>
+                              </select>
+                            </td>
+                            <td>
+                              {finance.status === "Received" &&
+                              finance.completed_date ? (
+                                <span className="completed-date">
+                                  📅 {finance.completed_date}
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colSpan="8" className="summary-row">
+                            <span>
+                              Total Amount Claiming:{" "}
+                              <strong>₹{formData.total_amount || 0}</strong>
+                            </span>{" "}
+                            |
+                            <span>
+                              Amount Received:{" "}
+                              <strong>
+                                ₹
+                                {formData.financialDetails.reduce(
+                                  (acc, finance) =>
+                                    finance.status === "Received"
+                                      ? acc +
+                                        parseFloat(finance.m_total_amount || 0)
+                                      : acc,
+                                  0
+                                )}
+                              </strong>
+                            </span>{" "}
+                            |
+                            <span>
+                              Amount Pending:{" "}
+                              <strong>
+                                ₹
+                                {(
+                                  parseFloat(formData.total_amount || 0) -
+                                  formData.financialDetails.reduce(
+                                    (acc, finance) =>
+                                      finance.status === "Received"
+                                        ? acc +
+                                          parseFloat(
+                                            finance.m_total_amount || 0
+                                          )
+                                        : acc,
+                                    0
+                                  )
+                                ).toFixed(2)}
+                              </strong>
                             </span>
-                          ) : (
-                            ""
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan="8" className="summary-row">
-                        <span>
-                          Total Amount Claiming:{" "}
-                          <strong>₹{formData.project_amount || 0}</strong>
-                        </span>{" "}
-                        |
-                        <span>
-                          Amount Received:{" "}
-                          <strong>
-                            ₹
-                            {formData.financialDetails.reduce(
-                              (acc, finance) =>
-                                finance.status === "Received"
-                                  ? acc +
-                                    parseFloat(finance.m_total_amount || 0)
-                                  : acc,
-                              0
-                            )}
-                          </strong>
-                        </span>{" "}
-                        |
-                        <span>
-                          Amount Pending:{" "}
-                          <strong>
-                            ₹
-                            {(
-                              parseFloat(formData.project_amount || 0) -
-                              formData.financialDetails.reduce(
-                                (acc, finance) =>
-                                  finance.status === "Received"
-                                    ? acc +
-                                      parseFloat(finance.m_total_amount || 0)
-                                    : acc,
-                                0
-                              )
-                            ).toFixed(2)}
-                          </strong>
-                        </span>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
+      {/* Navigation Buttons */}
       <div className="pj-form-buttons">
         {step > 1 && (
           <button className="pj-cancel-btn" onClick={prevStep}>
             Previous
           </button>
         )}
-        {step < visibleSteps.length ? (
+        {adjustedSteps.length > 0 && currentIndex < adjustedSteps.length - 1 ? (
           <button className="pj-next-btn" onClick={nextStep}>
             Next
           </button>
@@ -1648,13 +1892,13 @@ const MultiStepForm = ({ onClose, projectData }) => {
       </div>
       <Modal
         isVisible={alertModal.isVisible}
-        onClose={closeAlert} // This closes the modal
+        onClose={closeAlert}
         buttons={[
           {
             label: "OK",
             onClick: () => {
               closeAlert();
-              onClose(); // Now close the form/modal after user acknowledges the alert
+              onClose();
             },
           },
         ]}
@@ -1665,4 +1909,4 @@ const MultiStepForm = ({ onClose, projectData }) => {
   );
 };
 
-export default MultiStepForm;
+export default ProjectForm;

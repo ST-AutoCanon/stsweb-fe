@@ -251,7 +251,7 @@
 /* Container for action buttons */
 .actions {
   display: flex;
-  gap: 10%;
+  justify-content: space-around;
 }
 
 /* Common styles for both edit and deactivate buttons */
