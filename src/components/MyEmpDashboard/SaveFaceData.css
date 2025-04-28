@@ -1,0 +1,206 @@
+/* .save-face-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.save-face-container h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.name-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+}
+
+.video-container {
+  margin-bottom: 20px;
+}
+
+.face-buttons {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 10px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.instruction {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  z-index: 1000;
+} */
+
+
+/* Container Styling */
+
+/* Main container */
+.save-face-container {
+ 
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px 30px;
+  background: linear-gradient(to bottom right, #ffffff, #f1f5f9);
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: auto;
+  max-height: 600px; /* Limiting height for a more rectangular form */
+  overflow: hidden;
+}
+
+/* Heading */
+.save-face-container h2 {
+  margin-bottom: 20px;
+  font-size: 28px;
+  color: #222;
+  letter-spacing: 0.5px;
+}
+
+/* Input Styling */
+.name-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 14px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  border: 1.8px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.name-input:focus {
+  border-color: #007bff;
+}
+
+/* Video Container */
+.video-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px; /* Reduced bottom margin */
+}
+
+#video {
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  max-width: 100%; /* Ensures responsiveness */
+  height: auto;
+}
+
+/* Buttons Container */
+.face-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px; /* Adjusted for better spacing */
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 24px;
+  background-color: #79C42B;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #79C42B;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 123, 255, 0.2);
+}
+
+.btn:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Instruction Banner */
+.instruction {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(17, 24, 39, 0.85);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .save-face-container {
+    padding: 20px;
+    max-height: 500px; /* Adjusted for mobile */
+  }
+
+  .save-face-container h2 {
+    font-size: 24px;
+  }
+
+  .name-input {
+    max-width: 100%;
+  }
+
+  .face-buttons {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .btn {
+    min-width: 100%;
+    padding: 12px 24px;
+  }
+}
