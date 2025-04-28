@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./ProjectsDashboard.css";
 import ProjectForm from "./ProjectForm";
+import InvoiceTemplate from "./InvoiceTemplate";
+import DownloadForm from "./DownloadForm";
+import Invoice from "./Invoice";
 import { MdUpdate } from "react-icons/md";
+import { FiDownload, FiEye } from "react-icons/fi";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import DownloadDetailsList from "./DownloadDetailsList";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -9,19 +16,41 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("en-GB", options);
 };
 
-const ProjectCard = ({ projectData, onUpdate, userRole, userPosition }) => {
+const getInvoiceTypeKey = (type) => {
+  switch (type) {
+    case "Tax Invoice":
+      return "tax";
+    case "Proforma Invoice":
+      return "proforma";
+    case "Quotation":
+      return "quotation";
+    default:
+      return "tax";
+  }
+};
+
+const getFormattedInvoiceNumber = (typeKey, sequence) => {
+  const padded = sequence.toString().padStart(4, "0");
+  switch (typeKey) {
+    case "tax":
+      return `STS/25-26/${padded}`;
+    case "proforma":
+      return `STS/25-26/PI/${padded}`;
+    case "quotation":
+      return `STS-Q-${padded}`;
+    default:
+      return `STS/25-26/${padded}`;
+  }
+};
+
+const ProjectCard = ({ projectData, onUpdate, onViewInvoices, userRole }) => {
   const { company, project, startDate, endDate, clientPOC, stsPOC, milestone } =
     projectData;
 
-  // Check if the user can raise invoices (Admin or Finance Manager)
-  const canRaiseInvoice =
-    userRole === "Admin" ||
-    (userRole === "Manager" && userPosition === "Finance Manager");
-
   return (
     <div className="add-project-card" style={{ cursor: "pointer" }}>
-      <h3 className="company">
-        {company}{" "}
+      <div className="company">
+        <h3>{company}</h3>
         {userRole !== "Employee" && (
           <MdUpdate
             onClick={(e) => {
@@ -31,7 +60,7 @@ const ProjectCard = ({ projectData, onUpdate, userRole, userPosition }) => {
             className="pj-update-icon"
           />
         )}
-      </h3>
+      </div>
       <p className="project-label">Project Name</p>
       <p className="project-value">{project}</p>
       <p className="project-label">Project Start Date</p>
@@ -45,8 +74,13 @@ const ProjectCard = ({ projectData, onUpdate, userRole, userPosition }) => {
       <p className="project-label">Milestone Status</p>
       <p className="project-value">Phase {milestone}</p>
       <p className="project-value">
-        {canRaiseInvoice && (
-          <button className="add-project-button">+ Raise Invoice</button>
+        {userRole !== "Employee" && userRole !== "Team Lead" && (
+          <button
+            className="add-project-button"
+            onClick={() => onViewInvoices(projectData)}
+          >
+            + Raise Invoice
+          </button>
         )}
       </p>
     </div>
@@ -54,27 +88,30 @@ const ProjectCard = ({ projectData, onUpdate, userRole, userPosition }) => {
 };
 
 const ProjectsDashboard = () => {
+  // "projects" or "invoices" controls the view.
+  const [currentScreen, setCurrentScreen] = useState("projects");
   const [showForm, setShowForm] = useState(false);
+  const [showDownloadForm, setShowDownloadForm] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState("Current");
+  const [selectedInvoiceType, setSelectedInvoiceType] = useState("Tax Invoice");
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false);
+  const [invoiceNumberDirect, setInvoiceNumberDirect] = useState("");
+  const [invoiceSequence, setInvoiceSequence] = useState(1);
+  const [downloadDetails, setDownloadDetails] = useState({});
 
   const userRole = localStorage.getItem("userRole") || "Employee";
   const dashboardData = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   );
   const employeeId = dashboardData.employeeId;
-  const userPosition = dashboardData.position;
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Use general API for Admin and Finance Manager; otherwise, use employee-specific endpoint
         let url = `${process.env.REACT_APP_BACKEND_URL}/projects`;
-        if (
-          userRole === "Employee" ||
-          (userRole === "Manager" && userPosition !== "Finance Manager")
-        ) {
+        if (userRole === "Employee" || userRole === "Team Lead") {
           url = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects?employeeId=${employeeId}`;
         }
         const response = await fetch(url, {
@@ -84,11 +121,9 @@ const ProjectsDashboard = () => {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
         });
-
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
-
         const data = await response.json();
         setProjects(data.projects);
       } catch (error) {
@@ -99,10 +134,125 @@ const ProjectsDashboard = () => {
     fetchProjects();
   }, [userRole, employeeId]);
 
+  const printRef = useRef(null);
+  const invoiceTypeKey = getInvoiceTypeKey(selectedInvoiceType);
+  const invoiceNumber = getFormattedInvoiceNumber(
+    invoiceTypeKey,
+    invoiceSequence
+  );
+
+  useEffect(() => {
+    fetchInvoiceSequence(); // Fetch invoice sequence whenever selectedInvoiceType changes
+  }, [selectedInvoiceType]);
+
+  const fetchInvoiceSequence = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/invoice/template-number?invoiceType=${invoiceTypeKey}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.REACT_APP_API_KEY,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch invoice number");
+      const data = await response.json();
+      if (data && data.invoiceNo) {
+        setInvoiceNumberDirect(data.invoiceNo);
+      }
+    } catch (error) {
+      console.error("Error fetching invoice number:", error);
+    }
+  };
+
+  const updateInvoiceNumber = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/invoice/sequence/${invoiceTypeKey}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.REACT_APP_API_KEY,
+          },
+          body: JSON.stringify({}),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      if (data && data.updatedSequence) {
+        setInvoiceSequence(data.updatedSequence);
+      }
+    } catch (error) {
+      console.error("Error updating invoice number:", error);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    if (!printRef.current) return;
+
+    try {
+      await fetchInvoiceSequence();
+
+      const canvas = await html2canvas(printRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4",
+      });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+      const filename = `${invoiceNumberDirect}.pdf`;
+      pdf.save(filename);
+
+      // 1) record the download in our DB:
+      await fetch(`${process.env.REACT_APP_BACKEND_URL}/download-details`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.REACT_APP_API_KEY,
+        },
+        body: JSON.stringify({
+          invoiceType: invoiceTypeKey,
+          invoiceNumber: invoiceNumberDirect,
+          downloadDetails,
+        }),
+      });
+
+      await updateInvoiceNumber();
+    } catch (error) {
+      console.error("Error generating PDF", error);
+    }
+  };
+
   const openForm = (project = null) => {
     setSelectedProject(project);
     setShowForm(true);
   };
+
+  const openInvoiceScreen = (project) => {
+    setSelectedProject(project);
+    setCurrentScreen("invoices");
+  };
+
+  useEffect(() => {
+    if (currentScreen === "invoices") {
+      setTimeout(() => {
+        const invoiceScreen = document.getElementById("invoiceScreen");
+        if (invoiceScreen) {
+          invoiceScreen.scrollIntoView({ behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }, 50);
+    }
+  }, [currentScreen]);
 
   const filteredProjects = projects.filter((proj) => {
     if (activeTab === "Completed") return proj.status === "Completed";
@@ -114,57 +264,129 @@ const ProjectsDashboard = () => {
     return false;
   });
 
+  const handleDownloadFormSubmit = (formData) => {
+    setDownloadDetails(formData);
+    setShowDownloadForm(false);
+  };
+
   return (
     <div className="project-dashboard">
-      <div className="project-header">
-        <h2>Update Projects</h2>
-        {userRole === "Admin" && (
-          <button className="add-project-button" onClick={() => openForm()}>
-            + Add New Project
-          </button>
-        )}
-      </div>
+      {currentScreen === "projects" && (
+        <>
+          <div className="project-header">
+            <h2>Update Projects</h2>
+            {userRole === "Admin" && (
+              <button className="add-project-button" onClick={() => openForm()}>
+                + Add New Project
+              </button>
+            )}
+          </div>
 
-      {/* Project Tabs */}
-      <div className="project-tabs">
-        <span
-          className={activeTab === "Current" ? "active-tab" : ""}
-          onClick={() => setActiveTab("Current")}
-        >
-          Current
-        </span>
-        <span
-          className={activeTab === "Completed" ? "active-tab" : ""}
-          onClick={() => setActiveTab("Completed")}
-        >
-          Completed
-        </span>
-        <span
-          className={activeTab === "Pending" ? "active-tab" : ""}
-          onClick={() => setActiveTab("Pending")}
-        >
-          Pending
-        </span>
-      </div>
+          <div className="project-tabs">
+            <span
+              className={activeTab === "Current" ? "active-tab" : ""}
+              onClick={() => setActiveTab("Current")}
+            >
+              Current
+            </span>
+            <span
+              className={activeTab === "Completed" ? "active-tab" : ""}
+              onClick={() => setActiveTab("Completed")}
+            >
+              Completed
+            </span>
+            <span
+              className={activeTab === "Pending" ? "active-tab" : ""}
+              onClick={() => setActiveTab("Pending")}
+            >
+              Pending
+            </span>
+            {(userRole === "Admin" || userRole === "Financial Manager") && (
+              <span
+                className={
+                  activeTab === "General Templates" ? "active-tab" : ""
+                }
+                onClick={() => setActiveTab("General Templates")}
+              >
+                General Templates
+              </span>
+            )}
+          </div>
 
-      {/* Project Cards Display */}
-      <div className="project-cards-container">
-        {filteredProjects.length > 0 ? (
-          [...filteredProjects]
-            .sort((a, b) => b.id - a.id)
-            .map((proj) => (
-              <ProjectCard
-                key={proj.id}
-                projectData={proj}
-                onUpdate={openForm}
-                userRole={userRole}
-                userPosition={userPosition}
-              />
-            ))
-        ) : (
-          <p>No projects available.</p>
-        )}
-      </div>
+          {activeTab !== "General Templates" && (
+            <div className="project-cards-container">
+              {filteredProjects.length > 0 ? (
+                [...filteredProjects]
+                  .sort((a, b) => b.id - a.id)
+                  .map((proj) => (
+                    <ProjectCard
+                      key={proj.id}
+                      projectData={proj}
+                      onUpdate={openForm}
+                      onViewInvoices={openInvoiceScreen}
+                      userRole={userRole}
+                    />
+                  ))
+              ) : (
+                <p>No projects available.</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "General Templates" &&
+            (userRole === "Admin" || userRole === "Financial Manager") && (
+              <div className="general-templates-section">
+                <div className="template-controls">
+                  <label htmlFor="invoiceTypeSelect">Invoice Type: </label>
+                  <select
+                    id="invoiceTypeSelect"
+                    value={selectedInvoiceType}
+                    onChange={(e) => setSelectedInvoiceType(e.target.value)}
+                  >
+                    <option value="Tax Invoice">Tax Invoice</option>
+                    <option value="Proforma Invoice">Proforma Invoice</option>
+                    <option value="Quotation">Quotation</option>
+                  </select>
+                  <button
+                    className="download-form-button"
+                    onClick={() => {
+                      setShowTemplatePreview(false);
+                      setShowDownloadForm(true);
+                    }}
+                  >
+                    Add Details
+                  </button>
+                  <button
+                    className="view-template-button"
+                    onClick={() => {
+                      setShowTemplatePreview((prev) => !prev);
+                      setShowDownloadForm(false);
+                    }}
+                  >
+                    {showTemplatePreview ? "Hide" : "View"}{" "}
+                    <FiEye className="template-icons" />
+                  </button>
+                  <button
+                    className="download-template-button"
+                    onClick={handleDownloadTemplate}
+                  >
+                    Download <FiDownload className="template-icons" />
+                  </button>
+                </div>
+                {showTemplatePreview && (
+                  <div className="template-preview">
+                    <InvoiceTemplate
+                      invoiceType={selectedInvoiceType}
+                      invoiceNumber={invoiceNumberDirect}
+                      downloadDetails={downloadDetails}
+                    />
+                  </div>
+                )}
+                <DownloadDetailsList />
+              </div>
+            )}
+        </>
+      )}
 
       {showForm && (
         <div className="pj-modal">
@@ -176,6 +398,32 @@ const ProjectsDashboard = () => {
           </div>
         </div>
       )}
+
+      {currentScreen === "invoices" && (
+        <Invoice
+          project={selectedProject}
+          onBack={() => setCurrentScreen("projects")}
+        />
+      )}
+
+      {currentScreen === "projects" &&
+        showDownloadForm &&
+        activeTab === "General Templates" && (
+          <DownloadForm
+            onSubmit={handleDownloadFormSubmit}
+            onCancel={() => setShowDownloadForm(false)}
+          />
+        )}
+
+      <div style={{ position: "absolute", top: "-10000px", left: "-10000px" }}>
+        <div ref={printRef}>
+          <InvoiceTemplate
+            invoiceType={selectedInvoiceType}
+            invoiceNumber={invoiceNumberDirect}
+            downloadDetails={downloadDetails}
+          />
+        </div>
+      </div>
     </div>
   );
 };

@@ -42,7 +42,9 @@ const HolidayCalendar = ({ closeCalendar }) => {
     if (view !== "month") return "";
     const holiday = getHoliday(date);
     if (holiday) {
-      return holiday.type === "Government" ? "govt-holiday" : "company-holiday";
+      return holiday.type === "Optional"
+        ? "optional-holiday"
+        : "company-holiday";
     }
     return "";
   };
@@ -68,8 +70,8 @@ const HolidayCalendar = ({ closeCalendar }) => {
         onClick={() => handleChange(date)}
       >
         {isSunday && !holiday && <div className="sunday-dot" />}
-        {holiday && holiday.type === "Government" && (
-          <div className="holiday-dot govt-dot" />
+        {holiday && holiday.type === "Optional" && (
+          <div className="holiday-dot optional-dot" />
         )}
         {holiday && holiday.type === "Company" && (
           <div className="holiday-dot company-dot" />
@@ -105,8 +107,8 @@ const HolidayCalendar = ({ closeCalendar }) => {
         <Tooltip id="holiday-tooltip" place="top" effect="solid" />
         <div className="holiday-legend-top">
           <div className="legend-item">
-            <div className="color-box govt"></div>
-            <span>Government</span>
+            <div className="color-box optional"></div>
+            <span>Optional</span>
           </div>
           <div className="legend-item">
             <div className="color-box company"></div>

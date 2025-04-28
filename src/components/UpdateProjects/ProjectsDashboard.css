@@ -66,7 +66,7 @@
 
 .project-tabs {
   display: flex;
-  gap: 15px;
+  gap: 25px;
   margin-top: 15px;
   color: #777;
   font-weight: bold;
@@ -99,9 +99,12 @@
 .company {
   display: flex;
   justify-content: space-between;
-  font-size: 20px;
-  font-weight: bold;
-  margin: 5% 0;
+  margin: 2% 0 0 0;
+}
+
+.company h3 {
+  width: 70%;
+  margin: 2% 0 5% 0;
 }
 
 .project-label {
@@ -144,17 +147,82 @@
   cursor: pointer;
 }
 
+/* Container for the entire set of controls in the General Templates tab */
+.template-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
 
+/* Style for the dropdown label */
+.template-controls label {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+/* Style for the dropdown select element */
+.template-controls select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.template-controls .download-form-button,
+.template-controls .view-template-button,
+.template-controls .download-template-button {
+  display: flex;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease-in-out;
+  align-items: center;
+}
+
+/* Specific style for the View Template button */
+.template-controls .view-template-button {
+  background-color: #b2b3b3;
+  border: 1px solid #848585;
+  color: #fff;
+}
+
+.template-controls .view-template-button:hover {
+  background-color: #a8a9a9;
+}
+
+.template-controls .download-form-button,
+.template-controls .download-template-button {
+  background-color: #b2b3b3;
+  border: 1px solid #848585;
+  color: #fff;
+}
+
+.template-controls .download-form-button:hover,
+.template-controls .download-template-button:hover {
+  background-color: #a8a9a9;
+}
+
+.template-icons {
+  font-size: 20px;
+  margin: 0 0 0 5%;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
-.project-dashboard {
-padding: 30px;
-}
+  .project-dashboard {
+    padding: 30px;
+  }
   .project-header {
     flex-direction: column;
     align-items: flex-start;
-   
   }
 
   .project-header h2 {
@@ -175,7 +243,6 @@ padding: 30px;
 
   .project-cards-container {
     grid-template-columns: repeat(auto-fit, minmax(100%, 1fr));
-    
   }
 
   .add-project-card {
@@ -186,7 +253,6 @@ padding: 30px;
 @media (max-width: 480px) {
   .project-header h2 {
     font-size: 18px;
-   
   }
 
   .project-tabs {
