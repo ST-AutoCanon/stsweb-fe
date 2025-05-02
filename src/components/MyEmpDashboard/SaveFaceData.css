@@ -63,8 +63,9 @@ button:disabled {
 /* Container Styling */
 
 /* Main container */
+
+
 .save-face-container {
- 
   max-width: 900px;
   margin: 40px auto;
   padding: 20px 30px;
@@ -74,59 +75,53 @@ button:disabled {
   text-align: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   height: auto;
-  max-height: 600px; /* Limiting height for a more rectangular form */
+  max-height: 800px;
   overflow: hidden;
+  position: relative;
 }
 
-/* Heading */
 .save-face-container h2 {
-  margin-bottom: 20px;
-  font-size: 28px;
+  margin-bottom: 10px;
+  font-size: 24px;
   color: #222;
   letter-spacing: 0.5px;
 }
 
-/* Input Styling */
-.name-input {
-  width: 100%;
-  max-width: 400px;
-  padding: 12px 14px;
-  font-size: 16px;
-  margin-bottom: 20px;
-  border: 1.8px solid #cbd5e1;
-  border-radius: 8px;
-  outline: none;
-  transition: border-color 0.3s;
-}
-
-.name-input:focus {
-  border-color: #007bff;
-}
-
-/* Video Container */
 .video-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px; /* Reduced bottom margin */
+  align-items: center;
+  width: 100%;
+  max-width: 640px;
+  margin-bottom: 20px;
+  padding: 10px;
+  position: relative; /* For canvas overlay */
 }
 
 #video {
   border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  max-width: 100%; /* Ensures responsiveness */
+  max-width: 100%;
   height: auto;
 }
 
-/* Buttons Container */
+#captureCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
 .face-buttons {
   display: flex;
   justify-content: center;
   gap: 20px;
   flex-wrap: wrap;
-  margin-top: 20px; /* Adjusted for better spacing */
+  margin-top: 20px;
 }
 
-/* Buttons */
 .btn {
   padding: 12px 24px;
   background-color: #79C42B;
@@ -152,23 +147,40 @@ button:disabled {
   opacity: 0.8;
 }
 
-/* Instruction Banner */
 .instruction {
-  position: fixed;
-  top: 60px;
+  position: relative;
+  top: -15px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(17, 24, 39, 0.85);
+  background-color: #4caf50;
   color: #fff;
-  padding: 12px 20px;
+  padding: 10px 10px;
   border-radius: 6px;
-  font-size: 15px;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  animation: fadeIn 0.3s ease-in-out;
+  font-size: 14px;
+  z-index: 12000;
+  max-width: 90%;
+  text-align: center;
 }
 
 
+.disclaimer-note {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 10px 0;
+  font-size: 12px;
+  color: #333;
+  text-align: center;
+}
+
+.disclaimer-note p {
+  margin: 0;
+}
+
+.disclaimer-note strong {
+  color: #007bff;
+}
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -182,16 +194,28 @@ button:disabled {
 
 @media (max-width: 768px) {
   .save-face-container {
-    padding: 20px;
-    max-height: 500px; /* Adjusted for mobile */
+    width: 90%;
+    margin: 20px auto;
+    padding: 15px;
   }
 
   .save-face-container h2 {
     font-size: 24px;
   }
 
-  .name-input {
+  .video-container {
+    width: 100%;
     max-width: 100%;
+    padding: 10px;
+  }
+
+  #video {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   }
 
   .face-buttons {
@@ -202,5 +226,12 @@ button:disabled {
   .btn {
     min-width: 100%;
     padding: 12px 24px;
+  }
+
+  .instruction {
+    top: 5px;
+    font-size: 13px;
+    padding: 8px 12px;
+    max-width: 95%;
   }
 }

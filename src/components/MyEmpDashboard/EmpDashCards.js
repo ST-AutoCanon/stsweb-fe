@@ -98,67 +98,7 @@ const EmpDashCards = () => {
     loadModels();
   }, []);
 
-  // const getLocationAndDevice = async () => {
-  //   return new Promise((resolve) => {
-  //     function getLocation() {
-  //       if (navigator.geolocation) {
-  //         navigator.geolocation.getCurrentPosition(
-  //           showPosition,
-  //           showError,
-  //           { enableHighAccuracy: true }
-  //         );
-  //       } else {
-  //         resolve({
-  //           latitude: "N/A",
-  //           longitude: "N/A",
-  //           location: "Geolocation not supported",
-  //           device: "Unknown",
-  //         });
-  //       }
-  //     }
-
-  //     async function showPosition(position) {
-  //       const { latitude, longitude } = position.coords;
-  //       const device = /Mobi|Android/i.test(navigator.userAgent)
-  //         ? "Mobile"
-  //         : "Desktop";
-  //       const accessToken = "pk.e073d7dc1a8107f3fce9727be20a7434";
-
-  //       try {
-  //         const response = await fetch(
-  //           `https://us1.locationiq.com/v1/reverse.php?key=${accessToken}&lat=${latitude}&lon=${longitude}&format=json`
-  //         );
-  //         const data = await response.json();
-
-  //         let location = "Unknown";
-  //         if (data && data.address) {
-  //           const { road, suburb, city, state, country } = data.address;
-  //           location = `${road ? road + ", " : ""}${
-  //             suburb ? suburb + ", " : ""
-  //           }${city ? city + ", " : ""}${state ? state + ", " : ""}${
-  //             country || ""
-  //           }`.trim();
-  //         }
-
-  //         resolve({ latitude, longitude, location, device });
-  //       } catch (error) {
-  //         console.error("Error fetching address:", error);
-  //         resolve({ latitude, longitude, location: "Unknown", device });
-  //       }
-  //     }
-
-  //     function showError() {
-  //       resolve({
-  //         latitude: "N/A",
-  //         longitude: "N/A",
-  //         location: "Location access denied",
-  //         device: "Unknown",
-  //       });
-  //     }
-
-  //     getLocation();
-  //   });
-  // };
+  
 
 
   const getLocationAndDevice = async () => {
@@ -249,6 +189,12 @@ const EmpDashCards = () => {
     }
   };
   
+
+
+
+
+  
+
 
   const verifyFace = async () => {
     try {

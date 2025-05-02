@@ -77,60 +77,28 @@
   display: block;
 }
 
+/* Add this to your EmpDashCards.css */
 
-
-/* 
-.camera-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-  padding: 32px;
-  z-index: 1000;
-  width: 400px;
-  max-width: 90%;
-  text-align: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.camera-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 24px;
-  color: #222;
-}
-
-.camera-video {
-  width: 100%;
-  height: auto;
-  max-height: 260px;
-  border-radius: 16px;
-  object-fit: cover;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-.camera-status {
-  font-size: 1rem;
-  color: #555;
-  margin-top: 10px;
-  letter-spacing: 0.4px;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -55%);
-  }
-  to {
+/* Blink animation */
+@keyframes blink {
+  0% {
     opacity: 1;
-    transform: translate(-50%, -50%);
   }
-} */
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.emp-blink {
+  animation: blink 1s ease-in-out infinite;
+}
+
+
+
+
 .camera-popup {
   position: fixed;
   top: 55%;
@@ -262,4 +230,27 @@
       font-size: 2rem; /* Make the icon slightly bigger */
     }
   }
+ 
+    .camera-popup {
+      top: 50%;
+      width: 90%;
+      padding: 20px 18px;
+      border-radius: 18px;
+      gap: 20px;
+    }
+  
+    .camera-title {
+      font-size: 1.6rem;
+    }
+  
+    .camera-video {
+      max-height: 260px;
+      border-radius: 14px;
+    }
+  
+    .camera-status {
+      font-size: 1rem;
+    
+  }
+  
 }

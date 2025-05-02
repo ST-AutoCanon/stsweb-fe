@@ -89,3 +89,17 @@
     opacity: 1;
   }
 }
+
+@media (max-width: 780px) {
+  .reg-popup-content {
+    width: 100%;
+    padding: 12px 10px;
+    border-radius: 10px;
+    margin-left: 0%;
+  }
+
+  .reg-popup-overlay {
+    
+    padding-top: 0px; /* allows popup to show lower on small screens */
+  }
+}
