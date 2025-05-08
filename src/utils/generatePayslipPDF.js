@@ -1,6 +1,3 @@
-
-
-
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -34,11 +31,12 @@ const convertNumberToWords = (num) => {
   return words.trim() + " only.";
 };
 
-const generatePayslipPDF = (payrollData, selectedDate, bankDetails, attendance) => {
+function generatePayslipPDF(payrollData, selectedDate, bankDetails, attendance, employeeDetails) {
   if (!payrollData) {
     alert("No payroll data available.");
     return;
   }
+
 
   // Format net salary
   const formattedNetSalary = parseFloat(payrollData.net_salary).toFixed(0);
@@ -46,14 +44,36 @@ const generatePayslipPDF = (payrollData, selectedDate, bankDetails, attendance) 
   let netSalaryWords = convertNumberToWords(parseInt(integerPart));
 
   const doc = new jsPDF();
+  const pan = employeeDetails?.pan_number || "N/A";
+  const gender = employeeDetails?.gender || "N/A";
 
-  // Header
-  doc.setFontSize(16).setFont("times", "bold");
-  doc.text("SUKALPA TECH SOLUTIONS Pvt.Ltd", 65, 25);
-  doc.setFontSize(12).setFont("times", "normal");
-  doc.text("Sahyadri Nagar Belagavi ", 90, 35);
+  doc.setFontSize(12);
 
-  doc.setFontSize(14).setFont("times", "bold");
+  // Draw a smaller rectangular box for the header
+doc.setFillColor(15, 102, 121); // Converted from hex #0F6679
+doc.rect(10, 10, 192, 25, "F"); // Reduced height from 40 to 25
+
+// Add company logo inside a smaller square on the left
+doc.setFillColor(255, 255, 255); // White background for the logo square
+  doc.rect(10.5, 10.5, 25, 24, "F"); // White square aligned with header edges (top and left)
+  const logoUrl = "/images/LoginLogo.png";
+  doc.addImage(logoUrl, "PNG", 11, 11, 23, 23); // Logo slightly smaller to leave 1mm border on all sides
+  // Header text on the right side
+ // Set text color to white for header
+doc.setTextColor(255, 255, 255);
+
+// Header text on the right side
+doc.setFontSize(16).setFont("helvetica", "bold");
+doc.text("Sukalpa Tech Solutions Pvt Ltd", 200, 20, { align: "right" });
+
+doc.setFontSize(10).setFont("helvetica", "normal");
+doc.text("#71, Sarathy Nagar, Near Sahyadri Nagar, Belagavi - 591108", 200, 27, { align: "right" });
+doc.text("Phone no.: 9686465612  Email: om@sukalpatechsolutions.com", 200, 34, { align: "right" });
+
+// Reset text color to black for other content if needed
+doc.setTextColor(0, 0, 0);
+
+  doc.setFontSize(14).setFont("helvetica", "bold");
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -61,46 +81,52 @@ const generatePayslipPDF = (payrollData, selectedDate, bankDetails, attendance) 
   ];
   const formattedMonthYear = `${monthNames[selectedDate.month - 1]} ${selectedDate.year}`;
 
-  doc.text(" ", 85, 50);
-  doc.setFont("times", "bold").text(`Payslip for ${formattedMonthYear}`, 85, 55);
+  doc.text(" ", 85, 55);
+  doc.text(`Payslip for ${formattedMonthYear}`, 85, 60);
 
   // Employee Details
-  doc.setFontSize(10).setFont("times", "bold");
+  doc.setFontSize(10).setFont("helvetica", "bold");
   
   // Left side details
-  doc.text("Employee Name:", 20, 70);
-  doc.setFont("times", "normal").text(`${payrollData.employee_name.toUpperCase()}`, 60, 70);
+  doc.text("Employee Name:", 20, 75);
+  doc.setFont("helvetica", "normal").text(`${payrollData.employee_name.toUpperCase()}`, 60, 75);
 
-  doc.setFont("times", "bold").text("Department:", 20, 77);
-  doc.setFont("times", "normal").text(`${payrollData.department.toUpperCase()}`, 60, 77);
+  doc.setFont("helvetica", "bold").text("Gender:", 20, 82);
+doc.setFont("helvetica", "normal").text(`${employeeDetails?.gender?.toUpperCase() || "N/A"}`, 60, 82);
 
-  doc.setFont("times", "bold").text("Date of Joining:", 20, 84);
-  doc.setFont("times", "normal").text(`${payrollData.joining_date}`, 60, 84);
+  doc.setFont("helvetica", "bold").text("Date of Joining:", 20, 89);
+  doc.setFont("helvetica", "normal").text(`${payrollData.joining_date}`, 60, 89);
 
-  doc.setFont("times", "bold").text("No. of Working Days:", 20, 91);
-  doc.setFont("times", "normal").text(`${attendance?.total_working_days || "N/A"}`, 60, 91);
+  doc.setFont("helvetica", "bold").text("No. of Working Days:", 20, 96);
+  doc.setFont("helvetica", "normal").text(`${attendance?.total_working_days || "N/A"}`, 60, 96);
 
-  doc.setFont("times", "bold").text("UIN No:", 20, 98); // Added UIN No
-  doc.setFont("times", "normal").text(`${payrollData.uin_number || "N/A"}`, 60, 98);
+  doc.setFont("helvetica", "bold").text("UIN No:", 20, 103);
+doc.setFont("helvetica", "normal").text(`${payrollData.uin_number || "N/A"}`, 60, 103);
+
+doc.setFont("helvetica", "bold").text("ESI Number:", 20, 110);
+doc.setFont("helvetica", "normal").text(`${bankDetails.esi_number || "N/A"}`, 60, 110);
 
   // Right side details
-  doc.setFont("times", "bold").text("Employee ID:", 110, 70);
-  doc.setFont("times", "normal").text(`${payrollData.employee_id}`, 150, 70);
+  doc.setFont("helvetica", "bold").text("Employee ID:", 100, 75);
+  doc.setFont("helvetica", "normal").text(`${payrollData.employee_id}`, 130, 75);
 
-  doc.setFont("times", "bold").text("Designation:", 110, 77);
-  doc.setFont("times", "normal").text(`${payrollData.designation.toUpperCase()}`, 150, 77);
+  doc.setFont("helvetica", "bold").text("Designation:", 100, 82);
+  doc.setFont("helvetica", "normal").text(`${payrollData.designation.toUpperCase()}`, 130, 82);
 
-  doc.setFont("times", "bold").text("Account No:", 110, 84);
-  doc.setFont("times", "normal").text(`${bankDetails.account_number} (${bankDetails.bank_name})`, 150, 84);
+  doc.setFont("helvetica", "bold").text("Account No:", 100, 89);
+  doc.setFont("helvetica", "normal").text(`${bankDetails.account_number} (${bankDetails.bank_name})`, 130, 89);
 
-  doc.setFont("times", "bold").text("Leaves Taken:", 110, 91);
-  doc.setFont("times", "normal").text(`${attendance?.leave_count}`, 150, 91);
+  doc.setFont("helvetica", "bold").text("Leaves Taken:", 100, 96);
+  doc.setFont("helvetica", "normal").text(`${attendance?.leave_count}`, 130, 96);
 
-  doc.setFont("times", "bold").text("Branch Name:", 110, 98); // Added Branch Name
-  doc.setFont("times", "normal").text(`${bankDetails.branch_name || "N/A"}`, 150, 98);
+  doc.setFont("helvetica", "bold").text("PAN Number:", 100, 103);
+  doc.setFont("helvetica", "normal").text(`${employeeDetails.pan_number || "N/A"}`, 130, 103);
 
-  // Tables
-  autoTable(doc, { startY: 105, styles: { fontSize: 10, lineColor: [0, 0, 0], lineWidth: 0.3 }, theme: "grid" });
+  doc.setFont("helvetica", "bold").text("PF Number:", 100, 110);
+  doc.setFont("helvetica", "normal").text(`${bankDetails.pf_number || "N/A"}`, 130, 110);
+
+  
+  autoTable(doc, { startY: 110, styles: { fontSize: 10, lineColor: [0, 0, 0], lineWidth: 0.3 }, theme: "grid" });
 
   const earningsRows = [
     ["Basic", `${payrollData.basic_salary}`, "PF", `${payrollData.pf || 0}`],
@@ -127,7 +153,6 @@ const generatePayslipPDF = (payrollData, selectedDate, bankDetails, attendance) 
     earningsRows.push(["", "", "Advance Recovery", `${payrollData.advance_recovery}`]);
   }
   
-  
   // Add gross and total rows at the end
   earningsRows.push(
     ["", "", "TDS", `${payrollData.tds}`],
@@ -140,30 +165,31 @@ const generatePayslipPDF = (payrollData, selectedDate, bankDetails, attendance) 
     body: earningsRows,
     styles: { fontSize: 10, lineColor: [0, 0, 0], lineWidth: 0.3 },
     theme: "grid",
-    headStyles: { fillColor: [130, 218, 254], textColor: [0, 0, 0] } // Text color set to black
+    headStyles: { fillColor: [15, 102, 121], textColor: [255, 255, 255]
+    }
   });
   
-  
-// Check if Advance Taken or Advance Recovery exists
-if (payrollData.advance_taken || payrollData.advance_recovery) {
-  const advanceRows = [
-    ["Advance Taken", `${payrollData.salary_advance || 0}`],
-    ["Advance Recovery", `${payrollData.advance_recovery || 0}`]
-  ];
+  // Check if Advance Taken or Advance Recovery exists
+  if (payrollData.advance_taken || payrollData.advance_recovery) {
+    const advanceRows = [
+      ["Advance Taken", `${payrollData.salary_advance || 0}`],
+      ["Advance Recovery", `${payrollData.advance_recovery || 0}`]
+    ];
 
-  // Add table for Advance Taken and Recovery before Net Salary table
-  autoTable(doc, {
-    startY: doc.lastAutoTable.finalY + 4,
-    body: advanceRows,
-    styles: { fontSize: 10, fontStyle: "bold", lineColor: [0, 0, 0], lineWidth: 0.3 },
-    columnStyles: {
-      0: { cellWidth: 58 }, // Make label column narrower
-      1: { cellWidth: 124 }, // Value column
-    },
-    margin: { left: 14 }, // Shift entire table more to the left
-    theme: "grid",
-  });
-}
+    // Add table for Advance Taken and Recovery before Net Salary table
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 4,
+      body: advanceRows,
+      styles: { fontSize: 10, fontStyle: "bold", lineColor: [0, 0, 0], lineWidth: 0.3 },
+      columnStyles: {
+        0: { cellWidth: 58 },
+        1: { cellWidth: 124 },
+      },
+      margin: { left: 14 },
+      theme: "grid",
+    });
+  }
+
   autoTable(doc, {
     startY: doc.lastAutoTable.finalY + 4,
     body: [
@@ -172,8 +198,8 @@ if (payrollData.advance_taken || payrollData.advance_recovery) {
     ],
     styles: { fontSize: 10, fontStyle: "bold", lineColor: [0, 0, 0], lineWidth: 0.3 },
     columnStyles: {
-      0: { cellWidth: 58 }, // Make label column narrower
-      1: { cellWidth: 124 }, // Value column
+      0: { cellWidth: 58 },
+      1: { cellWidth: 124 },
     },
     theme: "grid",
   });

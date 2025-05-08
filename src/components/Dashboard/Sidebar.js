@@ -18,6 +18,7 @@ import Reimbursement from "../Reimbursement/Reimbursement";
 import RbAdmin from "../Reimbursement/RbAdmin";
 import RbTeamLead from "../Reimbursement/RbTeamLead";
 import Assets from "../Assets/assets";
+import Vendors from "../vendors/vendors";
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -112,6 +113,10 @@ const Sidebar = ({ setActiveContent }) => {
         case "/assets":
             setActiveContent(<Assets />);
             break;
+            case "/vendors":
+              setActiveContent(<Vendors />);
+          
+        break;
 
       default:
         setActiveContent(<p>Content not found for this path.</p>);
