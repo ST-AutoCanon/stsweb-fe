@@ -158,20 +158,25 @@ const Profile = ({ onClose }) => {
           
         </div>
         {/* Display assigned assets */}
-        <div className="profile-assets">
+        <div className="assigned-assets-row">
+  <div className="assigned-assets-label">
+    <strong>Assigned Assets:</strong>
+  </div>
+  <div className="assigned-assets-values">
+  {assignedAssets.length > 0 ? (
+    assignedAssets.map((asset, index) => (
+      <p key={asset.asset_id}>
+        <strong>{asset.asset_id} - {asset.asset_code}</strong> - {asset.asset_name}
+        <strong>{index < assignedAssets.length - 1 && ","}</strong> {/* Add comma except for the last asset */}
+      </p>
+    ))
+  ) : (
+    <p>No assets assigned.</p>
+  )}
+</div>
 
-        <p><strong>Assigned Assets:</strong></p>
-{assignedAssets.length > 0 ? (
-  assignedAssets.map((asset) => (
-    <p key={asset.asset_id}>
-      • <strong>{asset.asset_id}</strong> - {asset.asset_name}
-    </p>
-  ))
-) : (
-  <p>No assets assigned.</p>
-)}
+</div>
 
-      </div>
       </div>
     </div>
   );

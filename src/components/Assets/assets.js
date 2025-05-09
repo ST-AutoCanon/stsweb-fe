@@ -271,7 +271,7 @@ const handleSuggestionSelect = (selectedEmp, index) => {
       setAssets(response.data);
     } catch (error) {
       console.error("❌ Error fetching assets:", error.response?.data || error.message);
-      showAlert("Failed to fetch assets. See console.");
+      showAlert("Failed to fetch assets.");
     }
   };
 
@@ -299,7 +299,7 @@ const handleSuggestionSelect = (selectedEmp, index) => {
         window.open(fileURL, "_blank");
     } catch (error) {
         console.error("Error opening document:", error.response?.data || error.message);
-        showAlert("Failed to open document. Check console logs.");
+        showAlert("Failed to open document.");
     }
 };
 
@@ -464,6 +464,29 @@ const handleDownloadDocument = async (documentPath) => {
   }
 };
 
+// const handleViewDocument = async (documentPath) => {
+//   if (!documentPath) {
+//     showAlert("No document available.");
+//     return;
+//   }
+
+//   try {
+//     const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/${documentPath.replace(/^\/?uploads\//, "uploads/")}`, {
+//       headers: {
+//         "x-api-key": API_KEY, // Send API key
+//       },
+//       responseType: "blob", // Ensure it's treated as a file
+//     });
+
+//     // Create a URL and open the document
+//     const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+//     window.open(fileURL, "_blank");
+//   } catch (error) {
+//     console.error("Error opening document:", error.response?.data || error.message);
+//     showAlert("Failed to open document.");
+//   }
+// };
+
 const handleViewDocument = async (documentPath) => {
   if (!documentPath) {
     showAlert("No document available.");
@@ -471,15 +494,26 @@ const handleViewDocument = async (documentPath) => {
   }
 
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/${documentPath.replace(/^\/?uploads\//, "uploads/")}`, {
+    const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/${documentPath.replace(/^\/?uploads\//, "uploads/")}`;
+    
+    const response = await axios.get(fileUrl, {
       headers: {
-        "x-api-key": API_KEY, // Send API key
+        "x-api-key": API_KEY,
       },
-      responseType: "blob", // Ensure it's treated as a file
+      responseType: "blob", // Get file as Blob
     });
 
-    // Create a URL and open the document
-    const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+    // Get file extension to determine MIME type
+    const extension = documentPath.split(".").pop().toLowerCase();
+    let mimeType = "application/octet-stream"; // default fallback
+
+    if (extension === "pdf") mimeType = "application/pdf";
+    else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+    else if (extension === "png") mimeType = "image/png";
+
+    // Create Blob with correct type
+    const fileBlob = new Blob([response.data], { type: mimeType });
+    const fileURL = window.URL.createObjectURL(fileBlob);
     window.open(fileURL, "_blank");
   } catch (error) {
     console.error("Error opening document:", error.response?.data || error.message);
@@ -488,56 +522,118 @@ const handleViewDocument = async (documentPath) => {
 };
 
 
+//   const handleSave = async () => {
+//     if (!assetName || !configuration || !valuationDate ) {
+//       showAlert("Please fill all required fields.");
+//       return;
+//     }
+  
+//     const formData = new FormData();
+//     formData.append("asset_name", assetName);
+//     formData.append("configuration", configuration);
+//     formData.append("valuation_date", valuationDate);
+//     formData.append("assigned_to", JSON.stringify([{ name: assignedTo || "STS" }]));
+//     formData.append("category", selectedCategory);
+//     formData.append("sub_category", selectedSubCategory);
+//     formData.append("status", status); // Make sure status is included
 
-  const handleSave = async () => {
-    if (!assetName || !configuration || !valuationDate ) {
-      showAlert("Please fill all required fields.");
-      return;
-    }
+//     if (document) {
+//       formData.append("document", document);
+//     }
   
-    const formData = new FormData();
-    formData.append("asset_name", assetName);
-    formData.append("configuration", configuration);
-    formData.append("valuation_date", valuationDate);
-    formData.append("assigned_to", JSON.stringify([{ name: assignedTo || "STS" }]));
-    formData.append("category", selectedCategory);
-    formData.append("sub_category", selectedSubCategory);
-    formData.append("status", status); // Make sure status is included
+//     // Debugging: Log FormData before sending
+//     console.log("Sending FormData...");
+//     for (let [key, value] of formData.entries()) {
+//       console.log(key, value);
+//     }
+  
+//     try {
+//       const response = await axios.post(
+//         `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
+//         formData,
+//         {
+//           headers: {
+//             "Content-Type": "multipart/form-data", // Ensure correct content type
+//             "x-api-key": API_KEY, // If needed
+//           },
+//         }
+//       );
+  
+//       console.log("Server Response:", response.data);
+//       showAlert("Asset saved successfully!");
+//       togglePopup(); // Close popup after save
+//       fetchAssets(); // Refresh table after adding an asset
 
-    if (document) {
-      formData.append("document", document);
-    }
-  
-    // Debugging: Log FormData before sending
-    console.log("Sending FormData...");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-  
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data", // Ensure correct content type
-            "x-api-key": API_KEY, // If needed
-          },
-        }
-      );
-  
-      console.log("Server Response:", response.data);
-      showAlert("Asset saved successfully!");
-      togglePopup(); // Close popup after save
-      fetchAssets(); // Refresh table after adding an asset
-
-    } catch (error) {
-      console.error("Error saving asset:", error); // Log the full error object
-      showAlert(`Failed to save asset: ${error.response?.data?.message || error.message || "Unknown error"}`);
-    }
+//     } catch (error) {
+//       console.error("Error saving asset:", error); // Log the full error object
+//       showAlert(`Failed to save asset: ${error.response?.data?.message || error.message || "Unknown error"}`);
+//     }
     
-  };
-;
+//   };
+// ;
+const handleSave = async () => {
+  if (!assetName || !configuration || !valuationDate) {
+    showAlert("Please fill all required fields.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("asset_name", assetName);
+  formData.append("configuration", configuration);
+  formData.append("valuation_date", valuationDate);
+  formData.append("category", selectedCategory);
+  formData.append("sub_category", selectedSubCategory);
+  formData.append("status", status);
+
+  // Ensure assigned_to is an array starting with default STS
+  const assignedToArray = [
+    { name: "STS" } // Default
+  ];
+
+  if (assignedTo && typeof assignedTo === "object" && assignedTo.name && assignedTo.employeeId) {
+    assignedToArray.push({
+      name: assignedTo.name,
+      employeeId: assignedTo.employeeId,
+      startDate: assignedTo.startDate || null,
+      returnDate: assignedTo.returnDate || null,
+      comments: assignedTo.comments || "",
+      status: assignedTo.status || "Assigned"
+    });
+  }
+
+  formData.append("assigned_to", JSON.stringify(assignedToArray));
+
+  if (document) {
+    formData.append("document", document);
+  }
+
+  // Debugging
+  console.log("Sending FormData...");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+
+  try {
+    const response = await axios.post(
+      `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "x-api-key": API_KEY,
+        },
+      }
+    );
+
+    console.log("Server Response:", response.data);
+    showAlert("Asset saved successfully!");
+    togglePopup();
+    fetchAssets();
+  } catch (error) {
+    console.error("Error saving asset:", error);
+    showAlert(`Failed to save asset: ${error.response?.data?.message || error.message || "Unknown error"}`);
+  }
+};
 
   useEffect(() => {
     fetchAssignedAssets();
@@ -939,7 +1035,7 @@ const filteredAssets = sortedAssets.filter((asset) =>
   <input
     type="text"
     placeholder="Enter Assignee Name"
-    value={assignedTo}
+    value={assignedTo?.name || assignedTo || ""}  // Handles both object or plain string
     onChange={handleAssignedToChange2}
     onBlur={handleBlur}
     autoComplete="off"

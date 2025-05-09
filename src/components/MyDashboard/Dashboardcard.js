@@ -108,10 +108,10 @@ const Dashboardcard = () => {
               {item.label === "Previous Month Credit"
                 ? "Coming soon!"
                 : item.label === "Previous Month Reimbursement (Approved)"
-                ? reimbursementData.totalApprovedReimbursement || "0.00"
+                ? Math.round(reimbursementData.totalApprovedReimbursement) || "0.00"
                 : item.label === "Previous Month Salary"
-                ? payrollData.total_previous_month_salary || "0.00"
-                : item.value}
+                ? Math.round(payrollData.total_previous_month_salary) || "0.00"
+                : Math.floor(item.value)}
             </div>
           </div>
         </div>
