@@ -460,7 +460,7 @@ const handleDownloadDocument = async (documentPath) => {
     window.URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error downloading document:", error);
-    showAlert("Failed to download file. See console.");
+    showAlert("Failed to download file.");
   }
 };
 
@@ -967,6 +967,20 @@ const filteredAssets = sortedAssets.filter((asset) =>
   </div>
 </div>
 
+<caption style={{ captionSide: "top", padding: "10px", textAlign: "left" }}>
+    <div className="asset-search-container">
+
+    
+    <input
+      type="text"
+      placeholder="Search by Asset_ID,Asset_code.."
+      className="asset-table-search-input"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+    </div>
+  </caption>
+
 
 
       {showPopup && (
@@ -1117,21 +1131,7 @@ const filteredAssets = sortedAssets.filter((asset) =>
       <div className="assets-table">
         <table>
         
-    <caption style={{ captionSide: "top", padding: "10px", textAlign: "left" }}>
-    <div className="asset-search-container">
-
-    <label htmlFor="searchInput" className="asset-table-search-label">
-      Search:
-    </label>
-    <input
-      type="text"
-      placeholder="Search by Asset_ID,Asset_code.."
-      className="asset-table-search-input"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-    />
-    </div>
-  </caption>
+    
               <thead>
             <tr>
               <th>Asset_ID</th>

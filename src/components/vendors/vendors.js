@@ -1,7 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './vendors.css';
+import { FaEye } from 'react-icons/fa';
+import { Eye, Download } from 'react-feather'; // or from 'react-icons/fi' or 'react-icons/fa' if using FontAwesome
+import Modal from "../Modal/Modal";
+
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 const Vendors = () => {
@@ -14,12 +17,14 @@ const Vendors = () => {
     address: '',
     company_name: '',
     registered_address: '',
+    branch_address: '',
     city: '',
     state: '',
     pin_code: '',
     gst_number: '',
     pan_number: '',
     company_type: '',
+    msme_status: 'Not Applicable',
     contact1_name: '',
     contact1_designation: '',
     contact1_mobile: '',
@@ -40,6 +45,20 @@ const Vendors = () => {
     product_category: '',
     years_of_experience: '',
   });
+  
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+  
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
   const [files, setFiles] = useState({
     gst_certificate: null,
     pan_card: null,
@@ -51,12 +70,27 @@ const Vendors = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDocumentsPopup, setShowDocumentsPopup] = useState(false);
   const [showDownloadPopup, setShowDownloadPopup] = useState(false);
+  const [showCompanyDetailsPopup, setShowCompanyDetailsPopup] = useState(false);
+  const [showContactDetailsPopup, setShowContactDetailsPopup] = useState(false);
+  const [showBankDetailsPopup, setShowBankDetailsPopup] = useState(false);
+  const [showBusinessInfoPopup, setShowBusinessInfoPopup] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedVendorFiles, setSelectedVendorFiles] = useState(null);
+  const [error, setError] = useState('');
 
   const togglePopup = () => setShowForm(!showForm);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'years_of_experience') {
+      if (/[^0-9]/.test(value)) {
+        setError('Years of Experience must contain only numbers');
+      } else if (value && parseInt(value) <= 0) {
+        setError('Years of Experience must be a positive number');
+      } else {
+        setError('');
+      }
+    }
     setFormData({ ...formData, [name]: value });
   };
 
@@ -67,7 +101,7 @@ const Vendors = () => {
 
   const fetchVendors = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/vendors/list', {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/vendors/list`, {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -77,7 +111,7 @@ const Vendors = () => {
       }
     } catch (error) {
       console.error('Error fetching vendors:', error);
-      alert('Failed to fetch vendors');
+      showAlert('Failed to fetch vendors');
     }
   };
 
@@ -87,8 +121,23 @@ const Vendors = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.company_name || formData.company_name.trim() === '') {
-      alert('Company name is required and cannot be empty');
+      showAlert('Company name is required and cannot be empty');
+      return;
+    }
+
+    const years = formData.years_of_experience;
+    if (!years) {
+      setError('Years of Experience is required');
+      return;
+    }
+    if (/[^0-9]/.test(years)) {
+      setError('Years of Experience must contain only numbers');
+      return;
+    }
+    if (parseInt(years) <= 0) {
+      setError('Years of Experience must be a positive number');
       return;
     }
 
@@ -103,13 +152,13 @@ const Vendors = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/vendors/add', data, {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/vendors/add`, data, {
         headers: { 
           "x-api-key": API_KEY,
           'Content-Type': 'multipart/form-data' 
         },
       });
-      alert('Vendor registered successfully!');
+      showAlert('Vendor registered successfully!');
       togglePopup();
       setFormData({
         name: '',
@@ -119,12 +168,14 @@ const Vendors = () => {
         address: '',
         company_name: '',
         registered_address: '',
+        branch_address: '',
         city: '',
         state: '',
         pin_code: '',
         gst_number: '',
         pan_number: '',
         company_type: '',
+        msme_status: 'Not Applicable',
         contact1_name: '',
         contact1_designation: '',
         contact1_mobile: '',
@@ -152,10 +203,11 @@ const Vendors = () => {
         msme_certificate: null,
         incorporation_certificate: null,
       });
+      setError('');
       fetchVendors();
     } catch (error) {
       const errorMessage = error.response?.data?.error || error.message;
-      alert(`Failed to register vendor: ${errorMessage}`);
+      showAlert(`Failed to register vendor: ${errorMessage}`);
     }
   };
 
@@ -163,29 +215,103 @@ const Vendors = () => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredVendors = vendors.filter(vendor =>
-    vendor.company_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const normalizeFilePath = (filePath) => {
+    if (!filePath) {
+      console.warn('normalizeFilePath: Empty filePath received');
+      return null;
+    }
+    console.log('Original filePath:', filePath);
+    let normalized = filePath.replace(/\\/g, '/');
+    normalized = normalized.replace(/^\.\//, '').replace(/\/+/g, '/');
+    normalized = normalized.replace(/^uploads\//i, 'Uploads/');
+    if (!normalized.startsWith('Uploads/')) {
+      normalized = `Uploads/${normalized}`;
+    }
+    console.log('Normalized filePath:', normalized);
+    return normalized;
+  };
 
-  const handleViewDocument = (filePath) => {
-    if (filePath) {
-      window.open(`http://localhost:5000/${filePath}`, '_blank');
-    } else {
-      alert('Document not available');
+  const handleViewDocument = async (documentPath) => {
+    if (!documentPath) {
+     showAlert ("No document available.");
+      return;
+    }
+
+    try {
+      const fileName = documentPath.split("\\").pop();
+      const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${encodeURIComponent(fileName)}`;
+
+      const response = await axios.get(fileUrl, {
+        headers: {
+          "x-api-key": process.env.REACT_APP_API_KEY,
+        },
+        responseType: "blob",
+      });
+
+      const extension = fileName.split(".").pop().toLowerCase();
+      let mimeType = "application/octet-stream";
+
+      if (extension === "pdf") mimeType = "application/pdf";
+      else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+      else if (extension === "png") mimeType = "image/png";
+
+      const fileBlob = new Blob([response.data], { type: mimeType });
+      const fileURL = window.URL.createObjectURL(fileBlob);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error viewing vendor document:", error.response?.data || error.message);
+      showAlert("Failed to open vendor document.");
     }
   };
 
-  const handleDownloadDocument = (filePath) => {
-    if (filePath) {
-      const link = document.createElement('a');
-      link.href = `http://localhost:5000/${filePath}`;
-      link.download = filePath.split('/').pop();
+  const handleDownloadDocument = async (documentPath) => {
+    if (!documentPath) {
+     showAlert ("No document available.");
+      return;
+    }
+
+    try {
+      const fileName = documentPath.split(/[/\\]/).pop();
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${fileName}`,
+        {
+          headers: {
+            "x-api-key": API_KEY,
+          },
+          responseType: "blob",
+        }
+      );
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } else {
-      alert('Document not available');
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+     showAlert ("Failed to download file.");
     }
+  };
+
+  const handleDownloadAll = (vendorFiles) => {
+    const fileKeys = [
+      'gst_certificate',
+      'pan_card',
+      'cancelled_cheque',
+      'msme_certificate',
+      'incorporation_certificate',
+    ];
+
+    fileKeys.forEach((key) => {
+      if (vendorFiles[key]) {
+        handleDownloadDocument(vendorFiles[key]);
+      }
+    });
   };
 
   const handleShowDocuments = (vendor) => {
@@ -210,33 +336,34 @@ const Vendors = () => {
     setShowDownloadPopup(true);
   };
 
-  const handleDownloadAll = (files) => {
-    const filePaths = [
-      files.gst_certificate,
-      files.pan_card,
-      files.cancelled_cheque,
-      files.msme_certificate,
-      files.incorporation_certificate,
-    ].filter(Boolean);
-
-    if (filePaths.length === 0) {
-      alert('No documents available to download');
-      return;
-    }
-
-    filePaths.forEach(filePath => {
-      handleDownloadDocument(filePath);
-    });
+  const handleShowCompanyDetails = (vendor) => {
+    setSelectedVendor(vendor);
+    setShowCompanyDetailsPopup(true);
   };
+
+  const handleShowContactDetails = (vendor) => {
+    setSelectedVendor(vendor);
+    setShowContactDetailsPopup(true);
+  };
+
+  const handleShowBankDetails = (vendor) => {
+    setSelectedVendor(vendor);
+    setShowBankDetailsPopup(true);
+  };
+
+  const handleShowBusinessInfo = (vendor) => {
+    setSelectedVendor(vendor);
+    setShowBusinessInfoPopup(true);
+  };
+
+  const filteredVendors = vendors.filter(vendor =>
+    vendor.company_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="vendors-container">
-      <button className="add-vendor-btn" onClick={togglePopup}>
-        Add Vendor
-      </button>
-
-      <div className="table-scroll-wrapper">
-        <div className="search-container">
+      <div className="header-container">
+        <div className="vendor-search-container">
           <input
             type="text"
             placeholder="Search by Company Name..."
@@ -244,51 +371,90 @@ const Vendors = () => {
             onChange={handleSearchChange}
             className="search-input"
           />
-          <span className="search-icon">🔍</span>
+          <i className="fas fa-search search-icon"></i>
         </div>
+        <button className="add-vendor-btn" onClick={togglePopup}>
+          Add Vendor
+        </button>
+      </div>
+
+      <div className="table-scroll-wrapper">
         <table className="vendor-table">
-          <thead>
-            <tr className="header-row">
-              <th>Vendor ID</th>
-              <th>Company Name</th>
-              <th>City</th>
-              <th>State</th>
-              <th>Contact 1 Name</th>
-              <th>Contact 1 Mobile</th>
-              <th>Contact 1 Email</th>
-              <th>Experience</th>
-              <th>Documents</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredVendors.map(vendor => (
-              <tr key={vendor.vendor_id}>
-                <td>{vendor.vendor_id}</td>
-                <td>{vendor.company_name}</td>
-                <td>{vendor.city}</td>
-                <td>{vendor.state}</td>
-                <td>{vendor.contact1_name}</td>
-                <td>{vendor.contact1_mobile}</td>
-                <td>{vendor.contact1_email}</td>
-                <td>{vendor.years_of_experience}</td>
-                <td className="document-actions">
-                  <button
-                    className="view-documents-btn"
-                    onClick={() => handleShowDocuments(vendor)}
-                  >
-                    👁️
-                  </button>
-                  <button
-                    className="download-all-btn"
-                    onClick={() => handleShowDownloadPopup(vendor)}
-                  >
-                    ⬇️
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  <thead>
+    <tr className="header-row">
+      <th>Vendor ID</th>
+      <th>Company Name</th>
+      <th>Company Details</th>
+      <th>Contact Details</th>
+      <th>Bank Details</th>
+      <th>Business Information</th>
+      <th>Documents</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredVendors.map(vendor => (
+      <tr key={vendor.vendor_id}>
+        <td>{vendor.vendor_id}</td>
+        <td>{vendor.company_name}</td>
+
+        <td>
+          <button
+            className="vendor-view-doc-btn"
+            onClick={() => handleShowCompanyDetails(vendor)}
+          >
+            <Eye size={16} style={{ marginRight: '5px' }} /> View
+          </button>
+        </td>
+
+        <td>
+          <button
+            className="vendor-view-doc-btn"
+            onClick={() => handleShowContactDetails(vendor)}
+          >
+            <Eye size={16} style={{ marginRight: '5px' }} /> View
+          </button>
+        </td>
+
+        <td>
+          <button
+            className="vendor-view-doc-btn"
+            onClick={() => handleShowBankDetails(vendor)}
+          >
+            <Eye size={16} style={{ marginRight: '5px' }} /> View
+          </button>
+        </td>
+
+        <td>
+          <button
+            className="vendor-view-doc-btn"
+            onClick={() => handleShowBusinessInfo(vendor)}
+          >
+            <Eye size={16} style={{ marginRight: '5px' }} /> View
+          </button>
+        </td>
+
+        <td>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              className="vendor-view-doc-btn"
+              onClick={() => handleShowDocuments(vendor)}
+            >
+              <Eye size={16} style={{ marginRight: '5px' }} /> View
+            </button>
+
+            <button
+              className="vendor-download-doc-btn"
+              onClick={() => handleShowDownloadPopup(vendor)}
+            >
+              <Download size={16} style={{ marginRight: '5px' }} /> Download
+            </button>
+          </div>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
       </div>
 
       {showForm && (
@@ -301,7 +467,6 @@ const Vendors = () => {
             <h2 className="vendor-form-title">Vendor Registration Form</h2>
 
             <form onSubmit={handleSubmit}>
-              {/* Company Details */}
               <div className='companydetailsfeildset'>
                 <fieldset>
                   <legend>Company Details</legend>
@@ -325,6 +490,7 @@ const Vendors = () => {
                         placeholder="City"
                         value={formData.city}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -335,6 +501,7 @@ const Vendors = () => {
                         placeholder="State"
                         value={formData.state}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -345,10 +512,11 @@ const Vendors = () => {
                         placeholder="Pin Code"
                         value={formData.pin_code}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                   </div>
-                  <div className="contact-row three-columns">
+                  <div className="contact-row four-columns">
                     <div className="contact-field">
                       <label htmlFor="gst_number">GST Number:</label>
                       <input
@@ -357,6 +525,7 @@ const Vendors = () => {
                         placeholder="GST Number"
                         value={formData.gst_number}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -367,6 +536,7 @@ const Vendors = () => {
                         placeholder="PAN Number"
                         value={formData.pan_number}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -377,10 +547,24 @@ const Vendors = () => {
                         placeholder="Company Type"
                         value={formData.company_type}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
+                    <div className="contact-field">
+                      <label htmlFor="msme_status">MSME Status:</label>
+                      <select
+                        id="msme_status"
+                        name="msme_status"
+                        value={formData.msme_status}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="Applicable">Applicable</option>
+                        <option value="Not Applicable">Not Applicable</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="contact-row full-width">
+                  <div className="contact-row two-columns">
                     <div className="contact-field">
                       <label htmlFor="registered_address">Registered Address:</label>
                       <input
@@ -389,13 +573,23 @@ const Vendors = () => {
                         placeholder="Registered Address"
                         value={formData.registered_address}
                         onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    <div className="contact-field">
+                      <label htmlFor="branch_address">Branch/Manufacturing Address:</label>
+                      <input
+                        id="branch_address"
+                        name="branch_address"
+                        placeholder="Branch/Manufacturing Address"
+                        value={formData.branch_address}
+                        onChange={handleInputChange}
                       />
                     </div>
                   </div>
                 </fieldset>
               </div>
 
-              {/* Contact Details */}
               <div className='contactdetailsfeildset'>
                 {[1, 2, 3].map((i) => (
                   <fieldset key={i} className="contact-fieldset spaced">
@@ -446,7 +640,6 @@ const Vendors = () => {
                 ))}
               </div>
 
-              {/* Bank Details */}
               <div className='feildsetbankdetails'>
                 <fieldset>
                   <legend>Bank Details</legend>
@@ -459,6 +652,7 @@ const Vendors = () => {
                         placeholder="Bank Name"
                         value={formData.bank_name}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -469,6 +663,7 @@ const Vendors = () => {
                         placeholder="Branch"
                         value={formData.branch}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -479,6 +674,7 @@ const Vendors = () => {
                         placeholder="Account Number"
                         value={formData.account_number}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -489,13 +685,13 @@ const Vendors = () => {
                         placeholder="IFSC Code"
                         value={formData.ifsc_code}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                   </div>
                 </fieldset>
               </div>
 
-              {/* Business Info */}
               <div className='feildsetbusinessinformation'>
                 <fieldset>
                   <legend>Business Information</legend>
@@ -508,6 +704,7 @@ const Vendors = () => {
                         placeholder="Nature of Business"
                         value={formData.nature_of_business}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -518,6 +715,7 @@ const Vendors = () => {
                         placeholder="Category of Products/Services"
                         value={formData.product_category}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="contact-field">
@@ -525,19 +723,23 @@ const Vendors = () => {
                       <input
                         id="years_of_experience"
                         name="years_of_experience"
+                        type="number"
+                        min="1"
+                        pattern="[0-9]*"
                         placeholder="Years of Experience"
                         value={formData.years_of_experience}
                         onChange={handleInputChange}
+                        required
                       />
+                      {error && <span className="error-message">{error}</span>}
                     </div>
                   </div>
                 </fieldset>
               </div>
 
-              {/* Documents */}
               <fieldset>
                 <legend>Documents Required (Attach Copies)</legend>
-                <div className="contact-row four-columns">
+                <div className="contact-row three-columns">
                   <div className="contact-field">
                     <label htmlFor="gst_certificate">GST Certificate:</label>
                     <input
@@ -546,6 +748,7 @@ const Vendors = () => {
                       name="gst_certificate"
                       accept=".pdf,.jpg,.png,.jpeg"
                       onChange={handleFileChange}
+                      required
                     />
                   </div>
                   <div className="contact-field">
@@ -556,6 +759,7 @@ const Vendors = () => {
                       name="pan_card"
                       accept=".pdf,.jpg,.png,.jpeg"
                       onChange={handleFileChange}
+                      required
                     />
                   </div>
                   <div className="contact-field">
@@ -568,7 +772,9 @@ const Vendors = () => {
                       onChange={handleFileChange}
                     />
                   </div>
-                  <div className="contact-field">
+                </div>
+                <div className="contact-row two-columns">
+                  <div className="contact-field msme-field">
                     <label htmlFor="msme_certificate">MSME Certificate (if applicable):</label>
                     <input
                       id="msme_certificate"
@@ -578,8 +784,6 @@ const Vendors = () => {
                       onChange={handleFileChange}
                     />
                   </div>
-                </div>
-                <div className="contact-row one-column">
                   <div className="contact-field">
                     <label htmlFor="incorporation_certificate">Company Incorporation Certificate:</label>
                     <input
@@ -606,6 +810,170 @@ const Vendors = () => {
         </div>
       )}
 
+      {showCompanyDetailsPopup && selectedVendor && (
+        <div className="vendor-popup-overlay">
+          <div className="vendor-popup-box">
+            <button
+              className="vendor-popup-close-btn"
+              onClick={() => setShowCompanyDetailsPopup(false)}
+            >
+              ×
+            </button>
+            <h2 className="vendor-popup-title">Company Details</h2>
+            <div className="vendor-details-container">
+              <table className="details-table">
+                <tbody>
+                  <tr>
+                    <td className="details-label">Company Name</td>
+                    <td className="details-value">{selectedVendor.company_name}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Registered Address</td>
+                    <td className="details-value">{selectedVendor.registered_address}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Branch/Manufacturing Address</td>
+                    <td className="details-value">{selectedVendor.branch_address || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">City</td>
+                    <td className="details-value">{selectedVendor.city}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">State</td>
+                    <td className="details-value">{selectedVendor.state}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Pin Code</td>
+                    <td className="details-value">{selectedVendor.pin_code}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">GST Number</td>
+                    <td className="details-value">{selectedVendor.gst_number}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">PAN Number</td>
+                    <td className="details-value">{selectedVendor.pan_number}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Company Type</td>
+                    <td className="details-value">{selectedVendor.company_type}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">MSME Status</td>
+                    <td className="details-value">{selectedVendor.msme_status || 'Not Applicable'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+      
+{showContactDetailsPopup && selectedVendor && (
+  <div className="vendor-popup-overlay">
+    <div className="vendor-popup-box">
+      <button
+        className="vendor-popup-close-btn"
+        onClick={() => setShowContactDetailsPopup(false)}
+      >
+        ×
+      </button>
+      <h2 className="vendor-popup-title">Contact Details</h2>
+      <div className="contact-grid">
+        {/* Contact 1 */}
+        <div className="grid-label" rowSpan={2}>Contact 1</div>
+        <div className="grid-field">Name: {selectedVendor.contact1_name || '-'}</div>
+        <div className="grid-field">Designation: {selectedVendor.contact1_designation || '-'}</div>
+        <div className="grid-field">Email: {selectedVendor.contact1_email || '-'}</div>
+        <div className="grid-field">Mobile: {selectedVendor.contact1_mobile || '-'}</div>
+
+        {/* Contact 2 */}
+        <div className="grid-label">Contact 2</div>
+        <div className="grid-field">Name: {selectedVendor.contact2_name || '-'}</div>
+        <div className="grid-field">Designation: {selectedVendor.contact2_designation || '-'}</div>
+        <div className="grid-field">Email: {selectedVendor.contact2_email || '-'}</div>
+        <div className="grid-field">Mobile: {selectedVendor.contact2_mobile || '-'}</div>
+
+        {/* Contact 3 */}
+        <div className="grid-label">Contact 3</div>
+        <div className="grid-field">Name: {selectedVendor.contact3_name || '-'}</div>
+        <div className="grid-field">Designation: {selectedVendor.contact3_designation || '-'}</div>
+        <div className="grid-field">Email: {selectedVendor.contact3_email || '-'}</div>
+        <div className="grid-field">Mobile: {selectedVendor.contact3_mobile || '-'}</div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+      {showBankDetailsPopup && selectedVendor && (
+        <div className="vendor-popup-overlay">
+          <div className="vendor-popup-box">
+            <button
+              className="vendor-popup-close-btn"
+              onClick={() => setShowBankDetailsPopup(false)}
+            >
+              ×
+            </button>
+            <h2 className="vendor-popup-title">Bank Details</h2>
+            <div className="vendor-details-container">
+              <table className="details-table">
+                <tbody>
+                  <tr>
+                    <td className="details-label">Bank Name</td>
+                    <td className="details-value">{selectedVendor.bank_name}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Branch</td>
+                    <td className="details-value">{selectedVendor.branch}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Account Number</td>
+                    <td className="details-value">{selectedVendor.account_number}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">IFSC Code</td>
+                    <td className="details-value">{selectedVendor.ifsc_code}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBusinessInfoPopup && selectedVendor && (
+  <div className="vendor-popup-overlay">
+    <div className="vendor-popup-box">
+      <button
+        className="vendor-popup-close-btn"
+        onClick={() => setShowBusinessInfoPopup(false)}
+      >
+        ×
+      </button>
+      <h2 className="vendor-popup-title">Business Information</h2>
+      <div className="vendor-details-container">
+        <table className="details-table">
+          <tbody>
+            <tr>
+              <td className="details-label">Nature of Business</td>
+              <td className="details-value">{selectedVendor.nature_of_business}</td>
+            </tr>
+            <tr>
+              <td className="details-label">Product Category</td>
+              <td className="details-value">{selectedVendor.product_category}</td>
+            </tr>
+            <tr>
+              <td className="details-label">Years of Experience</td>
+              <td className="details-value">{selectedVendor.years_of_experience}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
       {showDocumentsPopup && selectedVendorFiles && (
         <div className="vendor-popup-overlay">
           <div className="vendor-popup-form documents-popup">
@@ -757,6 +1125,14 @@ const Vendors = () => {
           </div>
         </div>
       )}
+      {/* Alert Modal for displaying messages */}
+              <Modal
+                isVisible={alertModal.isVisible}
+                onClose={closeAlert}
+                buttons={[{ label: "OK", onClick: closeAlert }]}
+              >
+                <p>{alertModal.message}</p>
+              </Modal>
     </div>
   );
 };
