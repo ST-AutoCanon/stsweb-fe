@@ -19,6 +19,7 @@ import RbAdmin from "../Reimbursement/RbAdmin";
 import RbTeamLead from "../Reimbursement/RbTeamLead";
 import Assets from "../Assets/assets";
 import Vendors from "../vendors/vendors";
+import Chat from "../Chat/ChatPage";
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -86,13 +87,16 @@ const Sidebar = ({ setActiveContent }) => {
         }
         break;
 
-      
-        case "/Salary_Statement":
+      case "/Salary_Statement":
         setActiveContent(<Salary_Statement />);
-        
+
         break;
-        case "/payrollSummary":
+      case "/payrollSummary":
         setActiveContent(<PayrollSummary />);
+        break;
+
+      case "/messenger":
+        setActiveContent(<Chat />);
         break;
 
       case "/reimbursement":
@@ -110,12 +114,12 @@ const Sidebar = ({ setActiveContent }) => {
           userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />
         );
         break;
-        case "/assets":
-            setActiveContent(<Assets />);
-            break;
-            case "/vendors":
-              setActiveContent(<Vendors />);
-          
+      case "/assets":
+        setActiveContent(<Assets />);
+        break;
+      case "/vendors":
+        setActiveContent(<Vendors />);
+
         break;
 
       default:

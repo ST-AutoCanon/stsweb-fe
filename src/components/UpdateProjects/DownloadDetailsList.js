@@ -80,7 +80,7 @@ const DownloadDetailsList = () => {
                     <td>{new Date(r.createdAt).toLocaleString()}</td>
                     <td>
                       <button
-                        className="toggle-btn"
+                        className="d-toggle-btn"
                         onClick={() => toggleRow(r.id)}
                       >
                         {expandedRows.includes(r.id) ? "Hide" : "View"}
