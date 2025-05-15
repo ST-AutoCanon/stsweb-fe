@@ -27,6 +27,10 @@ const EmployeeByDepartment = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   useEffect(() => {
     const fetchEmployeeCountByDepartment = async () => {
@@ -35,10 +39,7 @@ const EmployeeByDepartment = () => {
           `${process.env.REACT_APP_BACKEND_URL}/employee-count-by-department`,
           {
             method: "GET",
-            headers: {
-              "x-api-key": API_KEY,
-              "Content-Type": "application/json",
-            },
+            headers,
           }
         );
 

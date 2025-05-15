@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { IoBagSharp } from "react-icons/io5";
 import { GrMoney } from "react-icons/gr";
@@ -17,30 +16,40 @@ const Dashboardcard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [payrollData, setPayrollData] = useState({});
-  const [reimbursementData, setReimbursementData] = useState({ totalApprovedReimbursement: "0.00" });
+  const [reimbursementData, setReimbursementData] = useState({
+    totalApprovedReimbursement: "0.00",
+  });
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   // Fetch previous month's salary data
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/salary/last-month-total`, {
-          method: "GET",
-          headers: {
-            "x-api-key": API_KEY,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/salary/last-month-total`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `HTTP error! Status: ${response.status} ${response.statusText}`
+          );
         }
 
         const jsonData = await response.json();
         console.log("Last Month Salary Data:", jsonData);
 
-        setPayrollData({ total_previous_month_salary: jsonData.total_salary || "0.00" });
+        setPayrollData({
+          total_previous_month_salary: jsonData.total_salary || "0.00",
+        });
       } catch (err) {
         console.error("Error fetching payroll data:", err);
         setError(err.message);
@@ -56,22 +65,27 @@ const Dashboardcard = () => {
   useEffect(() => {
     const fetchReimbursementData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/approved-reimbursement-last-month`, {
-          method: "GET",
-          headers: {
-            "x-api-key": API_KEY,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/approved-reimbursement-last-month`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `HTTP error! Status: ${response.status} ${response.statusText}`
+          );
         }
 
         const jsonData = await response.json();
         console.log("Last Month Reimbursement Data:", jsonData);
 
-        setReimbursementData({ totalApprovedReimbursement: jsonData.totalApprovedReimbursement || "0.00" });
+        setReimbursementData({
+          totalApprovedReimbursement:
+            jsonData.totalApprovedReimbursement || "0.00",
+        });
       } catch (err) {
         console.error("Error fetching reimbursement data:", err);
         setError(err.message);
@@ -86,7 +100,11 @@ const Dashboardcard = () => {
   useEffect(() => {
     setCards([
       { label: "Previous Month Credit", icon: "GiWallet", value: "0.00" },
-      { label: "Previous Month Reimbursement (Approved)", icon: "IoBagSharp", value: "0.00" },
+      {
+        label: "Previous Month Reimbursement (Approved)",
+        icon: "IoBagSharp",
+        value: "0.00",
+      },
       { label: "Previous Month Salary", icon: "GrMoney", value: "0.00" },
     ]);
   }, []);
@@ -100,7 +118,9 @@ const Dashboardcard = () => {
       {cards.map((item, index) => (
         <div className="card" key={index}>
           <div className="icon">
-            {iconMapping[item.icon] || <img src={item.icon} alt={item.label} className="custom-icon" />}
+            {iconMapping[item.icon] || (
+              <img src={item.icon} alt={item.label} className="custom-icon" />
+            )}
           </div>
           <div className="content">
             <div className="label">{item.label}</div>
@@ -108,7 +128,8 @@ const Dashboardcard = () => {
               {item.label === "Previous Month Credit"
                 ? "Coming soon!"
                 : item.label === "Previous Month Reimbursement (Approved)"
-                ? Math.round(reimbursementData.totalApprovedReimbursement) || "0.00"
+                ? Math.round(reimbursementData.totalApprovedReimbursement) ||
+                  "0.00"
                 : item.label === "Previous Month Salary"
                 ? Math.round(payrollData.total_previous_month_salary) || "0.00"
                 : Math.floor(item.value)}

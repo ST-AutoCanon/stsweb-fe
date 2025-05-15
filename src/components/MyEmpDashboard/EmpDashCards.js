@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as faceapi from "face-api.js";
@@ -13,6 +12,10 @@ import {
 
 const EmpDashCards = () => {
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
   const videoRef = useRef(null);
 
   let employeeId;
@@ -52,10 +55,7 @@ const EmpDashCards = () => {
     try {
       if (!API_KEY) throw new Error("API Key is missing.");
       const response = await axios.get(latestPunchApi, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": API_KEY,
-        },
+        headers,
       });
 
       if (response.data?.data) {
@@ -98,85 +98,96 @@ const EmpDashCards = () => {
     loadModels();
   }, []);
 
-  
-
-
   const getLocationAndDevice = async () => {
     return new Promise((resolve) => {
-        if (!navigator.geolocation) {
-            return resolve({
-                latitude: "N/A",
-                longitude: "N/A",
-                location: "Geolocation not supported",
-                googleMapsLink: "N/A",
-                device: getDeviceType(),
+      if (!navigator.geolocation) {
+        return resolve({
+          latitude: "N/A",
+          longitude: "N/A",
+          location: "Geolocation not supported",
+          googleMapsLink: "N/A",
+          device: getDeviceType(),
+        });
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          console.log("GeolocationPosition:", position);
+          const { latitude, longitude } = position.coords;
+
+          const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=18`
+            );
+
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+            const data = await response.json();
+            console.log("Reverse Geocode Data:", data);
+
+            let location = "Unknown";
+            if (data && data.address) {
+              const { road, suburb, town, city, county, state, postcode } =
+                data.address;
+              location = [road, suburb, town, city, county, state, postcode]
+                .filter(Boolean)
+                .join(", ");
+            }
+
+            resolve({
+              latitude,
+              longitude,
+              location,
+              googleMapsLink,
+              device: getDeviceType(),
             });
-        }
+          } catch (error) {
+            console.error("Error fetching address:", error);
+            resolve({
+              latitude,
+              longitude,
+              location: "Unknown",
+              googleMapsLink,
+              device: getDeviceType(),
+            });
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          let errorMessage = "Unable to retrieve location";
 
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                console.log("GeolocationPosition:", position);
-                const { latitude, longitude } = position.coords;
+          if (error.code === error.PERMISSION_DENIED) {
+            errorMessage =
+              "User denied location access. Please allow location permission.";
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            errorMessage = "Location information is unavailable.";
+          } else if (error.code === error.TIMEOUT) {
+            errorMessage = "please turn on your location.";
+          }
 
-                const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-                try {
-                    const response = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=18`
-                    );
-
-                    if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-                    const data = await response.json();
-                    console.log("Reverse Geocode Data:", data);
-
-                    let location = "Unknown";
-                    if (data && data.address) {
-                        const { road, suburb, town, city, county, state, postcode } = data.address;
-                        location = [road, suburb, town, city, county, state, postcode].filter(Boolean).join(", ");
-                    }
-
-                    resolve({ latitude, longitude, location, googleMapsLink, device: getDeviceType() });
-                } catch (error) {
-                    console.error("Error fetching address:", error);
-                    resolve({ latitude, longitude, location: "Unknown", googleMapsLink, device: getDeviceType() });
-                }
-            },
-            (error) => {
-                console.error("Geolocation error:", error);
-                let errorMessage = "Unable to retrieve location";
-
-                if (error.code === error.PERMISSION_DENIED) {
-                    errorMessage = "User denied location access. Please allow location permission.";
-                } else if (error.code === error.POSITION_UNAVAILABLE) {
-                    errorMessage = "Location information is unavailable.";
-                } else if (error.code === error.TIMEOUT) {
-                    errorMessage = "please turn on your location.";
-                }
-
-                resolve({
-                    latitude: "N/A",
-                    longitude: "N/A",
-                    location: errorMessage,
-                    googleMapsLink: "N/A",
-                    device: getDeviceType(),
-                });
-            },
-            { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 }
-        );
+          resolve({
+            latitude: "N/A",
+            longitude: "N/A",
+            location: errorMessage,
+            googleMapsLink: "N/A",
+            device: getDeviceType(),
+          });
+        },
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 }
+      );
     });
-};
-
+  };
 
   // Helper function to detect device type
-  const getDeviceType = () => (/Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop");
-  
+  const getDeviceType = () =>
+    /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+
   // Call the function
   getLocationAndDevice().then((data) => console.log("Location Data:", data));
-  
 
   getLocationAndDevice().then(console.log);
-
 
   const isCameraAvailable = async () => {
     try {
@@ -188,13 +199,6 @@ const EmpDashCards = () => {
       return false;
     }
   };
-  
-
-
-
-
-  
-
 
   const verifyFace = async () => {
     try {
@@ -239,7 +243,10 @@ const EmpDashCards = () => {
       const storedDescriptors = response.data.descriptors || [];
 
       if (storedDescriptors.length === 0) {
-        return { success: false, error: "Please register your face then proceed with this" };
+        return {
+          success: false,
+          error: "Please register your face then proceed with this",
+        };
       }
 
       let bestMatch = false;
@@ -297,7 +304,10 @@ const EmpDashCards = () => {
       return { success: true };
     } catch (err) {
       console.error("Face verification failed:", err);
-      return { success: false, error: err.message || "Face verification failed" };
+      return {
+        success: false,
+        error: err.message || "Face verification failed",
+      };
     } finally {
       const stream = videoRef.current?.srcObject;
       if (stream) {
@@ -327,7 +337,9 @@ const EmpDashCards = () => {
 
     if (!faceResult.success) {
       setLoading(false);
-      setErrorMessage(faceResult.error || "Face verification failed. Try again.");
+      setErrorMessage(
+        faceResult.error || "Face verification failed. Try again."
+      );
       return;
     }
 
@@ -390,7 +402,11 @@ const EmpDashCards = () => {
           <FaFingerprint className="emp-icon" />
           <div>
             <span className="emp-text">
-              {loading ? "Verifying..." : isPunchedIn ? "Punch Out" : "Punch In"}
+              {loading
+                ? "Verifying..."
+                : isPunchedIn
+                ? "Punch Out"
+                : "Punch In"}
             </span>
           </div>
         </div>
@@ -406,38 +422,37 @@ const EmpDashCards = () => {
         </div>
       </div>
 
-     
+      <div className="emp-card">
+        <div className="emp-card-content">
+          <FaMapMarkerAlt className="emp-icon" />
+          <div>
+            <span className="emp-text">{punchData.location}</span>
+            <span className="emp-label">Location</span>
 
-
-<div className="emp-card">
-  <div className="emp-card-content">
-    <FaMapMarkerAlt className="emp-icon" />
-    <div>
-      <span className="emp-text">{punchData.location}</span>
-      <span className="emp-label">Location</span>
-
-      {/* Info note */}
-      {/* <div className="location-info-note">
+            {/* Info note */}
+            {/* <div className="location-info-note">
         (Note: In desktop, location is based on your IP address.)
       </div> */}
 
-      {punchData.location !== "NA" && (
-        <a 
-          href={
-            punchData.latitude && punchData.longitude 
-              ? `https://www.google.com/maps?q=${punchData.latitude},${punchData.longitude}`
-              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(punchData.location)}`
-          } 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="location-link"
-        >
-          View Location
-        </a>
-      )}
-    </div>
-  </div>
-</div>
+            {punchData.location !== "NA" && (
+              <a
+                href={
+                  punchData.latitude && punchData.longitude
+                    ? `https://www.google.com/maps?q=${punchData.latitude},${punchData.longitude}`
+                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        punchData.location
+                      )}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="location-link"
+              >
+                View Location
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="emp-card">
         <div className="emp-card-content">

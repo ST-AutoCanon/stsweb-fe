@@ -1,6 +1,3 @@
-
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Pie } from "react-chartjs-2";
@@ -15,6 +12,10 @@ const EmpReImbursement = () => {
   const [activeTab, setActiveTab] = useState("current");
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
@@ -43,10 +44,7 @@ const EmpReImbursement = () => {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/stats/${employeeId}`;
 
         const response = await axios.get(apiUrl, {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": API_KEY,
-          },
+          headers,
         });
 
         if (response.status === 200) {
@@ -70,7 +68,9 @@ const EmpReImbursement = () => {
           setPreviousMonthData(null);
         }
       } catch (err) {
-        setError(err.response?.data?.message || err.message || "Failed to load data.");
+        setError(
+          err.response?.data?.message || err.message || "Failed to load data."
+        );
       } finally {
         setLoading(false);
       }
@@ -93,7 +93,9 @@ const EmpReImbursement = () => {
           <div key={index} className="legend-item">
             <span
               className="legend-color"
-              style={{ backgroundColor: chartData.datasets[0].backgroundColor[index] }}
+              style={{
+                backgroundColor: chartData.datasets[0].backgroundColor[index],
+              }}
             ></span>
             <span className="legend-label">{label}</span>
           </div>
@@ -143,7 +145,11 @@ const EmpReImbursement = () => {
         />
       </div>
 
-      <CustomLegend chartData={activeTab === "previous" ? previousMonthData : currentMonthData} />
+      <CustomLegend
+        chartData={
+          activeTab === "previous" ? previousMonthData : currentMonthData
+        }
+      />
     </div>
   );
 };
