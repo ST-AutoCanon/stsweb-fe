@@ -245,6 +245,34 @@ html {
   transform: scale(0.98); /* Slightly shrink the button */
 }
 
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding-right: 2.5em; /* room for the icon */
+}
+
+/* the eye icon as a span */
+.toggle-password-icon {
+  position: absolute;
+  right: 0.5em;
+  cursor: pointer;
+  font-size: 1.1em;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* make it focusable for accessibility */
+}
+
+.toggle-password-icon:hover {
+  color: #333;
+}
+
 /* General styles remain the same */
 
 /* Mobile View */

@@ -1,0 +1,204 @@
+/* Container fills its flex parent (e.g. the right 75% of a split screen) */
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  height: 75vh;
+  background: #e5ddd5;
+  /* on desktop give it a max width so bubbles don’t stretch too far */
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* Header (desktop-style) */
+.m-header {
+  display: flex;
+  align-items: center;
+  padding: 1% 2%;
+  background: #00468c;
+  color: #fff;
+  border-bottom: 1px solid #00468c;
+}
+.header-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 16px;
+}
+.chat-header-title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* Messages scroll area */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: #e2e1e0;
+}
+
+/* Each message row */
+.msg-row {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+.msg-row.me {
+  justify-content: flex-end;
+}
+.msg-row.them {
+  justify-content: flex-start;
+}
+
+/* Avatars for incoming messages */
+.msg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+/* Spacer for your own messages */
+.msg-spacer {
+  width: 48px; /* match header-avatar */
+}
+
+/* Chat bubbles */
+.msg-bubble {
+  max-width: 60%; /* desktop can be wider */
+  min-width: 3%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  position: relative;
+  font-size: 15px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  padding-bottom: 24px;
+}
+.me-bubble {
+  background: #001f3f;
+  border-bottom-right-radius: 4px;
+  color: #fff;
+}
+.them-bubble {
+  background: #dbeafe;
+  border-bottom-left-radius: 4px;
+}
+
+/* Timestamp */
+.msg-time {
+  width: 50px;
+  font-size: 11px;
+  color: gray;
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  margin-top: 4px;
+}
+
+/* ensure parent is position: relative */
+.input-area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  border-top: 1px solid #ccc;
+  background: #f0f0f0;
+}
+
+/* emoji button container must be relative to position the picker */
+.emoji-picker-container {
+  position: relative;
+}
+
+/* dropdown positioning */
+.emoji-dropdown {
+  position: absolute;
+  bottom: 48px; /* place above the input row */
+  left: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* in ChatWindow.css */
+.m-input {
+  flex: 1;
+  padding: 12px 16px;
+  margin: 0 8px;
+  border: 1px solid #ccc;
+  border-radius: 24px;
+  outline: none;
+  font-size: 15px;
+  resize: none; /* prevent manual resizing, optional */
+  line-height: 0.5;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  margin: 0 8px;
+  font-size: 22px;
+  color: #00468c;
+  cursor: pointer;
+}
+
+.send-btn {
+  background: none;
+  border: none;
+  color: #00468c;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Sender name above the bubble */
+.msg-sender {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #555;
+  background-color: rgb(179, 253, 172);
+  text-align: left;
+}
+
+.msg-download-btn {
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.msg-download-btn:hover {
+  color: #0078d4;
+}
+
+/* ensure the row is position: relative so we can absolutely place the delete btn */
+.msg-row {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+/* hide the delete button by default */
+.msg-delete-btn {
+  position: relative;
+  top: 0; /* adjust to sit just above the bubble */
+  right: -32px; /* pull it outside bubble -- tweak as needed */
+  opacity: 0;
+  background: transparent;
+  border: none;
+  color: #c00;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease-in-out;
+}
+
+/* reveal on hover of the entire row */
+.msg-row:hover .msg-delete-btn {
+  opacity: 1;
+}
+
+/* (optional) make sure it doesn’t disrupt layout: */
+.msg-delete-btn:focus {
+  outline: none;
+}

@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Login.css";
 import Modal from "../Modal/Modal";
 
 const Login = ({ onClose }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [idleModalVisible, setIdleModalVisible] = useState(false);
   const navigate = useNavigate();
+
+  const toggleShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
@@ -149,15 +155,32 @@ const Login = ({ onClose }) => {
                     placeholder="Enter your username"
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group password-group">
                   <label htmlFor="password">Password</label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                  />
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                    />
+                    <span
+                      className="toggle-password-icon"
+                      onClick={toggleShowPassword}
+                      role="button"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      tabIndex={0}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" || e.key === " ")
+                          toggleShowPassword();
+                      }}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </span>
+                  </div>
                 </div>
                 <div className="form-options">
                   <a href="#" onClick={handleForgotPassword}>

@@ -1,44 +1,43 @@
-
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './vendors.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./vendors.css";
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 const Vendors = () => {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    contact_person: '',
-    email: '',
-    phone: '',
-    address: '',
-    company_name: '',
-    registered_address: '',
-    city: '',
-    state: '',
-    pin_code: '',
-    gst_number: '',
-    pan_number: '',
-    company_type: '',
-    contact1_name: '',
-    contact1_designation: '',
-    contact1_mobile: '',
-    contact1_email: '',
-    contact2_name: '',
-    contact2_designation: '',
-    contact2_mobile: '',
-    contact2_email: '',
-    contact3_name: '',
-    contact3_designation: '',
-    contact3_mobile: '',
-    contact3_email: '',
-    bank_name: '',
-    branch: '',
-    account_number: '',
-    ifsc_code: '',
-    nature_of_business: '',
-    product_category: '',
-    years_of_experience: '',
+    name: "",
+    contact_person: "",
+    email: "",
+    phone: "",
+    address: "",
+    company_name: "",
+    registered_address: "",
+    city: "",
+    state: "",
+    pin_code: "",
+    gst_number: "",
+    pan_number: "",
+    company_type: "",
+    contact1_name: "",
+    contact1_designation: "",
+    contact1_mobile: "",
+    contact1_email: "",
+    contact2_name: "",
+    contact2_designation: "",
+    contact2_mobile: "",
+    contact2_email: "",
+    contact3_name: "",
+    contact3_designation: "",
+    contact3_mobile: "",
+    contact3_email: "",
+    bank_name: "",
+    branch: "",
+    account_number: "",
+    ifsc_code: "",
+    nature_of_business: "",
+    product_category: "",
+    years_of_experience: "",
   });
   const [files, setFiles] = useState({
     gst_certificate: null,
@@ -48,7 +47,7 @@ const Vendors = () => {
     incorporation_certificate: null,
   });
   const [vendors, setVendors] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showDocumentsPopup, setShowDocumentsPopup] = useState(false);
   const [showDownloadPopup, setShowDownloadPopup] = useState(false);
   const [selectedVendorFiles, setSelectedVendorFiles] = useState(null);
@@ -67,7 +66,7 @@ const Vendors = () => {
 
   const fetchVendors = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/vendors/list', {
+      const response = await axios.get("http://localhost:5000/vendors/list", {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -76,8 +75,8 @@ const Vendors = () => {
         setVendors(response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching vendors:', error);
-      alert('Failed to fetch vendors');
+      console.error("Error fetching vendors:", error);
+      alert("Failed to fetch vendors");
     }
   };
 
@@ -87,8 +86,8 @@ const Vendors = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.company_name || formData.company_name.trim() === '') {
-      alert('Company name is required and cannot be empty');
+    if (!formData.company_name || formData.company_name.trim() === "") {
+      alert("Company name is required and cannot be empty");
       return;
     }
 
@@ -103,47 +102,51 @@ const Vendors = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/vendors/add', data, {
-        headers: { 
-          "x-api-key": API_KEY,
-          'Content-Type': 'multipart/form-data' 
-        },
-      });
-      alert('Vendor registered successfully!');
+      const response = await axios.post(
+        "http://localhost:5000/vendors/add",
+        data,
+        {
+          headers: {
+            "x-api-key": API_KEY,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      alert("Vendor registered successfully!");
       togglePopup();
       setFormData({
-        name: '',
-        contact_person: '',
-        email: '',
-        phone: '',
-        address: '',
-        company_name: '',
-        registered_address: '',
-        city: '',
-        state: '',
-        pin_code: '',
-        gst_number: '',
-        pan_number: '',
-        company_type: '',
-        contact1_name: '',
-        contact1_designation: '',
-        contact1_mobile: '',
-        contact1_email: '',
-        contact2_name: '',
-        contact2_designation: '',
-        contact2_mobile: '',
-        contact2_email: '',
-        contact3_name: '',
-        contact3_designation: '',
-        contact3_mobile: '',
-        contact3_email: '',
-        bank_name: '',
-        branch: '',
-        account_number: '',
-        ifsc_code: '',
-        nature_of_business: '',
-        product_category: '',
-        years_of_experience: '',
+        name: "",
+        contact_person: "",
+        email: "",
+        phone: "",
+        address: "",
+        company_name: "",
+        registered_address: "",
+        city: "",
+        state: "",
+        pin_code: "",
+        gst_number: "",
+        pan_number: "",
+        company_type: "",
+        contact1_name: "",
+        contact1_designation: "",
+        contact1_mobile: "",
+        contact1_email: "",
+        contact2_name: "",
+        contact2_designation: "",
+        contact2_mobile: "",
+        contact2_email: "",
+        contact3_name: "",
+        contact3_designation: "",
+        contact3_mobile: "",
+        contact3_email: "",
+        bank_name: "",
+        branch: "",
+        account_number: "",
+        ifsc_code: "",
+        nature_of_business: "",
+        product_category: "",
+        years_of_experience: "",
       });
       setFiles({
         gst_certificate: null,
@@ -163,28 +166,28 @@ const Vendors = () => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredVendors = vendors.filter(vendor =>
+  const filteredVendors = vendors.filter((vendor) =>
     vendor.company_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleViewDocument = (filePath) => {
     if (filePath) {
-      window.open(`http://localhost:5000/${filePath}`, '_blank');
+      window.open(`http://localhost:5000/${filePath}`, "_blank");
     } else {
-      alert('Document not available');
+      alert("Document not available");
     }
   };
 
   const handleDownloadDocument = (filePath) => {
     if (filePath) {
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = `http://localhost:5000/${filePath}`;
-      link.download = filePath.split('/').pop();
+      link.download = filePath.split("/").pop();
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } else {
-      alert('Document not available');
+      alert("Document not available");
     }
   };
 
@@ -220,11 +223,11 @@ const Vendors = () => {
     ].filter(Boolean);
 
     if (filePaths.length === 0) {
-      alert('No documents available to download');
+      alert("No documents available to download");
       return;
     }
 
-    filePaths.forEach(filePath => {
+    filePaths.forEach((filePath) => {
       handleDownloadDocument(filePath);
     });
   };
@@ -236,7 +239,7 @@ const Vendors = () => {
       </button>
 
       <div className="table-scroll-wrapper">
-        <div className="search-container">
+        <div className="v-search-container">
           <input
             type="text"
             placeholder="Search by Company Name..."
@@ -261,7 +264,7 @@ const Vendors = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredVendors.map(vendor => (
+            {filteredVendors.map((vendor) => (
               <tr key={vendor.vendor_id}>
                 <td>{vendor.vendor_id}</td>
                 <td>{vendor.company_name}</td>
@@ -302,7 +305,7 @@ const Vendors = () => {
 
             <form onSubmit={handleSubmit}>
               {/* Company Details */}
-              <div className='companydetailsfeildset'>
+              <div className="companydetailsfeildset">
                 <fieldset>
                   <legend>Company Details</legend>
                   <div className="contact-row four-columns">
@@ -382,7 +385,9 @@ const Vendors = () => {
                   </div>
                   <div className="contact-row full-width">
                     <div className="contact-field">
-                      <label htmlFor="registered_address">Registered Address:</label>
+                      <label htmlFor="registered_address">
+                        Registered Address:
+                      </label>
                       <input
                         id="registered_address"
                         name="registered_address"
@@ -396,13 +401,15 @@ const Vendors = () => {
               </div>
 
               {/* Contact Details */}
-              <div className='contactdetailsfeildset'>
+              <div className="contactdetailsfeildset">
                 {[1, 2, 3].map((i) => (
                   <fieldset key={i} className="contact-fieldset spaced">
                     <legend>Contact Details - {i}</legend>
                     <div className="contact-row four-columns">
                       <div className="contact-field">
-                        <label htmlFor={`contact${i}_name`}>Contact Person Name:</label>
+                        <label htmlFor={`contact${i}_name`}>
+                          Contact Person Name:
+                        </label>
                         <input
                           id={`contact${i}_name`}
                           name={`contact${i}_name`}
@@ -412,7 +419,9 @@ const Vendors = () => {
                         />
                       </div>
                       <div className="contact-field">
-                        <label htmlFor={`contact${i}_designation`}>Designation:</label>
+                        <label htmlFor={`contact${i}_designation`}>
+                          Designation:
+                        </label>
                         <input
                           id={`contact${i}_designation`}
                           name={`contact${i}_designation`}
@@ -422,7 +431,9 @@ const Vendors = () => {
                         />
                       </div>
                       <div className="contact-field">
-                        <label htmlFor={`contact${i}_mobile`}>Mobile Number:</label>
+                        <label htmlFor={`contact${i}_mobile`}>
+                          Mobile Number:
+                        </label>
                         <input
                           id={`contact${i}_mobile`}
                           name={`contact${i}_mobile`}
@@ -447,7 +458,7 @@ const Vendors = () => {
               </div>
 
               {/* Bank Details */}
-              <div className='feildsetbankdetails'>
+              <div className="feildsetbankdetails">
                 <fieldset>
                   <legend>Bank Details</legend>
                   <div className="contact-row four-columns">
@@ -496,12 +507,14 @@ const Vendors = () => {
               </div>
 
               {/* Business Info */}
-              <div className='feildsetbusinessinformation'>
+              <div className="feildsetbusinessinformation">
                 <fieldset>
                   <legend>Business Information</legend>
                   <div className="contact-row three-columns">
                     <div className="contact-field">
-                      <label htmlFor="nature_of_business">Nature of Business:</label>
+                      <label htmlFor="nature_of_business">
+                        Nature of Business:
+                      </label>
                       <input
                         id="nature_of_business"
                         name="nature_of_business"
@@ -511,7 +524,9 @@ const Vendors = () => {
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="product_category">Category of Products:</label>
+                      <label htmlFor="product_category">
+                        Category of Products:
+                      </label>
                       <input
                         id="product_category"
                         name="product_category"
@@ -521,7 +536,9 @@ const Vendors = () => {
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="years_of_experience">Years of Experience:</label>
+                      <label htmlFor="years_of_experience">
+                        Years of Experience:
+                      </label>
                       <input
                         id="years_of_experience"
                         name="years_of_experience"
@@ -569,7 +586,9 @@ const Vendors = () => {
                     />
                   </div>
                   <div className="contact-field">
-                    <label htmlFor="msme_certificate">MSME Certificate (if applicable):</label>
+                    <label htmlFor="msme_certificate">
+                      MSME Certificate (if applicable):
+                    </label>
                     <input
                       id="msme_certificate"
                       type="file"
@@ -581,7 +600,9 @@ const Vendors = () => {
                 </div>
                 <div className="contact-row one-column">
                   <div className="contact-field">
-                    <label htmlFor="incorporation_certificate">Company Incorporation Certificate:</label>
+                    <label htmlFor="incorporation_certificate">
+                      Company Incorporation Certificate:
+                    </label>
                     <input
                       id="incorporation_certificate"
                       type="file"
@@ -594,7 +615,11 @@ const Vendors = () => {
               </fieldset>
 
               <div className="vendor-form-buttons">
-                <button type="button" onClick={togglePopup} className="vendor-close-btn">
+                <button
+                  type="button"
+                  onClick={togglePopup}
+                  className="vendor-close-btn"
+                >
                   Cancel
                 </button>
                 <button type="submit" className="vendor-submit-btn">
@@ -619,40 +644,72 @@ const Vendors = () => {
             <ul className="documents-list">
               <li>
                 <span
-                  className={selectedVendorFiles.gst_certificate ? 'file-link' : 'file-link disabled'}
-                  onClick={() => handleViewDocument(selectedVendorFiles.gst_certificate)}
+                  className={
+                    selectedVendorFiles.gst_certificate
+                      ? "file-link"
+                      : "file-link disabled"
+                  }
+                  onClick={() =>
+                    handleViewDocument(selectedVendorFiles.gst_certificate)
+                  }
                 >
                   GST Certificate
                 </span>
               </li>
               <li>
                 <span
-                  className={selectedVendorFiles.pan_card ? 'file-link' : 'file-link disabled'}
-                  onClick={() => handleViewDocument(selectedVendorFiles.pan_card)}
+                  className={
+                    selectedVendorFiles.pan_card
+                      ? "file-link"
+                      : "file-link disabled"
+                  }
+                  onClick={() =>
+                    handleViewDocument(selectedVendorFiles.pan_card)
+                  }
                 >
                   PAN Card
                 </span>
               </li>
               <li>
                 <span
-                  className={selectedVendorFiles.cancelled_cheque ? 'file-link' : 'file-link disabled'}
-                  onClick={() => handleViewDocument(selectedVendorFiles.cancelled_cheque)}
+                  className={
+                    selectedVendorFiles.cancelled_cheque
+                      ? "file-link"
+                      : "file-link disabled"
+                  }
+                  onClick={() =>
+                    handleViewDocument(selectedVendorFiles.cancelled_cheque)
+                  }
                 >
                   Cancelled Cheque
                 </span>
               </li>
               <li>
                 <span
-                  className={selectedVendorFiles.msme_certificate ? 'file-link' : 'file-link disabled'}
-                  onClick={() => handleViewDocument(selectedVendorFiles.msme_certificate)}
+                  className={
+                    selectedVendorFiles.msme_certificate
+                      ? "file-link"
+                      : "file-link disabled"
+                  }
+                  onClick={() =>
+                    handleViewDocument(selectedVendorFiles.msme_certificate)
+                  }
                 >
                   MSME Certificate
                 </span>
               </li>
               <li>
                 <span
-                  className={selectedVendorFiles.incorporation_certificate ? 'file-link' : 'file-link disabled'}
-                  onClick={() => handleViewDocument(selectedVendorFiles.incorporation_certificate)}
+                  className={
+                    selectedVendorFiles.incorporation_certificate
+                      ? "file-link"
+                      : "file-link disabled"
+                  }
+                  onClick={() =>
+                    handleViewDocument(
+                      selectedVendorFiles.incorporation_certificate
+                    )
+                  }
                 >
                   Incorporation Certificate
                 </span>
@@ -692,7 +749,9 @@ const Vendors = () => {
                 <span className="file-name">GST Certificate</span>
                 <button
                   className="download-btn"
-                  onClick={() => handleDownloadDocument(selectedVendorFiles.gst_certificate)}
+                  onClick={() =>
+                    handleDownloadDocument(selectedVendorFiles.gst_certificate)
+                  }
                   disabled={!selectedVendorFiles.gst_certificate}
                 >
                   Download
@@ -702,7 +761,9 @@ const Vendors = () => {
                 <span className="file-name">PAN Card</span>
                 <button
                   className="download-btn"
-                  onClick={() => handleDownloadDocument(selectedVendorFiles.pan_card)}
+                  onClick={() =>
+                    handleDownloadDocument(selectedVendorFiles.pan_card)
+                  }
                   disabled={!selectedVendorFiles.pan_card}
                 >
                   Download
@@ -712,7 +773,9 @@ const Vendors = () => {
                 <span className="file-name">Cancelled Cheque</span>
                 <button
                   className="download-btn"
-                  onClick={() => handleDownloadDocument(selectedVendorFiles.cancelled_cheque)}
+                  onClick={() =>
+                    handleDownloadDocument(selectedVendorFiles.cancelled_cheque)
+                  }
                   disabled={!selectedVendorFiles.cancelled_cheque}
                 >
                   Download
@@ -722,7 +785,9 @@ const Vendors = () => {
                 <span className="file-name">MSME Certificate</span>
                 <button
                   className="download-btn"
-                  onClick={() => handleDownloadDocument(selectedVendorFiles.msme_certificate)}
+                  onClick={() =>
+                    handleDownloadDocument(selectedVendorFiles.msme_certificate)
+                  }
                   disabled={!selectedVendorFiles.msme_certificate}
                 >
                   Download
@@ -732,7 +797,11 @@ const Vendors = () => {
                 <span className="file-name">Incorporation Certificate</span>
                 <button
                   className="download-btn"
-                  onClick={() => handleDownloadDocument(selectedVendorFiles.incorporation_certificate)}
+                  onClick={() =>
+                    handleDownloadDocument(
+                      selectedVendorFiles.incorporation_certificate
+                    )
+                  }
                   disabled={!selectedVendorFiles.incorporation_certificate}
                 >
                   Download

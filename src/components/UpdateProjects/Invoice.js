@@ -11,6 +11,7 @@ import {
 import { FiDownload } from "react-icons/fi";
 import { GrStatusGood } from "react-icons/gr";
 import { FiEye } from "react-icons/fi";
+import Modal from "../Modal/Modal";
 
 const Invoice = ({ onBack, project }) => {
   const [invoiceList, setInvoiceList] = useState([]);
@@ -52,6 +53,20 @@ const Invoice = ({ onBack, project }) => {
   const [tdsAmount, setTdsAmount] = useState("");
 
   const [activeTab, setActiveTab] = useState("tax");
+
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -219,8 +234,14 @@ const Invoice = ({ onBack, project }) => {
       setShowInvoiceForm(false);
       resetFormFields();
       setEditingInvoiceId(null);
+      showAlert(
+        editingInvoiceId
+          ? "Invoice updated successfully."
+          : "Invoice created successfully."
+      );
     } catch (error) {
-      console.error("Error submitting invoice:", error);
+      console.error(error);
+      showAlert("Failed to save invoice.");
     }
   };
 
@@ -292,6 +313,7 @@ const Invoice = ({ onBack, project }) => {
           const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
           pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
           pdf.save(`Invoice-${invoiceWithSeal.invoiceNo}.pdf`);
+          showAlert("Invoice PDF downloaded.");
         } catch (err) {
           console.error("Error generating PDF", err);
         }
@@ -355,9 +377,9 @@ const Invoice = ({ onBack, project }) => {
     }
     setShowTdsModal(false);
     setTdsForInvoiceId(null);
+    showAlert("TDS details saved.");
   };
 
-  // Handle invoice update including the new TDS fields
   const handleUpdateInvoice = async (invoice) => {
     const updateData = invoiceUpdates[invoice.id];
     if (!updateData) {
@@ -387,7 +409,7 @@ const Invoice = ({ onBack, project }) => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update invoice");
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const updatedRecord = await response.json();
@@ -400,8 +422,11 @@ const Invoice = ({ onBack, project }) => {
         const { [invoice.id]: removed, ...rest } = prev;
         return rest;
       });
+
+      showAlert("Invoice status updated successfully.");
     } catch (error) {
       console.error("Error updating invoice", error);
+      showAlert("Failed to update invoice.");
     }
   };
 
@@ -916,6 +941,16 @@ const Invoice = ({ onBack, project }) => {
           </div>
         </div>
       )}
+      <Modal
+        isVisible={alertModal.isVisible}
+        title={alertModal.title}
+        onClose={closeAlert}
+        buttons={[
+          { label: "OK", className: "confirm-btn", onClick: closeAlert },
+        ]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };
