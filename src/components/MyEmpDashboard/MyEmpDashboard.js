@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import EmpDashCards from "./EmpDashCards";
 import EmpReImbursement from "./EmpReImbursement";
@@ -16,6 +14,10 @@ const MyEmpDashboard = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [employeeId, setEmployeeId] = useState(null);
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const [showFacePopup, setShowFacePopup] = useState(false);
 
@@ -31,20 +33,20 @@ const MyEmpDashboard = () => {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/api/check-face-registered/${employeeId}`;
 
         // Check if device has a camera
-        navigator.mediaDevices.enumerateDevices().then(devices => {
-          const hasCamera = devices.some(device => device.kind === "videoinput");
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+          const hasCamera = devices.some(
+            (device) => device.kind === "videoinput"
+          );
           if (!hasCamera) {
             console.log("No camera found, skipping face registration popup.");
             return; // Skip if no camera
           }
 
           // If camera is available, call API
-          axios.get(apiUrl, {
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": API_KEY,
-            },
-          })
+          axios
+            .get(apiUrl, {
+              headers,
+            })
             .then((response) => {
               if (response.data && response.data.isRegistered === false) {
                 setShowFacePopup(true); // Show popup only if not registered
@@ -67,13 +69,11 @@ const MyEmpDashboard = () => {
     const checkFaceRegistration = async () => {
       try {
         console.log("Calling API for employeeId:", employeeId);
-        const checkResponse = await axios.get(`${BACKEND_URL}/api/face/check/${employeeId}`,
+        const checkResponse = await axios.get(
+          `${BACKEND_URL}/api/face/check/${employeeId}`,
 
           {
-            headers: {
-              "x-api-key": API_KEY,
-              "Content-Type": "application/json",
-            },
+            headers,
           }
         );
         console.log("API response:", checkResponse.data);
@@ -102,7 +102,6 @@ const MyEmpDashboard = () => {
         <EmpDashCards />
       </div>
 
-      
       <div className="empcardcharts123">
         <EmpSessions />
         <EmpWorkDays />
