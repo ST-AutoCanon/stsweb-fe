@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import "./TotalEmployee.css";
 
@@ -17,21 +12,27 @@ const TotalEmployee = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_KEY = process.env.REACT_APP_API_KEY; // Ensure this is correctly set in your .env
+  const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   useEffect(() => {
     const fetchTotalEmployeeData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/attendance-status`, {
-          method: "GET",
-          headers: {
-            "x-api-key": API_KEY,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/attendance-status`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `HTTP error! Status: ${response.status} ${response.statusText}`
+          );
         }
 
         const jsonData = await response.json();
@@ -74,7 +75,9 @@ const TotalEmployee = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
-  const totalEmployees = chartData ? chartData.datasets[0].data.reduce((a, b) => a + b, 0) : 0;
+  const totalEmployees = chartData
+    ? chartData.datasets[0].data.reduce((a, b) => a + b, 0)
+    : 0;
 
   // Custom plugin to add text in the center of the Doughnut chart
   const centerTextPlugin = {
@@ -86,12 +89,16 @@ const TotalEmployee = () => {
       ctx.fillStyle = "#000";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      
+
       // Adjust the y-coordinate to move the text up
       const offsetX = -2; // Move text left by 2 pixels (adjust as needed)
       const offsetY = -10; // Move text upwards by 10 pixels (adjust as needed)
-      
-      ctx.fillText(`${totalEmployees} Employees`, width / 2 + offsetX, height / 2 + offsetY);
+
+      ctx.fillText(
+        `${totalEmployees} Employees`,
+        width / 2 + offsetX,
+        height / 2 + offsetY
+      );
       ctx.restore();
     },
   };
@@ -138,7 +145,11 @@ const TotalEmployee = () => {
     <div className="total-employees">
       <h3>Total Employees</h3>
       <div className="admindashtotalemployee-chart">
-        <Doughnut data={chartData} options={options} plugins={[ChartDataLabels, centerTextPlugin]} />
+        <Doughnut
+          data={chartData}
+          options={options}
+          plugins={[ChartDataLabels, centerTextPlugin]}
+        />
       </div>
     </div>
   );

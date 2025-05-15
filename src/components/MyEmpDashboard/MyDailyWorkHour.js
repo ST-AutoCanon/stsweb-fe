@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Bar } from "react-chartjs-2";
@@ -15,7 +13,15 @@ import {
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import "./MyDailyWorkHour.css";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
 
 const MyDailyWorkHour = () => {
   const [view, setView] = useState("Daily");
@@ -25,6 +31,10 @@ const MyDailyWorkHour = () => {
   const [employeeId, setEmployeeId] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
@@ -52,10 +62,7 @@ const MyDailyWorkHour = () => {
 
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/api/work-hour-summary/${employeeId}`;
         const response = await axios.get(apiUrl, {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": API_KEY,
-          },
+          headers,
         });
 
         if (response.status === 200) {
@@ -67,7 +74,9 @@ const MyDailyWorkHour = () => {
           setWorkHourData(data);
         }
       } catch (err) {
-        setError(err.response?.data?.message || err.message || "Failed to load data.");
+        setError(
+          err.response?.data?.message || err.message || "Failed to load data."
+        );
       } finally {
         setLoading(false);
       }
@@ -145,7 +154,11 @@ const MyDailyWorkHour = () => {
         <h3>My daily work hours</h3>
         <div className="work-hour-view-options">
           {["Daily", "Weekly", "Monthly"].map((option) => (
-            <button key={option} className={view === option ? "active" : ""} onClick={() => setView(option)}>
+            <button
+              key={option}
+              className={view === option ? "active" : ""}
+              onClick={() => setView(option)}
+            >
               {/* {option} */}
               {option === "Monthly" ? "Prev-Month" : option}
             </button>
@@ -158,7 +171,8 @@ const MyDailyWorkHour = () => {
                 <span className="work-hour-box blue"></span> 48+ hours
               </span>
               <span className="work-hour-legend-item">
-                <span className="work-hour-box light-blue"></span> Less than 48 hours
+                <span className="work-hour-box light-blue"></span> Less than 48
+                hours
               </span>
             </>
           ) : (
@@ -167,7 +181,8 @@ const MyDailyWorkHour = () => {
                 <span className="work-hour-box blue"></span> 9+ hours
               </span>
               <span className="work-hour-legend-item">
-                <span className="work-hour-box light-blue"></span> Less than 9 hours
+                <span className="work-hour-box light-blue"></span> Less than 9
+                hours
               </span>
             </>
           )}

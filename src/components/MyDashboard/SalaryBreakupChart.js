@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import "./SalaryBreakupChart.css"; // Ensure this points to the updated CSS file
 
@@ -17,27 +12,35 @@ const EmployeeSalaryBreakup = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   useEffect(() => {
     const fetchSalaryData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/salary-ranges`, {
-          method: "GET",
-          headers: {
-            "x-api-key": API_KEY,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/salary-ranges`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `HTTP error! Status: ${response.status} ${response.statusText}`
+          );
         }
 
         const jsonData = await response.json();
         console.log("Full API Response:", jsonData);
 
         if (!jsonData || !jsonData.message || !jsonData.message.labels) {
-          throw new Error("Invalid data format: Expected labels and datasets in jsonData.message");
+          throw new Error(
+            "Invalid data format: Expected labels and datasets in jsonData.message"
+          );
         }
 
         setData(jsonData.message);
@@ -91,11 +94,11 @@ const EmployeeSalaryBreakup = () => {
         ) : error ? (
           <p>Error: {error}</p>
         ) : (
-          <Pie 
-            data={data} 
-            options={options} 
+          <Pie
+            data={data}
+            options={options}
             plugins={[ChartDataLabels]}
-            width={250}  // Increase width of the chart
+            width={250} // Increase width of the chart
             height={250} // Increase height of the chart
           />
         )}

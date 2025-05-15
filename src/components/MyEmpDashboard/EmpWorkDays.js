@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -16,6 +14,10 @@ const EmpWorkDays = () => {
   const [employeeId, setEmployeeId] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
@@ -45,16 +47,18 @@ const EmpWorkDays = () => {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/attendance/${employeeId}`;
         console.log("API Request URL:", apiUrl);
         const response = await axios.get(apiUrl, {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": API_KEY,
-          },
+          headers,
         });
 
         console.log("API Response:", response.data);
 
         if (response.status === 200 && response.data.attendanceStats) {
-          const { total_working_days, leave_count, present_count, absent_count } = response.data.attendanceStats;
+          const {
+            total_working_days,
+            leave_count,
+            present_count,
+            absent_count,
+          } = response.data.attendanceStats;
 
           setChartData({
             labels: ["Leaves", "Present", "Absent"],
@@ -154,7 +158,11 @@ const EmpWorkDays = () => {
         })}
       </p>
       <div className="chart-container1" style={{ paddingTop: "50px" }}>
-        <Doughnut data={data} options={options} plugins={[centerTextPluginWorkDays]} />
+        <Doughnut
+          data={data}
+          options={options}
+          plugins={[centerTextPluginWorkDays]}
+        />
       </div>
       <div className="custom-legend">
         {chartData.labels.map((label, index) => (

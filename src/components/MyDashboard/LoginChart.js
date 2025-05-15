@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import './LoginChart.css';
+import React, { useState, useEffect } from "react";
+import "./LoginChart.css";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,8 +9,8 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
+} from "chart.js";
+import { Line } from "react-chartjs-2";
 
 // Register required components
 ChartJS.register(
@@ -29,17 +29,21 @@ const LoginChart = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/login-data-count`, {
-          method: "GET",
-          headers: {
-            "x-api-key": API_KEY,  
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/login-data-count`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch data");
@@ -128,7 +132,13 @@ const LoginChart = () => {
       <div className="dashboardloginchartgray-box">
         <div className="dashboardlogin-chart">
           <h3>Login Timer</h3>
-          {loading ? <p>Loading...</p> : error ? <p>{error}</p> : <Line data={chartData} options={options} />}
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p>{error}</p>
+          ) : (
+            <Line data={chartData} options={options} />
+          )}
         </div>
       </div>
     </div>

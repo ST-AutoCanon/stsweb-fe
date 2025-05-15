@@ -96,15 +96,15 @@
 // //       label: userName,
 // //       descriptors: capturedDescriptors,
 // //     };
-  
+
 // //     // Get the API key from the environment variable
 // //     const API_KEY = process.env.REACT_APP_API_KEY;
-  
+
 // //     if (!API_KEY) {
 // //       alert('API Key is missing.');
 // //       return;
 // //     }
-  
+
 // //     try {
 // //       const response = await fetch('http://localhost:5000/api/face/save-face-data', {
 // //         method: 'POST',
@@ -114,7 +114,7 @@
 // //         },
 // //         body: JSON.stringify(faceData),
 // //       });
-  
+
 // //       const data = await response.json();
 // //       if (response.ok) {
 // //         alert(`${data.message}`);
@@ -126,7 +126,7 @@
 // //       alert('Failed to save face data');
 // //     }
 // //   };
-  
+
 // //   // Recognition logic placeholder (will use later)
 // //   const handleRecognition = () => {
 // //     setIsRecognizing((prev) => !prev);
@@ -172,7 +172,6 @@
 
 // // export default SaveFaceData;
 
-
 // // import React, { useState, useEffect } from 'react';
 // // import * as faceapi from 'face-api.js';
 
@@ -185,7 +184,6 @@
 // //   const [faceMatcher, setFaceMatcher] = useState(null);
 // //   const [modelsLoaded, setModelsLoaded] = useState(false);
 
- 
 // //   useEffect(() => {
 // //     const loadModels = async () => {
 // //       try {
@@ -200,7 +198,7 @@
 // //     };
 // //     loadModels();
 // //   }, []);
-  
+
 // //   const startCamera = () => {
 // //     const video = document.getElementById('video');
 // //     return new Promise((resolve, reject) => {
@@ -219,7 +217,6 @@
 // //         });
 // //     });
 // //   };
-  
 
 // //   const stopCamera = () => {
 // //     const video = document.getElementById('video');
@@ -229,7 +226,6 @@
 // //       video.srcObject = null;
 // //     }
 // //   };
-  
 
 // //   // const captureFaceData = async () => {
 // //   //   if (!modelsLoaded) {
@@ -240,40 +236,40 @@
 // //   //     alert('Please enter your Employee ID');
 // //   //     return;
 // //   //   }
-  
+
 // //   //   setIsCapturing(true);
-    
+
 // //   //   // Start camera
 // //   //   await startCamera();
-  
+
 // //   //   const video = document.getElementById('video');
 // //   //   const canvas = faceapi.createCanvasFromMedia(video);
 // //   //   canvas.id = 'captureCanvas';
 // //   //   document.body.appendChild(canvas);
-  
+
 // //   //   const displaySize = { width: video.width, height: video.height };
 // //   //   faceapi.matchDimensions(canvas, displaySize);
-  
+
 // //   //   let capturedDescriptors = [];
 // //   //   const instructionDiv = document.createElement('div');
 // //   //   instructionDiv.classList.add('instruction');
 // //   //   instructionDiv.id = 'instructionDiv';
 // //   //   document.body.appendChild(instructionDiv);
-  
+
 // //   //   const interval = setInterval(async () => {
 // //   //     const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
 // //   //       .withFaceLandmarks()
 // //   //       .withFaceDescriptors();
-  
+
 // //   //     const resizedDetections = faceapi.resizeResults(detections, displaySize);
 // //   //     const ctx = canvas.getContext('2d');
 // //   //     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
 // //   //     if (detections.length === 1) {
 // //   //       capturedDescriptors.push(detections[0].descriptor);
 // //   //       faceapi.draw.drawDetections(canvas, resizedDetections);
 // //   //       instructionDiv.textContent = `Capturing... (${capturedDescriptors.length}/5 samples)`;
-  
+
 // //   //       if (capturedDescriptors.length >= 5) {
 // //   //         clearInterval(interval);
 // //   //         document.getElementById('captureCanvas')?.remove();
@@ -293,20 +289,20 @@
 // //       alert('Models not loaded yet.');
 // //       return;
 // //     }
-  
+
 // //     if (!userName.trim()) {
 // //       alert('Please enter your Employee ID');
 // //       return;
 // //     }
-  
+
 // //     // 🔍 Check if face data already exists
 // //     try {
 // //       const checkResponse = await fetch(`http://localhost:5000/api/face/check/${userName}`);
 // //       const checkData = await checkResponse.json();
-  
+
 // //       // Log the response for debugging
 // //       console.log('Check response:', checkData);
-  
+
 // //       if (checkData.exists) {
 // //         alert('Face data already exists for this Employee ID.');
 // //         return;  // Early return to prevent capture
@@ -316,40 +312,40 @@
 // //       alert('Failed to check existing face data. Please try again.');
 // //       return;
 // //     }
-  
+
 // //     setIsCapturing(true);
-  
+
 // //     // Start camera
 // //     await startCamera();
-  
+
 // //     const video = document.getElementById('video');
 // //     const canvas = faceapi.createCanvasFromMedia(video);
 // //     canvas.id = 'captureCanvas';
 // //     document.body.appendChild(canvas);
-  
+
 // //     const displaySize = { width: video.width, height: video.height };
 // //     faceapi.matchDimensions(canvas, displaySize);
-  
+
 // //     let capturedDescriptors = [];
 // //     const instructionDiv = document.createElement('div');
 // //     instructionDiv.classList.add('instruction');
 // //     instructionDiv.id = 'instructionDiv';
 // //     document.body.appendChild(instructionDiv);
-  
+
 // //     const interval = setInterval(async () => {
 // //       const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
 // //         .withFaceLandmarks()
 // //         .withFaceDescriptors();
-  
+
 // //       const resizedDetections = faceapi.resizeResults(detections, displaySize);
 // //       const ctx = canvas.getContext('2d');
 // //       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
 // //       if (detections.length === 1) {
 // //         capturedDescriptors.push(detections[0].descriptor);
 // //         faceapi.draw.drawDetections(canvas, resizedDetections);
 // //         instructionDiv.textContent = `Capturing... (${capturedDescriptors.length}/5 samples)`;
-  
+
 // //         if (capturedDescriptors.length >= 5) {
 // //           clearInterval(interval);
 // //           document.getElementById('captureCanvas')?.remove();
@@ -364,23 +360,22 @@
 // //       }
 // //     }, 500);
 // //   };
-  
-  
+
 // //   const saveCapturedFace = async (capturedDescriptors) => {
 // //     const faceData = {
 // //       employee_id: userName,
 // //       label: userName,
 // //       descriptors: capturedDescriptors,
 // //     };
-  
+
 // //     // Get the API key from the environment variable
 // //     const API_KEY = process.env.REACT_APP_API_KEY;
-  
+
 // //     if (!API_KEY) {
 // //       alert('API Key is missing.');
 // //       return;
 // //     }
-  
+
 // //     try {
 // //       const response = await fetch('http://localhost:5000/api/face/save-face-data', {
 // //         method: 'POST',
@@ -390,7 +385,7 @@
 // //         },
 // //         body: JSON.stringify(faceData),
 // //       });
-  
+
 // //       const data = await response.json();
 // //       if (response.ok) {
 // //         alert(`${data.message}`);
@@ -402,7 +397,7 @@
 // //       alert('Failed to save face data');
 // //     }
 // //   };
-  
+
 // //   // Recognition logic placeholder (will use later)
 // //   const handleRecognition = () => {
 // //     setIsRecognizing((prev) => !prev);
@@ -447,7 +442,6 @@
 // // }
 
 // // export default SaveFaceData;
-
 
 // // // import React, { useState, useEffect } from 'react';
 // // // import * as faceapi from 'face-api.js';
@@ -508,18 +502,18 @@
 // // //       alert('Models not loaded yet.');
 // // //       return;
 // // //     }
-  
+
 // // //     if (!userName.trim()) {
 // // //       alert('Please enter your Employee ID');
 // // //       return;
 // // //     }
-  
+
 // // //     // 🔍 Check if face data already exists
 // // //     try {
 // // //       const checkResponse = await fetch(`http://localhost:5000/api/face/check/${userName}`);
 // // //       const checkData = await checkResponse.json();
 // // //       console.log('Check response:', checkData);  // Debug log
-  
+
 // // //       if (checkData.exists) {
 // // //         alert('Face data already exists for this Employee ID.');
 // // //         return;  // Early return to prevent capture
@@ -529,43 +523,43 @@
 // // //       alert('Failed to check existing face data. Please try again.');
 // // //       return;
 // // //     }
-  
+
 // // //     setIsCapturing(true);
-  
+
 // // //     // Start camera
 // // //     await startCamera();
-  
+
 // // //     const video = document.getElementById('video');
 // // //     const canvas = faceapi.createCanvasFromMedia(video);
 // // //     canvas.id = 'captureCanvas';
 // // //     document.body.appendChild(canvas);
-  
+
 // // //     const displaySize = { width: video.width, height: video.height };
 // // //     faceapi.matchDimensions(canvas, displaySize);
-  
+
 // // //     let capturedDescriptors = [];
 // // //     const instructionDiv = document.createElement('div');
 // // //     instructionDiv.classList.add('instruction');
 // // //     instructionDiv.id = 'instructionDiv';
 // // //     document.body.appendChild(instructionDiv);
-  
+
 // // //     const interval = setInterval(async () => {
 // // //       const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
 // // //         .withFaceLandmarks()
 // // //         .withFaceDescriptors();
-  
+
 // // //       const resizedDetections = faceapi.resizeResults(detections, displaySize);
 // // //       const ctx = canvas.getContext('2d');
 // // //       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
 // // //       if (detections.length === 1) {
 // // //         capturedDescriptors.push(detections[0].descriptor);
 // // //         faceapi.draw.drawDetections(canvas, resizedDetections);
 // // //         instructionDiv.textContent = `Capturing... (${capturedDescriptors.length}/5 samples)`;
-  
+
 // // //         // Log the captured descriptors for debugging
 // // //         console.log('Captured descriptors:', capturedDescriptors);
-  
+
 // // //         if (capturedDescriptors.length >= 5) {
 // // //           clearInterval(interval);
 // // //           document.getElementById('captureCanvas')?.remove();
@@ -580,24 +574,24 @@
 // // //       }
 // // //     }, 500);
 // // //   };
-  
+
 // // //   const saveCapturedFace = async (capturedDescriptors) => {
 // // //     const faceData = {
 // // //       employee_id: userName,
 // // //       label: userName,
 // // //       descriptors: capturedDescriptors,
 // // //     };
-  
+
 // // //     console.log('Face data to be saved:', faceData);  // Debug log
-  
+
 // // //     // Get the API key from the environment variable
 // // //     const API_KEY = process.env.REACT_APP_API_KEY;
-  
+
 // // //     if (!API_KEY) {
 // // //       alert('API Key is missing.');
 // // //       return;
 // // //     }
-  
+
 // // //     try {
 // // //       const response = await fetch('http://localhost:5000/api/face/save-face-data', {
 // // //         method: 'POST',
@@ -607,7 +601,7 @@
 // // //         },
 // // //         body: JSON.stringify(faceData),
 // // //       });
-  
+
 // // //       const data = await response.json();
 // // //       console.log('Response from server:', data);  // Debug log
 // // //       if (response.ok) {
@@ -722,12 +716,12 @@
 // //       alert('Models not loaded yet.');
 // //       return;
 // //     }
-  
+
 // //     if (!userName.trim()) {
 // //       alert('Please enter your Employee ID');
 // //       return;
 // //     }
-  
+
 // //     // Check if face data already exists for this Employee ID
 // //     try {
 // //       const API_KEY = process.env.REACT_APP_API_KEY;
@@ -738,12 +732,12 @@
 // //         },
 // //       });      const checkData = await checkResponse.json();
 // //       console.log('Check response:', checkData);  // Debug log
-  
+
 // //       if (checkData.exists) {
 // //         alert('Face data already exists for this Employee ID.');
 // //         return;  // Early return to prevent capture
 // //       }
-  
+
 // //       // Check for multiple entries for the same Employee ID
 // //       if (checkData.count > 1) {
 // //         alert(`Multiple entries found for Employee ID ${userName}. Cannot capture face data.`);
@@ -754,43 +748,43 @@
 // //       alert('Failed to check existing face data. Please try again.');
 // //       return;
 // //     }
-  
+
 // //     setIsCapturing(true);
-  
+
 // //     // Start camera
 // //     await startCamera();
-  
+
 // //     const video = document.getElementById('video');
 // //     const canvas = faceapi.createCanvasFromMedia(video);
 // //     canvas.id = 'captureCanvas';
 // //     document.body.appendChild(canvas);
-  
+
 // //     const displaySize = { width: video.width, height: video.height };
 // //     faceapi.matchDimensions(canvas, displaySize);
-  
+
 // //     let capturedDescriptors = [];
 // //     const instructionDiv = document.createElement('div');
 // //     instructionDiv.classList.add('instruction');
 // //     instructionDiv.id = 'instructionDiv';
 // //     document.body.appendChild(instructionDiv);
-  
+
 // //     const interval = setInterval(async () => {
 // //       const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
 // //         .withFaceLandmarks()
 // //         .withFaceDescriptors();
-  
+
 // //       const resizedDetections = faceapi.resizeResults(detections, displaySize);
 // //       const ctx = canvas.getContext('2d');
 // //       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
 // //       if (detections.length === 1) {
 // //         capturedDescriptors.push(detections[0].descriptor);
 // //         faceapi.draw.drawDetections(canvas, resizedDetections);
 // //         instructionDiv.textContent = `Capturing... (${capturedDescriptors.length}/5 samples)`;
-  
+
 // //         // Log the captured descriptors for debugging
 // //         console.log('Captured descriptors:', capturedDescriptors);
-  
+
 // //         if (capturedDescriptors.length >= 5) {
 // //           clearInterval(interval);
 // //           document.getElementById('captureCanvas')?.remove();
@@ -805,7 +799,6 @@
 // //       }
 // //     }, 500);
 // //   };
-  
 
 // //   const saveCapturedFace = async (capturedDescriptors) => {
 // //     const faceData = {
@@ -890,10 +883,6 @@
 // // }
 
 // // export default SaveFaceData;
-
-
-
-
 
 // // import React, { useState, useEffect } from 'react';
 // // import * as faceapi from 'face-api.js';
@@ -1089,9 +1078,6 @@
 // //     }
 // //   };
 
-
-  
-
 // //   const handleRecognition = () => {
 // //     setIsRecognizing((prev) => !prev);
 // //     if (!isRecognizing) {
@@ -1115,14 +1101,13 @@
 // //         >
 // //           {isCapturing ? 'Capturing...' : 'Save My Face'}
 // //         </button>
-       
+
 // //       </div>
 // //     </div>
 // //   );
 // // }
 
 // // export default SaveFaceData;
-
 
 // // import React, { useState, useEffect } from 'react';
 // // import * as faceapi from 'face-api.js';
@@ -1284,17 +1269,17 @@
 // //       alert('Models not loaded yet.');
 // //       return;
 // //     }
-  
+
 // //     if (!userName.trim()) {
 // //       alert('Employee ID not found.');
 // //       return;
 // //     }
-  
+
 // //     try {
 // //       const API_KEY = process.env.REACT_APP_API_KEY;
-  
+
 // //       const checkResponse = await fetch(`http://localhost:5000/api/face/check/${userName}`,
-        
+
 // //         {
 // //         headers: {
 // //           'x-api-key': API_KEY,
@@ -1302,12 +1287,12 @@
 // //       });
 // //       const checkData = await checkResponse.json();
 // //       console.log('Check response:', checkData);
-  
+
 // //       if (checkData.exists) {
 // //         alert('Face data already exists for this Employee ID.');
 // //         return;
 // //       }
-  
+
 // //       if (checkData.count > 1) {
 // //         alert(`Multiple entries found for Employee ID ${userName}. Cannot capture face data.`);
 // //         return;
@@ -1317,42 +1302,42 @@
 // //       alert('Failed to check existing face data. Please try again.');
 // //       return;
 // //     }
-  
+
 // //     setIsCapturing(true);
 // //     await startCamera();
-  
+
 // //     const video = document.getElementById('video');
 // //     const canvas = faceapi.createCanvasFromMedia(video);
 // //     canvas.id = 'captureCanvas';
 // //     document.body.appendChild(canvas);
-  
+
 // //     const displaySize = { width: video.width, height: video.height };
 // //     faceapi.matchDimensions(canvas, displaySize);
-  
+
 // //     let capturedDescriptors = [];
 // //     const instructionDiv = document.createElement('div');
 // //     instructionDiv.classList.add('instruction');
 // //     instructionDiv.id = 'instructionDiv';
 // //     document.body.appendChild(instructionDiv);
-  
+
 // //     const interval = setInterval(async () => {
 // //       const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
 // //         .withFaceLandmarks()
 // //         .withFaceDescriptors();
-  
+
 // //       const resizedDetections = faceapi.resizeResults(detections, displaySize);
 // //       const ctx = canvas.getContext('2d');
 // //       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
 // //       // Brightness check
 // //       const brightness = estimateVideoBrightness(video);
 // //       if (brightness < 40) {
 // //         instructionDiv.textContent = '💡 Low lighting detected. Please move to a brighter area.';
 // //         return;
 // //       }
-  
+
 // //       faceapi.draw.drawDetections(canvas, resizedDetections);
-  
+
 // //       if (detections.length === 0) {
 // //         instructionDiv.textContent = '🕵️‍♂️ No face detected. Please look at the camera.';
 // //       } else if (detections.length > 1) {
@@ -1363,10 +1348,10 @@
 // //           instructionDiv.textContent = '📏 Move closer to the camera for better detection.';
 // //           return;
 // //         }
-  
+
 // //         capturedDescriptors.push(detections[0].descriptor);
 // //         instructionDiv.textContent = `✅ Capturing... (${capturedDescriptors.length}/30 samples)`;
-  
+
 // //         if (capturedDescriptors.length >= 30) {
 // //           clearInterval(interval);
 // //           document.getElementById('captureCanvas')?.remove();
@@ -1378,30 +1363,28 @@
 // //       }
 // //     }, 500);
 // //   };
-  
+
 // //   // Utility function for brightness detection
 // //   function estimateVideoBrightness(video) {
 // //     const canvas = document.createElement('canvas');
 // //     canvas.width = video.videoWidth;
 // //     canvas.height = video.videoHeight;
-  
+
 // //     const ctx = canvas.getContext('2d');
 // //     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
 // //     const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
 // //     let total = 0;
-  
+
 // //     for (let i = 0; i < frame.data.length; i += 4) {
 // //       const r = frame.data[i];
 // //       const g = frame.data[i + 1];
 // //       const b = frame.data[i + 2];
 // //       total += (r + g + b) / 3;
 // //     }
-  
+
 // //     return total / (frame.data.length / 4);
 // //   }
-  
-
 
 // //   const saveCapturedFace = async (capturedDescriptors) => {
 // //     const faceData = {
@@ -1468,13 +1451,11 @@
 // //         </button>
 // //       </div>
 
-      
 // //     </div>
 // //   );
 // // }
 
 // // export default SaveFaceData;
-
 
 // import React, { useState, useEffect } from 'react';
 // import * as faceapi from 'face-api.js';
@@ -1488,8 +1469,6 @@
 //   const [modelsLoaded, setModelsLoaded] = useState(false);
 //   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-
-  
 //  // Alert modal state (no title by default)
 //   const [alertModal, setAlertModal] = useState({
 //     isVisible: false,
@@ -1505,7 +1484,6 @@
 //   const closeAlert = () => {
 //     setAlertModal({ isVisible: false, title: "", message: "" });
 //   };
-
 
 //   useEffect(() => {
 //     const dashboardData = localStorage.getItem('dashboardData');
@@ -1525,7 +1503,6 @@
 //       showAlert("Dashboard data not found in localStorage.");
 //     }
 
-    
 //     const loadModels = async () => {
 //       try {
 //         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
@@ -1754,7 +1731,7 @@
 //       } else {
 //         showAlert(`Error: ${data.error}`);
 //       }
-      
+
 //     } catch (error) {
 //       console.error('Error saving face data:', error);
 //       showAlert('Failed to save face data');
@@ -1827,7 +1804,6 @@
 // }
 
 // export default SaveFaceData;
-
 
 // import React, { useState, useEffect } from 'react';
 // import * as faceapi from 'face-api.js';
@@ -2165,13 +2141,13 @@
 
 // export default SaveFaceData;
 
-import React, { useState, useEffect } from 'react';
-import * as faceapi from 'face-api.js';
-import './SaveFaceData.css';
+import React, { useState, useEffect } from "react";
+import * as faceapi from "face-api.js";
+import "./SaveFaceData.css";
 import Modal from "../Modal/Modal";
 
 function SaveFaceData({ onClose }) {
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState("");
   const [isCapturing, setIsCapturing] = useState(false);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
@@ -2194,7 +2170,7 @@ function SaveFaceData({ onClose }) {
   };
 
   useEffect(() => {
-    const dashboardData = localStorage.getItem('dashboardData');
+    const dashboardData = localStorage.getItem("dashboardData");
     if (dashboardData) {
       try {
         const parsedData = JSON.parse(dashboardData);
@@ -2213,13 +2189,13 @@ function SaveFaceData({ onClose }) {
 
     const loadModels = async () => {
       try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-        await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-        await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+        await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+        await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
+        await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
         setModelsLoaded(true);
       } catch (error) {
-        console.error('Error loading models:', error);
-        showAlert('Error initializing face recognition models.');
+        console.error("Error loading models:", error);
+        showAlert("Error initializing face recognition models.");
       }
     };
 
@@ -2229,9 +2205,9 @@ function SaveFaceData({ onClose }) {
   const checkCameraAvailability = async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      return devices.some(device => device.kind === 'videoinput');
+      return devices.some((device) => device.kind === "videoinput");
     } catch (error) {
-      console.error('Error checking camera:', error);
+      console.error("Error checking camera:", error);
       return false;
     }
   };
@@ -2241,14 +2217,15 @@ function SaveFaceData({ onClose }) {
       setIsMobile(window.innerWidth <= 768);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const startCamera = () => {
-    const video = document.getElementById('video');
+    const video = document.getElementById("video");
     return new Promise((resolve, reject) => {
-      navigator.mediaDevices.getUserMedia({ video: true })
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
         .then((stream) => {
           video.srcObject = stream;
           video.onloadedmetadata = () => {
@@ -2257,15 +2234,15 @@ function SaveFaceData({ onClose }) {
           };
         })
         .catch((error) => {
-          console.error('Camera error:', error);
-          showAlert('Could not access camera');
+          console.error("Camera error:", error);
+          showAlert("Could not access camera");
           reject(error);
         });
     });
   };
 
   const stopCamera = () => {
-    const video = document.getElementById('video');
+    const video = document.getElementById("video");
     const stream = video.srcObject;
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
@@ -2275,90 +2252,104 @@ function SaveFaceData({ onClose }) {
 
   const captureFaceData = async () => {
     if (!modelsLoaded) {
-      showAlert('Models not loaded yet.');
+      showAlert("Models not loaded yet.");
       return;
     }
 
     if (!userName.trim()) {
-      showAlert('Employee ID not found.');
+      showAlert("Employee ID not found.");
       return;
     }
 
     const hasCamera = await checkCameraAvailability();
     if (!hasCamera) {
-      showAlert('No camera found on this device. Proceeding without capturing face.');
+      showAlert(
+        "No camera found on this device. Proceeding without capturing face."
+      );
       return;
     }
 
     try {
       const API_KEY = process.env.REACT_APP_API_KEY;
+      const meId = JSON.parse(
+        localStorage.getItem("dashboardData") || "{}"
+      ).employeeId;
+      const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
-      const checkResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/face/check/${userName}`, {
-        headers: {
-          'x-api-key': API_KEY,
-        },
-      });
+      const checkResponse = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/face/check/${userName}`,
+        {
+          headers,
+        }
+      );
       const checkData = await checkResponse.json();
-      console.log('Check response:', checkData);
+      console.log("Check response:", checkData);
 
       if (checkData.exists) {
-        showAlert('Face data already exists for this Employee ID.');
+        showAlert("Face data already exists for this Employee ID.");
         return;
       }
 
       if (checkData.count > 1) {
-        showAlert(`Multiple entries found for Employee ID ${userName}. Cannot capture face data.`);
+        showAlert(
+          `Multiple entries found for Employee ID ${userName}. Cannot capture face data.`
+        );
         return;
       }
     } catch (error) {
-      console.error('Error checking existing face data:', error);
-      showAlert('Failed to check existing face data. Please try again.');
+      console.error("Error checking existing face data:", error);
+      showAlert("Failed to check existing face data. Please try again.");
       return;
     }
 
     setIsCapturing(true);
     await startCamera();
 
-    const video = document.getElementById('video');
-    const container = document.querySelector('.save-face-container');
+    const video = document.getElementById("video");
+    const container = document.querySelector(".save-face-container");
     const canvas = faceapi.createCanvasFromMedia(video);
-    canvas.id = 'captureCanvas';
+    canvas.id = "captureCanvas";
     container.appendChild(canvas);
 
     const displaySize = { width: video.width, height: video.height };
     faceapi.matchDimensions(canvas, displaySize);
 
     let capturedDescriptors = [];
-    const instructionDiv = document.createElement('div');
-    instructionDiv.classList.add('instruction');
-    instructionDiv.id = 'instructionDiv';
+    const instructionDiv = document.createElement("div");
+    instructionDiv.classList.add("instruction");
+    instructionDiv.id = "instructionDiv";
     container.appendChild(instructionDiv);
 
     const interval = setInterval(async () => {
-      const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+      const detections = await faceapi
+        .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptors();
 
       const resizedDetections = faceapi.resizeResults(detections, displaySize);
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const brightness = estimateVideoBrightness(video);
       if (brightness < 40) {
-        instructionDiv.textContent = '💡 Low lighting detected. Please move to a brighter area.';
+        instructionDiv.textContent =
+          "💡 Low lighting detected. Please move to a brighter area.";
         return;
       }
 
       faceapi.draw.drawDetections(canvas, resizedDetections);
 
       if (detections.length === 0) {
-        instructionDiv.textContent = '🕵️‍♂️ No face detected. Please look at the camera.';
+        instructionDiv.textContent =
+          "🕵️‍♂️ No face detected. Please look at the camera.";
       } else if (detections.length > 1) {
-        instructionDiv.textContent = '👥 Multiple faces found. Ensure only one person is in front of the camera.';
+        instructionDiv.textContent =
+          "👥 Multiple faces found. Ensure only one person is in front of the camera.";
       } else {
         const box = detections[0].detection.box;
         if (box.width < 100 || box.height < 100) {
-          instructionDiv.textContent = '📏 Move closer to the camera for better detection.';
+          instructionDiv.textContent =
+            "📏 Move closer to the camera for better detection.";
           return;
         }
 
@@ -2367,8 +2358,8 @@ function SaveFaceData({ onClose }) {
 
         if (capturedDescriptors.length >= 30) {
           clearInterval(interval);
-          const canvas = document.getElementById('captureCanvas');
-          const instruction = document.getElementById('instructionDiv');
+          const canvas = document.getElementById("captureCanvas");
+          const instruction = document.getElementById("instructionDiv");
           if (canvas) canvas.remove();
           if (instruction) instruction.remove();
           await saveCapturedFace(capturedDescriptors);
@@ -2380,11 +2371,11 @@ function SaveFaceData({ onClose }) {
   };
 
   function estimateVideoBrightness(video) {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -2407,27 +2398,27 @@ function SaveFaceData({ onClose }) {
       descriptors: capturedDescriptors,
     };
 
-    console.log('Face data to be saved:', faceData);
+    console.log("Face data to be saved:", faceData);
 
     const API_KEY = process.env.REACT_APP_API_KEY;
 
     if (!API_KEY) {
-      showAlert('API Key is missing.');
+      showAlert("API Key is missing.");
       return;
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/face/save-face-data`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
-        },
-        body: JSON.stringify(faceData),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/face/save-face-data`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(faceData),
+        }
+      );
 
       const data = await response.json();
-      console.log('Response from server:', data);
+      console.log("Response from server:", data);
 
       if (response.ok) {
         showAlert(`${data.message}`);
@@ -2439,15 +2430,15 @@ function SaveFaceData({ onClose }) {
         showAlert(`Error: ${data.error}`);
       }
     } catch (error) {
-      console.error('Error saving face data:', error);
-      showAlert('Failed to save face data');
+      console.error("Error saving face data:", error);
+      showAlert("Failed to save face data");
     }
   };
 
   const handleRecognition = () => {
     setIsRecognizing((prev) => !prev);
     if (!isRecognizing) {
-      showAlert('Recognition will be implemented after saving works.');
+      showAlert("Recognition will be implemented after saving works.");
     }
   };
 
@@ -2456,11 +2447,13 @@ function SaveFaceData({ onClose }) {
       <h2>Save Face Data</h2>
       <div className="disclaimer-note">
         <p>
-          <strong>Note:</strong> We are capturing your facial data for attendance purposes. This data will be securely stored and used solely for employee attendance tracking.
+          <strong>Note:</strong> We are capturing your facial data for
+          attendance purposes. This data will be securely stored and used solely
+          for employee attendance tracking.
         </p>
       </div>
       {/* <p>Employee ID: <strong>{userName}</strong></p> */}
-      <div className={`video-container ${isCapturing ? 'capturing' : ''}`}>
+      <div className={`video-container ${isCapturing ? "capturing" : ""}`}>
         <video
           id="video"
           autoPlay
@@ -2469,12 +2462,12 @@ function SaveFaceData({ onClose }) {
           width="640"
           height="480"
           style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: isMobile ? '300px' : '360px',
-            borderRadius: '10px',
-            objectFit: 'cover',
-            boxShadow: '0 0 12px rgba(0, 0, 0, 0.3)',
+            width: "100%",
+            height: "auto",
+            maxHeight: isMobile ? "300px" : "360px",
+            borderRadius: "10px",
+            objectFit: "cover",
+            boxShadow: "0 0 12px rgba(0, 0, 0, 0.3)",
           }}
         ></video>
       </div>
