@@ -107,8 +107,9 @@
   cursor: pointer;
 }
 
-.search-text {
+.emp-search-text {
   display: flex;
+  padding:7px 10px;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -123,17 +124,17 @@
     box-shadow 0.3s ease;
 }
 
-.search-text:hover {
+.emp-search-text:hover {
   background-color: #68a822; /* Slightly darker shade */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.search-text:active {
+.emp-search-text:active {
   transform: scale(0.98);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.search-text:focus {
+.emp-search-text:focus {
   outline: 2px solid #ffca28;
   outline-offset: 2px;
 }
