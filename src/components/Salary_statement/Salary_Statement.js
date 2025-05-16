@@ -21,6 +21,7 @@ const Salary_Statement = () => {
   const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
+  
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
   const [showPopup, setShowPopup] = useState(false);
 
@@ -347,118 +348,7 @@ const Salary_Statement = () => {
 
   const actualHeaders = normalizeHeaders(header); // your first row from Excel
 
-  // const validateData = (jsonData, headers, prevData = []) => {
-  //   const invalidCells = new Map();
-  //   const updatedCells = new Map();
-
-  //   // Normalize header list for comparison
-  //   const normalizedHeaders = headers.map(h => h?.toString().trim().toLowerCase());
-
-  //   jsonData.forEach((row, rowIndex) => {
-  //     if (!row || !Array.isArray(row)) return;
-
-  //     row.forEach((cell, colIndex) => {
-  //       let isInvalid = false;
-  //       let isUpdated = false;
-  //       let formattedCell = cell;
-
-  //       let columnName = normalizedHeaders[colIndex];
-
-  //       // 🔹 Fix common typos
-  //       if (columnName === "total duductions") columnName = "total deductions";
-  //       if (columnName === "net salary") columnName = "net payable"; // unifying naming if needed
-
-  //       // 🔹 Validate Employee ID
-  //       if (columnName === "employee id") {
-  //         const empIdPattern = /^STS\d{3}$/;
-  //         if (!empIdPattern.test(cell)) {
-  //           isInvalid = true;
-  //         }
-  //       }
-
-  //       // 🔹 Validate Text Fields (No Numbers)
-  //       if (["employee name", "department", "designation"].includes(columnName)) {
-  //         const namePattern = /^[A-Za-z\s.]+$/;
-  //         if (!namePattern.test(cell) || cell.trim() === "") {
-  //           isInvalid = true;
-  //         }
-  //       }
-
-  //       // 🔹 Validate Numeric Fields
-  //       const numericFields = [
-  //         "uin number",
-  //         "basic salary",
-  //         "hra",
-  //         "allowance",
-  //         "special allowance",
-  //         "rnr/bonus",
-  //         "total",
-  //         "salary advance",
-  //         "pf",
-  //         "esi",
-  //         "pt",
-  //         "advance recovery",
-  //         "tds",
-  //         "total deductions",
-  //         "net payable"
-  //       ];
-
-  //       if (numericFields.includes(columnName)) {
-  //         if (isNaN(cell) || cell === "") {
-  //           isInvalid = true;
-  //         }
-  //       }
-
-  //       // 🔹 Validate and Format "joining date"
-  //       if (columnName === "joining date") {
-  //         const originalValue = cell;
-  //         formattedCell = convertExcelDate(cell);
-
-  //         console.log("📅 Debug: Checking Date Validation", {
-  //           original: originalValue,
-  //           formatted: formattedCell,
-  //         });
-
-  //         if (!formattedCell || !/^\d{4}-\d{2}-\d{2}$/.test(formattedCell)) {
-  //           isInvalid = true;
-  //         } else {
-  //           row[colIndex] = formattedCell;
-  //         }
-  //       }
-
-  //       // ✅ Compare the formatted value correctly
-  //       if (prevData[rowIndex]) {
-  //         let prevCell = prevData[rowIndex][colIndex];
-
-  //         if (columnName === "joining date" && !/^\d{4}-\d{2}-\d{2}$/.test(prevCell)) {
-  //           prevCell = convertExcelDate(prevCell);
-  //         }
-
-  //         if (prevCell !== formattedCell) {
-  //           isUpdated = true;
-  //         }
-  //       }
-
-  //       // 🔹 Track Invalid Cells (Red)
-  //       if (isInvalid) {
-  //         if (!invalidCells.has(rowIndex)) invalidCells.set(rowIndex, new Set());
-  //         invalidCells.get(rowIndex).add(colIndex);
-  //       }
-
-  //       // 🔹 Track Updated Cells (Green)
-  //       if (isUpdated) {
-  //         if (!updatedCells.has(rowIndex)) updatedCells.set(rowIndex, new Set());
-  //         updatedCells.get(rowIndex).add(colIndex);
-  //       }
-  //     });
-  //   });
-
-  //   console.log("🚨 Debug: Invalid Cells Map:", invalidCells);
-  //   console.log("🟢 Debug: Updated Cells Map:", updatedCells);
-
-  //   return { invalidCells, updatedCells };
-  // };
-
+ 
   const validateData = (jsonData, headers, prevData = []) => {
     const invalidCells = new Map();
     const updatedCells = new Map();
@@ -627,68 +517,7 @@ const Salary_Statement = () => {
     return !isNaN(Date.parse(dateString));
   };
 
-  //   const handleUpload = async () => {
-  //     console.log("📂 handleUpload() called. Checking file...");
-
-  //     if (!file) {
-  //       setTableData([]); // Clear previous table data
-  //       setSelectedMonthYearData([]); // Ensure other table is hidden
-  //       setSelectedMonth(""); // Reset month selection
-  //       setSelectedYear(""); // Reset year selection
-  //       setIsMonthYearSelected(false); // Reset the toggle state
-  //       setSelectedTable("uploaded"); // Show uploaded table
-  //       setTableData([]); // Clear any previous table data
-  //       setError("❌ Please select a valid file to upload!");
-  //       return;
-  //     }
-
-  //     const { invalidCells, updatedCells } = validateData(tableData, tableHeaders);
-  //     setInvalidCells(invalidCells);
-  //     setUpdatedCells(updatedCells);
-
-  // console.log("🚨 Debug: Invalid Cells Before Upload:", invalidCells); // Debug log
-
-  // // ✅ Fix condition to check Map correctly
-  // if (invalidCells && invalidCells.size > 0) {
-  //     setError("❌ Data contains errors. Please correct highlighted fields before uploading.");
-  //     return;
-  // } else {
-  //     console.log("✅ No invalid cells found.");
-  //     setError(""); // ✅ Clear error if no invalid cells
-  // }
-
-  //     const formData = new FormData();
-  //     formData.append("file", file);
-
-  //     try {
-  //       const response = await axios.post(
-  //         `${process.env.REACT_APP_BACKEND_URL}/salary/upload`,
-  //         formData,
-  //         {
-  //           headers: {
-  //             "Content-Type": "multipart/form-data",
-  //             "x-api-key": API_KEY,
-  //           },
-  //         }
-  //       );
-  //       alert("✅ File uploaded successfully");
-
-  //       if (response.data.success) {
-  //         setTableData(response.data.data);
-  //         setHeaders(Object.keys(response.data[0])); // Extract headers
-  //         setError("");
-
-  //         setIsFileUploaded(true); // Show the uploaded table
-  //         setIsMonthYearSelected(false); // Hide month-year table
-  //       } else {
-  //         setTableData([]);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error uploading file:", error.response?.data || error.message);
-  //       setError("❌ Upload failed, table not created. Please try again.");
-  //     }
-  //   };
-
+  
   const handleUpload = async () => {
     console.log("📂 handleUpload() called. Checking file...");
 
@@ -712,10 +541,7 @@ const Salary_Statement = () => {
         `${process.env.REACT_APP_BACKEND_URL}/salary/upload`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            "x-api-key": API_KEY,
-          },
+          headers,
         }
       );
 
