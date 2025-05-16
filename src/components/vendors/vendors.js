@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./vendors.css";
 const API_KEY = process.env.REACT_APP_API_KEY;
+const meId = JSON.parse(
+  localStorage.getItem("dashboardData") || "{}"
+).employeeId;
+const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
 const Vendors = () => {
   const [showForm, setShowForm] = useState(false);
@@ -67,9 +71,7 @@ const Vendors = () => {
   const fetchVendors = async () => {
     try {
       const response = await axios.get("http://localhost:5000/vendors/list", {
-        headers: {
-          "x-api-key": API_KEY,
-        },
+        headers,
       });
       if (response.data.success) {
         setVendors(response.data.data);
@@ -106,10 +108,7 @@ const Vendors = () => {
         "http://localhost:5000/vendors/add",
         data,
         {
-          headers: {
-            "x-api-key": API_KEY,
-            "Content-Type": "multipart/form-data",
-          },
+          headers,
         }
       );
       alert("Vendor registered successfully!");

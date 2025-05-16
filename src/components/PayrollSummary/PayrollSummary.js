@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import "jspdf-autotable"; // Import autoTable plugin for tables
 import "./PayrollSummary.css"; // Ensure proper CSS
@@ -19,6 +18,10 @@ const PayrollSummary = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
   const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
@@ -45,10 +48,7 @@ const PayrollSummary = () => {
           `${BACKEND_URL}/api/salary-slip?employee_id=${employeeId}&month=${selectedDate.month}&year=${selectedDate.year}`,
           {
             method: "GET",
-            headers: {
-              "x-api-key": API_KEY,
-              "Content-Type": "application/json",
-            },
+            headers,
           }
         );
 
@@ -75,10 +75,7 @@ const PayrollSummary = () => {
           `${BACKEND_URL}/api/bank-details/${employeeId}`,
           {
             method: "GET",
-            headers: {
-              "x-api-key": API_KEY,
-              "Content-Type": "application/json",
-            },
+            headers,
           }
         );
 
@@ -100,10 +97,7 @@ const PayrollSummary = () => {
           `${BACKEND_URL}/api/employee-details/${employeeId}`,
           {
             method: "GET",
-            headers: {
-              "x-api-key": API_KEY,
-              "Content-Type": "application/json",
-            },
+            headers,
           }
         );
 
@@ -121,13 +115,13 @@ const PayrollSummary = () => {
     // Fetch Attendance Data
     const fetchAttendanceData = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/attendance/${employeeId}`, {
-          method: "GET",
-          headers: {
-            "x-api-key": API_KEY,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${BACKEND_URL}/attendance/${employeeId}`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
 
         const result = await response.json();
         if (response.ok && result.attendanceStats) {
@@ -160,8 +154,12 @@ const PayrollSummary = () => {
             const date = new Date();
             date.setMonth(date.getMonth() - i);
             return (
-              <option key={i} value={`${date.getMonth() + 1}-${date.getFullYear()}`}>
-                {date.toLocaleString("default", { month: "long" })} {date.getFullYear()}
+              <option
+                key={i}
+                value={`${date.getMonth() + 1}-${date.getFullYear()}`}
+              >
+                {date.toLocaleString("default", { month: "long" })}{" "}
+                {date.getFullYear()}
               </option>
             );
           })}
@@ -180,18 +178,25 @@ const PayrollSummary = () => {
             <div className="bank-details">
               {bankDetails && (
                 <>
-                  <p><strong>Bank Name:</strong> {bankDetails.bank_name}</p>
-                  <p><strong>Account Number:</strong> {bankDetails.account_number}</p>
+                  <p>
+                    <strong>Bank Name:</strong> {bankDetails.bank_name}
+                  </p>
+                  <p>
+                    <strong>Account Number:</strong>{" "}
+                    {bankDetails.account_number}
+                  </p>
                 </>
               )}
-              
             </div>
           )}
 
           <div className="payslip">
             <h2>
               Payslip for{" "}
-              {new Date(selectedDate.year, selectedDate.month - 1).toLocaleString("default", {
+              {new Date(
+                selectedDate.year,
+                selectedDate.month - 1
+              ).toLocaleString("default", {
                 month: "long",
                 year: "numeric",
               })}
@@ -257,14 +262,26 @@ const PayrollSummary = () => {
                   </tr>
                 )}
                 <tr className="total-row">
-                  <td><strong>Gross Earnings</strong></td>
-                  <td><strong>₹{payrollData.total_earnings}</strong></td>
-                  <td><strong>Total Deductions</strong></td>
-                  <td><strong>₹{payrollData.total_deductions}</strong></td>
+                  <td>
+                    <strong>Gross Earnings</strong>
+                  </td>
+                  <td>
+                    <strong>₹{payrollData.total_earnings}</strong>
+                  </td>
+                  <td>
+                    <strong>Total Deductions</strong>
+                  </td>
+                  <td>
+                    <strong>₹{payrollData.total_deductions}</strong>
+                  </td>
                 </tr>
                 <tr className="net-salary-row">
-                  <td colSpan="2"><strong>Net Salary</strong></td>
-                  <td colSpan="2"><strong>₹{Math.floor(payrollData.net_salary)}</strong></td>
+                  <td colSpan="2">
+                    <strong>Net Salary</strong>
+                  </td>
+                  <td colSpan="2">
+                    <strong>₹{Math.floor(payrollData.net_salary)}</strong>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -295,7 +312,9 @@ const PayrollSummary = () => {
                         color: "black",
                       }}
                     >
-                      <strong>Net Salary: ₹{Math.floor(payrollData.net_salary)}</strong>
+                      <strong>
+                        Net Salary: ₹{Math.floor(payrollData.net_salary)}
+                      </strong>
                     </td>
                   </tr>
                 </table>
@@ -303,9 +322,17 @@ const PayrollSummary = () => {
             )}
 
             {/* Download Button */}
-            
+
             <button
-              onClick={() => generatePayslipPDF(payrollData, selectedDate, bankDetails, attendance, employeeDetails)}
+              onClick={() =>
+                generatePayslipPDF(
+                  payrollData,
+                  selectedDate,
+                  bankDetails,
+                  attendance,
+                  employeeDetails
+                )
+              }
               className="payroll-download-btn"
             >
               Download PDF
