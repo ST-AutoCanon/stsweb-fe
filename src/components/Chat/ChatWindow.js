@@ -20,6 +20,7 @@ export default function ChatWindow({ room }) {
   const [msgs, setMsgs] = useState([]);
   const [txt, setTxt] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiRef = useRef(null);
   const [showMembers, setShowMembers] = useState(false);
   const [members, setMembers] = useState([]);
 
@@ -42,7 +43,7 @@ export default function ChatWindow({ room }) {
     });
 
   const socket = useSocket();
-  const endRef = useRef();
+  const messagesRef = useRef();
   const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
@@ -51,6 +52,20 @@ export default function ChatWindow({ room }) {
     "x-api-key": process.env.REACT_APP_API_KEY,
     "x-employee-id": meId,
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        showEmojiPicker &&
+        emojiRef.current &&
+        !emojiRef.current.contains(e.target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showEmojiPicker]);
 
   // -- Load history --
   useEffect(() => {
@@ -68,7 +83,7 @@ export default function ChatWindow({ room }) {
     const handler = (m) => {
       if (m.roomId !== room?.id) return;
       const normalized = {
-        id: m.id ?? Date.now(),
+        id: m.id,
         sender_id: m.senderId,
         sender_name: m.senderName,
         content: m.content,
@@ -83,11 +98,13 @@ export default function ChatWindow({ room }) {
     return () => socket.off("new_message", handler);
   }, [socket, room]);
 
-  // -- Auto-scroll when msgs change --
-  useEffect(
-    () => endRef.current?.scrollIntoView({ behavior: "smooth" }),
-    [msgs]
-  );
+  useEffect(() => {
+    const box = messagesRef.current;
+    if (box) {
+      // jump or smooth scroll as you like
+      box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
+    }
+  }, [msgs]);
 
   // -- Send text message --
   const send = () => {
@@ -117,20 +134,48 @@ export default function ChatWindow({ room }) {
     if (emojiObj) setTxt((prev) => prev + emojiObj.emoji);
   };
 
-  // -- Download a file blob --
   const downloadFile = async (fileUrl, suggestedName) => {
-    const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}${fileUrl}`, {
-      headers,
-    });
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = suggestedName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const base = process.env.REACT_APP_BACKEND_URL.replace(/\/+$/, "");
+    const path = fileUrl.replace(/^\/+/, "");
+    const url = `${base}/${path}`;
+
+    try {
+      const resp = await fetch(url, { headers });
+      if (!resp.ok) {
+        console.error("❌ response not OK");
+        alert(`Could not download file (status ${resp.status})`);
+        return;
+      }
+
+      const contentType = resp.headers.get("Content-Type") || "(none)";
+
+      let filename = suggestedName || "";
+      if (!filename) {
+        const dispo = resp.headers.get("Content-Disposition");
+        if (dispo && dispo.includes("filename=")) {
+          filename = dispo.split("filename=")[1].replace(/["']/g, "");
+        } else {
+          filename = path.split("/").pop();
+        }
+      }
+
+      const buffer = await resp.arrayBuffer();
+      const blob = new Blob([buffer], { type: contentType });
+
+      // 🛠 Step 6: createObjectURL & click
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      // 🛠 Step X: network / unexpected error
+      console.error("🚨 downloadFile error:", err);
+      alert("Network error when downloading. Check console for details.");
+    }
   };
 
   // -- Load group members --
@@ -173,7 +218,7 @@ export default function ChatWindow({ room }) {
       </div>
 
       {/* Messages */}
-      <div className="messages">
+      <div className="messages" ref={messagesRef}>
         {msgs.map((m) => {
           const isMe = m.sender_id === meId;
           return (
@@ -202,7 +247,7 @@ export default function ChatWindow({ room }) {
                 ) : (
                   <button
                     className="msg-download-btn"
-                    onClick={() => downloadFile(m.file_url, `file-${m.id}.pdf`)}
+                    onClick={() => downloadFile(m.file_url, m.file_name)}
                   >
                     <FaPaperclip /> Download
                   </button>
@@ -247,7 +292,6 @@ export default function ChatWindow({ room }) {
             </div>
           );
         })}
-        <div ref={endRef} />
       </div>
 
       {/* Input */}
@@ -260,7 +304,8 @@ export default function ChatWindow({ room }) {
             <FaSmile />
           </button>
           {showEmojiPicker && (
-            <div className="emoji-dropdown">
+            <div className="emoji-dropdown" ref={emojiRef}>
+              {" "}
               <Picker
                 onEmojiClick={onEmojiClick}
                 pickerStyle={{ width: "100%" }}
@@ -268,6 +313,7 @@ export default function ChatWindow({ room }) {
             </div>
           )}
         </div>
+
         <FileUpload onUpload={onFileUploaded}>
           {(open) => (
             <button className="icon-btn" onClick={open}>

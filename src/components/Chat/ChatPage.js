@@ -11,7 +11,7 @@ export default function ChatPage({ userId }) {
 
   return (
     <SocketProvider userId={userId}>
-      <div className="chat-page">
+      <div className={`chat-page${activeRoom ? " chat-active" : ""}`}>
         <ChatList
           onSelect={(room) => {
             if (room.isNew) setShowGroupModal(true);

@@ -1,10 +1,8 @@
-/* Container fills its flex parent (e.g. the right 75% of a split screen) */
 .chat-window {
   display: flex;
   flex-direction: column;
-  height: 75vh;
+  height: 100%;
   background: #e5ddd5;
-  /* on desktop give it a max width so bubbles don’t stretch too far */
   width: 80%;
   margin: 0 auto;
 }
@@ -35,6 +33,7 @@
   overflow-y: auto;
   padding: 24px;
   background: #e2e1e0;
+  width: 100%;
 }
 
 /* Each message row */
@@ -44,7 +43,9 @@
   margin-bottom: 16px;
 }
 .msg-row.me {
+  padding: 0;
   justify-content: flex-end;
+  margin-right: 0;
 }
 .msg-row.them {
   justify-content: flex-start;
@@ -182,8 +183,6 @@
 /* hide the delete button by default */
 .msg-delete-btn {
   position: relative;
-  top: 0; /* adjust to sit just above the bubble */
-  right: -32px; /* pull it outside bubble -- tweak as needed */
   opacity: 0;
   background: transparent;
   border: none;
