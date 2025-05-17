@@ -566,7 +566,7 @@ const EmployeeDetails = () => {
         </div>
 
         <div className="button-search">
-          <button className="search-text" onClick={handleSearchClick}>
+          <button className="emp-search-text" onClick={handleSearchClick}>
             <i className="fas fa-search ed-search-icon"></i> Search
           </button>
         </div>
