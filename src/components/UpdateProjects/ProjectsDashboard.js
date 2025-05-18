@@ -107,32 +107,37 @@ const ProjectsDashboard = () => {
   );
   const employeeId = dashboardData.employeeId;
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        let url = `${process.env.REACT_APP_BACKEND_URL}/projects`;
-        if (userRole === "Employee" || userRole === "Team Lead") {
-          url = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects?employeeId=${employeeId}`;
-        }
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": process.env.REACT_APP_API_KEY,
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }
-        const data = await response.json();
-        setProjects(data.projects);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
+  const fetchProjects = async () => {
+    try {
+      let url = `${process.env.REACT_APP_BACKEND_URL}/projects`;
+      if (userRole === "Employee" || userRole === "Team Lead") {
+        url = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects?employeeId=${employeeId}`;
       }
-    };
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.REACT_APP_API_KEY,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      setProjects(data.projects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchProjects();
   }, [userRole, employeeId]);
+
+  const handleProjectAdded = () => {
+    fetchProjects();
+    setShowForm(false);
+  };
 
   const printRef = useRef(null);
   const invoiceTypeKey = getInvoiceTypeKey(selectedInvoiceType);
@@ -394,6 +399,7 @@ const ProjectsDashboard = () => {
             <ProjectForm
               projectData={selectedProject}
               onClose={() => setShowForm(false)}
+              onProjectAdded={handleProjectAdded}
             />
           </div>
         </div>

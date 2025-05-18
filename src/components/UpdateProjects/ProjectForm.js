@@ -62,7 +62,7 @@ const getFinanceStatusColor = (status) => {
   }
 };
 
-const ProjectForm = ({ onClose, projectData, onSuccess }) => {
+const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
   const dropdownRef = useRef(null);
   const [step, setStep] = useState(1);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -447,6 +447,10 @@ const ProjectForm = ({ onClose, projectData, onSuccess }) => {
 
       if (!response.ok) {
         throw new Error("Failed to save project");
+      }
+
+      if (onProjectAdded) {
+        onProjectAdded(); // Notify parent to refetch
       }
 
       showAlert("Project saved successfully!");

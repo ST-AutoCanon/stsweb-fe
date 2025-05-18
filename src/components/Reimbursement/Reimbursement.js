@@ -1239,7 +1239,7 @@ const Reimbursement = () => {
               <th>Sl No</th>
               <th>Claim Type</th>
               <th>Date</th>
-              <th>Meal's objective </th>
+              <th>Purpose </th>
               <th>Amount</th>
               <th>Attachment</th>
               <th>Status</th>

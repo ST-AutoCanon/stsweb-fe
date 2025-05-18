@@ -31,6 +31,22 @@ const RbAdmin = () => {
   const [selectedProject, setSelectedProject] = useState("");
   const [projectSelections, setProjectSelections] = useState({});
 
+  const filteredEmployees = employees
+    .map((emp) => ({
+      ...emp,
+      claims: emp.claims.filter((claim) => {
+        const status = claim.status?.toLowerCase().trim();
+        if (statusFilter === "Paid") {
+          return (
+            status === "approved" &&
+            claim.payment_status?.toLowerCase().trim() === "paid"
+          );
+        }
+        return status === statusFilter.toLowerCase().trim();
+      }),
+    }))
+    .filter((emp) => emp.claims.length > 0);
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -352,6 +368,7 @@ const RbAdmin = () => {
                 <option value="Approved">Approved</option>
                 <option value="Rejected">Rejected</option>
                 <option value="pending">Pending</option>
+                <option value="Paid">Paid</option>
               </select>
             </div>
             <div className="rb-filter-group">
@@ -376,12 +393,9 @@ const RbAdmin = () => {
           </div>
           {/* Employee List */}
           <div className="rb-atable-container">
-            {employees.map((employee) => {
-              console.log(employee);
-              const filteredClaims = employee.claims.filter(
-                (rb) => rb.status.toLowerCase() === statusFilter.toLowerCase()
-              );
-              if (filteredClaims.length === 0) return null;
+            {filteredEmployees.map((employee) => {
+              const filteredClaims = employee.claims;
+              if (!filteredClaims.length) return null;
               return (
                 <div key={employee.employee_id} className="employee-section">
                   <div
