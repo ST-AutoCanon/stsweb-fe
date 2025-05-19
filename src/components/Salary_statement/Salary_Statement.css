@@ -5,6 +5,13 @@
   gap: 20px;
   margin-top: 20px;
 }
+.error-message-for-uploadfile {
+  white-space: pre-wrap;
+  max-height: 150px;
+  overflow-y: auto;
+  color: red;
+  font-size: 14px;
+}
 .upload-box-payslip {
   width: 250px;  /* Set width */
   height: 50px;  /* Set height */

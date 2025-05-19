@@ -235,35 +235,36 @@ const meId = JSON.parse(
   };
 
   const handleViewDocument = async (documentPath) => {
-    if (!documentPath) {
-     showAlert ("No document available.");
-      return;
-    }
+  if (!documentPath) {
+    showAlert("No document available.");
+    return;
+  }
 
-    try {
-      const fileName = documentPath.split("\\").pop();
-      const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${encodeURIComponent(fileName)}`;
+  try {
+    // Cross-platform file name extraction
+    const fileName = documentPath.split(/[/\\]/).pop();
+    const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${encodeURIComponent(fileName)}`;
 
-      const response = await axios.get(fileUrl, {
-        headers,
-        responseType: "blob",
-      });
+    const response = await axios.get(fileUrl, {
+      headers,
+      responseType: "blob",
+    });
 
-      const extension = fileName.split(".").pop().toLowerCase();
-      let mimeType = "application/octet-stream";
+    const extension = fileName.split(".").pop().toLowerCase();
+    let mimeType = "application/octet-stream";
 
-      if (extension === "pdf") mimeType = "application/pdf";
-      else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
-      else if (extension === "png") mimeType = "image/png";
+    if (extension === "pdf") mimeType = "application/pdf";
+    else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+    else if (extension === "png") mimeType = "image/png";
 
-      const fileBlob = new Blob([response.data], { type: mimeType });
-      const fileURL = window.URL.createObjectURL(fileBlob);
-      window.open(fileURL, "_blank");
-    } catch (error) {
-      console.error("Error viewing vendor document:", error.response?.data || error.message);
-      showAlert("Failed to open vendor document.");
-    }
-  };
+    const fileBlob = new Blob([response.data], { type: mimeType });
+    const fileURL = window.URL.createObjectURL(fileBlob);
+    window.open(fileURL, "_blank");
+  } catch (error) {
+    console.error("Error viewing vendor document:", error.response?.data || error.message);
+    showAlert("Failed to open vendor document.");
+  }
+};
 
   const handleDownloadDocument = async (documentPath) => {
     if (!documentPath) {
