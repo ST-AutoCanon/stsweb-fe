@@ -48,7 +48,13 @@ const Assets = () => {
   const [assignedAssets, setAssignedAssets] = useState([]); // New state to store assigned assets
   const [popupSuggestions, setPopupSuggestions] = useState({});
 
-  const togglePopup = () => setShowPopup(!showPopup);
+  // const togglePopup = () => setShowPopup(!showPopup);
+  const togglePopup = () => {
+  setShowPopup(!showPopup);
+  if (!showPopup) {
+    resetForm(); // Clear form when opening the popup
+  }
+};
 
   const [showAssignPopup, setShowAssignPopup] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
@@ -262,6 +268,16 @@ const Assets = () => {
     setComments("");
     setAssigningStatus("Pending");
   };
+  const resetFormforaddasset = () => {
+  setAssetName("");
+  setConfiguration("");
+  setValuationDate("");
+  setAssignedTo("");
+  setDocument(null);
+  setSelectedCategory("");
+  setSelectedSubCategory("");
+  setStatus("In Use");
+};
 
   const closePopup = () => {
     resetForm(); // Clear form when closing popup
@@ -614,6 +630,7 @@ const Assets = () => {
 
       console.log("Server Response:", response.data);
       showAlert("Asset saved successfully!");
+      resetFormforaddasset();
       togglePopup();
       fetchAssets();
     } catch (error) {
