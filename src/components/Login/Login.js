@@ -115,7 +115,16 @@ const Login = ({ onClose }) => {
       localStorage.setItem("lastActivity", Date.now());
 
       closeModal();
-      navigate("/dashboard");
+
+      // Check if username is manish.patil@gmail.com and role is general
+      if (
+        username.toLowerCase() === "manish.p@yopmail.com" &&
+        (data.message.role || "").toLowerCase() === "general"
+      ) {
+        navigate("/FacePunch");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       setErrorMessage("An unexpected error occurred.");
     }

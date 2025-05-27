@@ -80,60 +80,99 @@ const Assets = () => {
     title: "",
     message: "",
   });
-  const handleAssignedToChange = async (e) => {
-    const value = e.target.value;
-    setAssignedTo(value);
-    console.log("🔍 Typing:", value);
+  // const handleAssignedToChange = async (e) => {
+  //   const value = e.target.value;
+  //   setAssignedTo(value);
+  //   console.log("🔍 Typing:", value);
 
-    if (value.length >= 1) {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
-          {
-            headers,
-          }
-        );
-        // Only keep the names from response
-        const namesOnly = response.data.data.map((emp) => emp.name);
-        setEmployeeSuggestions(namesOnly);
-      } catch (error) {
-        console.error("❌ Error fetching suggestions:", error);
-      }
-    } else {
-      setEmployeeSuggestions([]);
-    }
-  };
+  //   if (value.length >= 1) {
+  //     try {
+  //       const response = await axios.get(
+  //         `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+  //         {
+  //           headers,
+  //         }
+  //       );
+  //       // Only keep the names from response
+  //       const namesOnly = response.data.data.map((emp) => emp.name);
+  //       setEmployeeSuggestions(namesOnly);
+  //     } catch (error) {
+  //       console.error("❌ Error fetching suggestions:", error);
+  //     }
+  //   } else {
+  //     setEmployeeSuggestions([]);
+  //   }
+  // };
 
   const handleSelectSuggestion = (name) => {
     setAssignedTo(name);
     setEmployeeSuggestions([]); // Hide suggestions
   };
 
+  // const handleAssignedToInputChange = async (e, index) => {
+  //   const value = e.target.value;
+  //   updateAssignment(index, "assignedTo", value);
+
+  //   if (value.length >= 1) {
+  //     try {
+  //       const response = await axios.get(
+  //         `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+  //         {
+  //           headers,
+  //         }
+  //       );
+
+  //       const suggestions = response.data.data.map((emp) => ({
+  //         name: emp.name,
+  //         employeeId: emp.employee_id,
+  //       }));
+  //       setPopupSuggestions((prev) => ({ ...prev, [index]: suggestions }));
+  //     } catch (err) {
+  //       console.error("Suggestion error:", err);
+  //     }
+  //   } else {
+  //     setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
+  //   }
+  // };
   const handleAssignedToInputChange = async (e, index) => {
-    const value = e.target.value;
-    updateAssignment(index, "assignedTo", value);
+  const value = e.target.value;
+  updateAssignment(index, "assignedTo", value);
 
-    if (value.length >= 1) {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
-          {
-            headers,
-          }
-        );
+  if (value.length === 0) {
+    // Show default location suggestions when input is empty
+    setPopupSuggestions((prev) => ({
+      ...prev,
+      [index]: defaultLocationSuggestions,
+    }));
+  } else {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+        {
+          headers,
+        }
+      );
 
-        const suggestions = response.data.data.map((emp) => ({
-          name: emp.name,
-          employeeId: emp.employee_id,
-        }));
-        setPopupSuggestions((prev) => ({ ...prev, [index]: suggestions }));
-      } catch (err) {
-        console.error("Suggestion error:", err);
-      }
-    } else {
-      setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
+      const suggestions = response.data.data.map((emp) => ({
+        name: emp.name,
+        employeeId: emp.employee_id,
+      }));
+
+      // Combine default locations + dynamic employee suggestions
+      setPopupSuggestions((prev) => ({
+        ...prev,
+        [index]: [...defaultLocationSuggestions, ...suggestions],
+      }));
+    } catch (err) {
+      console.error("Suggestion error:", err);
+      // Fallback to default location suggestions on error
+      setPopupSuggestions((prev) => ({
+        ...prev,
+        [index]: defaultLocationSuggestions,
+      }));
     }
-  };
+  }
+};
   const handleSuggestionSelect = (selectedEmp, index) => {
     updateAssignment(index, "assignedTo", selectedEmp.name);
     updateAssignment(index, "employeeId", selectedEmp.employeeId); // Save ID
@@ -179,35 +218,46 @@ const Assets = () => {
   }, [assetId]);
 
   // Handling employee input changes
-  const handleAssignedToChange2 = async (e) => {
-    const value = e.target.value;
-    setAssignedTo(value);
+  const defaultLocationSuggestions = [
+  { name: 'sts-belagavi', employeeId: 'sts-belagavi' },
+  { name: 'sts-dharwad', employeeId: 'sts-dharwad' },
+  { name: 'sts-chennai', employeeId: 'sts-chennai' },
+];
+const handleBlurAssignPopup = (index) => {
+  setTimeout(() => {
+    setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
+  }, 150); // Delay allows time for onClick to register
+};
+const handleAssignedToChange2 = async (e) => {
+  const value = e.target.value;
+  setAssignedTo(value);
 
-    // If the input is empty, clear the suggestions and hide the dropdown
-    if (value.length === 0) {
-      setEmployeeSuggestions([]);
-    } else {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
-          {
-            headers,
-          }
-        );
+  if (value.length === 0) {
+    // Show default location-based suggestions
+    setEmployeeSuggestions(defaultLocationSuggestions);
+  } else {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+        {
+          headers,
+        }
+      );
 
-        console.log("API response:", response.data); // Debugging API response
+      console.log("API response:", response.data);
 
-        const suggestions = response.data.data.map((emp) => ({
-          name: emp.name,
-          employeeId: emp.employee_id,
-        }));
+      const suggestions = response.data.data.map((emp) => ({
+        name: emp.name,
+        employeeId: emp.employee_id,
+      }));
 
-        setEmployeeSuggestions(suggestions); // Set suggestions based on API response
-      } catch (err) {
-        console.error("Suggestion error:", err);
-      }
+      // Combine default locations + dynamic suggestions
+      setEmployeeSuggestions([...defaultLocationSuggestions, ...suggestions]);
+    } catch (err) {
+      console.error("Suggestion error:", err);
     }
-  };
+  }
+};
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
@@ -896,6 +946,12 @@ const Assets = () => {
     }
   }, [assetId]);
 
+  const handleBlur2 = () => {
+  setTimeout(() => {
+    setEmployeeSuggestions([]); // Close the popup if nothing selected
+  }, 150); // Delay allows time for onClick to register
+};
+
   const handleBlur = () => {
     if (!employeeSuggestions.includes(assignedTo)) {
       setAssignedTo(""); // or keep last valid selection
@@ -1045,17 +1101,17 @@ const Assets = () => {
             {selectedSubCategory || selectedCategory === "Others" ? (
   <div className="asset-details-grid">
     <div className="row">
-      <label>Asset Name</label>
+      <label>Asset Name <span className="assets-required-asterisk">*</span></label>
       <input type="text" placeholder="Enter Asset Name" value={assetName} onChange={(e) => setAssetName(e.target.value)} />
       </div>
 
     <div className="row">
-      <label>Configuration</label>
+      <label>Configuration<span className="assets-required-asterisk">*</span></label>
       <input type="text" placeholder="Enter Configuration" value={configuration} onChange={(e) => setConfiguration(e.target.value)} />
       </div>
 
     <div className="row">
-      <label>Purchased Date</label>
+      <label>Purchased Date<span className="assets-required-asterisk">*</span></label>
       <input type="date" value={valuationDate} onChange={(e) => setValuationDate(e.target.value)} />
       </div>
 
@@ -1066,8 +1122,11 @@ const Assets = () => {
     placeholder="Enter Assignee Name"
     value={assignedTo?.name || assignedTo || ""}  // Handles both object or plain string
     onChange={handleAssignedToChange2}
-    onBlur={handleBlur}
+    // onBlur={handleBlur}
+        onBlur={handleBlur2}
+
     autoComplete="off"
+    
   />
 
   {employeeSuggestions.length > 0 && (
@@ -1393,13 +1452,14 @@ const Assets = () => {
   <div key={index} className="assetform-row">
    <div style={{ position: "relative", width: "100%" }}>
   <input
-    type="text"
-    placeholder="Assigned To"
-    value={assignment.assignedTo}
-    onChange={(e) => handleAssignedToInputChange(e, index)}
-    className={`input-style ${fieldErrors[index]?.assignedTo ? "error-border" : ""}`}
-    autoComplete="off"
-  />
+  type="text"
+  placeholder="Assigned To"
+  value={assignment.assignedTo}
+  onChange={(e) => handleAssignedToInputChange(e, index)}
+  onBlur={() => handleBlurAssignPopup(index)} // Add blur handler
+  className={`input-style ${fieldErrors[index]?.assignedTo ? "error-border" : ""}`}
+  autoComplete="off"
+/>
 
 {popupSuggestions[index]?.length > 0 && (
   <ul
