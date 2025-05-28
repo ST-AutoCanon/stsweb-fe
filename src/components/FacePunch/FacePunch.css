@@ -1,0 +1,112 @@
+/* src/components/FacePunch.css */
+.face-punch-container {
+  position: relative;
+  width: 520px; /* Fixed width */
+  height: 360px; /* Fixed height */
+  margin: 40px auto; /* Centered with top/bottom margin for breathing room */
+  background-color: #f0edec0f; /* Dark background for modern look */
+  border-radius: 12px; /* Softer rounded corners */
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  transition: transform 0.3s ease; /* Smooth hover effect */
+  margin-top: 10%;
+}
+
+.face-punch-container:hover {
+  transform: translateY(-4px); /* Slight lift on hover for interactivity */
+}
+
+#videoInput {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures video fills container */
+  border-radius: 12px; /* Matches container */
+}
+
+.overlay-canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none; /* Prevents canvas from blocking interactions */
+}
+.status-message {
+  position: relative;
+  margin: 12px auto 0;
+  width: fit-content;
+  background-color: rgba(40, 167, 69, 0.9);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+  text-align: center;
+}
+
+.cooldown-message {
+  position: relative;
+  margin: 8px auto 16px;
+  width: fit-content;
+  background-color: rgba(220, 53, 69, 0.9);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+  text-align: center;
+}
+
+/* Fade-in animation for messages */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Ensure the scan button (if it exists in future iterations) is styled consistently */
+#scanButton {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #28a745; /* Professional blue */
+  color: #ffffff;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#scanButton:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  transform: translateX(-50%) scale(1.05); /* Slight scale for feedback */
+}
+
+#scanButton:active {
+  transform: translateX(-50%) scale(0.95); /* Pressed effect */
+}
+
+.employee-info-message {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #28a745;
+  font-size: 18px;
+  text-align: center;
+}

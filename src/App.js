@@ -67,6 +67,10 @@ import EmpWorkDays from "./components/MyEmpDashboard/EmpWorkDays.js";
 import EmpReImbursement from "./components/MyEmpDashboard/EmpReImbursement.js";
 
 import SalaryStatement from "./components/Salary_statement/Salary_Statement.js";
+import FacePunch from "./components/FacePunch/FacePunch.js";
+
+import GeneratePayslip from "./components/generate_payslip/generate_payslip.js";
+
 
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
@@ -146,6 +150,8 @@ function App() {
           <Route path="/EmpWorkDays" element={<EmpWorkDays />} />
           <Route path="/EmpReImbursement" element={<EmpReImbursement />} />
           <Route path="/Salary_Statement" element={<SalaryStatement />} />
+                     <Route path="/FacePunch" element={<FacePunch />} />
+          <Route path="/generate_payslip" element={<GeneratePayslip/>} />
 
           <Route
             path="/EngineeringServices"

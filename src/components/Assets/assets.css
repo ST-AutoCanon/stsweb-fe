@@ -8,6 +8,17 @@
   margin-top: 30px;
   margin-left:60px; 
 } */
+ .assets-required-asterisk {
+  color: red!important;
+  font-weight: lighter;
+  margin-left: 2px;
+}
+.error-message {
+  color: red!important;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
 .asset-summary-buttons2 {
   display: flex;
   justify-content: space-between; /* Left group + right button */

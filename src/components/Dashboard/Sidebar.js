@@ -20,6 +20,9 @@ import RbTeamLead from "../Reimbursement/RbTeamLead";
 import Assets from "../Assets/assets";
 import Vendors from "../vendors/vendors";
 import Chat from "../Chat/ChatPage";
+import EmployeeLogin from "../EmployeeLogin/EmployeeLogin";
+import SalaryStatementWrapper from "../Salary_statement/SalaryStatementWrapper";
+
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -87,10 +90,11 @@ const Sidebar = ({ setActiveContent }) => {
         }
         break;
 
-      case "/Salary_Statement":
-        setActiveContent(<Salary_Statement />);
+     case "/Salary_Statement":
+  setActiveContent(<SalaryStatementWrapper/>);
+  break;
 
-        break;
+
       case "/payrollSummary":
         setActiveContent(<PayrollSummary />);
         break;
@@ -121,7 +125,9 @@ const Sidebar = ({ setActiveContent }) => {
         setActiveContent(<Vendors />);
 
         break;
-
+        case "/EmployeeLogin":
+          setActiveContent(<EmployeeLogin />);
+         break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }

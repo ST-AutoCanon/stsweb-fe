@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './vendors.css';
-import { FaEye } from 'react-icons/fa';
-import { Eye, Download } from 'react-feather'; // or from 'react-icons/fi' or 'react-icons/fa' if using FontAwesome
+import { FaEye, FaPencilAlt } from 'react-icons/fa';
+import { Eye, Download } from 'react-feather';
 import Modal from "../Modal/Modal";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 const Vendors = () => {
   const [showForm, setShowForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingVendorId, setEditingVendorId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     contact_person: '',
@@ -45,11 +47,11 @@ const Vendors = () => {
     product_category: '',
     years_of_experience: '',
   });
-  
+
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
-  
+
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
@@ -76,12 +78,65 @@ const Vendors = () => {
   const [showBusinessInfoPopup, setShowBusinessInfoPopup] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedVendorFiles, setSelectedVendorFiles] = useState(null);
+  const [mobileErrors, setMobileErrors] = useState(['', '', '']);
+  const [emailErrors, setEmailErrors] = useState(['', '', '']);
   const [error, setError] = useState('');
-const meId = JSON.parse(
+  const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-  const togglePopup = () => setShowForm(!showForm);
+
+  const togglePopup = () => {
+    setShowForm(!showForm);
+    setIsEditing(false);
+    setEditingVendorId(null);
+    setFormData({
+      name: '',
+      contact_person: '',
+      email: '',
+      phone: '',
+      address: '',
+      company_name: '',
+      registered_address: '',
+      branch_address: '',
+      city: '',
+      state: '',
+      pin_code: '',
+      gst_number: '',
+      pan_number: '',
+      company_type: '',
+      msme_status: 'Not Applicable',
+      contact1_name: '',
+      contact1_designation: '',
+      contact1_mobile: '',
+      contact1_email: '',
+      contact2_name: '',
+      contact2_designation: '',
+      contact2_mobile: '',
+      contact2_email: '',
+      contact3_name: '',
+      contact3_designation: '',
+      contact3_mobile: '',
+      contact3_email: '',
+      bank_name: '',
+      bank_branch: '',
+      account_number: '',
+      ifsc_code: '',
+      nature_of_business: '',
+      product_category: '',
+      years_of_experience: '',
+    });
+    setFiles({
+      gst_certificate: null,
+      pan_card: null,
+      cancelled_cheque: null,
+      msme_certificate: null,
+      incorporation_certificate: null,
+    });
+    setError('');
+    setMobileErrors(['', '', '']);
+    setEmailErrors(['', '', '']);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -92,6 +147,47 @@ const meId = JSON.parse(
         setError('Years of Experience must be a positive number');
       } else {
         setError('');
+      }
+    }
+    // Handle mobile number validation
+    if (name === 'contact1_mobile') {
+      if (value && !/^[0-9]{10}$/.test(value)) {
+        setMobileErrors(['Enter a 10-digit mobile number', mobileErrors[1], mobileErrors[2]]);
+      } else {
+        setMobileErrors(['', mobileErrors[1], mobileErrors[2]]);
+      }
+    } else if (name === 'contact2_mobile') {
+      if (value && !/^[0-9]{10}$/.test(value)) {
+        setMobileErrors([mobileErrors[0], 'Enter a 10-digit mobile number', mobileErrors[2]]);
+      } else {
+        setMobileErrors([mobileErrors[0], '', mobileErrors[2]]);
+      }
+    } else if (name === 'contact3_mobile') {
+      if (value && !/^[0-9]{10}$/.test(value)) {
+        setMobileErrors([mobileErrors[0], mobileErrors[1], 'Enter a 10-digit mobile number']);
+      } else {
+        setMobileErrors([mobileErrors[0], mobileErrors[1], '']);
+      }
+    }
+
+    // Handle email validation
+    if (name === 'contact1_email') {
+      if (value && !/^[^@]+@[^@]+\.[^@]+$/.test(value)) {
+        setEmailErrors(['Enter a valid email address', emailErrors[1], emailErrors[2]]);
+      } else {
+        setEmailErrors(['', emailErrors[1], emailErrors[2]]);
+      }
+    } else if (name === 'contact2_email') {
+      if (value && !/^[^@]+@[^@]+\.[^@]+$/.test(value)) {
+        setEmailErrors([emailErrors[0], 'Enter a valid email address', emailErrors[2]]);
+      } else {
+        setEmailErrors([emailErrors[0], '', emailErrors[2]]);
+      }
+    } else if (name === 'contact3_email') {
+      if (value && !/^[^@]+@[^@]+\.[^@]+$/.test(value)) {
+        setEmailErrors([emailErrors[0], emailErrors[1], 'Enter a valid email address']);
+      } else {
+        setEmailErrors([emailErrors[0], emailErrors[1], '']);
       }
     }
     setFormData({ ...formData, [name]: value });
@@ -105,7 +201,6 @@ const meId = JSON.parse(
   const fetchVendors = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/vendors/list`, 
-       
         {
           headers,
         }
@@ -123,14 +218,69 @@ const meId = JSON.parse(
     fetchVendors();
   }, []);
 
+  const handleEdit = (vendor) => {
+    setIsEditing(true);
+    setEditingVendorId(vendor.vendor_id);
+    setFormData({
+      name: vendor.name || '',
+      contact_person: vendor.contact_person || '',
+      email: vendor.email || '',
+      phone: vendor.phone || '',
+      address: vendor.address || '',
+      company_name: vendor.company_name || '',
+      registered_address: vendor.registered_address || '',
+      branch_address: vendor.branch_address || '',
+      city: vendor.city || '',
+      state: vendor.state || '',
+      pin_code: vendor.pin_code || '',
+      gst_number: vendor.gst_number || '',
+      pan_number: vendor.pan_number || '',
+      company_type: vendor.company_type || '',
+      msme_status: vendor.msme_status || 'Not Applicable',
+      contact1_name: vendor.contact1_name || '',
+      contact1_designation: vendor.contact1_designation || '',
+      contact1_mobile: vendor.contact1_mobile || '',
+      contact1_email: vendor.contact1_email || '',
+      contact2_name: vendor.contact2_name || '',
+      contact2_designation: vendor.contact2_designation || '',
+      contact2_mobile: vendor.contact2_mobile || '',
+      contact2_email: vendor.contact2_email || '',
+      contact3_name: vendor.contact3_name || '',
+      contact3_designation: vendor.contact3_designation || '',
+      contact3_mobile: vendor.contact3_mobile || '',
+      contact3_email: vendor.contact3_email || '',
+      bank_name: vendor.bank_name || '',
+      branch: vendor.branch || '',
+      account_number: vendor.account_number || '',
+      ifsc_code: vendor.ifsc_code || '',
+      nature_of_business: vendor.nature_of_business || '',
+      product_category: vendor.product_category || '',
+      years_of_experience: vendor.years_of_experience || '',
+    });
+    // Files are not pre-filled as they are URLs; user can upload new files
+    setFiles({
+      gst_certificate: null,
+      pan_card: null,
+      cancelled_cheque: null,
+      msme_certificate: null,
+      incorporation_certificate: null,
+    });
+    setShowForm(true);
+    setError('');
+    setMobileErrors(['', '', '']);
+    setEmailErrors(['', '', '']);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate Company Name
     if (!formData.company_name || formData.company_name.trim() === '') {
       showAlert('Company name is required and cannot be empty');
       return;
     }
 
+    // Validate Years of Experience
     const years = formData.years_of_experience;
     if (!years) {
       setError('Years of Experience is required');
@@ -145,6 +295,24 @@ const meId = JSON.parse(
       return;
     }
 
+    // Validate Contact Details - 1
+    if (!formData.contact1_name || formData.contact1_name.trim() === '') {
+      showAlert('Contact 1 Name is required and cannot be empty');
+      return;
+    }
+    if (!formData.contact1_designation || formData.contact1_designation.trim() === '') {
+      showAlert('Contact 1 Designation is required and cannot be empty');
+      return;
+    }
+    if (!formData.contact1_mobile || formData.contact1_mobile.trim() === '') {
+      showAlert('Contact 1 Mobile Number is required and cannot be empty');
+      return;
+    }
+    if (!formData.contact1_email || formData.contact1_email.trim() === '') {
+      showAlert('Contact 1 Email ID is required and cannot be empty');
+      return;
+    }
+
     const data = new FormData();
     for (const key in formData) {
       data.append(key, formData[key]);
@@ -156,61 +324,26 @@ const meId = JSON.parse(
     }
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/vendors/add`, data, {
-        
+      let response;
+      if (isEditing) {
+        // Update existing vendor
+        data.append('vendor_id', editingVendorId);
+        response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/vendors/update/${editingVendorId}`, data, {
           headers,
-        
-      });
-      showAlert('Vendor registered successfully!');
+        });
+        showAlert('Vendor updated successfully!');
+      } else {
+        // Add new vendor
+        response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/vendors/add`, data, {
+          headers,
+        });
+        showAlert('Vendor registered successfully!');
+      }
       togglePopup();
-      setFormData({
-        name: '',
-        contact_person: '',
-        email: '',
-        phone: '',
-        address: '',
-        company_name: '',
-        registered_address: '',
-        branch_address: '',
-        city: '',
-        state: '',
-        pin_code: '',
-        gst_number: '',
-        pan_number: '',
-        company_type: '',
-        msme_status: 'Not Applicable',
-        contact1_name: '',
-        contact1_designation: '',
-        contact1_mobile: '',
-        contact1_email: '',
-        contact2_name: '',
-        contact2_designation: '',
-        contact2_mobile: '',
-        contact2_email: '',
-        contact3_name: '',
-        contact3_designation: '',
-        contact3_mobile: '',
-        contact3_email: '',
-        bank_name: '',
-        branch: '',
-        account_number: '',
-        ifsc_code: '',
-        nature_of_business: '',
-        product_category: '',
-        years_of_experience: '',
-      });
-      setFiles({
-        gst_certificate: null,
-        pan_card: null,
-        cancelled_cheque: null,
-        msme_certificate: null,
-        incorporation_certificate: null,
-      });
-      setError('');
       fetchVendors();
     } catch (error) {
       const errorMessage = error.response?.data?.error || error.message;
-      showAlert(`Failed to register vendor: ${errorMessage}`);
+      showAlert(`Failed to ${isEditing ? 'update' : 'register'} vendor: ${errorMessage}`);
     }
   };
 
@@ -235,40 +368,39 @@ const meId = JSON.parse(
   };
 
   const handleViewDocument = async (documentPath) => {
-  if (!documentPath) {
-    showAlert("No document available.");
-    return;
-  }
+    if (!documentPath) {
+      showAlert("No document available.");
+      return;
+    }
 
-  try {
-    // Cross-platform file name extraction
-    const fileName = documentPath.split(/[/\\]/).pop();
-    const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${encodeURIComponent(fileName)}`;
+    try {
+      const fileName = documentPath.split(/[/\\]/).pop();
+      const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${encodeURIComponent(fileName)}`;
 
-    const response = await axios.get(fileUrl, {
-      headers,
-      responseType: "blob",
-    });
+      const response = await axios.get(fileUrl, {
+        headers,
+        responseType: "blob",
+      });
 
-    const extension = fileName.split(".").pop().toLowerCase();
-    let mimeType = "application/octet-stream";
+      const extension = fileName.split(".").pop().toLowerCase();
+      let mimeType = "application/octet-stream";
 
-    if (extension === "pdf") mimeType = "application/pdf";
-    else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
-    else if (extension === "png") mimeType = "image/png";
+      if (extension === "pdf") mimeType = "application/pdf";
+      else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+      else if (extension === "png") mimeType = "image/png";
 
-    const fileBlob = new Blob([response.data], { type: mimeType });
-    const fileURL = window.URL.createObjectURL(fileBlob);
-    window.open(fileURL, "_blank");
-  } catch (error) {
-    console.error("Error viewing vendor document:", error.response?.data || error.message);
-    showAlert("Failed to open vendor document.");
-  }
-};
+      const fileBlob = new Blob([response.data], { type: mimeType });
+      const fileURL = window.URL.createObjectURL(fileBlob);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error viewing vendor document:", error.response?.data || error.message);
+      showAlert("Failed to open vendor document.");
+    }
+  };
 
   const handleDownloadDocument = async (documentPath) => {
     if (!documentPath) {
-     showAlert ("No document available.");
+      showAlert("No document available.");
       return;
     }
 
@@ -278,7 +410,7 @@ const meId = JSON.parse(
         `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${fileName}`,
         {
           headers,
-        responseType: "blob",
+          responseType: "blob",
         }
       );
 
@@ -294,7 +426,7 @@ const meId = JSON.parse(
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading document:", error);
-     showAlert ("Failed to download file.");
+      showAlert("Failed to download file.");
     }
   };
 
@@ -380,81 +512,90 @@ const meId = JSON.parse(
 
       <div className="table-scroll-wrapper">
         <table className="vendor-table">
-  <thead>
-    <tr className="header-row">
-      <th>Vendor ID</th>
-      <th>Company Name</th>
-      <th>Company Details</th>
-      <th>Contact Details</th>
-      <th>Bank Details</th>
-      <th>Business Information</th>
-      <th>Documents</th>
-    </tr>
-  </thead>
-  <tbody>
-    {filteredVendors.map(vendor => (
-      <tr key={vendor.vendor_id}>
-        <td>{vendor.vendor_id}</td>
-        <td>{vendor.company_name}</td>
-
-        <td>
-          <button
-            className="vendor-view-doc-btn"
-            onClick={() => handleShowCompanyDetails(vendor)}
-          >
-            <Eye size={16} style={{ marginRight: '5px' }} /> View
-          </button>
-        </td>
-
-        <td>
-          <button
-            className="vendor-view-doc-btn"
-            onClick={() => handleShowContactDetails(vendor)}
-          >
-            <Eye size={16} style={{ marginRight: '5px' }} /> View
-          </button>
-        </td>
-
-        <td>
-          <button
-            className="vendor-view-doc-btn"
-            onClick={() => handleShowBankDetails(vendor)}
-          >
-            <Eye size={16} style={{ marginRight: '5px' }} /> View
-          </button>
-        </td>
-
-        <td>
-          <button
-            className="vendor-view-doc-btn"
-            onClick={() => handleShowBusinessInfo(vendor)}
-          >
-            <Eye size={16} style={{ marginRight: '5px' }} /> View
-          </button>
-        </td>
-
-        <td>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              className="vendor-view-doc-btn"
-              onClick={() => handleShowDocuments(vendor)}
-            >
-              <Eye size={16} style={{ marginRight: '5px' }} /> View
-            </button>
-
-            <button
-              className="vendor-download-doc-btn"
-              onClick={() => handleShowDownloadPopup(vendor)}
-            >
-              <Download size={16} style={{ marginRight: '5px' }} /> Download
-            </button>
-          </div>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-
+          <thead>
+            <tr className="header-row">
+              <th>Vendor ID</th>
+              <th>Company Name</th>
+              <th>Company Details</th>
+              <th>Contact Details</th>
+              <th>Bank Details</th>
+              <th>Business Information</th>
+              <th>Documents</th>
+              <th>Last Edited</th>
+              <th>Edit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredVendors.map(vendor => (
+              <tr key={vendor.vendor_id}>
+                <td>{vendor.vendor_id}</td>
+                <td>{vendor.company_name}</td>
+                <td>
+                  <button
+                    className="vendor-view-doc-btn"
+                    onClick={() => handleShowCompanyDetails(vendor)}
+                  >
+                    <Eye size={16} style={{ marginRight: '5px' }} /> View
+                  </button>
+                </td>
+                <td>
+                  <button
+                    className="vendor-view-doc-btn"
+                    onClick={() => handleShowContactDetails(vendor)}
+                  >
+                    <Eye size={16} style={{ marginRight: '5px' }} /> View
+                  </button>
+                </td>
+                <td>
+                  <button
+                    className="vendor-view-doc-btn"
+                    onClick={() => handleShowBankDetails(vendor)}
+                  >
+                    <Eye size={16} style={{ marginRight: '5px' }} /> View
+                  </button>
+                </td>
+                <td>
+                  <button
+                    className="vendor-view-doc-btn"
+                    onClick={() => handleShowBusinessInfo(vendor)}
+                  >
+                    <Eye size={16} style={{ marginRight: '5px' }} /> View
+                  </button>
+                </td>
+                <td>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      className="vendor-view-doc-btn"
+                      onClick={() => handleShowDocuments(vendor)}
+                    >
+                      <Eye size={16} style={{ marginRight: '5px' }} /> View
+                    </button>
+                    <button
+                      className="vendor-download-doc-btn"
+                      onClick={() => handleShowDownloadPopup(vendor)}
+                    >
+                      <Download size={16} style={{ marginRight: '5px' }} /> Download
+                    </button>
+                  </div>
+                </td>
+                <td>
+                  {vendor.updated_at || vendor.created_at
+                    ? new Date(vendor.updated_at || vendor.created_at).toLocaleDateString()
+                    : '-'}
+                </td>
+                <td>
+                  <button
+                    className="vendor-edit-btn"
+                    onClick={() => handleEdit(vendor)}
+                    title="Edit Vendor"
+                  >
+                    <FaPencilAlt size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {showForm && (
@@ -464,7 +605,7 @@ const meId = JSON.parse(
               ×
             </button>
 
-            <h2 className="vendor-form-title">Vendor Registration Form</h2>
+            <h2 className="vendor-form-title">{isEditing ? 'Edit Vendor' : 'Vendor Registration Form'}</h2>
 
             <form onSubmit={handleSubmit}>
               <div className='companydetailsfeildset'>
@@ -472,7 +613,7 @@ const meId = JSON.parse(
                   <legend>Company Details</legend>
                   <div className="contact-row four-columns">
                     <div className="contact-field">
-                      <label htmlFor="company_name">Company Name:</label>
+                      <label htmlFor="company_name">Company Name:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="company_name"
                         name="company_name"
@@ -483,7 +624,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="city">City:</label>
+                      <label htmlFor="city">City:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="city"
                         name="city"
@@ -494,7 +635,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="state">State:</label>
+                      <label htmlFor="state">State:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="state"
                         name="state"
@@ -505,7 +646,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="pin_code">Pin Code:</label>
+                      <label htmlFor="pin_code">Pin Code:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="pin_code"
                         name="pin_code"
@@ -518,7 +659,7 @@ const meId = JSON.parse(
                   </div>
                   <div className="contact-row four-columns">
                     <div className="contact-field">
-                      <label htmlFor="gst_number">GST Number:</label>
+                      <label htmlFor="gst_number">GST Number:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="gst_number"
                         name="gst_number"
@@ -529,7 +670,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="pan_number">PAN Number:</label>
+                      <label htmlFor="pan_number">PAN Number:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="pan_number"
                         name="pan_number"
@@ -540,7 +681,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="company_type">Company Type:</label>
+                      <label htmlFor="company_type">Company Type:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="company_type"
                         name="company_type"
@@ -551,7 +692,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="msme_status">MSME Status:</label>
+                      <label htmlFor="msme_status">MSME Status:<span className="vendor-required-asterisk">*</span></label>
                       <select
                         id="msme_status"
                         name="msme_status"
@@ -566,7 +707,7 @@ const meId = JSON.parse(
                   </div>
                   <div className="contact-row two-columns">
                     <div className="contact-field">
-                      <label htmlFor="registered_address">Registered Address:</label>
+                      <label htmlFor="registered_address">Registered Address:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="registered_address"
                         name="registered_address"
@@ -596,44 +737,62 @@ const meId = JSON.parse(
                     <legend>Contact Details - {i}</legend>
                     <div className="contact-row four-columns">
                       <div className="contact-field">
-                        <label htmlFor={`contact${i}_name`}>Contact Person Name:</label>
+                        <label htmlFor={`contact${i}_name`}>
+                          Contact Person Name:{i === 1 ? <span className="vendor-required-asterisk">*</span> : null}
+                        </label>
                         <input
                           id={`contact${i}_name`}
                           name={`contact${i}_name`}
                           placeholder="Contact Person Name"
                           value={formData[`contact${i}_name`]}
                           onChange={handleInputChange}
+                          required={i === 1}
                         />
                       </div>
                       <div className="contact-field">
-                        <label htmlFor={`contact${i}_designation`}>Designation:</label>
+                        <label htmlFor={`contact${i}_designation`}>
+                          Designation:{i === 1 ? <span className="vendor-required-asterisk">*</span> : null}
+                        </label>
                         <input
                           id={`contact${i}_designation`}
                           name={`contact${i}_designation`}
                           placeholder="Designation"
                           value={formData[`contact${i}_designation`]}
                           onChange={handleInputChange}
+                          required={i === 1}
                         />
                       </div>
                       <div className="contact-field">
-                        <label htmlFor={`contact${i}_mobile`}>Mobile Number:</label>
+                        <label htmlFor={`contact${i}_mobile`}>
+                          Mobile Number:{i === 1 ? <span className="vendor-required-asterisk">*</span> : null}
+                        </label>
                         <input
                           id={`contact${i}_mobile`}
                           name={`contact${i}_mobile`}
+                          type="tel"
+                          pattern="[0-9]{10}"
+                          maxLength="10"
                           placeholder="Mobile Number"
                           value={formData[`contact${i}_mobile`]}
                           onChange={handleInputChange}
+                          required={i === 1}
                         />
+                        {mobileErrors[i-1] && <span className="error-message">{mobileErrors[i-1]}</span>}
                       </div>
                       <div className="contact-field">
-                        <label htmlFor={`contact${i}_email`}>Email ID:</label>
+                        <label htmlFor={`contact${i}_email`}>
+                          Email ID:{i === 1 ? <span className="vendor-required-asterisk">*</span> : null}
+                        </label>
                         <input
                           id={`contact${i}_email`}
                           name={`contact${i}_email`}
+                          type="email"
                           placeholder="Email ID"
                           value={formData[`contact${i}_email`]}
                           onChange={handleInputChange}
+                          required={i === 1}
                         />
+                        {emailErrors[i-1] && <span className="error-message">{emailErrors[i-1]}</span>}
                       </div>
                     </div>
                   </fieldset>
@@ -645,7 +804,7 @@ const meId = JSON.parse(
                   <legend>Bank Details</legend>
                   <div className="contact-row four-columns">
                     <div className="contact-field">
-                      <label htmlFor="bank_name">Bank Name:</label>
+                      <label htmlFor="bank_name">Bank Name:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="bank_name"
                         name="bank_name"
@@ -656,7 +815,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="branch">Branch:</label>
+                      <label htmlFor="branch">Branch:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="branch"
                         name="branch"
@@ -667,7 +826,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="account_number">Account Number:</label>
+                      <label htmlFor="account_number">Account Number:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="account_number"
                         name="account_number"
@@ -678,7 +837,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="ifsc_code">IFSC Code:</label>
+                      <label htmlFor="ifsc_code">IFSC Code:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="ifsc_code"
                         name="ifsc_code"
@@ -697,7 +856,7 @@ const meId = JSON.parse(
                   <legend>Business Information</legend>
                   <div className="contact-row three-columns">
                     <div className="contact-field">
-                      <label htmlFor="nature_of_business">Nature of Business:</label>
+                      <label htmlFor="nature_of_business">Nature of Business:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="nature_of_business"
                         name="nature_of_business"
@@ -708,7 +867,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="product_category">Category of Products:</label>
+                      <label htmlFor="product_category">Category of Products:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="product_category"
                         name="product_category"
@@ -719,7 +878,7 @@ const meId = JSON.parse(
                       />
                     </div>
                     <div className="contact-field">
-                      <label htmlFor="years_of_experience">Years of Experience:</label>
+                      <label htmlFor="years_of_experience">Years of Experience:<span className="vendor-required-asterisk">*</span></label>
                       <input
                         id="years_of_experience"
                         name="years_of_experience"
@@ -741,60 +900,61 @@ const meId = JSON.parse(
                 <legend>Documents Required (Attach Copies)</legend>
                 <div className="contact-row three-columns">
                   <div className="contact-field">
-                    <label htmlFor="gst_certificate">GST Certificate:</label>
+                    <label htmlFor="gst_certificate">GST Certificate:{!isEditing && <span className="vendor-required-asterisk">*</span>}</label>
                     <input
                       id="gst_certificate"
                       type="file"
                       name="gst_certificate"
                       accept=".pdf,.jpg,.png,.jpeg"
                       onChange={handleFileChange}
-                      required
+                      required={!isEditing}
                     />
                   </div>
                   <div className="contact-field">
-                    <label htmlFor="pan_card">PAN Card:</label>
+                    <label htmlFor="pan_card">PAN Card:{!isEditing && <span className="vendor-required-asterisk">*</span>}</label>
                     <input
                       id="pan_card"
                       type="file"
                       name="pan_card"
                       accept=".pdf,.jpg,.png,.jpeg"
                       onChange={handleFileChange}
-                      required
+                      required={!isEditing}
                     />
                   </div>
                   <div className="contact-field">
-                    <label htmlFor="cancelled_cheque">Cancelled Cheque:</label>
+                    <label htmlFor="cancelled_cheque">Cancelled Cheque:{!isEditing && <span className="vendor-required-asterisk">*</span>}</label>
                     <input
                       id="cancelled_cheque"
                       type="file"
                       name="cancelled_cheque"
                       accept=".pdf,.jpg,.png,.jpeg"
                       onChange={handleFileChange}
+                      required={!isEditing}
                     />
                   </div>
-                </div>
-                <div className="contact-row two-columns">
-                  <div className="contact-field msme-field">
-                    <label htmlFor="msme_certificate">MSME Certificate (if applicable):</label>
-                    <input
-                      id="msme_certificate"
-                      type="file"
-                      name="msme_certificate"
-                      accept=".pdf,.jpg,.png,.jpeg"
-                      onChange={handleFileChange}
-                    />
                   </div>
-                  <div className="contact-field">
-                    <label htmlFor="incorporation_certificate">Company Incorporation Certificate:</label>
-                    <input
-                      id="incorporation_certificate"
-                      type="file"
-                      name="incorporation_certificate"
-                      accept=".pdf,.jpg,.png,.jpeg"
-                      onChange={handleFileChange}
-                    />
+                  <div className="contact-row two-columns">
+                    <div className="contact-field msme-field">
+                      <label htmlFor="msme_certificate">MSME Certificate (if applicable):</label>
+                      <input
+                        id="msme_certificate"
+                        type="file"
+                        name="msme_certificate"
+                        accept=".pdf,.jpg,.png,.jpeg"
+                        onChange={handleFileChange}
+                      />
+                    </div>
+                    <div className="contact-field">
+                      <label htmlFor="incorporation_certificate">Company Incorporation Certificate:</label>
+                      <input
+                        id="incorporation_certificate"
+                        type="file"
+                        name="incorporation_certificate"
+                        accept=".pdf,.jpg,.png,.jpeg"
+                        onChange={handleFileChange}
+                      />
+                    </div>
                   </div>
-                </div>
               </fieldset>
 
               <div className="vendor-form-buttons">
@@ -802,7 +962,7 @@ const meId = JSON.parse(
                   Cancel
                 </button>
                 <button type="submit" className="vendor-submit-btn">
-                  Add Vendor
+                  {isEditing ? 'Update' : 'Add Vendor'}
                 </button>
               </div>
             </form>
@@ -870,42 +1030,36 @@ const meId = JSON.parse(
         </div>
       )}
       
-{showContactDetailsPopup && selectedVendor && (
-  <div className="vendor-popup-overlay">
-    <div className="vendor-popup-box">
-      <button
-        className="vendor-popup-close-btn"
-        onClick={() => setShowContactDetailsPopup(false)}
-      >
-        ×
-      </button>
-      <h2 className="vendor-popup-title">Contact Details</h2>
-      <div className="contact-grid">
-        {/* Contact 1 */}
-        <div className="grid-label" rowSpan={2}>Contact 1</div>
-        <div className="grid-field">Name: {selectedVendor.contact1_name || '-'}</div>
-        <div className="grid-field">Designation: {selectedVendor.contact1_designation || '-'}</div>
-        <div className="grid-field">Email: {selectedVendor.contact1_email || '-'}</div>
-        <div className="grid-field">Mobile: {selectedVendor.contact1_mobile || '-'}</div>
-
-        {/* Contact 2 */}
-        <div className="grid-label">Contact 2</div>
-        <div className="grid-field">Name: {selectedVendor.contact2_name || '-'}</div>
-        <div className="grid-field">Designation: {selectedVendor.contact2_designation || '-'}</div>
-        <div className="grid-field">Email: {selectedVendor.contact2_email || '-'}</div>
-        <div className="grid-field">Mobile: {selectedVendor.contact2_mobile || '-'}</div>
-
-        {/* Contact 3 */}
-        <div className="grid-label">Contact 3</div>
-        <div className="grid-field">Name: {selectedVendor.contact3_name || '-'}</div>
-        <div className="grid-field">Designation: {selectedVendor.contact3_designation || '-'}</div>
-        <div className="grid-field">Email: {selectedVendor.contact3_email || '-'}</div>
-        <div className="grid-field">Mobile: {selectedVendor.contact3_mobile || '-'}</div>
-      </div>
-    </div>
-  </div>
-)}
-
+      {showContactDetailsPopup && selectedVendor && (
+        <div className="vendor-popup-overlay">
+          <div className="vendor-popup-box">
+            <button
+              className="vendor-popup-close-btn"
+              onClick={() => setShowContactDetailsPopup(false)}
+            >
+              ×
+            </button>
+            <h2 className="vendor-popup-title">Contact Details</h2>
+            <div className="contact-grid">
+              <div className="grid-label" rowSpan={2}>Contact 1</div>
+              <div className="grid-field">Name: {selectedVendor.contact1_name || '-'}</div>
+              <div className="grid-field">Designation: {selectedVendor.contact1_designation || '-'}</div>
+              <div className="grid-field">Email: {selectedVendor.contact1_email || '-'}</div>
+              <div className="grid-field">Mobile: {selectedVendor.contact1_mobile || '-'}</div>
+              <div className="grid-label">Contact 2</div>
+              <div className="grid-field">Name: {selectedVendor.contact2_name || '-'}</div>
+              <div className="grid-field">Designation: {selectedVendor.contact2_designation || '-'}</div>
+              <div className="grid-field">Email: {selectedVendor.contact2_email || '-'}</div>
+              <div className="grid-field">Mobile: {selectedVendor.contact2_mobile || '-'}</div>
+              <div className="grid-label">Contact 3</div>
+              <div className="grid-field">Name: {selectedVendor.contact3_name || '-'}</div>
+              <div className="grid-field">Designation: {selectedVendor.contact3_designation || '-'}</div>
+              <div className="grid-field">Email: {selectedVendor.contact3_email || '-'}</div>
+              <div className="grid-field">Mobile: {selectedVendor.contact3_mobile || '-'}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showBankDetailsPopup && selectedVendor && (
         <div className="vendor-popup-overlay">
@@ -944,36 +1098,37 @@ const meId = JSON.parse(
       )}
 
       {showBusinessInfoPopup && selectedVendor && (
-  <div className="vendor-popup-overlay">
-    <div className="vendor-popup-box">
-      <button
-        className="vendor-popup-close-btn"
-        onClick={() => setShowBusinessInfoPopup(false)}
-      >
-        ×
-      </button>
-      <h2 className="vendor-popup-title">Business Information</h2>
-      <div className="vendor-details-container">
-        <table className="details-table">
-          <tbody>
-            <tr>
-              <td className="details-label">Nature of Business</td>
-              <td className="details-value">{selectedVendor.nature_of_business}</td>
-            </tr>
-            <tr>
-              <td className="details-label">Product Category</td>
-              <td className="details-value">{selectedVendor.product_category}</td>
-            </tr>
-            <tr>
-              <td className="details-label">Years of Experience</td>
-              <td className="details-value">{selectedVendor.years_of_experience}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-)}
+        <div className="vendor-popup-overlay">
+          <div className="vendor-popup-box">
+            <button
+              className="vendor-popup-close-btn"
+              onClick={() => setShowBusinessInfoPopup(false)}
+            >
+              ×
+            </button>
+            <h2 className="vendor-popup-title">Business Information</h2>
+            <div className="vendor-details-container">
+              <table className="details-table">
+                <tbody>
+                  <tr>
+                    <td className="details-label">Nature of Business</td>
+                    <td className="details-value">{selectedVendor.nature_of_business}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Product Category</td>
+                    <td className="details-value">{selectedVendor.product_category}</td>
+                  </tr>
+                  <tr>
+                    <td className="details-label">Years of Experience</td>
+                    <td className="details-value">{selectedVendor.years_of_experience}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDocumentsPopup && selectedVendorFiles && (
         <div className="vendor-popup-overlay">
           <div className="vendor-popup-form documents-popup">
@@ -1125,14 +1280,14 @@ const meId = JSON.parse(
           </div>
         </div>
       )}
-      {/* Alert Modal for displaying messages */}
-              <Modal
-                isVisible={alertModal.isVisible}
-                onClose={closeAlert}
-                buttons={[{ label: "OK", onClick: closeAlert }]}
-              >
-                <p>{alertModal.message}</p>
-              </Modal>
+
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };
