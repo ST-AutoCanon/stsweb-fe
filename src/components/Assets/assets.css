@@ -444,6 +444,7 @@ border: 1px solid #ddd;
 
 /* Table Styling */
 .assets-table table {
+  table-layout: fixed; /* Prevents columns from resizing based on content */
 width: 100%;
 border-collapse: collapse;
 background-color: white;
@@ -455,6 +456,36 @@ table-layout: auto; /* Ensures correct column width */
   max-height: 300px; /* Adjust height as needed */
   overflow-y: auto;
   overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+/* Specific styling for Asset Name and Configuration columns */
+.assets-table th:nth-child(3), /* Asset Name header */
+.assets-table td:nth-child(3), /* Asset Name cell */
+.assets-table th:nth-child(4), /* Configuration header */
+.assets-table td:nth-child(4) { /* Configuration cell */
+  max-width: 150px; /* Set a fixed maximum width */
+  min-width: 150px; /* Ensure consistent width */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative; /* For tooltip positioning */
+}
+
+/* Tooltip for full text on hover */
+.assets-table td:nth-child(3):hover::after,
+.assets-table td:nth-child(4):hover::after {
+  content: attr(data-full-text); /* Use data attribute for full text */
+  position: absolute;
+  top: 100%; /* Display below the cell */
+  left: 0;
+  background-color: #333;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  z-index: 10;
+  white-space: normal; /* Allow text wrapping in tooltip */
+  max-width: 300px; /* Limit tooltip width */
+  word-wrap: break-word; /* Break long words */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 /* Sticky Header */
 .assets-table thead {
