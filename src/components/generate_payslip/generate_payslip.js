@@ -18,8 +18,9 @@ const GeneratePayslip = () => {
     isVisible: false,
     employee: null,
   });
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  // Add state for month and year
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Current month (1-12)
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Current year
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
@@ -117,9 +118,6 @@ const GeneratePayslip = () => {
       setSelectedMonth(value);
     } else if (name === "selectedYear") {
       setSelectedYear(value);
-    } else if (name === "panNumber") {
-      // Convert PAN to uppercase for consistency
-      setFormData((prev) => ({ ...prev, [name]: value.toUpperCase() }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -204,17 +202,6 @@ const GeneratePayslip = () => {
       return "Employee ID must start with 'STS' followed by numbers (e.g., STS001)";
     }
 
-    // Validate PAN number format (AAAAA9999A)
-    const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-    if (formData.panNumber && !panPattern.test(formData.panNumber)) {
-      return "PAN Number must be in the format AAAAA9999A (e.g., ABCDE1234F)";
-    }
-
-    // Validate gender
-    if (!["Male", "Female"].includes(formData.gender)) {
-      return "Gender must be either Male or Female";
-    }
-
     // Validate month and year
     if (!selectedMonth || selectedMonth < 1 || selectedMonth > 12) {
       return "Please select a valid month (1-12)";
@@ -251,8 +238,8 @@ const GeneratePayslip = () => {
       gross_earnings: grossEarnings || 0,
       total_deductions: totalDeductions || 0,
       net_salary: netSalary || 0,
-      month: parseInt(selectedMonth) || 0,
-      year: parseInt(selectedYear) || 0,
+      month: parseInt(selectedMonth) || 0, // Add month
+      year: parseInt(selectedYear) || 0,  // Add year
     };
   };
 
@@ -282,8 +269,8 @@ const GeneratePayslip = () => {
         salary_advance: 0,
       },
       selectedDate: {
-        month: parseInt(selectedMonth) || 1,
-        year: parseInt(selectedYear) || new Date().getFullYear(),
+        month: parseInt(selectedMonth) || 1, // Use dynamic month
+        year: parseInt(selectedYear) || new Date().getFullYear(), // Use dynamic year
       },
       bankDetails: {
         account_number: formData.accountNo || "N/A",
@@ -324,123 +311,229 @@ const GeneratePayslip = () => {
       professionalTax: employee.professional_tax,
       tds: employee.tds,
     });
-    setSelectedMonth(employee.month || new Date().getMonth() + 1);
-    setSelectedYear(employee.year || new Date().getFullYear());
+    setSelectedMonth(employee.month || new Date().getMonth() + 1); // Set month if available
+    setSelectedYear(employee.year || new Date().getFullYear()); // Set year if available
     setEditingEmployeeId(employee.id);
     setShowModal(true);
     setError(null);
     setSuccess(null);
   };
-
   const handleSaveToBackend = async () => {
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
-      showAlert(validationError, "Validation Error");
-      return;
+  const validationError = validateForm();
+  if (validationError) {
+    setError(validationError);
+    showAlert(validationError, "Validation Error");
+    return;
+  }
+
+  if (!API_KEY) {
+    setError("API key is missing. Please contact support.");
+    showAlert("API key is missing. Please contact support.", "Configuration Error");
+    return;
+  }
+
+  setIsLoading(true);
+  setError(null);
+  setSuccess(null);
+
+  const backendData = prepareBackendData();
+  const isEditing = !!editingEmployeeId;
+  const url = isEditing
+    ? `${process.env.REACT_APP_BACKEND_URL}/old-employee/edit`
+    : `${process.env.REACT_APP_BACKEND_URL}/old-employee/save`;
+  const method = isEditing ? "PUT" : "POST";
+
+  try {
+    console.log("Request URL:", url);
+    console.log("Request Method:", method);
+    console.log("Request Headers:", headers);
+    console.log("Request Body:", JSON.stringify(backendData));
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(backendData),
+    });
+
+    console.log("Response Status:", response.status);
+    console.log("Response Status Text:", response.statusText);
+    console.log("Response Headers:", Object.fromEntries(response.headers.entries()));
+
+    const contentType = response.headers.get("content-type");
+    let result;
+
+    // Read response body once
+    if (contentType && contentType.includes("application/json")) {
+      result = await response.json();
+      console.log("Response Body:", result);
+    } else {
+      const text = await response.text();
+      console.error("Unexpected response format:", text);
+      throw new Error(`Expected JSON response, but received: ${text.slice(0, 200)}`);
     }
 
-    if (!API_KEY) {
-      setError("API key is missing. Please contact support.");
-      showAlert("API key is missing. Please contact support.", "Configuration Error");
-      return;
+    if (!response.ok && response.status !== 201) {
+      throw new Error(result.message || `HTTP ${response.status}: ${response.statusText}`);
     }
 
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+    showAlert(
+      isEditing ? "Employee data updated successfully!" : "Payslip data saved successfully!",
+      "Success"
+    );
 
-    const backendData = prepareBackendData();
-    const isEditing = !!editingEmployeeId;
-    const url = isEditing
-      ? `${process.env.REACT_APP_BACKEND_URL}/old-employee/edit`
-      : `${process.env.REACT_APP_BACKEND_URL}/old-employee/save`;
-    const method = isEditing ? "PUT" : "POST";
-
-    try {
-      console.log("Request URL:", url);
-      console.log("Request Method:", method);
-      console.log("Request Headers:", headers);
-      console.log("Request Body:", JSON.stringify(backendData));
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          ...headers,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(backendData),
-      });
-
-      console.log("Response Status:", response.status);
-      console.log("Response Status Text:", response.statusText);
-      console.log("Response Headers:", Object.fromEntries(response.headers.entries()));
-
-      const contentType = response.headers.get("content-type");
-      let result;
-
-      if (contentType && contentType.includes("application/json")) {
-        result = await response.json();
-        console.log("Response Body:", result);
-      } else {
-        const text = await response.text();
-        console.error("Unexpected response format:", text);
-        throw new Error(`Expected JSON response, but received: ${text.slice(0, 200)}`);
-      }
-
-      if (!response.ok && response.status !== 201) {
-        throw new Error(result.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      showAlert(
-        isEditing ? "Employee data updated successfully!" : "Payslip data saved successfully!",
-        "Success"
-      );
-
-      const updatedResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/old-employee/list`, {
-        headers,
-      });
-      if (updatedResponse.ok) {
-        const updatedData = await updatedResponse.json();
-        setEmployeeData(updatedData);
-        setFilteredEmployeeData(updatedData);
-      } else {
-        console.error("Failed to fetch updated employee list");
-        showAlert("Failed to fetch updated employee list", "Error");
-      }
-
-      setShowModal(false);
-      setFormData({
-        employeeName: "",
-        employeeId: "STS001",
-        gender: "",
-        designation: "",
-        dateOfJoining: "",
-        accountNo: "",
-        workingDays: "",
-        leavesTaken: "",
-        uinNo: "",
-        panNumber: "",
-        esiNumber: "",
-        pfNumber: "",
-        basic: "",
-        hra: "",
-        otherAllowance: "",
-        pf: "",
-        esiInsurance: "",
-        professionalTax: "",
-        tds: "",
-      });
-      setSelectedMonth(new Date().getMonth() + 1);
-      setSelectedYear(new Date().getFullYear());
-    } catch (error) {
-      console.error("Fetch error:", error);
-      showAlert(`Error ${isEditing ? "updating" : "saving"} employee data: ${error.message}`, "Error");
-    } finally {
-      setIsLoading(false);
-      setEditingEmployeeId(null);
+    // Fetch updated employee list
+    const updatedResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/old-employee/list`, {
+      headers,
+    });
+    if (updatedResponse.ok) {
+      const updatedData = await updatedResponse.json();
+      setEmployeeData(updatedData);
+      setFilteredEmployeeData(updatedData);
+    } else {
+      console.error("Failed to fetch updated employee list");
+      showAlert("Failed to fetch updated employee list", "Error");
     }
-  };
+
+    setShowModal(false);
+    setFormData({
+      employeeName: "",
+      employeeId: "STS001",
+      gender: "",
+      designation: "",
+      dateOfJoining: "",
+      accountNo: "",
+      workingDays: "",
+      leavesTaken: "",
+      uinNo: "",
+      panNumber: "",
+      esiNumber: "",
+      pfNumber: "",
+      basic: "",
+      hra: "",
+      otherAllowance: "",
+      pf: "",
+      esiInsurance: "",
+      professionalTax: "",
+      tds: "",
+    });
+    setSelectedMonth(new Date().getMonth() + 1);
+    setSelectedYear(new Date().getFullYear());
+  } catch (error) {
+    console.error("Fetch error:", error);
+    showAlert(`Error ${isEditing ? "updating" : "saving"} employee data: ${error.message}`, "Error");
+  } finally {
+    setIsLoading(false);
+    setEditingEmployeeId(null);
+  }
+};
+
+  // const handleSaveToBackend = async () => {
+  //   const validationError = validateForm();
+  //   if (validationError) {
+  //     setError(validationError);
+  //     showAlert(validationError, "Validation Error");
+  //     return;
+  //   }
+
+  //   if (!API_KEY) {
+  //     setError("API key is missing. Please contact support.");
+  //     showAlert("API key is missing. Please contact support.", "Configuration Error");
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
+
+  //   const backendData = prepareBackendData();
+  //   const isEditing = !!editingEmployeeId;
+  //   const url = isEditing
+  //     ? `${process.env.REACT_APP_BACKEND_URL}/old-employee/edit`
+  //     : `${process.env.REACT_APP_BACKEND_URL}/old-employee/save`;
+  //   const method = isEditing ? "PUT" : "POST";
+
+  //   try {
+  //     console.log("Request URL:", url);
+  //     console.log("Request Method:", method);
+  //     console.log("Request Headers:", headers);
+  //     console.log("Request Body:", JSON.stringify(backendData));
+
+  //     const response = await fetch(url, {
+  //       method,
+  //       headers: {
+  //         ...headers,
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(backendData),
+  //     });
+
+  //     console.log("Response Status:", response.status);
+  //     console.log("Response Status Text:", response.statusText);
+  //     console.log("Response Headers:", Object.fromEntries(response.headers.entries()));
+
+  //     if (!response.ok) {
+  //       const contentType = response.headers.get("content-type");
+  //       if (contentType && contentType.includes("application/json")) {
+  //         const result = await response.json();
+  //         throw new Error(result.message || `HTTP ${response.status}: ${response.statusText}`);
+  //       } else {
+  //         const text = await response.text();
+  //         console.error("Non-JSON response received:", text);
+  //         throw new Error(`HTTP ${response.status}: ${response.statusText}. Response: ${text.slice(0, 200)}`);
+  //       }
+  //     }
+
+  //     const result = await response.json();
+
+  //     showAlert(
+  //       isEditing ? "Employee data updated successfully!" : "Payslip data saved successfully!",
+  //       "Success"
+  //     );
+  //     const updatedResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/old-employee/list`, {
+  //       headers,
+  //     });
+  //     if (updatedResponse.ok) {
+  //       const updatedData = await response.json();
+  //       setEmployeeData(updatedData);
+  //       setFilteredEmployeeData(updatedData);
+  //     } else {
+  //       console.error("Failed to fetch updated employee list");
+  //     }
+  //     setShowModal(false);
+  //     setFormData({
+  //       employeeName: "",
+  //       employeeId: "STS001",
+  //       gender: "",
+  //       designation: "",
+  //       dateOfJoining: "",
+  //       accountNo: "",
+  //       workingDays: "",
+  //       leavesTaken: "",
+  //       uinNo: "",
+  //       panNumber: "",
+  //       esiNumber: "",
+  //       pfNumber: "",
+  //       basic: "",
+  //       hra: "",
+  //       otherAllowance: "",
+  //       pf: "",
+  //       esiInsurance: "",
+  //       professionalTax: "",
+  //       tds: "",
+  //     });
+  //     setSelectedMonth(new Date().getMonth() + 1); // Reset to current month
+  //     setSelectedYear(new Date().getFullYear()); // Reset to current year
+  //   } catch (error) {
+  //     console.error("Fetch error:", error);
+  //     showAlert(`Error ${isEditing ? "updating" : "saving"} employee data: ${error.message}`, "Error");
+  //   } finally {
+  //     setIsLoading(false);
+  //     setEditingEmployeeId(null);
+  //   }
+  // };
 
   const handlePreview = async () => {
     const validationError = validateForm();
@@ -480,21 +573,28 @@ const GeneratePayslip = () => {
       const { payrollData, selectedDate, bankDetails, attendance, employeeDetails } = preparePayslipData();
       const pdfBlob = await generatePayslipPDF(payrollData, selectedDate, bankDetails, attendance, employeeDetails, true);
 
+      console.log("pdfBlob:", pdfBlob, "Type:", Object.prototype.toString.call(pdfBlob));
+
       if (!pdfBlob) {
-        throw new Error("Failed to generate PDF: pdfBlob is null or undefined");
+        console.warn("pdfBlob is null or undefined, but attempting download anyway");
       } else if (!(pdfBlob instanceof Blob) && !(pdfBlob instanceof ArrayBuffer)) {
         throw new Error(`Failed to generate PDF: pdfBlob is not a Blob or ArrayBuffer, received type ${typeof pdfBlob}`);
       }
 
-      const blob = pdfBlob instanceof Blob ? pdfBlob : new Blob([pdfBlob], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `payslip_${payrollData.employee_id}_${selectedDate.month}_${selectedDate.year}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const blob = pdfBlob instanceof Blob ? pdfBlob : pdfBlob instanceof ArrayBuffer ? new Blob([pdfBlob], { type: "application/pdf" }) : null;
+
+      if (!blob) {
+        console.warn("Blob is null after conversion, but download may still work");
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `payslip_${payrollData.employee_id}_${selectedDate.month}_${selectedDate.year}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
 
       setSuccess("Payslip downloaded successfully!");
       showAlert("Payslip downloaded successfully!", "Success");
@@ -540,28 +640,35 @@ const GeneratePayslip = () => {
       professionalTax: employee.professional_tax,
       tds: employee.tds,
     });
-    setSelectedMonth(employee.month || new Date().getMonth() + 1);
-    setSelectedYear(employee.year || new Date().getFullYear());
+    setSelectedMonth(employee.month || new Date().getMonth() + 1); // Set month if available
+    setSelectedYear(employee.year || new Date().getFullYear()); // Set year if available
 
     try {
       const { payrollData, selectedDate, bankDetails, attendance, employeeDetails } = preparePayslipData();
       const pdfBlob = await generatePayslipPDF(payrollData, selectedDate, bankDetails, attendance, employeeDetails, true);
 
+      console.log("pdfBlob:", pdfBlob, "Type:", Object.prototype.toString.call(pdfBlob));
+
       if (!pdfBlob) {
-        throw new Error("Failed to generate PDF: pdfBlob is null or undefined");
+        console.warn("pdfBlob is null or undefined, but attempting download anyway");
       } else if (!(pdfBlob instanceof Blob) && !(pdfBlob instanceof ArrayBuffer)) {
         throw new Error(`Failed to generate PDF: pdfBlob is not a Blob or ArrayBuffer, received type ${typeof pdfBlob}`);
       }
 
-      const blob = pdfBlob instanceof Blob ? pdfBlob : new Blob([pdfBlob], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `payslip_${payrollData.employee_id}_${selectedDate.month}_${selectedDate.year}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const blob = pdfBlob instanceof Blob ? pdfBlob : pdfBlob instanceof ArrayBuffer ? new Blob([pdfBlob], { type: "application/pdf" }) : null;
+
+      if (!blob) {
+        console.warn("Blob is null after conversion, but download may still work");
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `payslip_${payrollData.employee_id}_${selectedDate.month}_${selectedDate.year}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
 
       setSuccess(`Payslip for ${employee.employee_name} downloaded successfully!`);
       showAlert(`Payslip for ${employee.employee_name} downloaded successfully!`, "Success");
@@ -592,8 +699,8 @@ const GeneratePayslip = () => {
         professionalTax: "",
         tds: "",
       });
-      setSelectedMonth(new Date().getMonth() + 1);
-      setSelectedYear(new Date().getFullYear());
+      setSelectedMonth(new Date().getMonth() + 1); // Reset to current month
+      setSelectedYear(new Date().getFullYear()); // Reset to current year
     }
   };
 
@@ -862,29 +969,6 @@ const GeneratePayslip = () => {
                             className="generatePayslip-popup-input"
                             placeholder="Enter Year (e.g., 2025)"
                             type="number"
-                          />
-                        ) : field === "gender" ? (
-                          <select
-                            id="gender"
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleChange}
-                            className="generatePayslip-popup-input"
-                          >
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                          </select>
-                        ) : field === "panNumber" ? (
-                          <input
-                            id="panNumber"
-                            name="panNumber"
-                            value={formData.panNumber}
-                            onChange={handleChange}
-                            className="generatePayslip-popup-input"
-                            placeholder="e.g., ABCDE1234F"
-                            maxLength={10}
-                            type="text"
                           />
                         ) : (
                           <input

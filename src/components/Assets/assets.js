@@ -13,9 +13,11 @@ import { FaChair } from "react-icons/fa"; // New Chair Icon
 import { MdStorage } from "react-icons/md"; // Correct Drawers Icon
 import { FaHdd, FaMouse, FaPlug, FaTools } from "react-icons/fa"; // Import necessary icons
 import { MdLaptop } from "react-icons/md"; // Import filled laptop icon
+
 import { Download } from "lucide-react";
 import Modal from "../Modal/Modal";
 import { TableProperties, Chair, Archive, Plug, Hammer } from "lucide-react";
+
 import { Boxes } from "lucide-react";
 import { LayoutPanelLeft, LayoutDashboard } from "lucide-react";
 import { MdOutlineCancel } from "react-icons/md";
@@ -39,10 +41,13 @@ const Assets = () => {
   const [startDate, setStartDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [comments, setComments] = useState("");
+
   const [assigningStatus, setAssigningStatus] = useState("Pending");
   const [status, setStatus] = useState("In Use"); // Default status
+
   const [assignedAssets, setAssignedAssets] = useState([]); // New state to store assigned assets
   const [popupSuggestions, setPopupSuggestions] = useState({});
+
   // const togglePopup = () => setShowPopup(!showPopup);
   const togglePopup = () => {
   setShowPopup(!showPopup);
@@ -50,15 +55,19 @@ const Assets = () => {
     resetForm(); // Clear form when opening the popup
   }
 };
-  
+
   const [showAssignPopup, setShowAssignPopup] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [assignments, setAssignments] = useState([]); // Initialize state for assignments
+
   const [assignmentRowsByAsset, setAssignmentRowsByAsset] = useState({});
+
   // NEW STATE FOR SEARCH
   const [employeeSuggestions, setEmployeeSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
   const [popupMessage, setPopupMessage] = useState("");
+
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -71,11 +80,60 @@ const Assets = () => {
     title: "",
     message: "",
   });
+  // const handleAssignedToChange = async (e) => {
+  //   const value = e.target.value;
+  //   setAssignedTo(value);
+  //   console.log("🔍 Typing:", value);
+
+  //   if (value.length >= 1) {
+  //     try {
+  //       const response = await axios.get(
+  //         `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+  //         {
+  //           headers,
+  //         }
+  //       );
+  //       // Only keep the names from response
+  //       const namesOnly = response.data.data.map((emp) => emp.name);
+  //       setEmployeeSuggestions(namesOnly);
+  //     } catch (error) {
+  //       console.error("❌ Error fetching suggestions:", error);
+  //     }
+  //   } else {
+  //     setEmployeeSuggestions([]);
+  //   }
+  // };
+
   const handleSelectSuggestion = (name) => {
     setAssignedTo(name);
     setEmployeeSuggestions([]); // Hide suggestions
   };
-  
+
+  // const handleAssignedToInputChange = async (e, index) => {
+  //   const value = e.target.value;
+  //   updateAssignment(index, "assignedTo", value);
+
+  //   if (value.length >= 1) {
+  //     try {
+  //       const response = await axios.get(
+  //         `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+  //         {
+  //           headers,
+  //         }
+  //       );
+
+  //       const suggestions = response.data.data.map((emp) => ({
+  //         name: emp.name,
+  //         employeeId: emp.employee_id,
+  //       }));
+  //       setPopupSuggestions((prev) => ({ ...prev, [index]: suggestions }));
+  //     } catch (err) {
+  //       console.error("Suggestion error:", err);
+  //     }
+  //   } else {
+  //     setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
+  //   }
+  // };
   const handleAssignedToInputChange = async (e, index) => {
   const value = e.target.value;
   updateAssignment(index, "assignedTo", value);
@@ -298,48 +356,64 @@ const handleAssignedToChange2 = async (e) => {
   };
 
   const openAssignPopup = (asset) => {
-    const assetId = asset.id;
-    setSelectedAssetId(assetId);
+  const assetId = asset.id;
+  setSelectedAssetId(assetId);
 
-    try {
-      let parsed = [];
-      if (asset.assigned_to) {
-        parsed =
-          typeof asset.assigned_to === "string"
-            ? JSON.parse(asset.assigned_to)
-            : asset.assigned_to;
-      }
-
-      // 🟢 Map backend "name" to frontend "assignedTo"
-      const formattedAssignments = parsed.length
-        ? parsed.reverse().map((a) => ({
-            assignedTo: a.name || "",
-            startDate: a.startDate || "",
-            returnDate: a.returnDate || "",
-            assigningStatus: a.status || "Assigned",
-            comments: a.comments || "",
-          }))
-        : [
-            {
-              assignedTo: "",
-              startDate: "",
-              returnDate: "",
-              assigningStatus: "Pending",
-              comments: "",
-            },
-          ];
-
-      setAssignmentRowsByAsset((prev) => ({
-        ...prev,
-        [assetId]: formattedAssignments,
-      }));
-    } catch (err) {
-      console.error("Error parsing assigned_to:", err);
+  try {
+    let parsed = [];
+    if (asset.assigned_to) {
+      parsed =
+        typeof asset.assigned_to === "string"
+          ? JSON.parse(asset.assigned_to)
+          : asset.assigned_to;
     }
 
-    setShowAssignPopup(true);
-    setSelectedAsset(asset);
-  };
+    // Map backend "name" to frontend "assignedTo" and handle startDate fallback
+    const formattedAssignments = parsed.length
+      ? parsed.reverse().map((a) => ({
+          assignedTo: a.name || "",
+          startDate: a.startDate || asset.valuation_date || "", // Fallback to valuation_date
+          returnDate: a.returnDate || "",
+          assigningStatus: a.status || "Assigned",
+          comments: a.comments || "",
+          employeeId: a.employeeId || "", // Include employeeId if available
+        }))
+      : [
+          {
+            assignedTo: "",
+            startDate: asset.valuation_date || "", // Default to valuation_date
+            returnDate: "",
+            assigningStatus: "Pending",
+            comments: "",
+            employeeId: "",
+          },
+        ];
+
+    setAssignmentRowsByAsset((prev) => ({
+      ...prev,
+      [assetId]: formattedAssignments,
+    }));
+  } catch (err) {
+    console.error("Error parsing assigned_to:", err);
+    // Fallback to a default row with valuation_date
+    setAssignmentRowsByAsset((prev) => ({
+      ...prev,
+      [assetId]: [
+        {
+          assignedTo: "",
+          startDate: asset.valuation_date || "",
+          returnDate: "",
+          assigningStatus: "Pending",
+          comments: "",
+          employeeId: "",
+        },
+      ],
+    }));
+  }
+
+  setShowAssignPopup(true);
+  setSelectedAsset(asset);
+};
 
   const closeAssignPopup = () => {
     setShowAssignPopup(false);
@@ -454,6 +528,30 @@ const handleAssignedToChange2 = async (e) => {
       showAlert("Failed to download file. See console.");
     }
   };
+
+  // const handleViewDocument = async (documentPath) => {
+  //   if (!documentPath) {
+  //     showAlert("No document available.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/${documentPath.replace(/^\/?uploads\//, "uploads/")}`, {
+  //       headers: {
+  //         "x-api-key": API_KEY, // Send API key
+  //       },
+  //       responseType: "blob", // Ensure it's treated as a file
+  //     });
+
+  //     // Create a URL and open the document
+  //     const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+  //     window.open(fileURL, "_blank");
+  //   } catch (error) {
+  //     console.error("Error opening document:", error.response?.data || error.message);
+  //     showAlert("Failed to open document.");
+  //   }
+  // };
+
   const handleViewDocument = async (documentPath) => {
     if (!documentPath) {
       showAlert("No document available.");
@@ -491,77 +589,127 @@ const handleAssignedToChange2 = async (e) => {
     }
   };
 
+  //   const handleSave = async () => {
+  //     if (!assetName || !configuration || !valuationDate ) {
+  //       showAlert("Please fill all required fields.");
+  //       return;
+  //     }
+
+  //     const formData = new FormData();
+  //     formData.append("asset_name", assetName);
+  //     formData.append("configuration", configuration);
+  //     formData.append("valuation_date", valuationDate);
+  //     formData.append("assigned_to", JSON.stringify([{ name: assignedTo || "STS" }]));
+  //     formData.append("category", selectedCategory);
+  //     formData.append("sub_category", selectedSubCategory);
+  //     formData.append("status", status); // Make sure status is included
+
+  //     if (document) {
+  //       formData.append("document", document);
+  //     }
+
+  //     // Debugging: Log FormData before sending
+  //     console.log("Sending FormData...");
+  //     for (let [key, value] of formData.entries()) {
+  //       console.log(key, value);
+  //     }
+
+  //     try {
+  //       const response = await axios.post(
+  //         `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
+  //         formData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data", // Ensure correct content type
+  //             "x-api-key": API_KEY, // If needed
+  //           },
+  //         }
+  //       );
+
+  //       console.log("Server Response:", response.data);
+  //       showAlert("Asset saved successfully!");
+  //       togglePopup(); // Close popup after save
+  //       fetchAssets(); // Refresh table after adding an asset
+
+  //     } catch (error) {
+  //       console.error("Error saving asset:", error); // Log the full error object
+  //       showAlert(`Failed to save asset: ${error.response?.data?.message || error.message || "Unknown error"}`);
+  //     }
+
+  //   };
+  // ;
   const handleSave = async () => {
-    if (!assetName || !configuration || !valuationDate) {
-      showAlert("Please fill all required fields.");
-      return;
-    }
+  if (!assetName || !configuration || !valuationDate) {
+    showAlert("Please fill all required fields.");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("asset_name", assetName);
-    formData.append("configuration", configuration);
-    formData.append("valuation_date", valuationDate);
-    formData.append("category", selectedCategory);
-    formData.append("sub_category", selectedSubCategory);
-    formData.append("status", status);
+  const formData = new FormData();
+  formData.append("asset_name", assetName);
+  formData.append("configuration", configuration);
+  formData.append("valuation_date", valuationDate);
+  formData.append("category", selectedCategory);
+  formData.append("sub_category", selectedSubCategory);
+  formData.append("status", status);
 
-    // Ensure assigned_to is an array starting with default STS
-    const assignedToArray = [
-      { name: "STS" }, // Default
-    ];
+  // Initialize assignedToArray based on whether assignedTo is provided
+  let assignedToArray = [];
 
-    if (
-      assignedTo &&
-      typeof assignedTo === "object" &&
-      assignedTo.name &&
-      assignedTo.employeeId
-    ) {
-      assignedToArray.push({
-        name: assignedTo.name,
-        employeeId: assignedTo.employeeId,
-        startDate: assignedTo.startDate || null,
-        returnDate: assignedTo.returnDate || null,
-        comments: assignedTo.comments || "",
-        status: assignedTo.status || "Assigned",
-      });
-    }
+  if (
+    assignedTo &&
+    typeof assignedTo === "object" &&
+    assignedTo.name &&
+    assignedTo.employeeId
+  ) {
+    // If assignedTo is provided, use it
+    assignedToArray.push({
+      name: assignedTo.name,
+      employeeId: assignedTo.employeeId,
+      startDate: valuationDate || null, // Use valuation_date as startDate if available
+      returnDate: null,
+      comments: "",
+      status: "Assigned",
+    });
+  } else {
+    // Otherwise, use default "STS"
+    assignedToArray.push({ name: "STS" });
+  }
 
-    formData.append("assigned_to", JSON.stringify(assignedToArray));
+  formData.append("assigned_to", JSON.stringify(assignedToArray));
 
-    if (document) {
-      formData.append("document", document);
-    }
+  if (document) {
+    formData.append("document", document);
+  }
 
-    // Debugging
-    console.log("Sending FormData...");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
+  // Debugging
+  console.log("Sending FormData...");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
 
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
-        formData,
-        {
-          headers,
-        }
-      );
+  try {
+    const response = await axios.post(
+      `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
+      formData,
+      {
+        headers,
+      }
+    );
 
-      console.log("Server Response:", response.data);
-      showAlert("Asset saved successfully!");
-      resetFormforaddasset();
-      togglePopup();
-      fetchAssets();
-    } catch (error) {
-      console.error("Error saving asset:", error);
-      showAlert(
-        `Failed to save asset: ${
-          error.response?.data?.message || error.message || "Unknown error"
-        }`
-      );
-    }
-  };
-
+    console.log("Server Response:", response.data);
+    showAlert("Asset saved successfully!");
+    resetFormforaddasset();
+    togglePopup();
+    fetchAssets();
+  } catch (error) {
+    console.error("Error saving asset:", error);
+    showAlert(
+      `Failed to save asset: ${
+        error.response?.data?.message || error.message || "Unknown error"
+      }`
+    );
+  }
+};
   useEffect(() => {
     fetchAssignedAssets();
   }, []);
@@ -865,7 +1013,12 @@ const handleAssignedToChange2 = async (e) => {
       ) ||
       (asset.asset_code?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
-
+const truncateWords = (text, wordLimit) => {
+  if (!text) return "";
+  const words = text.split(" ");
+  if (words.length <= wordLimit) return text;
+  return words.slice(0, wordLimit).join(" ") + "...";
+};
 
   return (
     <div className="assets-container">
@@ -1090,7 +1243,7 @@ const handleAssignedToChange2 = async (e) => {
               <th>Document</th>
             </tr>
           </thead>
-          <tbody>
+          {/* <tbody>
           
             {(filteredAssets.length > 0 ? filteredAssets : sortedAssets).length > 0 ? (
   (filteredAssets.length > 0 ? filteredAssets : sortedAssets).map((asset) => (
@@ -1264,11 +1417,197 @@ const handleAssignedToChange2 = async (e) => {
                 <td colSpan="7">No assets available</td>
               </tr>
             )}
-          </tbody>
+          </tbody> */}
+          <tbody>
+  {(filteredAssets.length > 0 ? filteredAssets : sortedAssets).length > 0 ? (
+    (filteredAssets.length > 0 ? filteredAssets : sortedAssets).map((asset) => (
+      <tr
+        key={asset.id}
+        style={{
+          backgroundColor: (() => {
+            try {
+              const assignedData =
+                typeof asset.assigned_to === "string"
+                  ? JSON.parse(asset.assigned_to)
+                  : asset.assigned_to;
+
+              if (Array.isArray(assignedData) && assignedData.length > 0) {
+                const latestAssignment = assignedData[assignedData.length - 1];
+                if (latestAssignment.status === "Decommissioned") {
+                  return "#e7d9d9"; // Light red background for decommissioned rows
+                }
+              }
+            } catch (error) {
+              console.error("Row style JSON parse error:", error);
+            }
+            return "transparent"; // default row background
+          })(),
+        }}
+      >
+        <td>{asset.asset_id}</td>
+        <td>{asset.asset_code}</td>
+        {/* <td data-full-text={asset.asset_name}>
+          {asset.asset_name}
+        </td>
+        <td data-full-text={asset.configuration}>
+          {asset.configuration}
+        </td> */}
+        <td title={asset.asset_name}>{truncateWords(asset.asset_name, 3)}</td>
+<td title={asset.configuration}>{truncateWords(asset.configuration, 3)}</td>
+<td>
+  {asset.valuation_date
+    ? (() => {
+        try {
+          const date = new Date(asset.valuation_date);
+          // Check if the date is valid
+          if (isNaN(date.getTime())) return "Invalid Date";
+          // Format as YYYY-MM-DD without timezone conversion
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        } catch (error) {
+          console.error("Error parsing valuation_date:", asset.valuation_date, error);
+          return "Invalid Date";
+        }
+      })()
+    : "N/A"}
+</td>
+
+        <td className="assigned-to-cell">
+          <span className="assigned-name">
+            {(() => {
+              if (!asset.assigned_to || asset.assigned_to === "") return "Unassigned";
+
+              try {
+                const assignedData =
+                  typeof asset.assigned_to === "string"
+                    ? JSON.parse(asset.assigned_to)
+                    : asset.assigned_to;
+
+                if (typeof assignedData === "object" && !Array.isArray(assignedData)) {
+                  return assignedData.name || "Unassigned";
+                }
+
+                if (Array.isArray(assignedData) && assignedData.length > 0) {
+                  return assignedData[assignedData.length - 1].name || "Unassigned";
+                }
+
+                return "Unassigned";
+              } catch (error) {
+                console.error("JSON Parsing Error:", error);
+                return "Unassigned";
+              }
+            })()}
+          </span>
+          <button
+            className="editassign-btn"
+            onClick={() => {
+              try {
+                const assignedData =
+                  typeof asset.assigned_to === "string"
+                    ? JSON.parse(asset.assigned_to)
+                    : asset.assigned_to;
+
+                if (Array.isArray(assignedData) && assignedData.length > 0) {
+                  const latestAssignment = assignedData[assignedData.length - 1];
+
+                  if (latestAssignment.status === "Decommissioned") {
+                    showAlert("This device is decommissioned and cannot be assigned.");
+                    return;
+                  }
+                }
+
+                openAssignPopup(asset);
+              } catch (error) {
+                console.error("JSON Parsing Error:", error);
+                showAlert("Error: Unable to process asset assignment.");
+              }
+            }}
+          >
+            <UserCheck size={16} style={{ marginRight: "5px" }} /> Assign
+          </button>
+        </td>
+        <td>{asset.category}</td>
+        <td
+          style={{
+            color: (() => {
+              try {
+                const assignedData =
+                  typeof asset.assigned_to === "string"
+                    ? JSON.parse(asset.assigned_to)
+                    : asset.assigned_to;
+
+                if (Array.isArray(assignedData) && assignedData.length > 0) {
+                  const latestAssignment = assignedData[assignedData.length - 1];
+                  return latestAssignment.status === "Decommissioned" ? "red" : "black";
+                }
+              } catch (error) {
+                console.error("JSON Parsing Error:", error);
+              }
+              return "black";
+            })(),
+          }}
+        >
+          {(() => {
+            if (!asset.assigned_to || asset.assigned_to === "") return "Unassigned";
+
+            try {
+              const assignedData =
+                typeof asset.assigned_to === "string"
+                  ? JSON.parse(asset.assigned_to)
+                  : asset.assigned_to;
+
+              if (Array.isArray(assignedData) && assignedData.length > 0) {
+                const latestAssignment = assignedData[assignedData.length - 1];
+                if (latestAssignment.status && latestAssignment.status !== "Assigned") {
+                  return latestAssignment.status;
+                }
+                return latestAssignment.returnDate ? "Returned" : "Assigned";
+              }
+            } catch (error) {
+              console.error("JSON Parsing Error:", error);
+            }
+            return "Unassigned";
+          })()}
+        </td>
+        <td>
+          {asset.document_path ? (
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                onClick={() => handleViewDocument(asset.document_path)}
+                className="view-doc-btn"
+              >
+                <Eye size={16} style={{ marginRight: "5px" }} /> View
+              </button>
+              <button
+                onClick={() => handleDownloadDocument(asset.document_path)}
+                className="download-doc-btn"
+              >
+                <Download size={16} style={{ marginRight: "5px" }} /> Download
+              </button>
+            </div>
+          ) : (
+            "No Document"
+          )}
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="9">No assets available</td>
+    </tr>
+  )}
+</tbody>
         </table>
         </div>
 
       </div>
+
+
+
+
+
 
       {/* Assign Popup */}
       {showAssignPopup && selectedAsset && (
@@ -1402,8 +1741,16 @@ const handleAssignedToChange2 = async (e) => {
   </div>
   
     </div>
+  
 
-{showForm && (
+
+
+
+
+
+
+
+      {showForm && (
     <div className="returndateform-container">
       <h3>Enter Return Date</h3>
       <form>
