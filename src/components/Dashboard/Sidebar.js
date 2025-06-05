@@ -22,7 +22,7 @@ import Vendors from "../vendors/vendors";
 import Chat from "../Chat/ChatPage";
 import EmployeeLogin from "../EmployeeLogin/EmployeeLogin";
 import SalaryStatementWrapper from "../Salary_statement/SalaryStatementWrapper";
-
+import LetterHead from "../letterHead/letterhead";
 
 const Sidebar = ({ setActiveContent }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -91,8 +91,12 @@ const Sidebar = ({ setActiveContent }) => {
         break;
 
      case "/Salary_Statement":
-  setActiveContent(<SalaryStatementWrapper/>);
-  break;
+      setActiveContent(<SalaryStatementWrapper/>);
+        break;
+       case "/letterHead":
+        setActiveContent(<LetterHead  />);
+
+        break;
 
 
       case "/payrollSummary":
