@@ -49,12 +49,32 @@ const Assets = () => {
   const [popupSuggestions, setPopupSuggestions] = useState({});
 
   // const togglePopup = () => setShowPopup(!showPopup);
-  const togglePopup = () => {
-  setShowPopup(!showPopup);
-  if (!showPopup) {
-    resetForm(); // Clear form when opening the popup
-  }
-};
+ const togglePopup = () => {
+    if (showPopup) {
+      // When closing the popup, reset the form
+      resetFormforaddasset();
+    }
+    setShowPopup(!showPopup);
+  };
+
+  // const resetForm = () => {
+  //   setAssignedTo("");
+  //   setStartDate("");
+  //   setReturnDate("");
+  //   setComments("");
+  //   setAssigningStatus("Pending");
+  // };
+
+  // const resetFormforaddasset = () => {
+  //   setAssetName("");
+  //   setConfiguration("");
+  //   setValuationDate("");
+  //   setAssignedTo("");
+  //   setDocument(null);
+  //   setSelectedCategory("");
+  //   setSelectedSubCategory("");
+  //   setStatus("In Use");
+  // };
 
   const [showAssignPopup, setShowAssignPopup] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
