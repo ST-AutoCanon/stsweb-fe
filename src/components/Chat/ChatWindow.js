@@ -10,11 +10,69 @@ import {
   FaPaperPlane,
   FaUsers,
   FaTrash,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import UserAvatar from "../EmployeeQueries/UserAvatar";
 import Picker from "emoji-picker-react";
 import MemberListModal from "./MemberListModal";
 import Modal from "../Modal/Modal";
+import { getDateLabel } from "./DateLabels";
+
+// ——— 1) Combined geolocation + reverse-geocode helper ———
+async function getLocationAndAddress() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      return resolve({
+        lat: null,
+        lng: null,
+        address: "Geolocation not supported",
+      });
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        try {
+          const url = new URL("https://nominatim.openstreetmap.org/reverse");
+          url.search = new URLSearchParams({
+            format: "jsonv2",
+            lat: lat.toString(),
+            lon: lng.toString(),
+            zoom: "18",
+            addressdetails: "1",
+          }).toString();
+
+          const res = await fetch(url.href);
+          const json = await res.json();
+          const a = json.address || {};
+          // pick street, suburb, taluk, postcode, etc.
+          const parts = [
+            a.road,
+            a.suburb,
+            a.town || a.city,
+            a.county,
+            a.state,
+            a.postcode,
+          ].filter(Boolean);
+          const address = parts.join(", ");
+          resolve({ lat, lng, address: address || json.display_name });
+        } catch {
+          resolve({
+            lat,
+            lng,
+            address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+          });
+        }
+      },
+      () =>
+        resolve({
+          lat: null,
+          lng: null,
+          address: "Permission denied or unavailable",
+        }),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
 
 export default function ChatWindow({ room }) {
   const [msgs, setMsgs] = useState([]);
@@ -24,16 +82,14 @@ export default function ChatWindow({ room }) {
   const [showMembers, setShowMembers] = useState(false);
   const [members, setMembers] = useState([]);
 
-  // --- Alert modal state for delete-confirm ---
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
     onConfirm: null,
   });
-  const showAlert = ({ title = "", message, onConfirm }) => {
+  const showAlert = ({ title = "", message, onConfirm }) =>
     setAlertModal({ isVisible: true, title, message, onConfirm });
-  };
   const closeAlert = () =>
     setAlertModal({
       isVisible: false,
@@ -47,138 +103,135 @@ export default function ChatWindow({ room }) {
   const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
-
   const headers = {
     "x-api-key": process.env.REACT_APP_API_KEY,
     "x-employee-id": meId,
   };
 
+  // warm up geolocation prompt
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        showEmojiPicker &&
-        emojiRef.current &&
-        !emojiRef.current.contains(e.target)
-      ) {
-        setShowEmojiPicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showEmojiPicker]);
+    if (navigator.permissions) {
+      navigator.permissions
+        .query({ name: "geolocation" })
+        .then((perm) => {
+          if (perm.state === "prompt")
+            navigator.geolocation.getCurrentPosition(
+              () => {},
+              () => {}
+            );
+        })
+        .catch(() => {});
+    }
+  }, []);
 
-  // -- Load history --
+  // ——— 2) Load history & wrap into `.location` ———
   useEffect(() => {
     if (!room || room.isNew) return;
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/rooms/${room.id}/messages`, {
         headers,
       })
-      .then((r) => setMsgs(r.data))
+      .then((r) => {
+        const shaped = r.data.map((m) => {
+          const hasCoords = m.latitude != null && m.longitude != null;
+          return {
+            id: m.id,
+            roomId: m.roomId,
+            sender_id: m.senderId,
+            sender_name: m.senderName,
+            photo_url: m.photoUrl ?? m.photo_url,
+            content: m.content,
+            type: m.type,
+            file_url: m.fileUrl ?? m.file_url,
+            sent_at: m.sentAt,
+            readAt: m.readAt,
+            location: hasCoords
+              ? { lat: m.latitude, lng: m.longitude, address: m.address }
+              : null,
+          };
+        });
+        setMsgs(shaped);
+      })
       .catch(console.error);
   }, [room]);
 
-  // -- Realtime incoming --
+  // ——— 3) Real-time incoming, same wrapping ———
   useEffect(() => {
     const handler = (m) => {
       if (m.roomId !== room?.id) return;
-      const normalized = {
-        id: m.id,
-        sender_id: m.senderId,
-        sender_name: m.senderName,
-        content: m.content,
-        photo_url: m.photoUrl ?? m.photo_url,
-        type: m.type,
-        file_url: m.fileUrl ?? m.file_url,
-        sent_at: m.sentAt ?? m.sent_at,
-      };
-      setMsgs((ms) => [...ms, normalized]);
+      setMsgs((ms) => [
+        ...ms,
+        {
+          id: m.id,
+          roomId: m.roomId,
+          sender_id: m.senderId,
+          sender_name: m.senderName,
+          photo_url: m.photoUrl ?? m.photo_url,
+          content: m.content,
+          type: m.type,
+          file_url: m.fileUrl ?? m.file_url,
+          sent_at: m.sentAt,
+          readAt: m.readAt,
+          location: m.location || null,
+        },
+      ]);
     };
     socket.on("new_message", handler);
     return () => socket.off("new_message", handler);
   }, [socket, room]);
 
+  // auto-scroll
   useEffect(() => {
     const box = messagesRef.current;
-    if (box) {
-      // jump or smooth scroll as you like
-      box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
-    }
+    if (box) box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
   }, [msgs]);
 
-  // -- Send text message --
+  // ——— 4) Replace doSend with single helper ———
+  const doSend = async (payload) => {
+    const { lat, lng, address } = await getLocationAndAddress();
+    if (lat == null || lng == null) {
+      alert("Unable to get your location. Please enable location services.");
+      return;
+    }
+    socket.emit("send_message", {
+      ...payload,
+      location: { lat, lng, address },
+    });
+  };
+
   const send = () => {
     if (!txt.trim() || !room) return;
-    socket.emit("send_message", {
-      roomId: room.id,
-      content: txt,
-      type: "text",
-    });
+    doSend({ roomId: room.id, content: txt, type: "text" });
     setTxt("");
     setShowEmojiPicker(false);
   };
-
-  // -- Upload file message --
   const onFileUploaded = (url) => {
-    socket.emit("send_message", {
-      roomId: room.id,
-      content: "",
-      type: "file",
-      fileUrl: url,
-    });
+    doSend({ roomId: room.id, content: "", type: "file", fileUrl: url });
   };
+  const onEmojiClick = (_, emojiObj) => setTxt((p) => p + emojiObj.emoji);
 
-  // -- Emoji picker handler --
-  const onEmojiClick = (a, b) => {
-    const emojiObj = a.emoji ? a : b.emoji ? b : null;
-    if (emojiObj) setTxt((prev) => prev + emojiObj.emoji);
-  };
-
+  // Download file helper
   const downloadFile = async (fileUrl, suggestedName) => {
     const base = process.env.REACT_APP_BACKEND_URL.replace(/\/+$/, "");
     const path = fileUrl.replace(/^\/+/, "");
     const url = `${base}/${path}`;
-
     try {
       const resp = await fetch(url, { headers });
-      if (!resp.ok) {
-        console.error("❌ response not OK");
-        alert(`Could not download file (status ${resp.status})`);
-        return;
-      }
-
-      const contentType = resp.headers.get("Content-Type") || "(none)";
-
-      let filename = suggestedName || "";
-      if (!filename) {
-        const dispo = resp.headers.get("Content-Disposition");
-        if (dispo && dispo.includes("filename=")) {
-          filename = dispo.split("filename=")[1].replace(/["']/g, "");
-        } else {
-          filename = path.split("/").pop();
-        }
-      }
-
-      const buffer = await resp.arrayBuffer();
-      const blob = new Blob([buffer], { type: contentType });
-
-      // 🛠 Step 6: createObjectURL & click
-      const blobUrl = URL.createObjectURL(blob);
+      if (!resp.ok) throw new Error(`status ${resp.status}`);
+      const blob = await resp.blob();
       const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = filename;
+      a.href = URL.createObjectURL(blob);
+      a.download = suggestedName || path.split("/").pop();
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      // 🛠 Step X: network / unexpected error
-      console.error("🚨 downloadFile error:", err);
-      alert("Network error when downloading. Check console for details.");
+      console.error("downloadFile error:", err);
+      alert("Could not download file");
     }
   };
 
-  // -- Load group members --
+  // Load group members
   useEffect(() => {
     if (room?.is_group === 1) {
       axios
@@ -193,6 +246,22 @@ export default function ChatWindow({ room }) {
   }, [room]);
 
   if (!room) return <div className="chat-window empty">Select a chat</div>;
+
+  // Group by date…
+  const grouped = React.useMemo(() => {
+    const groups = [];
+    let lastLabel = null;
+    msgs.forEach((m) => {
+      const label = getDateLabel(m.sent_at);
+      if (label !== lastLabel) {
+        groups.push({ label, messages: [m] });
+        lastLabel = label;
+      } else {
+        groups[groups.length - 1].messages.push(m);
+      }
+    });
+    return groups;
+  }, [msgs]);
 
   return (
     <div className="chat-window">
@@ -219,82 +288,103 @@ export default function ChatWindow({ room }) {
 
       {/* Messages */}
       <div className="messages" ref={messagesRef}>
-        {msgs.map((m) => {
-          const isMe = m.sender_id === meId;
-          return (
-            <div
-              key={m.id || m.sent_at}
-              className={`msg-row ${isMe ? "me" : "them"}`}
-            >
-              {!isMe && (
-                <UserAvatar
-                  photoUrl={m.photo_url}
-                  role={m.sender_role}
-                  gender={m.sender_gender}
-                  apiKey={process.env.REACT_APP_API_KEY}
-                  className="msg-avatar"
-                />
-              )}
+        {grouped.map(({ label, messages }) => (
+          <React.Fragment key={label}>
+            <div className="date-separator">{label}</div>
+            {messages.map((m, idx) => {
+              const isMe = m.sender_id === meId;
+              const isLast = idx === messages.length - 1 && room.is_group === 0;
+              const isSeen = isMe && m.readAt != null;
+              return (
+                <div key={m.id} className={`msg-row ${isMe ? "me" : "them"}`}>
+                  {!isMe && (
+                    <UserAvatar
+                      photoUrl={m.photo_url}
+                      role={m.sender_role}
+                      gender={m.sender_gender}
+                      apiKey={process.env.REACT_APP_API_KEY}
+                      className="msg-avatar"
+                    />
+                  )}
 
-              <div
-                className={`msg-bubble ${isMe ? "me-bubble" : "them-bubble"}`}
-              >
-                {room.is_group === 1 && !isMe && m.sender_name && (
-                  <div className="msg-sender">{m.sender_name}</div>
-                )}
-                {m.type === "text" ? (
-                  m.content
-                ) : (
-                  <button
-                    className="msg-download-btn"
-                    onClick={() => downloadFile(m.file_url, m.file_name)}
+                  <div
+                    className={`msg-bubble ${
+                      isMe ? "me-bubble" : "them-bubble"
+                    }`}
                   >
-                    <FaPaperclip /> Download
-                  </button>
-                )}
-                <div className="msg-time">
-                  {new Date(m.sent_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-              </div>
+                    {room.is_group === 1 && !isMe && m.sender_name && (
+                      <div className="msg-sender">{m.sender_name}</div>
+                    )}
+                    {m.type === "text" ? (
+                      <div className="msg-content">{m.content}</div>
+                    ) : (
+                      <button
+                        className="msg-download-btn"
+                        onClick={() => downloadFile(m.file_url)}
+                      >
+                        <FaPaperclip /> Download
+                      </button>
+                    )}
+                    <div className="msg-time">
+                      {new Date(m.sent_at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </div>
+                  </div>
 
-              {/* delete icon for your own messages */}
-              {isMe && (
-                <button
-                  className="msg-delete-btn"
-                  onClick={() =>
-                    showAlert({
-                      message:
-                        "Are you sure you want to permanently delete this message?",
-                      onConfirm: async () => {
-                        try {
-                          await axios.delete(
-                            `${process.env.REACT_APP_BACKEND_URL}/rooms/${room.id}/messages/${m.id}`,
-                            { headers }
-                          );
-                          setMsgs((old) => old.filter((x) => x.id !== m.id));
-                        } catch (e) {
-                          console.error(e);
-                          alert("Could not delete message");
+                  {isLast && isSeen && <div className="msg-seen">Seen</div>}
+
+                  {/* icons container: delete + map pin */}
+                  <div className="msg-icons">
+                    {m.location && (
+                      <button
+                        className="msg-address-icon"
+                        title={m.location.address}
+                        onClick={() =>
+                          window.open(
+                            `https://www.google.com/maps/search/?api=1&query=${m.location.lat},${m.location.lng}`,
+                            "_blank"
+                          )
                         }
-                        closeAlert();
-                      },
-                    })
-                  }
-                  title="Delete message"
-                >
-                  <FaTrash />
-                </button>
-              )}
-              {isMe && <div className="msg-spacer" />}
-            </div>
-          );
-        })}
+                      >
+                        <FaMapMarkerAlt />
+                      </button>
+                    )}
+                    {isMe && (
+                      <button
+                        className="msg-delete-btn"
+                        title="Delete message"
+                        onClick={() =>
+                          showAlert({
+                            message:
+                              "Are you sure you want to permanently delete this message?",
+                            onConfirm: async () => {
+                              await axios.delete(
+                                `${process.env.REACT_APP_BACKEND_URL}/rooms/${room.id}/messages/${m.id}`,
+                                { headers }
+                              );
+                              setMsgs((old) =>
+                                old.filter((x) => x.id !== m.id)
+                              );
+                              closeAlert();
+                            },
+                          })
+                        }
+                      >
+                        <FaTrash />
+                      </button>
+                    )}
+                  </div>
+                  {isMe && <div className="msg-spacer" />}
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
       </div>
 
-      {/* Input */}
+      {/* Input area */}
       <div className="input-area">
         <div className="emoji-picker-container">
           <button
@@ -305,7 +395,6 @@ export default function ChatWindow({ room }) {
           </button>
           {showEmojiPicker && (
             <div className="emoji-dropdown" ref={emojiRef}>
-              {" "}
               <Picker
                 onEmojiClick={onEmojiClick}
                 pickerStyle={{ width: "100%" }}
@@ -321,6 +410,7 @@ export default function ChatWindow({ room }) {
             </button>
           )}
         </FileUpload>
+
         <textarea
           className="m-input"
           rows={2}
@@ -334,12 +424,13 @@ export default function ChatWindow({ room }) {
             }
           }}
         />
+
         <button className="send-btn" onClick={send}>
           <FaPaperPlane />
         </button>
       </div>
 
-      {/* Members modal */}
+      {/* Member list modal */}
       {showMembers && (
         <MemberListModal
           roomId={room.id}

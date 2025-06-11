@@ -331,7 +331,6 @@ const LeaveRequest = () => {
           value={filters.from_date}
           onChange={handleFilterChange}
           className="date-filter-input"
-          min={new Date().toISOString().split("T")[0]}
         />
         <label>To:</label>
         <input
@@ -340,7 +339,6 @@ const LeaveRequest = () => {
           value={filters.to_date}
           onChange={handleFilterChange}
           className="date-filter-input"
-          min={new Date().toISOString().split("T")[0]}
         />
         <button className="filter-button" onClick={handleFilterSubmit}>
           <IoSearch /> Search

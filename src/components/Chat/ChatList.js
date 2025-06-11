@@ -189,7 +189,12 @@ export default function ChatList({ onSelect }) {
                 apiKey={API_KEY}
                 className="chat-avatar"
               />
-              <span className="chat-name">{r.name}</span>
+              <span className="chat-name">
+                {r.name}
+                {r.unreadCount > 0 && (
+                  <span className="unread-badge">{r.unreadCount}</span>
+                )}
+              </span>
             </div>
             {r.is_group === 1 &&
               r.createdBy === meId && ( // only the creator sees the trash
