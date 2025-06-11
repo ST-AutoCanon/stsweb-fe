@@ -1,3 +1,10 @@
+@font-face {
+  font-family: "Insignia Roman";
+  src: url("./Insignia Roman/Insignia Roman.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 .emp-inv-container {
   width: 100%;
   max-width: 100%;
@@ -21,6 +28,7 @@
 .emp-inv-name {
   margin: 0.5% 0;
   font-size: 40px;
+  font-family: "Insignia Roman", serif;
 }
 
 .emp-inv-address {

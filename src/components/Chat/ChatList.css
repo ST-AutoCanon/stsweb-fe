@@ -144,3 +144,13 @@
 .delete-group-btn:hover {
   color: #c00;
 }
+
+.unread-badge {
+  display: inline-block;
+  background: #e33;
+  color: #fff;
+  font-size: 0.75rem;
+  border-radius: 12px;
+  padding: 2px 6px;
+  margin-left: 8px;
+}

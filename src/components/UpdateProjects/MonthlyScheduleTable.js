@@ -19,19 +19,26 @@ const MonthlyScheduleTable = ({
   const initRef = useRef(false);
   const currentMonthYear = getCurrentMonthYear();
 
-  // 1️⃣ One‑time initialization (or when the prop array truly changes)
+  // 1️⃣ One-time initialization (or when the prop array truly changes)
   useEffect(() => {
     if (!initRef.current) {
-      const seeded = initialFinancialDetails.map((row) => ({
+      // if no data was passed in, seed one blank row so inputs always appear
+      const source = initialFinancialDetails.length
+        ? initialFinancialDetails
+        : [{}];
+
+      const seeded = source.map((row) => ({
         ...row,
         month_year: currentMonthYear,
         monthly_fixed_amount: monthlyFixedAmount,
         service_description: row.service_description ?? service_description,
         project_amount: row.project_amount ?? monthlyFixedAmount,
       }));
+
       setFinancialDetails(seeded);
       initRef.current = true;
-      // also let parent know immediately:
+
+      // notify parent immediately
       onFinancialDetailsChange?.({
         financialDetails: seeded,
         month_year: seeded[0]?.month_year,
@@ -75,16 +82,13 @@ const MonthlyScheduleTable = ({
   const handleInputChange = (idx, field, raw) => {
     const rows = [...financialDetails];
     const row = { ...rows[idx] };
-
     const val =
       field === "service_description" || field === "status"
         ? raw
         : parseFloat(raw) || 0;
-
     row[field] = val;
 
     const base = field === "project_amount" ? val : row.project_amount || 0;
-
     row.tds_amount = (base * (row.tds_percentage || 0)) / 100;
     row.gst_amount = (base * (row.gst_percentage || 0)) / 100;
     row.total_amount = base + row.gst_amount - row.tds_amount;
@@ -96,11 +100,9 @@ const MonthlyScheduleTable = ({
       row.gst_percentage = base ? (val / base) * 100 : 0;
     }
 
-    // 🆕 Add this part: if status changed to "Received", set today's date if not already set
+    // when status flips to Received, auto-fill today’s date
     if (field === "status" && val === "Received" && !row.completed_date) {
-      const today = new Date();
-      const formattedToday = today.toISOString().split("T")[0]; // 'YYYY-MM-DD'
-      row.completed_date = formattedToday;
+      row.completed_date = new Date().toISOString().split("T")[0];
     }
 
     rows[idx] = row;

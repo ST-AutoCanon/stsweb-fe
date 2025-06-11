@@ -1181,7 +1181,6 @@ const Reimbursement = () => {
           value={fromDate}
           onChange={(e) => setFromDate(e.target.value)}
           required
-          max={new Date(Date.now() - 86400000).toISOString().split("T")[0]}
         />
         <label>To</label>
         <input
@@ -1189,7 +1188,6 @@ const Reimbursement = () => {
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
           required
-          max={new Date(Date.now() - 86400000).toISOString().split("T")[0]}
         />
         <button className="search-btn" onClick={fetchReimbursements}>
           <FaSearch /> Search
