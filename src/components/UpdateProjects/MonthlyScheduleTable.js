@@ -3,9 +3,7 @@ import "./MonthlyScheduleTable.css";
 
 const getCurrentMonthYear = () => {
   const now = new Date();
-  const month = now.toLocaleString("default", { month: "long" });
-  const year = now.getFullYear();
-  return `${month} ${year}`;
+  return now.toLocaleString("default", { month: "long", year: "numeric" });
 };
 
 const MonthlyScheduleTable = ({
@@ -19,64 +17,111 @@ const MonthlyScheduleTable = ({
   const initRef = useRef(false);
   const currentMonthYear = getCurrentMonthYear();
 
-  // 1️⃣ One-time initialization (or when the prop array truly changes)
   useEffect(() => {
     if (!initRef.current) {
-      // if no data was passed in, seed one blank row so inputs always appear
-      const source = initialFinancialDetails.length
+      let source = initialFinancialDetails.length
         ? initialFinancialDetails
-        : [{}];
+        : [];
 
-      const seeded = source.map((row) => ({
-        ...row,
-        month_year: currentMonthYear,
-        monthly_fixed_amount: monthlyFixedAmount,
-        service_description: row.service_description ?? service_description,
-        project_amount: row.project_amount ?? monthlyFixedAmount,
-      }));
+      const currentExists = source.some(
+        (row) => row.month_year === currentMonthYear
+      );
+
+      if (!currentExists) {
+        source = [
+          ...source,
+          {
+            month_year: currentMonthYear,
+          },
+        ];
+      }
+
+      const seeded = source.map((raw) => {
+        const id = raw.id ?? null;
+        const m_actual_amount = raw.m_actual_amount ?? 0;
+        const m_tds_percentage =
+          raw.m_tds_percentage != null
+            ? raw.m_tds_percentage
+            : m_actual_amount
+            ? (raw.m_tds_amount / m_actual_amount) * 100
+            : 0;
+        const m_tds_amount =
+          raw.m_tds_amount != null
+            ? raw.m_tds_amount
+            : (m_actual_amount * m_tds_percentage) / 100;
+        const m_gst_percentage =
+          raw.m_gst_percentage != null
+            ? raw.m_gst_percentage
+            : m_actual_amount
+            ? (raw.m_gst_amount / m_actual_amount) * 100
+            : 0;
+
+        const m_gst_amount =
+          raw.m_gst_amount != null
+            ? raw.m_gst_amount
+            : (m_actual_amount * m_gst_percentage) / 100;
+
+        const m_total_amount =
+          raw.m_total_amount != null
+            ? raw.m_total_amount
+            : m_actual_amount + m_gst_amount - m_tds_amount;
+
+        return {
+          id,
+          milestone_id: raw.milestone_id ?? null,
+          month_year: raw.month_year || currentMonthYear,
+          service_description: raw.service_description ?? "",
+          monthly_fixed_amount: raw.monthly_fixed_amount ?? monthlyFixedAmount,
+
+          m_actual_amount,
+          m_tds_percentage,
+          m_tds_amount,
+          m_gst_percentage,
+          m_gst_amount,
+          m_total_amount,
+
+          status: raw.status ?? "Pending",
+          completed_date: raw.completed_date ?? "",
+        };
+      });
 
       setFinancialDetails(seeded);
       initRef.current = true;
-
-      // notify parent immediately
-      onFinancialDetailsChange?.({
-        financialDetails: seeded,
-        month_year: seeded[0]?.month_year,
-        project_amount: seeded[0]?.project_amount,
-        tds_percentage: seeded[0]?.tds_percentage,
-        tds_amount: seeded[0]?.tds_amount,
-        gst_percentage: seeded[0]?.gst_percentage,
-        gst_amount: seeded[0]?.gst_amount,
-        total_amount: seeded[0]?.total_amount,
-        service_description: seeded[0]?.service_description,
-      });
+      onFinancialDetailsChange?.(seeded);
     }
-  }, [initialFinancialDetails, monthlyFixedAmount, service_description]);
+  }, [
+    initialFinancialDetails,
+    monthlyFixedAmount,
+    service_description,
+    onFinancialDetailsChange,
+    currentMonthYear,
+  ]);
 
-  // 2️⃣ Only update monthly_fixed_amount if that prop changes
   useEffect(() => {
-    setFinancialDetails((rows) =>
-      rows.map((r) => ({
-        ...r,
-        monthly_fixed_amount: monthlyFixedAmount,
-      }))
-    );
-  }, [monthlyFixedAmount]);
+    setFinancialDetails((rows) => {
+      const updated = rows.map((r) => {
+        const m_actual_amount = r.m_actual_amount;
+        const m_tds_amount =
+          (m_actual_amount * (r.m_tds_percentage || 0)) / 100;
+        const m_gst_amount =
+          (m_actual_amount * (r.m_gst_percentage || 0)) / 100;
+        return {
+          ...r,
+          monthly_fixed_amount: monthlyFixedAmount,
+          m_tds_amount,
+          m_gst_amount,
+          m_total_amount: m_actual_amount + m_gst_amount - m_tds_amount,
+        };
+      });
+
+      onFinancialDetailsChange?.(updated);
+      return updated;
+    });
+  }, [monthlyFixedAmount, onFinancialDetailsChange]);
 
   const updateFinancialDetails = (newDetails) => {
     setFinancialDetails(newDetails);
-    const first = newDetails[0] || {};
-    onFinancialDetailsChange?.({
-      financialDetails: newDetails,
-      month_year: first.month_year,
-      project_amount: first.project_amount,
-      tds_percentage: first.tds_percentage,
-      tds_amount: first.tds_amount,
-      gst_percentage: first.gst_percentage,
-      gst_amount: first.gst_amount,
-      total_amount: first.total_amount,
-      service_description: first.service_description,
-    });
+    onFinancialDetailsChange?.(newDetails);
   };
 
   const handleInputChange = (idx, field, raw) => {
@@ -86,21 +131,14 @@ const MonthlyScheduleTable = ({
       field === "service_description" || field === "status"
         ? raw
         : parseFloat(raw) || 0;
+
     row[field] = val;
 
-    const base = field === "project_amount" ? val : row.project_amount || 0;
-    row.tds_amount = (base * (row.tds_percentage || 0)) / 100;
-    row.gst_amount = (base * (row.gst_percentage || 0)) / 100;
-    row.total_amount = base + row.gst_amount - row.tds_amount;
+    const m_actual_amount = row.m_actual_amount || 0;
+    row.m_tds_amount = (m_actual_amount * (row.m_tds_percentage || 0)) / 100;
+    row.m_gst_amount = (m_actual_amount * (row.m_gst_percentage || 0)) / 100;
+    row.m_total_amount = m_actual_amount + row.m_gst_amount - row.m_tds_amount;
 
-    if (field === "tds_amount") {
-      row.tds_percentage = base ? (val / base) * 100 : 0;
-    }
-    if (field === "gst_amount") {
-      row.gst_percentage = base ? (val / base) * 100 : 0;
-    }
-
-    // when status flips to Received, auto-fill today’s date
     if (field === "status" && val === "Received" && !row.completed_date) {
       row.completed_date = new Date().toISOString().split("T")[0];
     }
@@ -115,7 +153,6 @@ const MonthlyScheduleTable = ({
         <label>Monthly Fixed Amount</label>
         <input
           type="number"
-          name="monthly_fixed_amount"
           value={monthlyFixedAmount || ""}
           onChange={(e) => {
             const amt = parseFloat(e.target.value) || 0;
@@ -138,6 +175,7 @@ const MonthlyScheduleTable = ({
             <th>Received Date</th>
           </tr>
         </thead>
+
         <tbody>
           {financialDetails.map((f, idx) => (
             <tr key={idx}>
@@ -146,7 +184,6 @@ const MonthlyScheduleTable = ({
               <td>
                 <input
                   type="text"
-                  name="service_description"
                   value={f.service_description || ""}
                   onChange={(e) =>
                     handleInputChange(
@@ -160,82 +197,52 @@ const MonthlyScheduleTable = ({
               <td>
                 <input
                   type="number"
-                  name="project_amount"
-                  value={f.project_amount || ""}
+                  value={f.m_actual_amount || ""}
                   onChange={(e) =>
-                    handleInputChange(idx, "project_amount", e.target.value)
+                    handleInputChange(idx, "m_actual_amount", e.target.value)
                   }
                 />
               </td>
               <td>
                 <div className="monthly-group">
-                  <div className="monthly-small">
-                    <input
-                      type="number"
-                      name="tds_percentage"
-                      value={f.tds_percentage || ""}
-                      onChange={(e) =>
-                        handleInputChange(idx, "tds_percentage", e.target.value)
-                      }
-                    />
-                  </div>
-                  <span>%</span>
                   <input
                     type="number"
-                    name="tds_amount"
-                    value={f.tds_amount || ""}
-                    readOnly
-                  />
+                    value={f.m_tds_percentage || ""}
+                    onChange={(e) =>
+                      handleInputChange(idx, "m_tds_percentage", e.target.value)
+                    }
+                  />{" "}
+                  %<input readOnly type="number" value={f.m_tds_amount || ""} />
                 </div>
               </td>
               <td>
                 <div className="monthly-group">
-                  <div className="monthly-small">
-                    <input
-                      type="number"
-                      name="gst_percentage"
-                      value={f.gst_percentage || ""}
-                      onChange={(e) =>
-                        handleInputChange(idx, "gst_percentage", e.target.value)
-                      }
-                    />
-                  </div>
-                  <span>%</span>
                   <input
                     type="number"
-                    name="gst_amount"
-                    value={f.gst_amount || ""}
-                    readOnly
-                  />
+                    value={f.m_gst_percentage || ""}
+                    onChange={(e) =>
+                      handleInputChange(idx, "m_gst_percentage", e.target.value)
+                    }
+                  />{" "}
+                  %<input readOnly type="number" value={f.m_gst_amount || ""} />
                 </div>
               </td>
               <td>
-                <input
-                  type="number"
-                  name="total_amount"
-                  value={f.total_amount || ""}
-                  readOnly
-                />
+                <input readOnly type="number" value={f.m_total_amount || ""} />
               </td>
               <td>
                 <select
-                  name="status"
                   value={f.status || "Pending"}
                   onChange={(e) =>
                     handleInputChange(idx, "status", e.target.value)
                   }
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Received">Received</option>
+                  <option>Pending</option>
+                  <option>Received</option>
                 </select>
               </td>
               <td>
-                <input
-                  type="date"
-                  name="completed_date"
-                  value={f.completed_date || ""}
-                  readOnly
-                />
+                <input readOnly type="date" value={f.completed_date || ""} />
               </td>
             </tr>
           ))}

@@ -199,6 +199,7 @@ const Admin = () => {
           <table className="leave-table">
             <thead>
               <tr>
+                <th>Emp Name</th>
                 <th>Emp ID</th>
                 <th>Leave Type</th>
                 <th>Half/Full Day</th>
@@ -235,6 +236,7 @@ const Admin = () => {
                       key={query.leave_id}
                       className={isAlreadyUpdated ? "row-updated" : ""}
                     >
+                      <td>{query.name}</td> {/* 👈 Employee Name */}
                       <td>{query.employee_id}</td>
                       <td>{query.leave_type}</td>
                       <td>{query.H_F_day}</td>

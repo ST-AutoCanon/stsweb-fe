@@ -3,10 +3,19 @@
   overflow-x: auto;
 }
 
+.schedule-table-container {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 .schedule-table {
   width: 100%;
   border-collapse: collapse;
   font-family: Arial, sans-serif;
+}
+
+.schedule-table thead {
+  position: sticky;
 }
 
 .schedule-table th,
