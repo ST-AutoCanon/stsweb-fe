@@ -124,20 +124,38 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
     }));
   };
 
-  const handleFinancialDetailsChange = (detailsObj) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      financialDetails: detailsObj.financialDetails,
-      project_amount: detailsObj.project_amount,
-      tds_percentage: detailsObj.tds_percentage,
-      tds_amount: detailsObj.tds_amount,
-      gst_percentage: detailsObj.gst_percentage,
-      gst_amount: detailsObj.gst_amount,
-      total_amount: detailsObj.total_amount,
-      service_description: detailsObj.service_description,
-      month_year: detailsObj.month_year,
+  const handleFinancialDetailsChange = (newRows) => {
+    setFormData((prev) => ({
+      ...prev,
+      financialDetails: newRows,
     }));
   };
+
+  useEffect(() => {
+    if (projectData) {
+      setFormData((prev) => ({
+        ...prev,
+        monthly_fixed_amount: projectData.monthly_fixed_amount,
+        service_description: projectData.service_description,
+        financialDetails:
+          projectData?.financialDetails?.map((row) => ({
+            id: row.id,
+            milestone_id: row.milestone_id,
+            month_year: row.month_year,
+            service_description: row.service_description,
+            monthly_fixed_amount: row.monthly_fixed_amount,
+            m_actual_amount: row.m_actual_amount,
+            m_tds_percentage: row.m_tds_percentage,
+            m_tds_amount: row.m_tds_amount,
+            m_gst_percentage: row.m_gst_percentage,
+            m_gst_amount: row.m_gst_amount,
+            m_total_amount: row.m_total_amount,
+            status: row.status,
+            completed_date: row.completed_date,
+          })) || [],
+      }));
+    }
+  }, [projectData]);
 
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
@@ -226,17 +244,14 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedFiles(files.map((file) => file.name)); // For display
-    setNewAttachments(files); // Store the File objects for submission
-    // Optionally, update formData too if needed:
+    setSelectedFiles(files.map((file) => file.name));
+    setNewAttachments(files);
     setFormData((prev) => ({ ...prev, attachment_url: files }));
   };
 
-  // Handle checkbox change
   const handleFilterChange = (e) => {
     const value = e.target.value;
     setFilterType(value);
-    // No direct call to setFilteredEmployees here!
   };
 
   const handleDepartmentDoubleClick = (departmentName) => {
@@ -253,7 +268,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
     });
   };
 
-  // Handle employee selection on double click
   const handleDoubleClick = (employee) => {
     if (!employee) return;
 
@@ -270,7 +284,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
       }
       const updatedEmployees = [...prev, newEmployee];
 
-      // ✅ Update formData inside the same function
       setFormData((prev) => ({
         ...prev,
         employee_list: updatedEmployees.map((emp) => emp.employee_id),
@@ -281,8 +294,8 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
   };
 
   const formatDate = (isoString) => {
-    if (!isoString) return ""; // Handle undefined/null values
-    return new Date(isoString).toISOString().split("T")[0]; // Convert to YYYY-MM-DD
+    if (!isoString) return "";
+    return new Date(isoString).toISOString().split("T")[0];
   };
 
   useEffect(() => {
@@ -324,7 +337,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
                 ? data.project.key_considerations
                 : [],
             }));
-            // Ensure selectedFiles is always an array
             setSelectedFiles(
               Array.isArray(data.project.attachment_url)
                 ? data.project.attachment_url
@@ -345,12 +357,10 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
     }
   }, [projectData, allEmployees]);
 
-  // ✅ Prevent rendering if formData is still loading
   if (!formData || Object.keys(formData).length === 0) {
     return <p>Loading...</p>;
   }
 
-  // ✅ Ensure formData.project_category is always an array
   const handleCategoryChange = (e) => {
     const { value, checked } = e.target;
     setFormData((prev) => {
@@ -372,7 +382,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
     newPoints[index] = value;
     setPoints(newPoints);
 
-    // ✅ Also update formData
     setFormData((prev) => ({
       ...prev,
       key_considerations: newPoints,
@@ -385,7 +394,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
       const newPoints = [...points, ""];
       setPoints(newPoints);
 
-      // ✅ Sync with formData
       setFormData((prev) => ({
         ...prev,
         key_considerations: newPoints,
@@ -398,8 +406,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
       e.preventDefault();
       const newPoints = points.slice(0, index).concat(points.slice(index + 1));
       setPoints(newPoints);
-
-      // ✅ Sync with formData
       setFormData((prev) => ({
         ...prev,
         key_considerations: newPoints,
@@ -450,15 +456,13 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
       }
 
       if (onProjectAdded) {
-        onProjectAdded(); // Notify parent to refetch
+        onProjectAdded();
       }
 
       showAlert("Project saved successfully!");
 
-      // ✅ Trigger refetch via onSuccess
       if (onSuccess) onSuccess();
 
-      // Close the modal after a short delay
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -511,7 +515,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
       let gstAmount = (gstPercentage / 100) * projectAmount;
       let totalAmount = projectAmount - tdsAmount + gstAmount;
 
-      // Shared recalculation logic for financialDetails
       const updatedFinancialDetails = (prevData.financialDetails || []).map(
         (fd) => {
           const actualAmount = parseFloat(fd.m_actual_amount) || 0;
@@ -531,7 +534,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
         financialDetails: updatedFinancialDetails,
       };
 
-      // Apply individual updates
       if (name === "project_amount") {
         newData = {
           ...newData,
@@ -708,8 +710,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
           let gstAmount = parseFloat(detail.m_gst_amount) || 0;
 
           let updatedDetail = { ...detail };
-
-          // Recalculate m_actual_percentage from m_actual_amount
           if (
             (!detail.m_actual_percentage ||
               detail.m_actual_percentage === "") &&
@@ -721,7 +721,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
             updatedDetail.m_actual_percentage = recalculatedPercentage;
           }
 
-          // Recalculate m_tds_percentage from m_tds_amount
           if (
             (!detail.m_tds_percentage || detail.m_tds_percentage === "") &&
             detail.m_tds_amount &&
@@ -733,7 +732,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
             updatedDetail.m_tds_percentage = recalculatedTdsPercentage;
           }
 
-          // Recalculate m_total_amount
           updatedDetail.m_total_amount = (
             actualAmount -
             tdsAmount +
@@ -1042,7 +1040,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
           </div>
         ))}
       </div>
-      {/* Form Steps */}
       <div className="pj-form-content">
         {step === 1 && (
           <div className="pj-step-one">
@@ -1298,7 +1295,7 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
                       className="pj-hidden-file-input"
                       name="attachment_url"
                       onChange={handleFileUpload}
-                      disabled={!editable[1]} // Use disabled instead of readOnly
+                      disabled={!editable[1]}
                     />
                     <label
                       htmlFor="fileInput"
@@ -1324,13 +1321,11 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
                   value={formData.sts_owner_id || ""}
                   onChange={(e) => {
                     const selectedId = e.target.value;
-                    // Find the employee in the stsOwners list using the selected id
                     const selectedEmp = stsOwners.find(
                       (emp) => emp.employee_id === selectedId
                     );
                     setFormData((prev) => ({
                       ...prev,
-                      // Set both the owner id and the owner's name/contact
                       sts_owner_id: selectedId,
                       sts_owner: selectedEmp ? selectedEmp.name : "",
                       sts_contact: selectedEmp ? selectedEmp.phone_number : "",
@@ -1361,7 +1356,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
                   }
                 />
               </div>
-              {/* Employee Selection */}
               <div className="pj-form-group2">
                 <label>
                   Add Employees{" "}
@@ -1427,7 +1421,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
                   </div>
                 </div>
               </div>
-              {/* Selected Employees */}
               <div className="pj-form-group2">
                 <label>Employee List</label>
                 <div className="employee-list-box">
@@ -1877,7 +1870,6 @@ const ProjectForm = ({ onClose, projectData, onSuccess, onProjectAdded }) => {
           </div>
         )}
       </div>
-      {/* Navigation Buttons */}
       <div className="pj-form-buttons">
         {step > 1 && (
           <button className="pj-cancel-btn" onClick={prevStep}>

@@ -68,32 +68,30 @@ const Invoice = ({ onBack, project }) => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/invoice?projectId=${project.id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": process.env.REACT_APP_API_KEY,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error("Error fetching invoices");
+  const fetchInvoices = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/invoice?projectId=${project.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.REACT_APP_API_KEY,
+          },
         }
-        const data = await response.json();
-        setInvoiceList(data.invoices);
-      } catch (error) {
-        console.error("Error fetching invoices:", error);
+      );
+      if (!response.ok) {
+        throw new Error("Error fetching invoices");
       }
-    };
-
-    if (project?.id) {
-      fetchInvoices();
+      const data = await response.json();
+      setInvoiceList(data.invoices);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
     }
+  };
+
+  useEffect(() => {
+    if (project?.id) fetchInvoices();
   }, [project]);
 
   useEffect(() => {
@@ -230,6 +228,7 @@ const Invoice = ({ onBack, project }) => {
         );
       } else {
         setInvoiceList([...invoiceList, savedInvoice]);
+        await fetchInvoices();
       }
       setShowInvoiceForm(false);
       resetFormFields();
@@ -284,20 +283,15 @@ const Invoice = ({ onBack, project }) => {
   };
 
   const handleDownloadInvoiceWithSeal = async () => {
-    // Hide the modal
     setShowSealModal(false);
 
-    // Merge the current toggle value into the selected invoice.
-    // If an invoice is already selected, merge. Otherwise, fallback to your desired logic.
     const invoiceWithSeal = {
       ...selectedInvoice,
       withSeal: printWithSeal,
     };
 
-    // Set updated invoice data in state, so your printable component uses it.
     setSelectedInvoice(invoiceWithSeal);
 
-    // Proceed with PDF generation using html2canvas and jsPDF:
     setTimeout(async () => {
       const element = document.getElementById("printableArea");
       if (element) {
@@ -340,21 +334,17 @@ const Invoice = ({ onBack, project }) => {
   };
 
   const handleStatusChange = (invoiceId, statusVal) => {
-    // If "Amount Recieved" is selected, open the TDS modal:
     if (statusVal === "Amount Recieved") {
       setTdsForInvoiceId(invoiceId);
-      // Optionally reset modal fields
       setIsTdsDeducted(false);
       setTdsAmount("");
       setShowTdsModal(true);
     } else {
-      // Otherwise, simply update the invoice update state:
       setInvoiceUpdates((prevUpdates) => ({
         ...prevUpdates,
         [invoiceId]: {
           ...prevUpdates[invoiceId],
           status: statusVal,
-          // Optionally clear TDS fields if not applicable:
           tdsDeducted: false,
           tdsAmount: 0,
         },
@@ -362,7 +352,6 @@ const Invoice = ({ onBack, project }) => {
     }
   };
 
-  // Call when confirming TDS modal details.
   const handleConfirmTds = () => {
     if (tdsForInvoiceId) {
       setInvoiceUpdates((prevUpdates) => ({
@@ -439,7 +428,6 @@ const Invoice = ({ onBack, project }) => {
     if (wordCount <= MAX_WORDS) {
       setTerms(value);
     } else {
-      // Trim to max words and set
       const trimmedWords = value.trim().split(/\s+/).slice(0, MAX_WORDS);
       setTerms(trimmedWords.join(" "));
     }
@@ -504,7 +492,6 @@ const Invoice = ({ onBack, project }) => {
                       <div className="description-cell">
                         {(() => {
                           let items = inv.lineItems;
-                          // If it's a string, try to parse it:
                           if (typeof items === "string") {
                             try {
                               items = JSON.parse(items);
@@ -513,7 +500,6 @@ const Invoice = ({ onBack, project }) => {
                               items = [];
                             }
                           }
-                          // Ensure items is an array:
                           if (!Array.isArray(items)) {
                             items = [];
                           }
@@ -534,8 +520,6 @@ const Invoice = ({ onBack, project }) => {
                   <td>{inv.totalExcludingTax}</td>
                   <td>{inv.gstAmount}</td>
                   <td>{inv.totalAmount}</td>
-
-                  {/* Controlled Dropdown for GST Payment */}
                   <td>
                     <select
                       value={
@@ -576,10 +560,12 @@ const Invoice = ({ onBack, project }) => {
                       >
                         <option value="">milestone</option>
                         {inv.milestones.map((ms) => (
-                          <option key={ms.id} value={ms.id}>
-                            {ms.month_year ||
-                              ms.milestone_details ||
-                              "Untitled"}
+                          <option
+                            key={ms.id}
+                            value={ms.id}
+                            data-source={ms.source}
+                          >
+                            {ms.month_year || ms.milestone_details}
                           </option>
                         ))}
                       </select>
@@ -589,11 +575,7 @@ const Invoice = ({ onBack, project }) => {
                   </td>
                   <td>
                     <select
-                      value={
-                        (invoiceUpdates[inv.id] &&
-                          invoiceUpdates[inv.id].status) ||
-                        ""
-                      }
+                      value={invoiceUpdates[inv.id]?.status ?? inv.status ?? ""}
                       onChange={(e) =>
                         handleStatusChange(inv.id, e.target.value)
                       }
@@ -641,8 +623,6 @@ const Invoice = ({ onBack, project }) => {
           )}
         </div>
       </div>
-
-      {/* TDS Modal Popup */}
       {showTdsModal && (
         <div className="tds-modal-overlay">
           <div className="tds-modal-content">
