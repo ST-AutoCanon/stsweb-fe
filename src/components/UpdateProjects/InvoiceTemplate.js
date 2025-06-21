@@ -50,7 +50,7 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
   );
 
   // Use provided totals if available; otherwise compute gross total
-  const grossTotal = totalIncludingTax || totals.total + totalGST;
+  const grossTotal = totals.total + totalGST;
 
   // For invoices from Karnataka, compute half GST values
   const halfGSTRate =
@@ -223,7 +223,7 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
               </strong>
             </td>
             <td>
-              <strong>₹ {Number(grossTotal.toLocaleString("en-IN"))}</strong>
+              <strong>₹ {Number(grossTotal).toLocaleString("en-IN")}</strong>
             </td>
           </tr>
         </tbody>
@@ -268,7 +268,7 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
             <strong>Order Amount in words</strong>
           </p>
           <div className="emp-amount-in-words-text">
-            {numberToWords(Math.round(grossTotal || 0))}
+            {numberToWords(Math.round(totalIncludingTax || 0))}
           </div>
           <p className="emp-amount-in-words">
             <strong>Terms and Conditions</strong>
@@ -285,7 +285,7 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
             <div className="emp-amounts-section">
               <p className="emp-total-block">
                 <p>Sub Total</p>
-                <p>₹ {Number(totals.total).toLocaleString("en-IN")}</p>
+                <p>₹ {Number(grossTotal).toLocaleString("en-IN")}</p>
               </p>
             </div>
             <div className="emp-amounts-section">
@@ -359,3 +359,4 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
 });
 
 export default InvoiceTemplate;
+
