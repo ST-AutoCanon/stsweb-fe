@@ -110,3 +110,37 @@
   font-size: 18px;
   text-align: center;
 }
+
+@media (max-width: 480px) {
+  .face-punch-container {
+    width: 92%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    margin-top: 240px;
+    border-radius: 14px;
+  }
+
+  .status-message,
+  .cooldown-message {
+    width: 90%;
+    font-size: 13px;
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .employee-info-message {
+    font-size: 16px;
+    margin-top: 8px;
+  }
+
+  #scanButton {
+    position: relative;
+    margin: 20px auto 0;
+    display: block;
+    padding: 12px 28px;
+    font-size: 15px;
+    border-radius: 10px;
+    transform: none;
+  }
+}

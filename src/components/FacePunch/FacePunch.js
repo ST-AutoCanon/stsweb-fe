@@ -1,6 +1,5 @@
 
 
-
 import React, { useEffect, useRef, useState } from "react";
 import * as faceapi from "face-api.js";
 import "./FacePunch.css";
@@ -10,11 +9,12 @@ import "react-toastify/dist/ReactToastify.css";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const COOLDOWN_PERIOD = 30000; // 60 seconds cooldown (adjustable)
+const COOLDOWN_PERIOD = 10000; // 10 seconds cooldown (adjustable)
 const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
-  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
+const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
+
 const FacePunch = () => {
   const videoRef = useRef();
   const canvasRef = useRef();
@@ -23,8 +23,8 @@ const FacePunch = () => {
   const [lastPunchTime, setLastPunchTime] = useState(0);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [lastPunchStatus, setLastPunchStatus] = useState(null);
-  const [employeeInfo, setEmployeeInfo] = useState(null); // ✅ New state for employee info
-  const streamRef = useRef(null); // New ref to hold the camera stream
+  const [employeeInfo, setEmployeeInfo] = useState(null);
+  const streamRef = useRef(null);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -109,7 +109,7 @@ const FacePunch = () => {
         }
 
         if (detections.length > 0) {
-          console.log("Face detected, punching...");
+          console.log("Face detected, initiating punch...");
           await captureAndPunch(detections[0]);
           setLastPunchTime(Date.now());
           setCooldownRemaining(COOLDOWN_PERIOD / 1000);
@@ -130,7 +130,7 @@ const FacePunch = () => {
 
   const getLastPunchStatus = async (descriptorArray) => {
     try {
-      console.log("Fetching last punch status");
+      console.log("Fetching last punch status with descriptor:", descriptorArray);
       const response = await axios.post(
         `${BACKEND_URL}/last-punch-status`,
         { descriptor: descriptorArray },
@@ -141,8 +141,8 @@ const FacePunch = () => {
           },
         }
       );
-      console.log("Last punch status:", response.data);
-      return response.data.status;
+      console.log("Last punch status response:", response.data);
+      return response.data.status || null;
     } catch (error) {
       console.error(
         "Error fetching last punch status:",
@@ -152,11 +152,25 @@ const FacePunch = () => {
     }
   };
 
+  const speakPunchStatus = (name, status) => {
+    console.log("speakPunchStatus called with:", { name, status });
+    const announcement = `${name} ${status}`;
+    const utterance = new SpeechSynthesisUtterance(announcement);
+    utterance.lang = "en-US";
+    utterance.volume = 1;
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    console.log("Announcing:", announcement);
+    window.speechSynthesis.speak(utterance);
+  };
+
   const captureAndPunch = async (detection) => {
     const descriptorArray = Array.from(detection.descriptor);
     try {
       const lastStatus = await getLastPunchStatus(descriptorArray);
+      console.log("Determined lastStatus:", lastStatus);
       const punchType = lastStatus === "punch-in" ? "punch-out" : "punch-in";
+      console.log("Calculated punchType:", punchType);
 
       console.log(`Sending ${punchType} request to backend`);
       const response = await axios.post(
@@ -175,21 +189,40 @@ const FacePunch = () => {
 
       console.log("Full punch response:", response.data);
 
-      console.log(`${punchType} response:`, response.data.message);
-      setLastPunchStatus(punchType);
+      // Extract status from response.data.message
+      const message = response.data.message ? response.data.message.toLowerCase() : "";
+      let announcementStatus;
+      if (message.includes("punch out") || message.includes("punched out") || message.includes("punch-out")) {
+        announcementStatus = "punched out";
+      } else if (message.includes("punch in") || message.includes("punched in") || message.includes("punch-in")) {
+        announcementStatus = "punched in";
+      } else {
+        announcementStatus = punchType === "punch-in" ? "punched in" : "punched out";
+      }
+      console.log("Extracted announcementStatus from message:", announcementStatus);
 
-      // ✅ Store employee info if provided
-    if (response.data.employee_id) {
-  setEmployeeInfo({
-    id: response.data.employee_id,
-    name: response.data.employee_name || "Employee", // fallback if name missing
-  });
-}
+      // Update lastPunchStatus with confirmed punchType from backend or calculated
+      const confirmedPunchType = response.data.punchType || punchType;
+      console.log("Confirmed punchType:", confirmedPunchType);
+      setLastPunchStatus(confirmedPunchType);
 
+      // Store employee info and announce
+      if (response.data.employee_id) {
+        const employeeData = {
+          id: response.data.employee_id,
+          name: response.data.employee_name || "Employee",
+        };
+        setEmployeeInfo(employeeData);
 
-toast.success(`${response.data.message} (${response.data.employee_id})`, {
-  autoClose: 2000,
-});
+        // Announce using extracted status
+        speakPunchStatus(employeeData.name, announcementStatus);
+      } else {
+        console.warn("No employee_id in response, skipping announcement");
+      }
+
+      toast.success(`${response.data.message} (${response.data.employee_id})`, {
+        autoClose: 2000,
+      });
     } catch (error) {
       console.error(
         "Error sending punch:",
@@ -223,13 +256,12 @@ toast.success(`${response.data.message} (${response.data.employee_id})`, {
       </div>
 
       {employeeInfo ? (
-  <div className="employee-info-message">
-    Detected: {employeeInfo.name} ({employeeInfo.id})
-  </div>
-) : (
-  <div className="employee-info-message">No employee info detected yet.</div>
-)}
-
+        <div className="employee-info-message">
+          Detected: {employeeInfo.name} ({employeeInfo.id})
+        </div>
+      ) : (
+        <div className="employee-info-message">No employee info detected yet.</div>
+      )}
 
       {(isProcessing || cooldownRemaining > 0) && (
         <div className="cooldown-message">
