@@ -1,277 +1,558 @@
 
-import React, { useState, useRef } from 'react';
+
+
+import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import generatePDF from './generatepdfforletters';
 import './letterhead.css';
+import { letterFields } from "./../../utils/letterFeilds"
+import Modal from "../Modal/Modal";
 
 const LetterHead = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [letterType, setLetterType] = useState('Letter');
-  const [address, setAddress] = useState('');
-  const [date, setDate] = useState('');
-  const [subject, setSubject] = useState('');
-  const [signature, setSignature] = useState('');
-  const [recipientName, setRecipientName] = useState('');
-  const [employeeName, setEmployeeName] = useState('');
-  const [position, setPosition] = useState('');
-  const [effectiveDate, setEffectiveDate] = useState('');
+  const [letterheads, setLetterheads] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showDetailsPopup, setShowDetailsPopup] = useState(null);
   const contentRef = useRef(null);
   const letterRef = useRef(null);
 
   const originalLogo = '/images/OriginalLogo.png';
-const API_KEY = process.env.REACT_APP_API_KEY;
-const meId = JSON.parse(
-    localStorage.getItem("dashboardData") || "{}"
-  ).employeeId;
-  const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
+  const API_KEY = process.env.REACT_APP_API_KEY;
+  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+  const headers = {
+    "x-api-key": API_KEY,
+    "x-employee-id": meId,
+  };
+  const [alertModal, setAlertModal] = useState({
+      isVisible: false,
+      title: "",
+      message: "",
+    });
+const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
 
-  const [name, setName] = useState('');
-  const [content, setContent] = useState('');
-  const [message, setMessage] = useState('');
-
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
   const [formData, setFormData] = useState({
-  template_name: '',
-  letter_type: '',
-  subject: '',
-  body: '',
-  
-});
+    letterhead_code: '',
+    template_name: '',
+    letter_type: 'Letter',
+    subject: '',
+    body: '',
+    recipient_name: '',
+    title: '',
+    mobile_number: '',
+    email: '',
+    address: '',
+    date: '',
+    signature: '',
+    employee_name: '',
+    position: '',
+    annual_salary: '',
+    effective_date: '',
+    date_of_appointment: '',
+    company_name: '',
+    company_address: '',
+    company_address_line2: '',
+    gstin_number: '',
+    cin_number: '',
+    place: '',
+  });
 
+  const fallbackTemplate = `
+    <h1 style="font-weight: bold;">General Letter</h1>
+    <p>Dear [Recipient Name],</p>
+    <h2 style="font-weight: bold;">Introduction</h2>
+    <p>This is a general letter template. Please edit the content as needed to suit your requirements.</p>
+    <h2 style="font-weight: bold;">Conclusion</h2>
+    <p>Thank you.</p>
+    <p>Regards,</p>
+  `;
 
+  const bankDetailsTemplate = `
+    <h1 style="font-weight: bold;">Bank Details Letter</h1>
+    <p>[Place], [Date]</p>
+    <p>Dear [Title] [Recipient Name],</p>
+    <h2 style="font-weight: bold;">Introduction</h2>
+    <p>We are pleased to provide the bank details for [Recipient Name], who joined our organization on [Date of Appointment].</p>
+    <h2 style="font-weight: bold;">Bank Details</h2>
+    <p>Please update the following details in your records.</p>
+    <p>Regards,</p>
+  `;
 
-  const showAlert = (message) => {
-    console.log('Current formData:', formData);
-    alert(message); // You can customize this to show a styled popup
+  const bankDetailsRequestTemplate = `
+    <h1 style="font-weight: bold;">Bank Details Request Letter</h1>
+    <p>[Place], [Date]</p>
+    <p>Dear [Title] [Recipient Name],</p>
+    <h2 style="font-weight: bold;">Introduction</h2>
+    <p>We kindly request [Recipient Name] to provide their bank details for our records, effective from [Date of Appointment].</p>
+    <h2 style="font-weight: bold;">Details Required</h2>
+    <p>Please submit the required bank details at your earliest convenience.</p>
+    <p>Regards,</p>
+  `;
+
+  const parseTemplateToHTML = (content) => {
+    if (!content || typeof content !== 'string') return fallbackTemplate;
+    if (content.includes('<h1') || content.includes('<h2') || content.includes('<p')) {
+      return content;
+    }
+    const lines = content.split('\n').filter(line => line.trim());
+    let htmlContent = '';
+    lines.forEach(line => {
+      if (line.startsWith('# ')) {
+        htmlContent += `<h1 style="font-weight: bold;">${line.slice(2).trim()}</h1>`;
+      } else if (line.startsWith('## ')) {
+        htmlContent += `<h2 style="font-weight: bold;">${line.slice(3).trim()}</h2>`;
+      } else {
+        htmlContent += `<p>${line.trim()}</p>`;
+      }
+    });
+    return htmlContent || fallbackTemplate;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [templatesResponse, letterheadsResponse] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/templates/list`, { headers }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/letterheads/list`, { headers }),
+        ]);
+        setTemplates(templatesResponse.data.data || []);
+        setLetterheads(letterheadsResponse.data.data || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        alert('Failed to fetch data: ' + (error.response?.data?.error || error.message));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // const showAlert = (message) => {
+  //   console.log('Current formData:', formData);
+  //   alert(message);
+  // };
+
+  const formatDateToDDMMMYYYY = (dateString) => {
+    if (!dateString) return '[Date]';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).replace(/ /g, '-');
+  };
+
+  const handleDownload = async (filename) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/download/${filename}`,
+        { headers, responseType: 'blob' }
+      );
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      console.log('File downloaded successfully:', filename);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      showAlert(error.response?.data?.message || 'Failed to download file');
+    }
+  };
+
+  const handleEdit = (letterhead) => {
+    setIsEditing(true);
+    setEditingId(letterhead.id);
+    setLetterType(letterhead.letter_type);
+    const templateContent = letterhead.letter_type === 'Bank Details' ? bankDetailsTemplate : 
+                           letterhead.letter_type === 'Bank Details Request Letter' ? bankDetailsRequestTemplate : 
+                           fallbackTemplate;
+    const body = letterhead.body || (templates.find((t) => t.letter_type === letterhead.letter_type)?.content || templateContent);
+    setFormData({
+      letterhead_code: letterhead.letterhead_code || '',
+      template_name: letterhead.template_name || '',
+      letter_type: letterhead.letter_type || 'Letter',
+      subject: letterhead.subject || '',
+      body: parseTemplateToHTML(body),
+      recipient_name: letterhead.recipient_name || '',
+      title: letterhead.title || '',
+      mobile_number: letterhead.mobile_number || '',
+      email: letterhead.email || '',
+      address: letterhead.address || '',
+      date: letterhead.date ? letterhead.date.split('T')[0] : '',
+      signature: letterhead.signature || '',
+      employee_name: letterhead.employee_name || '',
+      position: letterhead.position || '',
+      annual_salary: letterhead.annual_salary || '',
+      effective_date: letterhead.effective_date ? letterhead.effective_date.split('T')[0] : '',
+      date_of_appointment: letterhead.date_of_appointment ? letterhead.date_of_appointment.split('T')[0] : '',
+      company_name: letterhead.company_name || '',
+      company_address: letterhead.company_address || '',
+      company_address_line2: letterhead.company_address_line2 || '',
+      gstin_number: letterhead.gstin_number || '',
+      cin_number: letterhead.cin_number || '',
+      place: letterhead.place || '',
+    });
+    if (contentRef.current) {
+      let content = parseTemplateToHTML(body);
+      content = content
+        .replace('[Recipient Name]', letterhead.recipient_name || '[Recipient Name]')
+        .replace('[Title]', letterhead.title || '[Title]')
+        .replace('[Mobile Number]', letterhead.mobile_number || '[Mobile Number]')
+        .replace('[Email]', letterhead.email || '[Email]')
+        .replace(/\[Employee Name\]/g, letterhead.employee_name || '[Employee Name]')
+        .replace(/\[Position\]/g, letterhead.position || '[Position]')
+        .replace(/\[Date\]/g, letterhead.date ? formatDateToDDMMMYYYY(letterhead.date) : '[Date]')
+        .replace('[Date of Appointment]', letterhead.date_of_appointment ? formatDateToDDMMMYYYY(letterhead.date_of_appointment) : '[Date of Appointment]')
+        .replace('[Annual Salary]', letterhead.annual_salary || '[Annual Salary]')
+        .replace('[Company Name]', letterhead.company_name || '[Company Name]')
+        .replace('[Place]', letterhead.place || '[Place]');
+      contentRef.current.innerHTML = content;
+    }
+    setShowPopup(true);
   };
 
   const handleSave = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    if (!letterRef.current || !contentRef.current) {
+      showAlert('Form is not ready. Please try again.');
+      return;
+    }
+    const {
+      letterhead_code,
+      template_name,
+      letter_type,
+      subject,
+      recipient_name,
+      title,
+      mobile_number,
+      email,
+      address,
+      date,
+      signature,
+      employee_name,
+      position,
+      annual_salary,
+      effective_date,
+      date_of_appointment,
+      company_name,
+      company_address,
+      company_address_line2,
+      gstin_number,
+      cin_number,
+      place,
+    } = formData;
+    const body = contentRef.current.innerHTML;
 
-  const { template_name, letter_type, subject, body } = formData;
-
-  // === Validation ===
-  if (!template_name || template_name.trim() === '') {
-    showAlert('Template name is required');
-    return;
-  }
-
-  if (!letter_type || letter_type.trim() === '') {
-    showAlert('Letter type is required');
-    return;
-  }
-
-  if (!subject || subject.trim() === '') {
-    showAlert('Subject is required');
-    return;
-  }
-
-  if (!body || body.trim() === '') {
-    showAlert('Letter body is required');
-    return;
-  }
-
-  // Replace these with actual values (e.g. from user session or context)
-  const API_KEY = 'your_api_key_here';
-  const meId = 'your_employee_id_here';
-
-  try {
-    const response = await axios.post(
-      
-      'http://localhost:5000/api/letterheads/add',
-      {
-        template_name,
-        letter_type,
-        subject,
-        body,
-      },
-      {
-        headers: {
-          'x-api-key': API_KEY,
-          'x-employee-id': meId,
-          'Content-Type': 'application/json',
-        },
+    if (!letter_type || letter_type.trim() === '') {
+      showAlert('Letter type is required');
+      return;
+    }
+    if (!subject || subject.trim() === '') {
+      showAlert('Subject is required');
+      return;
+    }
+    if (!body || body.trim() === '') {
+      showAlert('Letter body is required');
+      return;
+    }
+    if (letter_type === 'Offer Letter') {
+      if (!title || title.trim() === '') {
+        showAlert('Title (Mr/Miss/Mrs) is required for Offer Letter');
+        return;
       }
-    );
+      if (!recipient_name || recipient_name.trim() === '') {
+        showAlert('Recipient name is required for Offer Letter');
+        return;
+      }
+      if (!position || position.trim() === '') {
+        showAlert('Position is required for Offer Letter');
+        return;
+      }
+      if (!annual_salary || annual_salary.trim() === '') {
+        showAlert('Annual salary is required for Offer Letter');
+        return;
+      }
+      if (!date_of_appointment || date_of_appointment.trim() === '') {
+        showAlert('Date of appointment is required for Offer Letter');
+        return;
+      }
+    }
+    if (['Bank Details', 'Bank Details Request Letter'].includes(letter_type)) {
+      if (!title || title.trim() === '') {
+        showAlert('Title (Mr/Mrs) is required for ' + letter_type);
+        return;
+      }
+      if (!recipient_name || recipient_name.trim() === '') {
+        showAlert('Recipient name is required for ' + letter_type);
+        return;
+      }
+      if (!date || date.trim() === '') {
+        showAlert('Date is required for ' + letter_type);
+        return;
+      }
+      
+      if (!date_of_appointment || date_of_appointment.trim() === '') {
+        showAlert('Date of joining is required for ' + letter_type);
+        return;
+      }
+    }
 
-    showAlert('Letterhead saved successfully!');
-    console.log('Response:', response.data);
-  } catch (error) {
-    const errorMessage = error.response?.data?.error || error.message;
-    console.error('Error saving letterhead:', errorMessage);
-    showAlert(`Failed to save letterhead: ${errorMessage}`);
-  }
-};
+    let pdfFile;
+    try {
+      const pdfBlob = await generatePDF(
+        letterRef.current,
+        letter_type,
+        originalLogo,
+        recipient_name,
+        employee_name,
+        position,
+        effective_date,
+        company_name,
+        gstin_number,
+        cin_number,
+        address,
+        true
+      );
+      pdfFile = new File([pdfBlob], `letterhead-${Date.now()}.pdf`, { type: 'application/pdf' });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      showAlert(`Failed to generate PDF: ${error.message}`);
+      return;
+    }
 
+    const formDataToSend = new FormData();
+    formDataToSend.append('letterhead_code', letterhead_code || '');
+    formDataToSend.append('template_name', template_name);
+    formDataToSend.append('letter_type', letter_type);
+    formDataToSend.append('subject', subject);
+    formDataToSend.append('body', body);
+    formDataToSend.append('recipient_name', recipient_name || '');
+    formDataToSend.append('title', title || '');
+    formDataToSend.append('mobile_number', mobile_number || '');
+    formDataToSend.append('email', email || '');
+    formDataToSend.append('address', address || '');
+    formDataToSend.append('date', date ? new Date(date).toISOString().split('T')[0] : '');
+    formDataToSend.append('signature', signature || '');
+    formDataToSend.append('employee_name', letter_type === 'Relieving Letter' ? employee_name : '');
+    formDataToSend.append('position', ['Relieving Letter', 'Offer Letter', 'Bank Details Request Letter'].includes(letter_type) ? position : '');
+    formDataToSend.append('annual_salary', letter_type === 'Offer Letter' ? annual_salary : '');
+    formDataToSend.append('effective_date', effective_date ? new Date(effective_date).toISOString().split('T')[0] : '');
+    formDataToSend.append('date_of_appointment', date_of_appointment ? new Date(date_of_appointment).toISOString().split('T')[0] : '');
+    formDataToSend.append('company_name', company_name || '');
+    formDataToSend.append('company_address', company_address || '');
+    formDataToSend.append('company_address_line2', company_address_line2 || '');
+    formDataToSend.append('gstin_number', gstin_number || '');
+    formDataToSend.append('cin_number', cin_number || '');
+    formDataToSend.append('place', ['Bank Details', 'Bank Details Request Letter'].includes(letter_type) ? place : '');
+    formDataToSend.append('letterhead_file', pdfFile);
 
-// const handleSave = async (e) => {
-//   e.preventDefault();
-
-//   // Validate Company Name
-//   if (!formData.company_name || formData.company_name.trim() === '') {
-//     showAlert('Company name is required and cannot be empty');
-//     return;
-//   }
-
-//   // Validate Years of Experience
-//   const years = formData.years_of_experience;
-//   if (!years) {
-//     showAlert('Years of Experience is required');
-//     return;
-//   }
-//   if (/[^0-9]/.test(years)) {
-//     showAlert('Years of Experience must contain only numbers');
-//     return;
-//   }
-//   if (parseInt(years) <= 0) {
-//     showAlert('Years of Experience must be a positive number');
-//     return;
-//   }
-
-//   // Validate Contact 1 fields
-//   if (!formData.contact1_name || formData.contact1_name.trim() === '') {
-//     showAlert('Contact 1 Name is required and cannot be empty');
-//     return;
-//   }
-//   if (!formData.contact1_designation || formData.contact1_designation.trim() === '') {
-//     showAlert('Contact 1 Designation is required and cannot be empty');
-//     return;
-//   }
-//   if (!formData.contact1_mobile || formData.contact1_mobile.trim() === '') {
-//     showAlert('Contact 1 Mobile Number is required and cannot be empty');
-//     return;
-//   }
-//   if (!formData.contact1_email || formData.contact1_email.trim() === '') {
-//     showAlert('Contact 1 Email ID is required and cannot be empty');
-//     return;
-//   }
-
-//   // You can add more validations here...
-
-//   // Prepare payload (assuming JSON)
-//   const payload = { ...formData };
-
-//   // Prepare headers with API key and employee ID
-//   const headers = {
-//     'x-api-key': API_KEY,           // Replace this with your actual API key
-//     'x-employee-id': meId,   // Replace this with actual Employee ID
-//     'Content-Type': application/json,
-//   };
-
-//   try {
-//     const response = await axios.post(
-//       'http://localhost:5000/api/letterheads/add',
-//       payload,
-//       { headers }
-//     );
-
-//     showAlert('Data saved successfully!');
-//     // Optionally reset form or close modal here
-//   } catch (error) {
-//     const errMsg = error.response?.data?.message || error.message || 'Unknown error';
-//     showAlert(`Failed to save data: ${errMsg}`);
-//   }
-// };
-
-const letterTemplates = {
-    'Offer Letter': `
-      Dear [Recipient Name],
-
-      We are pleased to offer you the position of [Position] at Sukalpa Tech Solutions Pvt Ltd. Your skills and experience align perfectly with our team’s vision. Below are the details of your employment:
-
-      - <strong>Position</strong>: [Position]
-      - <strong>Start Date</strong>: [Start Date]
-      - <strong>Salary</strong>: [Salary Details]
-      - <strong>Benefits</strong>: [Benefits Details]
-
-      Please confirm your acceptance by signing and returning a copy of this letter by [Date].
-
-      We look forward to welcoming you to the team!
-
-      Best Regards,
-    `,
-    'Relieving Letter': `
-      Dear [Recipient Name],
-
-      This is to certify that [Employee Name] has been relieved from their duties as [Position] at Sukalpa Tech Solutions Pvt Ltd, effective [Date]. During their tenure, [Employee Name] demonstrated professionalism and dedication.
-
-      We wish them the very best in their future endeavors.
-
-      Sincerely,
-    `,
-    'Bank Details Request Letter': `
-      Dear [Recipient Name],
-
-      Subject: Request for Bank Details
-
-      We hope this message finds you well. To facilitate [Purpose, e.g., salary processing, vendor payments], kindly provide the following bank details:
-
-      - <strong>Bank Name</strong>:
-      - <strong>Account Number</strong>:
-      - <strong>IFSC Code</strong>:
-      - <strong>Branch Name</strong>:
-
-      Please submit these details by [Date] to ensure timely processing.
-
-      Thank you for your cooperation.
-
-      Regards,
-    `,
-    'Letter': `
-      Dear [Recipient Name],
-
-      This is a general letter template. Please edit the content as needed to suit your requirements.
-
-      Thank you.
-
-      Regards,
-    `,
+    try {
+      let response;
+      if (isEditing) {
+        response = await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/update/${editingId}`,
+          formDataToSend,
+          { headers: { ...headers, 'Content-Type': 'multipart/form-data' } }
+        );
+        showAlert('Letterhead updated successfully!');
+        setIsEditing(false);
+        setEditingId(null);
+      } else {
+        response = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/add`,
+          formDataToSend,
+          { headers: { ...headers, 'Content-Type': 'multipart/form-data' } }
+        );
+        showAlert('Letterhead saved successfully!');
+      }
+      const updatedResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/letterheads/list`, { headers });
+      setLetterheads(updatedResponse.data.data || []);
+      setShowPopup(false);
+      setFormData({
+        letterhead_code: '',
+        template_name: '',
+        letter_type: 'Letter',
+        subject: '',
+        body: '',
+        recipient_name: '',
+        title: '',
+        mobile_number: '',
+        email: '',
+        address: '',
+        date: '',
+        signature: '',
+        employee_name: '',
+        position: '',
+        annual_salary: '',
+        effective_date: '',
+        date_of_appointment: '',
+        company_name: '',
+        company_address: '',
+        company_address_line2: '',
+        gstin_number: '',
+        cin_number: '',
+        place: '',
+      });
+      setLetterType('Letter');
+      if (contentRef.current) {
+        contentRef.current.innerHTML = parseTemplateToHTML(fallbackTemplate);
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message;
+      console.error('Error:', isEditing ? 'updating' : 'saving', 'letterhead:', error);
+      showAlert(`Failed to ${isEditing ? 'update' : 'save'} letterhead: ${errorMessage}`);
+    }
   };
 
   const handleLetterTypeChange = (e) => {
     const selectedType = e.target.value;
     setLetterType(selectedType);
-    if (contentRef.current) {
-      let template = letterTemplates[selectedType];
-      template = template
-        .replace('[Recipient Name]', recipientName || '[Recipient Name]')
-        .replace(/\[Employee Name\]/g, employeeName || '[Employee Name]')
-        .replace(/\[Position\]/g, position || '[Position]')
-        .replace(/\[Date\]/g, effectiveDate || '[Date]');
-      contentRef.current.innerHTML = template;
+    setFormData((prev) => ({
+      ...prev,
+      letter_type: selectedType,
+      subject: '',
+      body: '',
+      recipient_name: '',
+      title: '',
+      mobile_number: '',
+      email: '',
+      address: '',
+      date: '',
+      signature: '',
+      employee_name: '',
+      position: '',
+      annual_salary: '',
+      effective_date: '',
+      date_of_appointment: '',
+      company_name: '',
+      company_address: '',
+      company_address_line2: '',
+      gstin_number: '',
+      cin_number: '',
+      place: '',
+    }));
+
+    const selectedTemplate = templates.find((template) => template.letter_type === selectedType);
+    const templateContent = selectedType === 'Bank Details' ? bankDetailsTemplate : 
+                           selectedType === 'Bank Details Request Letter' ? bankDetailsRequestTemplate : 
+                           fallbackTemplate;
+    if (selectedTemplate && contentRef.current) {
+      const content = parseTemplateToHTML(selectedTemplate.content || templateContent);
+      setFormData((prev) => ({
+        ...prev,
+        letter_type: selectedType,
+        subject: selectedTemplate.subject || '',
+        body: content,
+        company_name: selectedTemplate.company_name || '',
+        company_address: selectedTemplate.company_address || '',
+        company_address_line2: selectedTemplate.company_address_line2 || '',
+        gstin_number: selectedTemplate.gstin_number || '',
+        cin_number: selectedTemplate.cin_number || '',
+      }));
+      contentRef.current.innerHTML = content;
+    } else if (contentRef.current) {
+      const content = parseTemplateToHTML(templateContent);
+      contentRef.current.innerHTML = content;
+      setFormData((prev) => ({
+        ...prev,
+        letter_type: selectedType,
+        subject: selectedType === 'Letter' ? '' : selectedType,
+        body: content,
+      }));
     }
-    setSubject(selectedType === 'Letter' ? '' : selectedType);
   };
 
   const applyFormat = (command, value = null) => {
     document.execCommand(command, false, value);
-    contentRef.current.focus();
+    contentRef.current?.focus();
+    setFormData((prev) => ({
+      ...prev,
+      body: contentRef.current?.innerHTML || prev.body,
+    }));
   };
 
-  const handleGenerate = () => {
-    const element = letterRef.current;
-    generatePDF(element, letterType, originalLogo, recipientName, employeeName, position, effectiveDate);
+  const handleContentChange = () => {
+    setFormData(prev => ({
+      ...prev,
+      body: contentRef.current?.innerHTML || '',
+    }));
+  };
+
+  const handleGenerate = async () => {
+    if (!letterRef.current || !contentRef.current) {
+      showAlert('Form is not ready. Please try again.');
+      return;
+    }
+    try {
+      await generatePDF(
+        letterRef.current,
+        letterType,
+        originalLogo,
+        formData.recipient_name,
+        formData.employee_name,
+        formData.position,
+        formData.effective_date,
+        formData.company_name,
+        formData.gstin_number,
+        formData.cin_number,
+        formData.address
+      );
+      setFormData((prev) => ({
+        ...prev,
+        body: contentRef.current.innerHTML,
+      }));
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      showAlert(`Failed to generate PDF: ${error.message}`);
+    }
   };
 
   const handlePreview = async () => {
+    if (!letterRef.current || !contentRef.current) {
+      showAlert('Form is not ready. Please try again.');
+      return;
+    }
     try {
-      const element = letterRef.current;
       const pdfBlob = await generatePDF(
-        element,
+        letterRef.current,
         letterType,
         originalLogo,
-        recipientName,
-        employeeName,
-        position,
-        effectiveDate,
+        formData.recipient_name,
+        formData.employee_name,
+        formData.position,
+        formData.effective_date,
+        formData.company_name,
+        formData.gstin_number,
+        formData.cin_number,
+        formData.address,
         true
       );
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      setPdfUrl(pdfUrl);
+      const pdfUri = URL.createObjectURL(pdfBlob);
+      setPdfUrl(pdfUri);
       setShowPreview(true);
+      setFormData((prev) => ({
+        ...prev,
+        body: contentRef.current.innerHTML,
+      }));
     } catch (error) {
       console.error('Error generating PDF preview:', error);
-      alert('Failed to generate PDF preview. Check console for details.');
+      showAlert(`Failed to generate PDF preview: ${error.message}`);
     }
   };
 
@@ -281,6 +562,41 @@ const letterTemplates = {
       setPdfUrl(null);
     }
     setShowPreview(false);
+  };
+
+  const handleCancel = () => {
+    setShowPopup(false);
+    setIsEditing(false);
+    setEditingId(null);
+    setFormData({
+      letterhead_code: '',
+      template_name: '',
+      letter_type: 'Letter',
+      subject: '',
+      body: '',
+      recipient_name: '',
+      title: '',
+      mobile_number: '',
+      email: '',
+      address: '',
+      date: '',
+      signature: '',
+      employee_name: '',
+      position: '',
+      annual_salary: '',
+      effective_date: '',
+      date_of_appointment: '',
+      company_name: '',
+      company_address: '',
+      company_address_line2: '',
+      gstin_number: '',
+      cin_number: '',
+      place: '',
+    });
+    setLetterType('Letter');
+    if (contentRef.current) {
+      contentRef.current.innerHTML = parseTemplateToHTML(fallbackTemplate);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -295,31 +611,284 @@ const letterTemplates = {
       range.collapse(true);
       selection.removeAllRanges();
       selection.addRange(range);
-      contentRef.current.focus();
+      contentRef.current?.focus();
+      setFormData((prev) => ({
+        ...prev,
+        body: contentRef.current?.innerHTML || prev.body,
+      }));
     }
   };
 
+  const [originalTemplate, setOriginalTemplate] = useState('');
+
+  useEffect(() => {
+    const html = parseTemplateToHTML(
+      formData.body || 
+      (letterType === 'Bank Details' ? bankDetailsTemplate : 
+       letterType === 'Bank Details Request Letter' ? bankDetailsRequestTemplate : 
+       fallbackTemplate)
+    );
+    setOriginalTemplate(html);
+  }, [letterType]);
+
+  const updateContentWithFormData = (field, value) => {
+  if (!originalTemplate || !contentRef.current) return;
+
+  const replacements = {
+    title: ['[Title]', formData.title || '[Title]'],
+    recipient_name: ['[Recipient Name]', formData.recipient_name || '[Recipient Name]'],
+    position: ['[Position]', formData.position || '[Position]'],
+    date_of_appointment: [
+      '[Date of Appointment]',
+      formData.date_of_appointment ? formatDateToDDMMMYYYY(formData.date_of_appointment) : '[Date of Appointment]',
+    ],
+    employee_name: ['[Employee Name]', formData.employee_name || '[Employee Name]'],
+    employee_id: ['[Employee ID]', formData.employee_id || '[Employee ID]'],
+    date_of_birth: [
+      '[Date of Birth]',
+      formData.date_of_birth ? formatDateToDDMMMYYYY(formData.date_of_birth) : '[Date of Birth]',
+    ],
+    contact_number: ['[Contact Number]', formData.contact_number || '[Contact Number]'],
+    residential_address: ['[Residential Address]', formData.residential_address || '[Residential Address]'],
+    date: ['[Date]', formData.date ? formatDateToDDMMMYYYY(formData.date) : '[Date]'],
+    signature: ['[Signature]', formData.signature || '[Signature]'],
+    mobile_number: ['[Mobile Number]', formData.mobile_number || '[Mobile Number]'], // Added
+    email: ['[Email]', formData.email || '[Email]'], // Added
+    annual_salary: ['[Annual Salary]', formData.annual_salary || '[Annual Salary]'], // Added
+  };
+
+  if (!replacements[field]) {
+    console.warn(`Field ${field} not found in replacements object`);
+    return;
+  }
+
+  replacements[field][1] = value;
+
+  let updatedContent = originalTemplate;
+
+  Object.values(replacements).forEach(([placeholder, replacement]) => {
+    const regex = new RegExp(placeholder.replace(/\[|\]/g, '\\$&'), 'g');
+    updatedContent = updatedContent.replace(regex, replacement);
+  });
+
+  contentRef.current.innerHTML = updatedContent;
+
+  setFormData((prev) => ({
+    ...prev,
+    [field]: value,
+    body: updatedContent,
+  }));
+};
+  useEffect(() => {
+    if (contentRef.current && !formData.body) {
+      contentRef.current.innerHTML = parseTemplateToHTML(
+        letterType === 'Bank Details' ? bankDetailsTemplate : 
+        letterType === 'Bank Details Request Letter' ? bankDetailsRequestTemplate : 
+        fallbackTemplate
+      );
+    }
+  }, [letterType]);
+
+  const handleViewDetails = (letterhead, type) => {
+    setShowDetailsPopup({ letterhead, type });
+  };
+
+  const handleCloseDetailsPopup = () => {
+    setShowDetailsPopup(null);
+  };
+
+  const renderField = (field) => {
+    if (field.type === 'select') {
+      return (
+        <div className="letterhead-form-row" key={field.id}>
+          <div className="letterhead-form-group">
+            <label htmlFor={field.id}>{field.label}</label>
+            <div className="letterhead-input-container">
+              <select
+                id={field.id}
+                value={formData[field.name]}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, [field.name]: e.target.value }));
+                  if (field.updateContent) {
+                    updateContentWithFormData(field.name, e.target.value);
+                  }
+                }}
+                className="letterhead-input-field"
+              >
+                {field.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="letterhead-form-row" key={field.id}>
+        <div className="letterhead-form-group">
+          <label htmlFor={field.id}>{field.label}</label>
+          <div className="letterhead-input-container">
+            <input
+              id={field.id}
+              type={field.type}
+              placeholder={field.placeholder}
+              value={formData[field.name]}
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, [field.name]: e.target.value }));
+                if (field.updateContent) {
+                  updateContentWithFormData(field.name, e.target.value);
+                }
+              }}
+              className="letterhead-input-field"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return <div>Loading templates...</div>;
+  }
+
   return (
     <div className="letterhead-letterhead-container">
-      <button
-        onClick={() => setShowPopup(true)}
-        className="letterhead-open-popup-btn"
-      >
+      <button onClick={() => setShowPopup(true)} className="letterhead-open-popup-btn">
         Create Letter
       </button>
+
+      <div className="letterhead-table-container">
+        <h3>Letterheads</h3>
+        {letterheads.length > 0 ? (
+          <table className="letterhead-table">
+            <thead>
+              <tr>
+                <th>Letterhead Code</th>
+                <th>Letter Type</th>
+                <th>Bank Details</th>
+                <th>Bank Details Request</th>
+                <th>Offer Letter Details</th>
+                <th>Download</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {letterheads.map((letterhead) => (
+                <tr key={letterhead.id}>
+                  <td>{letterhead.letterhead_code || '-'}</td>
+                  <td>{letterhead.letter_type || '-'}</td>
+                  <td>
+                    {letterhead.letter_type === 'Bank Details' ? (
+                      <i
+                        className="fa fa-eye"
+                        style={{ cursor: 'pointer', color: '#0066cc' }}
+                        onClick={() => handleViewDetails(letterhead, 'Bank Details')}
+                        aria-label="View bank details"
+                      ></i>
+                    ) : '-'}
+                  </td>
+                  <td>
+                    {letterhead.letter_type === 'Bank Details Request Letter' ? (
+                      <i
+                        className="fa fa-eye"
+                        style={{ cursor: 'pointer', color: '#0066cc' }}
+                        onClick={() => handleViewDetails(letterhead, 'Bank Details Request Letter')}
+                        aria-label="View bank details request letter"
+                      ></i>
+                    ) : '-'}
+                  </td>
+                  <td>
+                    {letterhead.letter_type === 'Offer Letter' ? (
+                      <i
+                        className="fa fa-eye"
+                        style={{ cursor: 'pointer', color: '#0066cc' }}
+                        onClick={() => handleViewDetails(letterhead, 'Offer Letter')}
+                        aria-label="View offer letter details"
+                      ></i>
+                    ) : '-'}
+                  </td>
+                  <td>
+                    {letterhead.attachment ? (
+                      <span
+                        onClick={() => handleDownload(letterhead.attachment)}
+                        style={{ cursor: 'pointer', color: '#0066cc', textDecoration: 'underline' }}
+                      >
+                        Download
+                      </span>
+                    ) : '-'}
+                  </td>
+                  <td>
+                    <i
+                      className="fa fa-pencil"
+                      style={{ cursor: 'pointer', color: '#0066cc' }}
+                      onClick={() => handleEdit(letterhead)}
+                      aria-label="Edit letterhead"
+                    ></i>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No letterheads found.</p>
+        )}
+      </div>
+
+      {showDetailsPopup && (
+        <div className="letterhead-popup-overlay">
+          <div className="letterhead-popup-content" style={{ maxWidth: '500px', padding: '20px' }}>
+            <h3>{showDetailsPopup.type} Details</h3>
+            {showDetailsPopup.type === 'Bank Details' && (
+              <div>
+                <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
+                <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
+                <p><strong>Date:</strong> {showDetailsPopup.letterhead.date ? showDetailsPopup.letterhead.date.split('T')[0] : '-'}</p>
+                <p><strong>Place:</strong> {showDetailsPopup.letterhead.place || '-'}</p>
+                <p><strong>Date of Joining:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
+              </div>
+            )}
+            {showDetailsPopup.type === 'Bank Details Request Letter' && (
+              <div>
+                <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
+                <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
+                <p><strong>Date:</strong> {showDetailsPopup.letterhead.date ? showDetailsPopup.letterhead.date.split('T')[0] : '-'}</p>
+                <p><strong>Place:</strong> {showDetailsPopup.letterhead.place || '-'}</p>
+                <p><strong>Date of Joining:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
+                <p><strong>Position:</strong> {showDetailsPopup.letterhead.position || '-'}</p>
+              </div>
+            )}
+            {showDetailsPopup.type === 'Offer Letter' && (
+              <div>
+                <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
+                <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
+                <p><strong>Mobile Number:</strong> {showDetailsPopup.letterhead.mobile_number || '-'}</p>
+                <p><strong>Email:</strong> {showDetailsPopup.letterhead.email || '-'}</p>
+                <p><strong>Position:</strong> {showDetailsPopup.letterhead.position || '-'}</p>
+                <p><strong>Annual Salary:</strong> {showDetailsPopup.letterhead.annual_salary || '-'}</p>
+                <p><strong>Date of Appointment:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
+              </div>
+            )}
+            <button onClick={handleCloseDetailsPopup} className="letterhead-close-btn">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {showPopup && (
         <div className="letterhead-popup-overlay">
           <div className="letterhead-popup-content" ref={letterRef}>
             <div className="letterhead-letterhead-header">
               <img src={originalLogo} alt="Company Logo" className="letterhead-watermark" />
-              <h2 className="letterhead-letterhead-title">Sukalpa Tech Solutions Pvt Ltd</h2>
-              {/* <p className="letterhead-letterhead-tagline">Let us join to support you deserve</p> */}
+              <h2 className="letterhead-letterhead-title">{formData.company_name || '[Company Name]'}</h2>
               <p className="letterhead-letterhead-subtitle">
-                #71, Bauxite Road, Sarathi Nagar, Belagavi -591108, Karnataka, India | 
-                admin@sukalpatechsolutions.com | 
-                +9178928-59968 | 
-                <a href="https://sukalpatechsolutions.com">sukalpatechsolutions.com</a>
+                {formData.company_address_line2 || '[Company Address Line 2]'} | 
+                GSTIN: {formData.gstin_number || '[GSTIN Number]'} | 
+                CIN: {formData.cin_number || '[CIN Number]'}
               </p>
               <hr />
             </div>
@@ -335,174 +904,17 @@ const letterTemplates = {
                       onChange={handleLetterTypeChange}
                       className="letterhead-letter-type-select letterhead-highlighted-select"
                     >
-                      <option value="Letter">General Letter</option>
-                      <option value="Offer Letter">Offer Letter</option>
-                      <option value="Relieving Letter">Relieving Letter</option>
-                      <option value="Bank Details Request Letter">Bank Details Request Letter</option>
+                      {templates.map((template) => (
+                        <option key={template.letter_type} value={template.letter_type}>
+                          {template.letter_type}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
               </div>
 
-              <div className="letterhead-form-row">
-                <div className="letterhead-form-group">
-                  <label htmlFor="recipientName">Recipient Name</label>
-                  <div className="letterhead-input-container">
-                    <input
-                      id="recipientName"
-                      type="text"
-                      placeholder="Recipient Name"
-                      value={recipientName}
-                      onChange={(e) => {
-                        setRecipientName(e.target.value);
-                        if (contentRef.current) {
-                          let template = letterTemplates[letterType];
-                          template = template
-                            .replace('[Recipient Name]', e.target.value || '[Recipient Name]')
-                            .replace(/\[Employee Name\]/g, employeeName || '[Employee Name]')
-                            .replace(/\[Position\]/g, position || '[Position]')
-                            .replace(/\[Date\]/g, effectiveDate || '[Date]');
-                          contentRef.current.innerHTML = template;
-                        }
-                      }}
-                      className="letterhead-input-field"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="letterhead-form-row">
-                <div className="letterhead-form-group">
-                  <label htmlFor="address">Recipient Address</label>
-                  <div className="letterhead-input-container">
-                    <input
-                      id="address"
-                      type="text"
-                      placeholder="Recipient Address"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      className="letterhead-input-field"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="letterhead-form-row">
-                <div className="letterhead-form-group">
-                  <label htmlFor="date">Date</label>
-                  <div className="letterhead-input-container">
-                    <input
-                      id="date"
-                      type="date"
-                      placeholder="Date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="letterhead-input-field"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="letterhead-form-row">
-                <div className="letterhead-form-group">
-                  <label htmlFor="subject">Subject</label>
-                  <div className="letterhead-input-container">
-                    <input
-                      id="subject"
-                      type="text"
-                      placeholder="Subject"
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      className="letterhead-input-field"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {letterType === 'Relieving Letter' && (
-                <>
-                  <div className="letterhead-form-row">
-                    <div className="letterhead-form-group">
-                      <label htmlFor="employeeName">Employee Name</label>
-                      <div className="letterhead-input-container">
-                        <input
-                          id="employeeName"
-                          type="text"
-                          placeholder="Employee Name"
-                          value={employeeName}
-                          onChange={(e) => {
-                            setEmployeeName(e.target.value);
-                            if (contentRef.current) {
-                              let template = letterTemplates[letterType];
-                              template = template
-                                .replace('[Recipient Name]', recipientName || '[Recipient Name]')
-                                .replace(/\[Employee Name\]/g, e.target.value || '[Employee Name]')
-                                .replace(/\[Position\]/g, position || '[Position]')
-                                .replace(/\[Date\]/g, effectiveDate || '[Date]');
-                              contentRef.current.innerHTML = template;
-                            }
-                          }}
-                          className="letterhead-input-field"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="letterhead-form-row">
-                    <div className="letterhead-form-group">
-                      <label htmlFor="position">Position</label>
-                      <div className="letterhead-input-container">
-                        <input
-                          id="position"
-                          type="text"
-                          placeholder="Position"
-                          value={position}
-                          onChange={(e) => {
-                            setPosition(e.target.value);
-                            if (contentRef.current) {
-                              let template = letterTemplates[letterType];
-                              template = template
-                                .replace('[Recipient Name]', recipientName || '[Recipient Name]')
-                                .replace(/\[Employee Name\]/g, employeeName || '[Employee Name]')
-                                .replace(/\[Position\]/g, e.target.value || '[Position]')
-                                .replace(/\[Date\]/g, effectiveDate || '[Date]');
-                              contentRef.current.innerHTML = template;
-                            }
-                          }}
-                          className="letterhead-input-field"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="letterhead-form-row">
-                    <div className="letterhead-form-group">
-                      <label htmlFor="effectiveDate">Effective Date</label>
-                      <div className="letterhead-input-container">
-                        <input
-                          id="effectiveDate"
-                          type="date"
-                          placeholder="Effective Date"
-                          value={effectiveDate}
-                          onChange={(e) => {
-                            setEffectiveDate(e.target.value);
-                            if (contentRef.current) {
-                              let template = letterTemplates[letterType];
-                              template = template
-                                .replace('[Recipient Name]', recipientName || '[Recipient Name]')
-                                .replace(/\[Employee Name\]/g, employeeName || '[Employee Name]')
-                                .replace(/\[Position\]/g, position || '[Position]')
-                                .replace(/\[Date\]/g, e.target.value || '[Date]');
-                              contentRef.current.innerHTML = template;
-                            }
-                          }}
-                          className="letterhead-input-field"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+              {letterFields[letterType]?.map((field) => renderField(field))}
 
               <div className="letterhead-form-row">
                 <div className="letterhead-form-group">
@@ -545,29 +957,7 @@ const letterTemplates = {
                       className="letterhead-content-area"
                       aria-label="Letter content editor"
                       onKeyDown={handleKeyDown}
-                      dangerouslySetInnerHTML={{
-                        __html: letterTemplates[letterType]
-                          .replace('[Recipient Name]', recipientName || '[Recipient Name]')
-                          .replace(/\[Employee Name\]/g, employeeName || '[Employee Name]')
-                          .replace(/\[Position\]/g, position || '[Position]')
-                          .replace(/\[Date\]/g, effectiveDate || '[Date]')
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="letterhead-form-row">
-                <div className="letterhead-form-group">
-                  <label htmlFor="signature">Signature</label>
-                  <div className="letterhead-input-container">
-                    <input
-                      id="signature"
-                      type="text"
-                      placeholder="Signature (Your Name, Designation)"
-                      value={signature}
-                      onChange={(e) => setSignature(e.target.value)}
-                      className="letterhead-input-field"
+                      onInput={handleContentChange}
                     />
                   </div>
                 </div>
@@ -575,16 +965,18 @@ const letterTemplates = {
             </div>
 
             <div className="letterhead-popup-actions">
-              <button onClick={() => setShowPopup(false)} className="letterhead-cancel-btn">
+              <button onClick={handleCancel} className="letterhead-cancel-btn">
                 Cancel
               </button>
               <button onClick={handlePreview} className="letterhead-preview-btn">
                 Preview
               </button>
               <button onClick={handleGenerate} className="letterhead-save-btn">
-                Save
+                Generate PDF
               </button>
-              <button onClick={handleSave}>Save data</button>
+              <button onClick={handleSave} className="letterhead-save-btn">
+                {isEditing ? 'Update' : 'Save'}
+              </button>
             </div>
           </div>
         </div>
@@ -608,6 +1000,13 @@ const letterTemplates = {
           </div>
         </div>
       )}
+      <Modal
+              isVisible={alertModal.isVisible}
+              onClose={closeAlert}
+              buttons={[{ label: "OK", onClick: closeAlert }]}
+            >
+              <p>{alertModal.message}</p>
+            </Modal>
     </div>
   );
 };

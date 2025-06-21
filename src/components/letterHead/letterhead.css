@@ -1,278 +1,4 @@
-/* .letterhead-letterhead-container {
-  padding: 20px;
-  text-align: center;
-  font-family: 'Helvetica', Arial, sans-serif;
-}
-
-.letterhead-open-popup-btn {
-  padding: 12px 24px;
-  background-color: #007b5e;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.letterhead-open-popup-btn:hover {
-  background-color: #005f4b;
-}
-
-.letterhead-popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.letterhead-popup-content {
-  background-color: white;
-  width: 60%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  position: relative;
-  font-family: 'Helvetica', Arial, sans-serif;
-}
-
-@media (max-width: 768px) {
-  .letterhead-popup-content {
-    width: 90%;
-    padding: 20px;
-  }
-}
-
-.letterhead-letterhead-header {
-  position: relative;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.letterhead-watermark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.1;
-  width: 40%;
-  height: auto;
-  z-index: -1;
-  object-fit: contain;
-}
-
-.letterhead-letterhead-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0;
-  color: #333;
-}
-
-.letterhead-letterhead-tagline {
-  font-size: 14px;
-  font-style: italic;
-  color: #555;
-  margin: 8px 0;
-}
-
-.letterhead-letterhead-subtitle {
-  font-size: 12px;
-  color: #666;
-  margin: 10px 0;
-}
-
-.letterhead-letterhead-subtitle a {
-  color: #007b5e;
-  text-decoration: none;
-}
-
-.letterhead-letterhead-subtitle a:hover {
-  text-decoration: underline;
-}
-
-.letterhead-letter-form {
-  display: grid;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.letterhead-letter-type-select,
-.letterhead-input-field,
-.letterhead-content-area {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  width: 100%;
-  box-sizing: border-box;
-  font-family: 'Helvetica', Arial, sans-serif;
-}
-
-.letterhead-content-area {
-  min-height: 250px;
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.letterhead-letter-type-select:focus,
-.letterhead-input-field:focus,
-.letterhead-content-area:focus {
-  outline: none;
-  border-color: #007b5e;
-  box-shadow: 0 0 5px rgba(0, 123, 94, 0.3);
-}
-
-.letterhead-content-area[contenteditable]:empty:before {
-  content: 'Enter your content here...';
-  color: #999;
-}
-
-.letterhead-formatting-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-start;
-}
-
-.letterhead-format-btn {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #f8f8f8;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.letterhead-format-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.letterhead-popup-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.letterhead-generate-btn,
-.letterhead-close-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.letterhead-generate-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.letterhead-generate-btn:hover {
-  background-color: #218838;
-}
-
-.letterhead-close-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.letterhead-close-btn:hover {
-  background-color: #c82333;
-}
-
-@media print {
-  .letterhead-popup-overlay,
-  .letterhead-open-popup-btn,
-  .letterhead-letter-type-select,
-  .letterhead-formatting-buttons,
-  .letterhead-popup-actions {
-    display: none;
-  }
-
-  .letterhead-popup-content {
-    width: 100%;
-    height: auto;
-    box-shadow: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    overflow: visible;
-  }
-
-  .letterhead-letterhead-header,
-  .letterhead-letter-form {
-    margin: 0;
-    padding: 20px;
-  }
-
-  .letterhead-input-field,
-  .letterhead-content-area {
-    border: none;
-    background: transparent;
-    width: 100%;
-    padding: 0;
-    font-family: 'Helvetica', Arial, sans-serif;
-    line-height: 1.6;
-  }
-
-  .letterhead-content-area {
-    white-space: pre-wrap;
-  }
-
-  .letterhead-watermark {
-    opacity: 0.05;
-    width: 40%;
-  }
-}
-.letterhead-preview-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.letterhead-preview-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 800px;
-  width: 90%;
-  max-height: 90vh;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.letterhead-preview-btn {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.letterhead-preview-btn:hover {
-  background-color: #45a049;
-} */
- .letterhead-letterhead-container {
+.letterhead-letterhead-container {
   padding: 20px;
   text-align: center;
   font-family: 'Helvetica', Arial, sans-serif;
@@ -280,7 +6,6 @@
   min-height: 100vh;
 }
 
-/* Button to open the popup */
 .letterhead-open-popup-btn {
   padding: 12px 24px;
   background-color: #00468C;
@@ -296,7 +21,6 @@
   background-color: #003366;
 }
 
-/* Popup overlay */
 .letterhead-popup-overlay {
   position: fixed;
   top: 0;
@@ -310,7 +34,6 @@
   z-index: 1000;
 }
 
-/* Popup content */
 .letterhead-popup-content {
   background-color: #f5f5f5;
   width: 60%;
@@ -330,7 +53,6 @@
   }
 }
 
-/* Letterhead header */
 .letterhead-letterhead-header {
   position: relative;
   text-align: center;
@@ -378,19 +100,16 @@
   text-decoration: underline;
 }
 
-/* Form styling */
 .letterhead-letter-form {
   margin-top: 20px;
 }
 
-/* Form row to hold label and input */
 .letterhead-form-row {
   display: flex;
   flex-wrap: wrap;
   margin-bottom: 15px;
 }
 
-/* Form group for each label-input pair */
 .letterhead-form-group {
   display: flex;
   align-items: flex-start;
@@ -398,13 +117,11 @@
   gap: 10px;
 }
 
-/* Input container to wrap input fields */
 .letterhead-input-container {
   flex: 1;
   position: relative;
 }
 
-/* Label styling */
 .letterhead-form-group label {
   font-size: 14px;
   font-weight: bold;
@@ -415,7 +132,6 @@
   padding-top: 8px;
 }
 
-/* Select and input fields */
 .letterhead-letter-type-select,
 .letterhead-input-field {
   padding: 8px;
@@ -435,12 +151,10 @@
   outline: none;
 }
 
-/* Highlighted select styling */
 .letterhead-highlighted-select {
   background-color: #e6f3ff;
 }
 
-/* Content area */
 .letterhead-content-area {
   font-family: 'Helvetica', Arial, sans-serif;
   font-size: 11pt;
@@ -455,6 +169,23 @@
   background-color: #fff;
 }
 
+.letterhead-content-area h1 {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.letterhead-content-area h2 {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.letterhead-content-area p {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
 .letterhead-content-area:focus {
   outline: none;
   border-color: #00468C;
@@ -466,7 +197,6 @@
   color: #999;
 }
 
-/* Formatting buttons */
 .letterhead-formatting-buttons {
   display: flex;
   gap: 8px;
@@ -487,7 +217,6 @@
   background-color: #e0e0e0;
 }
 
-/* Action buttons */
 .letterhead-popup-actions {
   display: flex;
   justify-content: flex-end;
@@ -543,7 +272,6 @@
   background-color: #c82333;
 }
 
-/* Preview overlay */
 .letterhead-preview-overlay {
   position: fixed;
   top: 0;
@@ -568,7 +296,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Print styles */
 @media print {
   .letterhead-popup-overlay,
   .letterhead-open-popup-btn,
@@ -618,7 +345,6 @@
   }
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .letterhead-form-row {
     flex-direction: column;
@@ -643,50 +369,64 @@
   }
 }
 
-.letterhead-letters-table {
+.letterhead-table-container {
   margin-top: 20px;
-  width: 100%;
-  max-width: 1200px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
 }
 
-.letterhead-letters-table h3 {
-  font-size: 1.5rem;
-  margin-bottom: 10px;
-}
-
-.letterhead-letters-table table {
+.letterhead-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
 }
 
-.letterhead-letters-table th,
-.letterhead-letters-table td {
+.letterhead-table th,
+.letterhead-table td {
   padding: 10px;
   border: 1px solid #ddd;
   text-align: left;
-  font-size: 0.9rem;
 }
 
-.letterhead-letters-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
+.letterhead-table th {
+  background-color: #00468C;
+  color: white;
 }
 
-.letterhead-letters-table tr:nth-child(even) {
-  background-color: #f9f9f9;
+.letterhead-table tr:nth-child(even) {
+  background-color: #f2f2f2;
 }
 
-.letterhead-letters-table tr:hover {
-  background-color: #f1f1f1;
+.letterhead-table tr:hover {
+  background-color: #ddd;
+}
+
+.letterhead-table a {
+  color: #00468C;
+  text-decoration: none;
+}
+
+.letterhead-table a:hover {
+  text-decoration: underline;
+}
+
+.letterhead-download-link {
+  color: #00468C;
+  text-decoration: none;
+}
+
+.letterhead-download-link:hover {
+  text-decoration: underline;
 }
 
 .letterhead-edit-icon {
   font-size: 1rem;
+  cursor: pointer;
+  color: #00468C;
   transition: color 0.2s;
 }
 
 .letterhead-edit-icon:hover {
-  color: #0056b3;
+  color: #003366;
 }
