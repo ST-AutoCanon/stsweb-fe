@@ -140,12 +140,7 @@
   color: #555;
 }
 
-/* Expand Icon */
-/* .expand-icon {
-  font-size: 1.2rem;
-  color: #555;
-  user-select: none;
-} */
+
 .expand-icon {
   font-size: 1.2rem;
   color: #555;
@@ -264,6 +259,6 @@
 }
 
 .tab-buttons button.active {
-  background-color: #007bff;
+  background-color: #79c42b;
   color: white;
 }
