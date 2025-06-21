@@ -257,7 +257,7 @@ const FacePunch = () => {
 
       {employeeInfo ? (
         <div className="employee-info-message">
-          Detected: {employeeInfo.name} ({employeeInfo.id})
+          Detected ✅: {employeeInfo.name} ({employeeInfo.id})
         </div>
       ) : (
         <div className="employee-info-message">No employee info detected yet.</div>
