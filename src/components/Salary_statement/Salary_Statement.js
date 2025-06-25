@@ -29,7 +29,7 @@ const Salary_Statement = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const [salaryData, setSalaryData] = useState([]);
-  const templateUrl = "/templates/template_MAR_2025.xlsx";
+  const templateUrl = "/templates/Statement_Template.xlsx";
   const [selectedMonthYearData, setSelectedMonthYearData] = useState([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
   const [showUploadedFileTable, setShowUploadedFile] = useState(false);
@@ -587,6 +587,7 @@ const Salary_Statement = () => {
     const link = document.createElement("a");
     link.href = templateUrl;
     link.download = "Salary_Statement_Template.xlsx";
+    console.log("linkherf",link.href);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
