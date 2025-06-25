@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const EmployeeCardWithHover = ({ employeePunches }) => {
   const [hovered, setHovered] = useState(false);
-  const [avatar, setAvatar] = useState('/default-profile.jpg');
+  const [avatar, setAvatar] = useState('/images/smily.png'); // Default avatar
 
   if (!employeePunches || !Array.isArray(employeePunches) || employeePunches.length === 0) {
     return <div className="employee-card-hover">No punch data available</div>;
@@ -23,8 +23,11 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
   const latestPunchOut = sortedByPunchOut[0]?.punchout_time;
 
   const latest = employeePunches[employeePunches.length - 1];
-  const name = `${latest.first_name || 'Unknown'} ${latest.last_name || ''}`.trim();
+  const firstName = latest.first_name || 'Unknown';
+  const lastName = latest.last_name || '';
   const photoUrl = latest.photo_url || null;
+  const role = latest.role || localStorage.getItem('userRole') || 'Employee'; // Fallback to localStorage
+  const gender = latest.gender || localStorage.getItem('userGender') || 'Male'; // Fallback to localStorage
   const API_KEY = process.env.REACT_APP_API_KEY;
   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
@@ -36,7 +39,7 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
     (latest.punchout_location &&
       typeof latest.punchout_location === 'string' &&
       latest.punchout_location.trim().toLowerCase().includes('office hq'));
-  console.log(`isOfficeHQ for ${name}:`, isOfficeHQ, {
+  console.log(`isOfficeHQ for ${firstName} ${lastName}:`, isOfficeHQ, {
     punchin_location: latest.punchin_location,
     punchout_location: latest.punchout_location,
   });
@@ -45,24 +48,50 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
     : 'employee-card-hover bg-default';
 
   useEffect(() => {
+    console.log(`Avatar setup for ${firstName} ${lastName}:`, { photoUrl, role, gender });
+    let imageUrl = null;
+
     if (photoUrl) {
+      const url = `${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`;
+      console.log('Fetching image from:', url);
       axios
-        .get(`${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`, {
+        .get(url, {
           headers,
           responseType: 'blob',
         })
         .then((response) => {
-          const imageUrl = URL.createObjectURL(response.data);
+          imageUrl = URL.createObjectURL(response.data);
           setAvatar(imageUrl);
         })
         .catch((err) => {
           console.error('Error fetching photo:', err);
-          setAvatar('/default-profile.jpg');
+          // Fallback to default avatar based on role and gender
+          setAvatar(
+            role === 'Admin'
+              ? '/images/smily.png'
+              : gender === 'Female'
+              ? '/images/female-avatar.jpeg'
+              : '/images/male-avatar.jpeg'
+          );
         });
     } else {
-      setAvatar('/default-profile.jpg');
+      // Set default avatar based on role and gender
+      setAvatar(
+        role === 'Admin'
+          ? '/images/smily.png'
+          : gender === 'Female'
+          ? '/images/female-avatar.jpeg'
+          : '/images/male-avatar.jpeg'
+      );
     }
-  }, [photoUrl]);
+
+    // Cleanup to revoke object URL
+    return () => {
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [photoUrl, role, gender, firstName, lastName]);
 
   const formatTime = (time) => {
     if (!time) return '—';
@@ -122,7 +151,8 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
         <div className="profile-section-admin">
           <img src={avatar} alt="Profile" className="profile-img1" />
           <div className="profile-info">
-            <span className="profile-name">{name}</span>
+            <span className="profile-first-name">{firstName}</span>
+            <span className="profile-last-name">{lastName}</span>
           </div>
         </div>
         <hr className="divider" />
@@ -404,7 +434,6 @@ const EmployeeLogin = () => {
   const handleDownload = async () => {
     if (!fromDate || !toDate) {
       setError('Please select both "From" and "To" dates to download punch data.');
-isosort
       return;
     }
 
