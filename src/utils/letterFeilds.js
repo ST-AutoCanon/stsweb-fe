@@ -1,4 +1,5 @@
 export const letterFields = {
+
   Letter: [
     {
       id: "letterheadCode",
@@ -42,6 +43,53 @@ export const letterFields = {
       type: "text",
       placeholder: "Signature (Your Name, Designation)",
       name: "signature",
+    },
+  ],
+  "General Letter": [
+    {
+      id: "letterheadCode",
+      label: "Letterhead Code",
+      type: "text",
+      placeholder: "Letterhead Code",
+      name: "letterhead_code",
+    },
+    {
+      id: "recipientName",
+      label: "Recipient Name",
+      type: "text",
+      placeholder: "Recipient Name",
+      name: "recipient_name",
+      updateContent: true,
+    },
+    {
+      id: "address",
+      label: "Recipient Address",
+      type: "text",
+      placeholder: "Recipient Address",
+      name: "address",
+    },
+    {
+      id: "date",
+      label: "Date",
+      type: "date",
+      placeholder: "Date",
+      name: "date",
+      updateContent: true,
+    },
+    {
+      id: "subject",
+      label: "Subject",
+      type: "text",
+      placeholder: "Subject",
+      name: "subject",
+    },
+    {
+      id: "signature",
+      label: "Signature",
+      type: "text",
+      placeholder: "Signature (Your Name, Designation)",
+      name: "signature",
+      updateContent: true,
     },
   ],
   "Offer Letter": [
