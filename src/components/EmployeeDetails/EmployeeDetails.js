@@ -799,7 +799,7 @@ const EmployeeDetails = () => {
                     <option value="Admin">Admin</option>
                     <option value="Employee">Employee</option>
                     <option value="Manager">Manager</option>
-                    <option value="Manager">General</option>
+                    <option value="General">General</option>
                   </select>
                 </div>
 
@@ -927,13 +927,14 @@ const EmployeeDetails = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Salary [ CTC ]</label>
+                  <label>Salary [ CTC ]<span className="required">*</span></label>
                   <input
                     type="number"
                     name="salary"
                     value={formData.salary || ""}
                     onChange={handleInputChange}
                     placeholder="00000.00"
+                    required
                   />
                 </div>
                 <div className="form-group">
@@ -1157,6 +1158,8 @@ const EmployeeDetails = () => {
                     <option value="Admin">Admin</option>
                     <option value="Employee">Employee</option>
                     <option value="Manager">Manager</option>
+                    <option value="General">General</option>
+
                   </select>
                 </div>
 
@@ -1287,12 +1290,13 @@ const EmployeeDetails = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Salary [ CTC ]</label>
+                  <label>Salary [ CTC ] <span className="required">*</span></label>
                   <input
                     type="number"
                     name="salary"
                     value={formData.salary || ""}
                     onChange={handleInputChange}
+                    required
                   />
                 </div>
                 <div className="form-group">
