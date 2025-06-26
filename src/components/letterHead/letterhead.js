@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import generatePDF from './generatepdfforletters';
@@ -34,7 +31,7 @@ const LetterHead = () => {
       title: "",
       message: "",
     });
-const showAlert = (message, title = "") => {
+  const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
 
@@ -130,18 +127,13 @@ const showAlert = (message, title = "") => {
         setLetterheads(letterheadsResponse.data.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Failed to fetch data: ' + (error.response?.data?.error || error.message));
+        showAlert('Failed to fetch data: ' + (error.response?.data?.error || error.message));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, []);
-
-  // const showAlert = (message) => {
-  //   console.log('Current formData:', formData);
-  //   alert(message);
-  // };
 
   const formatDateToDDMMMYYYY = (dateString) => {
     if (!dateString) return '[Date]';
@@ -522,7 +514,13 @@ const showAlert = (message, title = "") => {
       showAlert(`Failed to generate PDF: ${error.message}`);
     }
   };
+const handleViewDetails = (letterhead, type) => {
+  setShowDetailsPopup({ letterhead, type });
+};
 
+const handleCloseDetailsPopup = () => {
+  setShowDetailsPopup(null);
+};
   const handlePreview = async () => {
     if (!letterRef.current || !contentRef.current) {
       showAlert('Form is not ready. Please try again.');
@@ -629,72 +627,69 @@ const showAlert = (message, title = "") => {
        fallbackTemplate)
     );
     setOriginalTemplate(html);
-  }, [letterType]);
+    if (contentRef.current && showPopup) {
+      contentRef.current.innerHTML = html;
+      setFormData((prev) => ({
+        ...prev,
+        body: html,
+      }));
+      // Update content with formData values
+      ['title', 'recipient_name', 'position', 'date_of_appointment', 'employee_name', 'date', 'mobile_number', 'email', 'annual_salary', 'place'].forEach(field => {
+        if (formData[field]) {
+          updateContentWithFormData(field, formData[field]);
+        }
+      });
+    }
+  }, [letterType, showPopup]);
 
   const updateContentWithFormData = (field, value) => {
-  if (!originalTemplate || !contentRef.current) return;
+    if (!originalTemplate || !contentRef.current) return;
 
-  const replacements = {
-    title: ['[Title]', formData.title || '[Title]'],
-    recipient_name: ['[Recipient Name]', formData.recipient_name || '[Recipient Name]'],
-    position: ['[Position]', formData.position || '[Position]'],
-    date_of_appointment: [
-      '[Date of Appointment]',
-      formData.date_of_appointment ? formatDateToDDMMMYYYY(formData.date_of_appointment) : '[Date of Appointment]',
-    ],
-    employee_name: ['[Employee Name]', formData.employee_name || '[Employee Name]'],
-    employee_id: ['[Employee ID]', formData.employee_id || '[Employee ID]'],
-    date_of_birth: [
-      '[Date of Birth]',
-      formData.date_of_birth ? formatDateToDDMMMYYYY(formData.date_of_birth) : '[Date of Birth]',
-    ],
-    contact_number: ['[Contact Number]', formData.contact_number || '[Contact Number]'],
-    residential_address: ['[Residential Address]', formData.residential_address || '[Residential Address]'],
-    date: ['[Date]', formData.date ? formatDateToDDMMMYYYY(formData.date) : '[Date]'],
-    signature: ['[Signature]', formData.signature || '[Signature]'],
-    mobile_number: ['[Mobile Number]', formData.mobile_number || '[Mobile Number]'], // Added
-    email: ['[Email]', formData.email || '[Email]'], // Added
-    annual_salary: ['[Annual Salary]', formData.annual_salary || '[Annual Salary]'], // Added
-  };
+    const replacements = {
+      title: ['[Title]', formData.title || '[Title]'],
+      recipient_name: ['[Recipient Name]', formData.recipient_name || '[Recipient Name]'],
+      position: ['[Position]', formData.position || '[Position]'],
+      date_of_appointment: [
+        '[Date of Appointment]',
+        formData.date_of_appointment ? formatDateToDDMMMYYYY(formData.date_of_appointment) : '[Date of Appointment]',
+      ],
+      employee_name: ['[Employee Name]', formData.employee_name || '[Employee Name]'],
+      employee_id: ['[Employee ID]', formData.employee_id || '[Employee ID]'],
+      date_of_birth: [
+        '[Date of Birth]',
+        formData.date_of_birth ? formatDateToDDMMMYYYY(formData.date_of_birth) : '[Date of Birth]',
+      ],
+      contact_number: ['[Contact Number]', formData.contact_number || '[Contact Number]'],
+      residential_address: ['[Residential Address]', formData.residential_address || '[Residential Address]'],
+      date: ['[Date]', formData.date ? formatDateToDDMMMYYYY(formData.date) : '[Date]'],
+      signature: ['[Signature]', formData.signature || '[Signature]'],
+      mobile_number: ['[Mobile Number]', formData.mobile_number || '[Mobile Number]'],
+      email: ['[Email]', formData.email || '[Email]'],
+      annual_salary: ['[Annual Salary]', formData.annual_salary || '[Annual Salary]'],
+      place: ['[Place]', formData.place || '[Place]'],
+    };
 
-  if (!replacements[field]) {
-    console.warn(`Field ${field} not found in replacements object`);
-    return;
-  }
-
-  replacements[field][1] = value;
-
-  let updatedContent = originalTemplate;
-
-  Object.values(replacements).forEach(([placeholder, replacement]) => {
-    const regex = new RegExp(placeholder.replace(/\[|\]/g, '\\$&'), 'g');
-    updatedContent = updatedContent.replace(regex, replacement);
-  });
-
-  contentRef.current.innerHTML = updatedContent;
-
-  setFormData((prev) => ({
-    ...prev,
-    [field]: value,
-    body: updatedContent,
-  }));
-};
-  useEffect(() => {
-    if (contentRef.current && !formData.body) {
-      contentRef.current.innerHTML = parseTemplateToHTML(
-        letterType === 'Bank Details' ? bankDetailsTemplate : 
-        letterType === 'Bank Details Request Letter' ? bankDetailsRequestTemplate : 
-        fallbackTemplate
-      );
+    if (!replacements[field]) {
+      console.warn(`Field ${field} not found in replacements object`);
+      return;
     }
-  }, [letterType]);
 
-  const handleViewDetails = (letterhead, type) => {
-    setShowDetailsPopup({ letterhead, type });
-  };
+    replacements[field][1] = value;
 
-  const handleCloseDetailsPopup = () => {
-    setShowDetailsPopup(null);
+    let updatedContent = originalTemplate;
+
+    Object.values(replacements).forEach(([placeholder, replacement]) => {
+      const regex = new RegExp(placeholder.replace(/\[|\]/g, '\\$&'), 'g');
+      updatedContent = updatedContent.replace(regex, replacement);
+    });
+
+    contentRef.current.innerHTML = updatedContent;
+
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+      body: updatedContent,
+    }));
   };
 
   const renderField = (field) => {
@@ -757,128 +752,144 @@ const showAlert = (message, title = "") => {
 
   return (
     <div className="letterhead-letterhead-container">
+      <div class="letterhead-button-wrapper">
       <button onClick={() => setShowPopup(true)} className="letterhead-open-popup-btn">
         Create Letter
       </button>
-
+</div>
       <div className="letterhead-table-container">
-        <h3>Letterheads</h3>
-        {letterheads.length > 0 ? (
-          <table className="letterhead-table">
-            <thead>
-              <tr>
-                <th>Letterhead Code</th>
-                <th>Letter Type</th>
-                <th>Bank Details</th>
-                <th>Bank Details Request</th>
-                <th>Offer Letter Details</th>
-                <th>Download</th>
-                <th>Edit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {letterheads.map((letterhead) => (
-                <tr key={letterhead.id}>
-                  <td>{letterhead.letterhead_code || '-'}</td>
-                  <td>{letterhead.letter_type || '-'}</td>
-                  <td>
-                    {letterhead.letter_type === 'Bank Details' ? (
-                      <i
-                        className="fa fa-eye"
-                        style={{ cursor: 'pointer', color: '#0066cc' }}
-                        onClick={() => handleViewDetails(letterhead, 'Bank Details')}
-                        aria-label="View bank details"
-                      ></i>
-                    ) : '-'}
-                  </td>
-                  <td>
-                    {letterhead.letter_type === 'Bank Details Request Letter' ? (
-                      <i
-                        className="fa fa-eye"
-                        style={{ cursor: 'pointer', color: '#0066cc' }}
-                        onClick={() => handleViewDetails(letterhead, 'Bank Details Request Letter')}
-                        aria-label="View bank details request letter"
-                      ></i>
-                    ) : '-'}
-                  </td>
-                  <td>
-                    {letterhead.letter_type === 'Offer Letter' ? (
-                      <i
-                        className="fa fa-eye"
-                        style={{ cursor: 'pointer', color: '#0066cc' }}
-                        onClick={() => handleViewDetails(letterhead, 'Offer Letter')}
-                        aria-label="View offer letter details"
-                      ></i>
-                    ) : '-'}
-                  </td>
-                  <td>
-                    {letterhead.attachment ? (
-                      <span
-                        onClick={() => handleDownload(letterhead.attachment)}
-                        style={{ cursor: 'pointer', color: '#0066cc', textDecoration: 'underline' }}
-                      >
-                        Download
-                      </span>
-                    ) : '-'}
-                  </td>
-                  <td>
-                    <i
-                      className="fa fa-pencil"
-                      style={{ cursor: 'pointer', color: '#0066cc' }}
-                      onClick={() => handleEdit(letterhead)}
-                      aria-label="Edit letterhead"
-                    ></i>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No letterheads found.</p>
-        )}
-      </div>
+  <h3>Letterheads</h3>
+  {letterheads.length > 0 ? (
+    <table className="letterhead-table">
+      <thead>
+        <tr>
+          <th>Letterhead Code</th>
+          <th>Letter Type</th>
+          <th>Relieving Letter</th>
+          <th>General Letter</th>
+          <th>Bank Details Request</th>
+          <th>Offer Letter Details</th>
+          <th>Download</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {letterheads.map((letterhead) => (
+          <tr key={letterhead.id}>
+            <td>{letterhead.letterhead_code || '-'}</td>
+            <td>{letterhead.letter_type || '-'}</td>
+            <td>
+              {letterhead.letter_type === 'Relieving Letter' ? (
+                <i
+                  className="fa fa-eye"
+                  style={{ cursor: 'pointer', color: '#7FBD2C' }}
+                  onClick={() => handleViewDetails(letterhead, 'Relieving Letter')}
+                  aria-label="View relieving letter details"
+                ></i>
+              ) : '-'}
+            </td>
+            <td>
+              {letterhead.letter_type === 'Letter' ? (
+                <i
+                  className="fa fa-eye"
+                  style={{ cursor: 'pointer', color: '#7FBD2C' }}
+                  onClick={() => handleViewDetails(letterhead, 'General Letter')}
+                  aria-label="View general letter details"
+                ></i>
+              ) : '-'}
+            </td>
+            <td>
+              {letterhead.letter_type === 'Bank Details Request Letter' ? (
+                <i
+                  className="fa fa-eye"
+                  style={{ cursor: 'pointer', color: '#7FBD2C' }}
+                  onClick={() => handleViewDetails(letterhead, 'Bank Details Request Letter')}
+                  aria-label="View bank details request letter"
+                ></i>
+              ) : '-'}
+            </td>
+            <td>
+              {letterhead.letter_type === 'Offer Letter' ? (
+                <i
+                  className="fa fa-eye"
+                  style={{ cursor: 'pointer', color: '#7FBD2C' }}
+                  onClick={() => handleViewDetails(letterhead, 'Offer Letter')}
+                  aria-label="View offer letter details"
+                ></i>
+              ) : '-'}
+            </td>
+            <td>
+              {letterhead.attachment ? (
+                <span
+                  onClick={() => handleDownload(letterhead.attachment)}
+                  style={{ cursor: 'pointer', color: '#7FBD2C', textDecoration: 'underline' }}
+                >
+                  Download
+                </span>
+              ) : '-'}
+            </td>
+            <td>
+              <i
+                className="fa fa-pencil"
+                style={{ cursor: 'pointer', color: '#7FBD2C' }}
+                onClick={() => handleEdit(letterhead)}
+                aria-label="Edit letterhead"
+              ></i>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : (
+    <p>No letterheads found.</p>
+  )}
+</div>
 
-      {showDetailsPopup && (
-        <div className="letterhead-popup-overlay">
-          <div className="letterhead-popup-content" style={{ maxWidth: '500px', padding: '20px' }}>
-            <h3>{showDetailsPopup.type} Details</h3>
-            {showDetailsPopup.type === 'Bank Details' && (
-              <div>
-                <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
-                <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
-                <p><strong>Date:</strong> {showDetailsPopup.letterhead.date ? showDetailsPopup.letterhead.date.split('T')[0] : '-'}</p>
-                <p><strong>Place:</strong> {showDetailsPopup.letterhead.place || '-'}</p>
-                <p><strong>Date of Joining:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
-              </div>
-            )}
-            {showDetailsPopup.type === 'Bank Details Request Letter' && (
-              <div>
-                <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
-                <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
-                <p><strong>Date:</strong> {showDetailsPopup.letterhead.date ? showDetailsPopup.letterhead.date.split('T')[0] : '-'}</p>
-                <p><strong>Place:</strong> {showDetailsPopup.letterhead.place || '-'}</p>
-                <p><strong>Date of Joining:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
-                <p><strong>Position:</strong> {showDetailsPopup.letterhead.position || '-'}</p>
-              </div>
-            )}
-            {showDetailsPopup.type === 'Offer Letter' && (
-              <div>
-                <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
-                <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
-                <p><strong>Mobile Number:</strong> {showDetailsPopup.letterhead.mobile_number || '-'}</p>
-                <p><strong>Email:</strong> {showDetailsPopup.letterhead.email || '-'}</p>
-                <p><strong>Position:</strong> {showDetailsPopup.letterhead.position || '-'}</p>
-                <p><strong>Annual Salary:</strong> {showDetailsPopup.letterhead.annual_salary || '-'}</p>
-                <p><strong>Date of Appointment:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
-              </div>
-            )}
-            <button onClick={handleCloseDetailsPopup} className="letterhead-close-btn">
-              Close
-            </button>
-          </div>
+{showDetailsPopup && (
+  <div className="letterhead-popup-overlay">
+    <div className="letterhead-popup-content" style={{ maxWidth: '500px', padding: '20px' }}>
+      <h3>{showDetailsPopup.type} Details</h3>
+      {showDetailsPopup.type === 'Relieving Letter' && (
+        <div>
+          <p><strong>Employee Name:</strong> {showDetailsPopup.letterhead.employee_name || '-'}</p>
+          <p><strong>Position:</strong> {showDetailsPopup.letterhead.position || '-'}</p>
+          <p><strong>Effective Date:</strong> {showDetailsPopup.letterhead.effective_date ? showDetailsPopup.letterhead.effective_date.split('T')[0] : '-'}</p>
         </div>
       )}
-
+      {showDetailsPopup.type === 'General Letter' && (
+        <div>
+          <p><strong>Subject:</strong> {showDetailsPopup.letterhead.subject || '-'}</p>
+          <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
+          <p><strong>Body Preview:</strong> {showDetailsPopup.letterhead.body ? showDetailsPopup.letterhead.body.substring(0, 100) + (showDetailsPopup.letterhead.body.length > 100 ? '...' : '') : '-'}</p>
+        </div>
+      )}
+      {showDetailsPopup.type === 'Bank Details Request Letter' && (
+        <div>
+          <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
+          <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
+          <p><strong>Date:</strong> {showDetailsPopup.letterhead.date ? showDetailsPopup.letterhead.date.split('T')[0] : '-'}</p>
+          <p><strong>Place:</strong> {showDetailsPopup.letterhead.place || '-'}</p>
+          <p><strong>Date of Joining:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
+          <p><strong>Position:</strong> {showDetailsPopup.letterhead.position || '-'}</p>
+        </div>
+      )}
+      {showDetailsPopup.type === 'Offer Letter' && (
+        <div>
+          <p><strong>Recipient Name:</strong> {showDetailsPopup.letterhead.recipient_name || '-'}</p>
+          <p><strong>Title:</strong> {showDetailsPopup.letterhead.title || '-'}</p>
+          <p><strong>Mobile Number:</strong> {showDetailsPopup.letterhead.mobile_number || '-'}</p>
+          <p><strong>Email:</strong> {showDetailsPopup.letterhead.email || '-'}</p>
+          <p><strong>Position:</strong> {showDetailsPopup.letterhead.position || '-'}</p>
+          <p><strong>Annual Salary:</strong> {showDetailsPopup.letterhead.annual_salary || '-'}</p>
+          <p><strong>Date of Appointment:</strong> {showDetailsPopup.letterhead.date_of_appointment ? showDetailsPopup.letterhead.date_of_appointment.split('T')[0] : '-'}</p>
+        </div>
+      )}
+      <button onClick={handleCloseDetailsPopup} className="letterhead-close-btn">
+        Close
+      </button>
+    </div>
+  </div>
+)}
       {showPopup && (
         <div className="letterhead-popup-overlay">
           <div className="letterhead-popup-content" ref={letterRef}>
@@ -1001,12 +1012,12 @@ const showAlert = (message, title = "") => {
         </div>
       )}
       <Modal
-              isVisible={alertModal.isVisible}
-              onClose={closeAlert}
-              buttons={[{ label: "OK", onClick: closeAlert }]}
-            >
-              <p>{alertModal.message}</p>
-            </Modal>
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

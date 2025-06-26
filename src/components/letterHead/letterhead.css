@@ -1,14 +1,20 @@
 .letterhead-letterhead-container {
   padding: 20px;
-  text-align: center;
   font-family: 'Helvetica', Arial, sans-serif;
   background-color: #f4f4f4;
   min-height: 100vh;
 }
 
+/* Wrapper to align button to the right */
+.letterhead-button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px; /* Optional spacing */
+}
+
 .letterhead-open-popup-btn {
   padding: 12px 24px;
-  background-color: #00468C;
+  background-color: #7FBD2C;
   color: white;
   border: none;
   border-radius: 6px;
@@ -17,8 +23,9 @@
   transition: background-color 0.3s;
 }
 
+
 .letterhead-open-popup-btn:hover {
-  background-color: #003366;
+  background-color: #ddd;
 }
 
 .letterhead-popup-overlay {
@@ -75,7 +82,7 @@
   font-size: 24px;
   font-weight: bold;
   margin: 0;
-  color: #00468C;
+  color: black;
 }
 
 .letterhead-letterhead-tagline {
@@ -92,7 +99,7 @@
 }
 
 .letterhead-letterhead-subtitle a {
-  color: #00468C;
+  color: #7FBD2C;
   text-decoration: none;
 }
 
@@ -147,7 +154,7 @@
 
 .letterhead-letter-type-select:focus,
 .letterhead-input-field:focus {
-  border-color: #00468C;
+  border-color: black;
   outline: none;
 }
 
@@ -188,7 +195,7 @@
 
 .letterhead-content-area:focus {
   outline: none;
-  border-color: #00468C;
+  border-color: #7FBD2C;
   box-shadow: 0 0 5px rgba(0, 70, 140, 0.3);
 }
 
@@ -246,21 +253,21 @@
 }
 
 .letterhead-preview-btn {
-  background-color: #007bff;
+  background-color: #7FBD2C;
   color: white;
 }
 
 .letterhead-preview-btn:hover {
-  background-color: #0056b3;
+  background-color: #7FBD2C;
 }
 
 .letterhead-save-btn {
-  background-color: #007bff;
+  background-color: #7FBD2C;
   color: white;
 }
 
 .letterhead-save-btn:hover {
-  background-color: #0056b3;
+  background-color: #7FBD2C;
 }
 
 .letterhead-close-btn {
@@ -372,9 +379,13 @@
 .letterhead-table-container {
   margin-top: 20px;
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: white;
   border-radius: 8px;
+
+  max-height: 800px; /* or any height you prefer */
+  overflow-y: auto;
 }
+
 
 .letterhead-table {
   width: 100%;
@@ -387,15 +398,17 @@
   padding: 10px;
   border: 1px solid #ddd;
   text-align: left;
+    white-space: nowrap;
+   position: sticky; 
 }
 
 .letterhead-table th {
-  background-color: #00468C;
-  color: white;
+  
+  color: black;
 }
 
 .letterhead-table tr:nth-child(even) {
-  background-color: #f2f2f2;
+  background-color: white;
 }
 
 .letterhead-table tr:hover {
@@ -403,7 +416,7 @@
 }
 
 .letterhead-table a {
-  color: #00468C;
+  color: #7FBD2C;
   text-decoration: none;
 }
 
@@ -412,7 +425,7 @@
 }
 
 .letterhead-download-link {
-  color: #00468C;
+  color: #7FBD2C;
   text-decoration: none;
 }
 
@@ -423,10 +436,10 @@
 .letterhead-edit-icon {
   font-size: 1rem;
   cursor: pointer;
-  color: #00468C;
+  color: #7FBD2C;
   transition: color 0.2s;
 }
 
 .letterhead-edit-icon:hover {
-  color: #003366;
+  color: #7FBD2C;
 }
