@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import './EmployeeLogin.css';
 import { Eye } from 'lucide-react';
@@ -606,16 +607,22 @@ const EmployeeLogin = () => {
       {!loading && !error && activeTab === 'select' && (!fromDate || !toDate) ? (
         <p>Please select both "From" and "To" dates to view punch data.</p>
       ) : !loading && !error && Object.keys(slotGroupedData).length > 0 ? (
-        Object.entries(slotGroupedData).map(([slot, empPunchesArr]) => (
-          <TimeSlotGroup
-            key={slot}
-            time={`${slot} ${activeTab === 'today' ? '(Today)' : activeTab === 'yesterday' ? '(Yesterday)' : `(${fromDate})`}`}
-            slotKey={slot}
-            employeesData={empPunchesArr}
-            isOpen={slotStates[activeTab][slot] || false}
-            setSlotOpen={setSlotOpen}
-          />
-        ))
+        Object.entries(slotGroupedData)
+          .sort(([slotA], [slotB]) => {
+            const hourA = parseInt(slotA.split('-')[0], 10) || 0;
+            const hourB = parseInt(slotB.split('-')[0], 10) || 0;
+            return hourA - hourB;
+          })
+          .map(([slot, empPunchesArr]) => (
+            <TimeSlotGroup
+              key={slot}
+              time={`${slot} ${activeTab === 'today' ? '(Today)' : activeTab === 'yesterday' ? '(Yesterday)' : `(${fromDate})`}`}
+              slotKey={slot}
+              employeesData={empPunchesArr}
+              isOpen={slotStates[activeTab][slot] || false}
+              setSlotOpen={setSlotOpen}
+            />
+          ))
       ) : null}
     </div>
   );

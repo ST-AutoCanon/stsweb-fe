@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useRef, useState } from "react";
 import * as faceapi from "face-api.js";
 import "./FacePunch.css";
@@ -9,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const COOLDOWN_PERIOD = 10000; // 10 seconds cooldown (adjustable)
+const COOLDOWN_PERIOD = 5000; // 10 seconds cooldown (adjustable)
 const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
@@ -221,7 +219,7 @@ const FacePunch = () => {
       }
 
       toast.success(`${response.data.message} (${response.data.employee_id})`, {
-        autoClose: 2000,
+        autoClose: 5000,
       });
     } catch (error) {
       console.error(
@@ -234,9 +232,9 @@ const FacePunch = () => {
         error.response.data &&
         error.response.data.message === "Face not recognized"
       ) {
-        toast.warn("Face not recognized. Please try again.", { autoClose: 2000 });
+        toast.warn("Face not recognized. Please try again.", { autoClose: 5000 });
       } else {
-        toast.error("Something went wrong while punching.", { autoClose: 2000 });
+        toast.error("Something went wrong while punching.", { autoClose: 5000 });
       }
     }
   };
