@@ -3,13 +3,13 @@
   position: relative;
   width: 520px; /* Fixed width */
   height: 360px; /* Fixed height */
-  margin: 40px auto; /* Centered with top/bottom margin for breathing room */
+  margin: 10px auto; /* Centered with top/bottom margin for breathing room */
   background-color: #f0edec0f; /* Dark background for modern look */
   border-radius: 12px; /* Softer rounded corners */
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
   transition: transform 0.3s ease; /* Smooth hover effect */
-  margin-top: 10%;
+  margin-top: 60%;
 }
 
 .face-punch-container:hover {
@@ -20,7 +20,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Ensures video fills container */
+   /* Ensures video fills container */
   border-radius: 12px; /* Matches container */
 }
 

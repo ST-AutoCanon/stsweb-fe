@@ -167,7 +167,7 @@ const Assets = () => {
   } else {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+        `${process.env.REACT_APP_BACKEND_URL}/assets/search-employees?q=${value}`,
         {
           headers,
         }
@@ -212,7 +212,7 @@ const Assets = () => {
   useEffect(() => {
     if (assetId) {
       fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned/${assetId}`,
         {
           method: "GET",
           headers,
@@ -258,7 +258,7 @@ const handleAssignedToChange2 = async (e) => {
   } else {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+        `${process.env.REACT_APP_BACKEND_URL}/assets/search-employees?q=${value}`,
         {
           headers,
         }
@@ -295,7 +295,7 @@ const handleAssignedToChange2 = async (e) => {
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/assets/list`, {
             headers,
           }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/assignments`, {
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/assignments`, {
             headers,
           }),
         ]);
@@ -495,7 +495,7 @@ const handleAssignedToChange2 = async (e) => {
       console.log("📤 Sending First Assignment:", firstAssignment);
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
+        `${process.env.REACT_APP_BACKEND_URL}/assets/assign`,
         firstAssignment,
         {
           headers,
@@ -737,7 +737,7 @@ const handleAssignedToChange2 = async (e) => {
   const fetchAssignedAssets = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned`,
+        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned`,
         {
           headers,
         }
@@ -768,12 +768,11 @@ const handleAssignedToChange2 = async (e) => {
         return; // Stop execution if assetId is undefined
       }
 
-      const API_KEY =
-        "eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3";
+      const API_KEY = API_KEY;
       console.log(`📡 Fetching data for Asset ID: ${assetId}`);
 
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned/${assetId}`,
         {
           headers,
         }
@@ -822,7 +821,7 @@ const handleAssignedToChange2 = async (e) => {
   const handleSaveReturnDate = async () => {
     try {
       const response = await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/return-date`,
+        `${process.env.REACT_APP_BACKEND_URL}/assets/return-date`,
         {
           assetId: formData.assetId,
           employeeName: formData.employeeName,
@@ -880,7 +879,7 @@ const handleAssignedToChange2 = async (e) => {
 
   const submitAssignments = async () => {
     try {
-      const response = await fetch("/api/assets/assign", {
+      const response = await fetch("/assets/assign", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -954,7 +953,7 @@ const handleAssignedToChange2 = async (e) => {
   useEffect(() => {
     if (assetId) {
       fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`
+        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned/${assetId}`
       )
         .then((res) => res.json())
         .then((data) => {

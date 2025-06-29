@@ -118,7 +118,7 @@ const Login = ({ onClose }) => {
 
       // Check if username is manish.patil@gmail.com and role is general
       if (
-       username.toLowerCase() === "sts@yopmail.com" &&
+       username.toLowerCase() === "sts.123@yopmail.com" &&
         (data.message.role || "").toLowerCase() === "general"
       ) {
         navigate("/FacePunch");

@@ -15,7 +15,7 @@ const Footer = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [modalKey, setModalKey] = useState(0); // Key to force remount the modal
   const location = useLocation();
-  const hiddenPages = ["/Login", "/dashboard", ""]; // Define pages where footer should be hidden
+  const hiddenPages = ["/Login", "/dashboard", "/FacePunch"]; // Define pages where footer should be hidden
 
   const isHidden = hiddenPages.includes(location.pathname);
 
