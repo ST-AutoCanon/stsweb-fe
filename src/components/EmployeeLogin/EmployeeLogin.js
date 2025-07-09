@@ -27,8 +27,8 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
   const firstName = latest.first_name || 'Unknown';
   const lastName = latest.last_name || '';
   const photoUrl = latest.photo_url || null;
-  const role = latest.role || localStorage.getItem('userRole') || 'Employee'; // Fallback to localStorage
-  const gender = latest.gender || localStorage.getItem('userGender') || 'Male'; // Fallback to localStorage
+  const role = latest.role || localStorage.getItem('userRole') || 'Employee';
+  const gender = latest.gender || localStorage.getItem('userGender') || 'Male';
   const API_KEY = process.env.REACT_APP_API_KEY;
   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
@@ -66,7 +66,6 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
         })
         .catch((err) => {
           console.error('Error fetching photo:', err);
-          // Fallback to default avatar based on role and gender
           setAvatar(
             role === 'Admin'
               ? '/images/smily.png'
@@ -76,7 +75,6 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
           );
         });
     } else {
-      // Set default avatar based on role and gender
       setAvatar(
         role === 'Admin'
           ? '/images/smily.png'
@@ -86,7 +84,6 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
       );
     }
 
-    // Cleanup to revoke object URL
     return () => {
       if (imageUrl) {
         URL.revokeObjectURL(imageUrl);
@@ -217,10 +214,20 @@ const TimeSlotGroup = ({ time, slotKey, employeesData = [], isOpen, setSlotOpen 
     setSlotOpen(slotKey, !isOpen);
   };
 
+  // Format the time slot (e.g., "0-1" to "00:00 - 01:00")
+  const formatTimeSlot = (slot) => {
+    const [startHour] = slot.split('-').map(Number);
+    const endHour = startHour + 1;
+    return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
+  };
+
   return (
     <div className="time-group">
       <div className="time-header" onClick={handleToggle}>
-        <h3>{time}</h3>
+        <h3>
+          {formatTimeSlot(slotKey)} ({employeesData.length} {employeesData.length === 1 ? 'employee' : 'employees'})
+          {time.includes('(Today)') ? ' (Today)' : time.includes('(Yesterday)') ? ' (Yesterday)' : ` (${time.split('(')[1]}`}
+        </h3>
         <span className="expand-icon">{isOpen ? '˄' : '˅'}</span>
       </div>
       {isOpen && (
@@ -245,18 +252,15 @@ const EmployeeLogin = () => {
   const [toDate, setToDate] = useState('');
   const [dateError, setDateError] = useState(null);
 
-  // Function to validate date range
   const validateDateRange = (from, to) => {
-    if (!from || !to) return { valid: true }; // No error if either date is not set
+    if (!from || !to) return { valid: true };
     const fromDateObj = new Date(from);
     const toDateObj = new Date(to);
 
-    // Check if toDate is before fromDate
     if (toDateObj < fromDateObj) {
       return { valid: false, error: "'To' date must be on or after 'From' date." };
     }
 
-    // Check if the date range exceeds 5 days
     const diffTime = toDateObj - fromDateObj;
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
     if (diffDays > 5) {
@@ -268,7 +272,6 @@ const EmployeeLogin = () => {
 
   useEffect(() => {
     const fetchPunchData = async () => {
-      // Skip fetching for 'select' tab until both dates are set
       if (activeTab === 'select' && (!fromDate || !toDate)) {
         setPunchData([]);
         setLoading(false);
@@ -276,7 +279,6 @@ const EmployeeLogin = () => {
         return;
       }
 
-      // Validate date range for 'select' tab
       if (activeTab === 'select') {
         const validation = validateDateRange(fromDate, toDate);
         if (!validation.valid) {
@@ -422,15 +424,15 @@ const EmployeeLogin = () => {
     return slotMap;
   };
 
-  const setSlotOpen = (slot, isOpen) => {
-    setSlotStates((prev) => ({
-      ...prev,
-      [activeTab]: {
-        ...prev[activeTab],
-        [slot]: isOpen,
-      },
-    }));
-  };
+const setSlotOpen = (slot, isOpen) => {
+  setSlotStates((prev) => ({
+    ...prev,
+    [activeTab]: {
+      ...prev[activeTab],
+      [slot]: isOpen,
+    },
+  }));
+};
 
   const handleDownload = async () => {
     if (!fromDate || !toDate) {
@@ -457,7 +459,7 @@ const EmployeeLogin = () => {
       if (!backendUrl) throw new Error('Backend URL is missing.');
       if (!meId) throw new Error('Employee ID is missing.');
 
-      const url = `${backendUrl}/api/emp-excelsheet?from=${fromDate}&to=${toDate}`;
+      const url = `${backendUrl}/emp-excelsheet?from=${fromDate}&to=${toDate}`;
       console.log('Downloading Excel from:', url, { headers, employeeId: meId });
 
       const response = await axios.get(url, {
@@ -518,7 +520,6 @@ const EmployeeLogin = () => {
     }
   };
 
-  // Handle date changes with validation
   const handleFromDateChange = (e) => {
     const newFromDate = e.target.value;
     setFromDate(newFromDate);
