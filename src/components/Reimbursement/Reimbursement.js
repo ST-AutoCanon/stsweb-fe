@@ -245,7 +245,7 @@ const Reimbursement = () => {
               value={formData.fromDate}
               onChange={handleChange}
               required
-              max={new Date(Date.now() - 86400000).toISOString().split("T")[0]}
+              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
           <div className="rb-groups">
@@ -258,7 +258,7 @@ const Reimbursement = () => {
               value={formData.toDate}
               onChange={handleChange}
               required
-              max={new Date(Date.now() - 86400000).toISOString().split("T")[0]}
+              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
         </>
@@ -275,7 +275,7 @@ const Reimbursement = () => {
             value={formData.date}
             onChange={handleChange}
             required
-            max={new Date(Date.now() - 86400000).toISOString().split("T")[0]}
+            max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
           />
         </div>
       );
@@ -292,7 +292,7 @@ const Reimbursement = () => {
               value={formData.fromDate}
               onChange={handleChange}
               required
-              max={new Date(Date.now() - 86400000).toISOString().split("T")[0]}
+              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
           <div className="rb-groups">
@@ -305,7 +305,7 @@ const Reimbursement = () => {
               value={formData.toDate}
               onChange={handleChange}
               required
-              max={new Date(Date.now() - 86400000).toISOString().split("T")[0]}
+              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
         </>
@@ -323,9 +323,9 @@ const Reimbursement = () => {
       department_id: claim.department_id || departmentId,
       claim_type: claim.claim_type || "",
       transport_type: claim.transport_type || "",
-      fromDate: claim.from_date ? claim.from_date.split("T")[0] : "",
-      toDate: claim.to_date ? claim.to_date.split("T")[0] : "",
-      date: claim.date ? claim.date.split("T")[0] : "",
+      fromDate: claim.from_date ? claim.from_date.substring(0, 10) : "",
+      toDate: claim.to_date ? claim.to_date.substring(0, 10) : "",
+      date: claim.date ? claim.date.substring(0, 10) : "",
       travel_from: claim.travel_from || "",
       travel_to: claim.travel_to || "",
       meals_objective: claim.meals_objective || "",
@@ -765,9 +765,9 @@ const Reimbursement = () => {
                   value={formData.date}
                   onChange={handleChange}
                   required
-                  max={
-                    new Date(Date.now() - 86400000).toISOString().split("T")[0]
-                  }
+                  max={new Date(Date.now() - 86400000).toLocaleDateString(
+                    "en-CA"
+                  )}
                 />
               </div>
               <div className="rb-groups">
@@ -876,9 +876,9 @@ const Reimbursement = () => {
                   value={formData.date}
                   onChange={handleChange}
                   required
-                  max={
-                    new Date(Date.now() - 86400000).toISOString().split("T")[0]
-                  }
+                  max={new Date(Date.now() - 86400000).toLocaleDateString(
+                    "en-CA"
+                  )}
                 />
               </div>
               <div className="rb-groups">
@@ -972,9 +972,9 @@ const Reimbursement = () => {
                   value={formData.date}
                   onChange={handleChange}
                   required
-                  max={
-                    new Date(Date.now() - 86400000).toISOString().split("T")[0]
-                  }
+                  max={new Date(Date.now() - 86400000).toLocaleDateString(
+                    "en-CA"
+                  )}
                 />
               </div>
               <div className="rb-groups">
@@ -1080,9 +1080,9 @@ const Reimbursement = () => {
                   value={formData.date}
                   onChange={handleChange}
                   required
-                  max={
-                    new Date(Date.now() - 86400000).toISOString().split("T")[0]
-                  }
+                  max={new Date(Date.now() - 86400000).toLocaleDateString(
+                    "en-CA"
+                  )}
                 />
               </div>
               {/* <div className="rb-groups">

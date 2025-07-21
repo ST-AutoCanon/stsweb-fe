@@ -39,8 +39,8 @@
 //                 .catch((err) => {
 //                     console.error('Error fetching photo:', err);
 //                     // Fallback to default avatar if fetching fails
-//                     setAvatar(storedRole === "Admin" 
-//                         ? "/images/admin-avatar.png" 
+//                     setAvatar(storedRole === "Admin"
+//                         ? "/images/admin-avatar.png"
 //                         : storedGender === "Female"
 //                             ? "/images/female-avatar.png"
 //                             : "/images/male-avatar.png"
@@ -99,6 +99,7 @@ import HolidayCalendar from "../HolidayCalendar/HolidayCalendar";
 import "./Topbar.css";
 import axios from "axios";
 import ReactDOM from "react-dom";
+import Notifications from "./Notifications";
 
 const Topbar = () => {
   const navigate = useNavigate();
@@ -106,8 +107,33 @@ const Topbar = () => {
   const [userRole, setUserRole] = useState("Role");
   const [avatar, setAvatar] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
+
+  const fetchNotificationCount = () => {
+    axios
+      .get(`${BACKEND_URL}/api/notifications`, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+      })
+      .then((res) => {
+        if (res.data.success) {
+          setNotificationCount(res.data.notifications.length);
+        }
+      })
+      .catch((err) => console.error("Error fetching notification count", err));
+  };
+
+  useEffect(() => {
+    fetchNotificationCount();
+    const interval = setInterval(fetchNotificationCount, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName") || "User";
@@ -168,7 +194,25 @@ const Topbar = () => {
         </div>
       </div>
       <div className="icon-section">
-        <i className="fas fa-bell"></i>
+        {/* Notification Icon with badge */}
+        <div
+          className="notification-icon"
+          onClick={() => {
+            setShowNotifications((v) => !v);
+            fetchNotificationCount();
+          }}
+        >
+          <i className="fas fa-bell"></i>
+          {notificationCount > 0 && (
+            <span className="notification-badge">{notificationCount}</span>
+          )}
+        </div>
+
+        <Notifications
+          visible={showNotifications}
+          onClose={() => setShowNotifications(false)}
+          onRead={fetchNotificationCount}
+        />
 
         {/* Calendar Icon */}
         <i

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./Sidebar.css";
 import * as MdIcons from "react-icons/md";
 import EmployeeDetails from "../EmployeeDetails/EmployeeDetails";
@@ -23,8 +23,11 @@ import Chat from "../Chat/ChatPage";
 import EmployeeLogin from "../EmployeeLogin/EmployeeLogin";
 import SalaryStatementWrapper from "../Salary_statement/SalaryStatementWrapper";
 import LetterHead from "../letterHead/letterhead";
+import NoteDashboard from "../Notes/NoteDashboard";
+import { ContentContext } from "./Context";
 
-const Sidebar = ({ setActiveContent }) => {
+const Sidebar = () => {
+  const { setActiveContent } = useContext(ContentContext);
   const [menuItems, setMenuItems] = useState([]);
   const [activeItem, setActiveItem] = useState(""); // Track active menu item
   const [showProfile, setShowProfile] = useState(false);
@@ -90,14 +93,13 @@ const Sidebar = ({ setActiveContent }) => {
         }
         break;
 
-     case "/Salary_Statement":
-      setActiveContent(<SalaryStatementWrapper/>);
+      case "/Salary_Statement":
+        setActiveContent(<SalaryStatementWrapper />);
         break;
-       case "/letterHead":
-        setActiveContent(<LetterHead  />);
+      case "/letterHead":
+        setActiveContent(<LetterHead />);
 
         break;
-
 
       case "/payrollSummary":
         setActiveContent(<PayrollSummary />);
@@ -127,11 +129,13 @@ const Sidebar = ({ setActiveContent }) => {
         break;
       case "/vendors":
         setActiveContent(<Vendors />);
-
         break;
-        case "/EmployeeLogin":
-          setActiveContent(<EmployeeLogin />);
-         break;
+      case "/notes":
+        setActiveContent(<NoteDashboard />);
+        break;
+      case "/EmployeeLogin":
+        setActiveContent(<EmployeeLogin />);
+        break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }

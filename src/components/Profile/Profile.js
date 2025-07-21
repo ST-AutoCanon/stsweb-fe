@@ -25,7 +25,7 @@ const Profile = ({ onClose }) => {
     const fetchProfile = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/employee/${employeeId}`,
+          `${process.env.REACT_APP_BACKEND_URL}/full/${employeeId}`,
           {
             headers: {
               "x-api-key": API_KEY,
@@ -40,7 +40,7 @@ const Profile = ({ onClose }) => {
         if (profileData.photo_url) {
           try {
             const imageResponse = await axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/${profileData.photo_url}`,
+              `${process.env.REACT_APP_BACKEND_URL}/docs${profileData.photo_url}`,
               {
                 headers: {
                   "x-api-key": API_KEY,
@@ -73,6 +73,7 @@ const Profile = ({ onClose }) => {
           {
             headers: {
               "x-api-key": API_KEY,
+              "x-employee-id": employeeId,
             },
           }
         );
@@ -82,11 +83,9 @@ const Profile = ({ onClose }) => {
       }
     };
 
-
     if (employeeId) {
       fetchProfile();
       fetchAssignedAssets(); // Fetch assigned assets
-
     }
   }, [employeeId, API_KEY]);
 
@@ -97,7 +96,7 @@ const Profile = ({ onClose }) => {
   if (!profile) {
     return <div className="profile-popup">No profile data available.</div>;
   }
-``
+  ``;
   return (
     <div className="profile-popup">
       <div className="profile-content">
@@ -155,34 +154,34 @@ const Profile = ({ onClose }) => {
           <p>
             <strong>Mother's Name:</strong> {profile.mother_name}
           </p>
-          
         </div>
         {/* Display assigned assets */}
         <div className="assigned-assets-row">
-  <div className="assigned-assets-label">
-    <strong>Assigned Assets:</strong>
-  </div>
-  <div className="assigned-assets-values">
-  {assignedAssets.length > 0 ? (
-    assignedAssets.map((asset, index) => (
-      <p key={asset.asset_id}>
-        <strong>{asset.asset_id} - {asset.asset_code}</strong> - {asset.asset_name}
-        <strong>{index < assignedAssets.length - 1 && ","}</strong> {/* Add comma except for the last asset */}
-      </p>
-    ))
-  ) : (
-    <p>No assets assigned.</p>
-  )}
-</div>
-
-</div>
-
+          <div className="assigned-assets-label">
+            <strong>Assigned Assets:</strong>
+          </div>
+          <div className="assigned-assets-values">
+            {assignedAssets.length > 0 ? (
+              assignedAssets.map((asset, index) => (
+                <p key={asset.asset_id}>
+                  <strong>
+                    {asset.asset_id} - {asset.asset_code}
+                  </strong>{" "}
+                  - {asset.asset_name}
+                  <strong>
+                    {index < assignedAssets.length - 1 && ","}
+                  </strong>{" "}
+                  {/* Add comma except for the last asset */}
+                </p>
+              ))
+            ) : (
+              <p>No assets assigned.</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default Profile;
-
-
-

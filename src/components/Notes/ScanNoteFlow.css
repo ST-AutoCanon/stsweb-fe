@@ -1,0 +1,95 @@
+/* ScanNoteFlow.css */
+
+.scan-flow {
+  position: relative; /* enable absolute children */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  min-height: 250px;
+}
+
+/* Reference image in top right */
+.scan-flow__reference {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  text-align: center;
+  width: 210px; /* adjust as needed */
+}
+
+.scan-flow__reference-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.scan-flow__reference-img {
+  width: 100%; /* fill the reference container */
+  height: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* push the upload section down so it doesn’t overlap the image */
+.scan-flow__upload {
+  margin-top: 3.5rem; /* at least the height of your reference block + spacing */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* rest stays the same… */
+
+.scan-flow__prompt {
+  text-align: left;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.scan-flow__file-input {
+  width: 200px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.scan-flow__loading {
+  font-style: italic;
+  color: #555;
+}
+
+.scan-flow__transcript {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.scan-flow__transcript-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.scan-flow__transcript-content {
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.scan-flow__cancel-btn {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  background: #79c42b;
+  color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.scan-flow__cancel-btn:hover {
+  background: #6fa634;
+}

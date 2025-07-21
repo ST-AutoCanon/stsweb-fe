@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import { BiEdit } from "react-icons/bi";
 import { MdOutlineCancel } from "react-icons/md";
 import { FiPaperclip } from "react-icons/fi";
@@ -10,6 +11,7 @@ import Modal from "../Modal/Modal";
 
 const EmployeeQuery = () => {
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employeeId || null;
   const departmentId = dashboardData.department_id || null;
@@ -20,12 +22,13 @@ const EmployeeQuery = () => {
   const [selectedQuery, setSelectedQuery] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [attachmentBase64, setAttachmentBase64] = useState(null);
+  const [attachmentFile, setAttachmentFile] = useState(null);
   const [attachmentName, setAttachmentName] = useState("");
   const [loading, setLoading] = useState(true);
   const [showResolved, setShowResolved] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const chatContainerRef = useRef(null);
+  const socketRef = useRef(null);
   const [recipientRole, setRecipientRole] = useState("");
   const [subject, setSubject] = useState("");
   const [query, setQuery] = useState("");
@@ -60,10 +63,35 @@ const EmployeeQuery = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
+  const selectedThreadIdRef = useRef(null);
+
+  // whenever selectedQuery changes, update the ref
+  useEffect(() => {
+    selectedThreadIdRef.current = selectedQuery?.id ?? null;
+  }, [selectedQuery]);
+
+  // 1️⃣ Initialize socket connection once
+  useEffect(() => {
+    socketRef.current = io(BACKEND_URL, {
+      query: { userId: employeeId },
+      auth: { apiKey: API_KEY },
+    });
+
+    socketRef.current.on("newMessage", (msg) => {
+      // use the ref, not the stale state
+      if (msg.thread_id === selectedThreadIdRef.current) {
+        setMessages((prev) => [...prev, msg]);
+      }
+      fetchEmpQueries();
+    });
+
+    return () => socketRef.current.disconnect();
+  }, [BACKEND_URL, API_KEY, employeeId]);
+
   const fetchEmpQueries = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/threads/employee/${employeeId}`,
+        `${BACKEND_URL}/threads/employee/${employeeId}`,
         { headers }
       );
       if (response.data.status === "success") {
@@ -77,9 +105,27 @@ const EmployeeQuery = () => {
   };
 
   useEffect(() => {
-    if (!employeeId) return;
-    fetchEmpQueries();
+    if (employeeId) fetchEmpQueries();
   }, [employeeId]);
+
+  // Join room when a thread is selected
+  useEffect(() => {
+    if (!selectedQuery) return;
+    socketRef.current.emit("joinThread", selectedQuery.id);
+    // Fetch history once
+    axios
+      .get(`${BACKEND_URL}/threads/${selectedQuery.id}/messages`, { headers })
+      .then((res) => setMessages(res.data.data))
+      .catch((e) => console.error(e));
+  }, [selectedQuery]);
+
+  useEffect(() => {
+    // Scroll to bottom
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const fetchMessages = async (threadId) => {
     try {
@@ -166,61 +212,64 @@ const EmployeeQuery = () => {
     }
   }, [messages]);
 
+  const handleAttachmentChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAttachmentFile(file);
+      setAttachmentName(file.name);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!selectedQuery) return;
 
-    if (!inputMessage.trim() && !attachmentBase64) {
-      showAlert("Message or attachment is required.");
+    // 1️⃣ Attachment via REST+Multer
+    if (attachmentFile) {
+      const formData = new FormData();
+      formData.append("attachment", attachmentFile);
+      formData.append("sender_id", employeeId);
+      formData.append("sender_role", userRole);
+      formData.append("recipient_id", selectedQuery.recipient_id);
+      formData.append("message", inputMessage);
+
+      try {
+        const res = await axios.post(
+          `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
+          formData,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        // *** HERE IS THE NEW CODE ***
+        const { message: newMsg } = res.data.data; // <- your handler returns { data: { message: newMessage } }
+        setMessages((prev) => [...prev, newMsg]);
+
+        // reset UI
+        setInputMessage("");
+        setAttachmentFile(null);
+        setAttachmentName("");
+      } catch (err) {
+        console.error(err);
+        showAlert("Failed to send attachment");
+      }
       return;
     }
-
-    const recipientId = selectedQuery.recipient_id;
+    // Otherwise text-only via socket
     const payload = {
       thread_id: selectedQuery.id,
       sender_id: employeeId,
       sender_role: userRole,
-      recipient_id: recipientId,
+      recipient_id: selectedQuery.recipient_id,
       sender_name: name,
       message: inputMessage,
-      attachmentBase64: attachmentBase64 || null,
     };
 
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
-        payload,
-        { headers }
-      );
-
-      setInputMessage("");
-      setAttachmentBase64(null);
-      setAttachmentName("");
-      const fileInputEl = document.getElementById("fileInput");
-      if (fileInputEl) {
-        fileInputEl.value = "";
-      }
-
-      // Fetch updated messages
-      await fetchMessages(selectedQuery.id);
-
-      // **Fetch updated queries list to update preview message and timestamp**
-      await fetchEmpQueries();
-    } catch (error) {
-      console.error("Error sending message:", error);
-      showAlert("Failed to send message. Please try again.");
-    }
-  };
-
-  const handleAttachmentChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setAttachmentName(file.name);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setAttachmentBase64(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    socketRef.current.emit("sendQueryMessage", payload);
+    setInputMessage("");
   };
 
   const openFeedbackModal = (threadId) => {
@@ -629,10 +678,10 @@ const EmployeeQuery = () => {
                   </div>
                   <input
                     type="file"
-                    onChange={handleAttachmentChange}
-                    disabled={selectedQuery.status === "closed"}
-                    style={{ display: "none" }}
                     id="fileInput"
+                    style={{ display: "none" }}
+                    onChange={handleAttachmentChange}
+                    disabled={selectedQuery?.status === "closed"}
                   />
                 </div>
                 <button

@@ -17,7 +17,7 @@ export default function FileUpload({ onUpload }) {
     const fd = new FormData();
     fd.append("file", e.target.files[0]);
     const { data } = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/upload`,
+      `${process.env.REACT_APP_BACKEND_URL}/ChatUploads`,
       fd,
       { headers }
     );

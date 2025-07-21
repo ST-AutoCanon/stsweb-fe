@@ -8,7 +8,7 @@ const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
   useEffect(() => {
     if (photoUrl) {
       axios
-        .get(`${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`, {
+        .get(`${process.env.REACT_APP_BACKEND_URL}/docs${photoUrl}`, {
           headers: { "x-api-key": apiKey },
           responseType: "blob",
         })
