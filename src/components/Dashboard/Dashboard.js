@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
@@ -6,6 +5,7 @@ import "./Dashboard.css";
 import axios from "axios";
 import BirthdayCard from "../BirthdayCard/BirthdayCard"; // Adjust path if needed
 import { isBirthdayToday } from "../../utils/checkBirthday"; // Utility for MM-DD comparison
+import { ContentContext } from "./Context";
 
 const Dashboard = () => {
   // State to manage active content inside the main-content container
@@ -19,7 +19,9 @@ const Dashboard = () => {
   const API_KEY = process.env.REACT_APP_API_KEY;
 
   // Get employeeId from dashboardData stored in localStorage (for headers if needed)
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
 
   // Headers to send with API call
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
@@ -47,31 +49,30 @@ const Dashboard = () => {
     // };
 
     const fetchBirthday = async () => {
-  try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_BACKEND_URL}/api/employee/birthday/${email}`,
-      { headers }
-    );
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/employee/birthday/${email}`,
+          { headers }
+        );
 
-    console.log("🎂 Birthday API Response:", response.data);
+        console.log("🎂 Birthday API Response:", response.data);
 
-    const { full_name, first_name, dob } = response.data;
+        const { full_name, first_name, dob } = response.data;
 
-    // Use first_name or full_name if available
-    const nameToUse = full_name || first_name || "there";
+        // Use first_name or full_name if available
+        const nameToUse = full_name || first_name || "there";
 
-    if (isBirthdayToday(dob)) {
-      setEmployeeName(nameToUse);
-      setShowBirthday(true);
-      setTimeout(() => {
-        setShowBirthday(false);
-      }, 25000); // Show for 18 seconds
-    }
-  } catch (error) {
-    console.error("❌ Error fetching birthday:", error);
-  }
-};
-
+        if (isBirthdayToday(dob)) {
+          setEmployeeName(nameToUse);
+          setShowBirthday(true);
+          setTimeout(() => {
+            setShowBirthday(false);
+          }, 25000); // Show for 18 seconds
+        }
+      } catch (error) {
+        console.error("❌ Error fetching birthday:", error);
+      }
+    };
 
     if (email) {
       fetchBirthday();
@@ -87,25 +88,28 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="Dashboard123">
-      <div className="Dashboarddesign">
-        <div className="dashboard">
-          {/* 🎉 Show Birthday Card if it's today */}
-          {showBirthday && <BirthdayCard name={employeeName} />}
+    <ContentContext.Provider value={{ setActiveContent }}>
+      <div className="Dashboard123">
+        <div className="Dashboarddesign">
+          <div className="dashboard">
+            {/* 🎉 Show Birthday Card if it's today */}
+            {showBirthday && <BirthdayCard name={employeeName} />}
 
-          {/* Topbar at the top */}
-          <Topbar />
+            {/* Topbar at the top */}
+            <Topbar />
 
-          {/* Content container: Sidebar on the left, Main Content on the right */}
-          <div className="content-container">
-            <Sidebar setActiveContent={setActiveContent} />
-            <div className="main-content">{renderContent() /* Dynamic content rendered here */}</div>
+            {/* Content container: Sidebar on the left, Main Content on the right */}
+            <div className="content-container">
+              <Sidebar setActiveContent={setActiveContent} />
+              <div className="main-content">
+                {renderContent() /* Dynamic content rendered here */}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </ContentContext.Provider>
   );
 };
 
 export default Dashboard;
-

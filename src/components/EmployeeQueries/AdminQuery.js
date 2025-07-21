@@ -4,6 +4,7 @@ import { FiPaperclip } from "react-icons/fi";
 import UserAvatar from "./UserAvatar";
 import "./AdminQuery.css";
 import Modal from "../Modal/Modal";
+import { io } from "socket.io-client";
 
 const AdminQuery = () => {
   const API_KEY = process.env.REACT_APP_API_KEY;
@@ -22,10 +23,38 @@ const AdminQuery = () => {
   const [error, setError] = useState("");
   const [showResolved, setShowResolved] = useState(false);
   const chatContainerRef = useRef(null);
+  const socketRef = useRef(null);
+  const selectedThreadIdRef = useRef(null);
+  const [attachmentFile, setAttachmentFile] = useState(null);
 
   const headers = {
     "x-api-key": API_KEY,
   };
+
+  useEffect(() => {
+    selectedThreadIdRef.current = selectedQuery?.id ?? null;
+  }, [selectedQuery]);
+
+  // 1️⃣ Connect socket once
+  useEffect(() => {
+    socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
+      query: { userId: employeeId },
+      auth: { apiKey: API_KEY },
+    });
+
+    socketRef.current.on("newMessage", (msg) => {
+      // only append if it’s for our open thread
+      if (msg.thread_id === selectedThreadIdRef.current) {
+        setMessages((prev) => [...prev, msg]);
+      }
+      // update preview list if you want
+      fetchQueries();
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, [employeeId, API_KEY]);
 
   const fetchQueries = async () => {
     try {
@@ -89,47 +118,64 @@ const AdminQuery = () => {
       return;
     }
 
+    // attachments via REST/Multer
+    if (attachmentFile) {
+      const formData = new FormData();
+      formData.append("attachment", attachmentFile);
+      formData.append("sender_id", employeeId);
+      formData.append("sender_role", userRole);
+      formData.append("recipient_id", selectedQuery.sender_id);
+      formData.append("message", newMessage);
+
+      try {
+        const res = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
+          formData,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        // *** IMMEDIATE UI UPDATE: ***
+        const { message: newMsg } = res.data.data;
+        setMessages((prev) => [...prev, newMsg]);
+
+        // clear inputs
+        setNewMessage("");
+        setAttachmentFile(null);
+        setAttachmentBase64(null);
+        setAttachmentName("");
+        document.getElementById("fileInput").value = "";
+      } catch (err) {
+        console.error(err);
+        showAlert("Failed to send attachment");
+      }
+      return;
+    }
+
+    // text‑only via socket
     const payload = {
       thread_id: selectedQuery.id,
       sender_id: employeeId,
       sender_role: userRole,
-      sender_name: name,
       recipient_id: selectedQuery.sender_id,
+      sender_name: name,
       message: newMessage,
-      attachmentBase64: attachmentBase64 || null,
     };
-
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/threads/${selectedQuery.id}/messages`,
-        payload,
-        { headers }
-      );
-      setNewMessage("");
-      setAttachmentBase64(null);
-      setAttachmentName("");
-      const fileInputEl = document.getElementById("fileInput");
-      if (fileInputEl) {
-        fileInputEl.value = "";
-      }
-      // Fetch updated messages
-      await fetchMessages(selectedQuery.id);
-      // Refetch queries to update preview messages and timestamps
-      await fetchQueries();
-    } catch (err) {
-      console.error("Error sending message:", err);
-      showAlert("Failed to send message. Please try again.");
-    }
+    socketRef.current.emit("sendQueryMessage", payload);
+    setNewMessage("");
   };
 
   const handleAttachmentChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      setAttachmentFile(file);
       setAttachmentName(file.name);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setAttachmentBase64(e.target.result);
-      };
+      reader.onload = (e) => setAttachmentBase64(e.target.result);
       reader.readAsDataURL(file);
     }
   };
@@ -149,6 +195,8 @@ const AdminQuery = () => {
   const handleSelectQuery = async (query) => {
     setSelectedQuery(query);
     setMessages([]);
+
+    socketRef.current.emit("joinThread", query.id);
 
     try {
       const response = await axios.get(

@@ -14,20 +14,31 @@ export default function ChatPage({ userId }) {
       <div className={`chat-page${activeRoom ? " chat-active" : ""}`}>
         <ChatList
           onSelect={(room) => {
-            if (room.isNew) setShowGroupModal(true);
-            else setActiveRoom(room);
+            // always switch into that room…
+            setActiveRoom(room);
+            // …but if it's flagged as a brand‑new GROUP, show the create‑group modal
+            if (room.isNew && room.isGroup) {
+              setShowGroupModal(true);
+            }
           }}
         />
 
         {activeRoom ? (
-          <ChatWindow room={activeRoom} userId={userId} />
+          <ChatWindow
+            room={activeRoom}
+            userId={userId}
+            onBack={() => setActiveRoom(null)} // ← pass this
+          />
         ) : (
           <div className="chat-placeholder">Select or create a chat</div>
         )}
 
         {showGroupModal && (
           <GroupModal
-            onCreate={() => setShowGroupModal(false)}
+            onCreate={() => {
+              setShowGroupModal(false);
+              setActiveRoom((r) => ({ ...r, isNew: false }));
+            }}
             onClose={() => setShowGroupModal(false)}
           />
         )}

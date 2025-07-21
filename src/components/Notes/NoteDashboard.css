@@ -1,0 +1,289 @@
+.note-dashboard-container {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+  font-family: Arial, sans-serif;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dashboard-title {
+  font-size: 24px;
+  font-weight: 550;
+  margin: 0;
+}
+
+.nt-add-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #79c42b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.nt-add-button:hover {
+  background-color: #62bd01;
+}
+
+.voice-flow-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.notes-box {
+  height: 600px;
+  overflow-y: auto;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 1%;
+  margin-bottom: 1rem;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  padding: 0;
+  cursor: pointer;
+  color: #4a5568;
+}
+.nav-button:hover {
+  color: #2d3748;
+}
+
+.month-label {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 1rem 0.5rem;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0;
+  margin: 1rem;
+  overflow-x: auto;
+}
+
+.day-column {
+  display: flex;
+  width: 100px;
+  flex-direction: column;
+}
+
+.date-header {
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.date-header:hover {
+  background-color: #e2e8f0;
+}
+
+.date-header.today {
+  border: solid 2px #bee3f8; /* light blue for today */
+}
+
+.date-header.selected {
+  border: solid 2px #000; /* pale orange for selected */
+}
+
+.date-number {
+  font-size: 1.25rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.date-weekday {
+  font-size: 1.25rem;
+  color: #949494;
+  font-weight: bold;
+}
+
+/* Section for the grid of cards */
+.notes-grid-section {
+  margin: 1.5rem;
+}
+
+/* Heading above the cards */
+.notes-for-date-heading {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+/* Grid layout of note cards (2 columns, adjustable) */
+.notes-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 3rem;
+}
+
+/* Base styling for a note card */
+.note-card-card {
+  height: 200px;
+  overflow-y: auto;
+  padding: 1rem;
+  color: #1a202c;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.note-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+
+.note-card-subtitle {
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem 0;
+  color: #4a5568;
+}
+
+.note-card-body {
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  color: #2d3748;
+}
+
+.note-card-footer {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #4a5568;
+}
+
+/* “No notes” text when empty */
+.notes-grid-section p {
+  text-align: left;
+  font-size: 1rem;
+  color: #718096;
+}
+
+.color-card-1 {
+  background-color: #ffeed3;
+}
+
+.color-card-2 {
+  background-color: #ffe7fd;
+}
+
+.color-card-3 {
+  background-color: #d7f1ff;
+}
+
+.color-card-4 {
+  background-color: #edffd0;
+}
+
+.note-card-card.highlight {
+  animation: highlightFade 3s ease-out forwards;
+}
+@keyframes highlightFade {
+  0% {
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.9);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .note-dashboard-container {
+    padding: 0 0.5rem;
+  }
+
+  .header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .nt-add-button {
+    justify-content: center;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .voice-flow-wrapper {
+    margin-bottom: 1rem;
+  }
+
+  .notes-box {
+    height: auto;
+    max-height: 60vh;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Month navigation */
+  .nav-button {
+    font-size: 1.25rem;
+  }
+  .month-label {
+    font-size: 1.1rem;
+    margin: 0.75rem 0;
+    text-align: center;
+  }
+
+  /* Week grid becomes a horizontally scrollable row of smaller columns */
+  .week-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+    overflow-x: auto;
+  }
+
+  .day-column {
+    width: 60px;
+    flex: none;
+  }
+
+  .date-header {
+    padding: 0.25rem;
+  }
+  .date-number,
+  .date-weekday {
+    font-size: 1rem;
+  }
+
+  /* Notes grid: single column cards */
+  .notes-grid-section {
+    margin: 1rem 0;
+  }
+
+  .notes-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .note-card-card {
+    padding: 0.75rem;
+    height: auto;
+  }
+
+  .note-card-title {
+    font-size: 1rem;
+  }
+  .note-card-subtitle,
+  .note-card-body {
+    font-size: 0.8rem;
+  }
+  .note-card-footer {
+    font-size: 0.7rem;
+  }
+}

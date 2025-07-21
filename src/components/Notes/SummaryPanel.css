@@ -1,0 +1,84 @@
+/* frontend/src/components/SummaryPanel.css */
+.summary-panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+}
+.summary-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.summary-header p {
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+}
+.summary-text {
+  color: #00a000;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.summary-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid #77dd0d;
+  color: #77dd0d;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-primary {
+  background: #77dd0d;
+  border: none;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 600px) {
+  .summary-panel {
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: left;
+  }
+
+  .summary-header h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .summary-header p {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .summary-text {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .summary-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .btn-outline,
+  .btn-primary {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+}

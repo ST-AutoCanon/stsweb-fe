@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useSocket } from "./SocketContext";
+import { FaArrowLeft } from "react-icons/fa";
 import FileUpload from "./FileUpload";
 import "./ChatWindow.css";
 import {
@@ -74,7 +75,7 @@ async function getLocationAndAddress() {
   });
 }
 
-export default function ChatWindow({ room }) {
+export default function ChatWindow({ room, onBack }) {
   const [msgs, setMsgs] = useState([]);
   const [txt, setTxt] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -210,21 +211,20 @@ export default function ChatWindow({ room }) {
   };
   const onEmojiClick = (_, emojiObj) => setTxt((p) => p + emojiObj.emoji);
 
-  // Download file helper
-  const downloadFile = async (fileUrl, suggestedName) => {
+  const downloadFile = async (filename) => {
     const base = process.env.REACT_APP_BACKEND_URL.replace(/\/+$/, "");
-    const path = fileUrl.replace(/^\/+/, "");
-    const url = `${base}/${path}`;
+    const url = `${base}${filename}`;
     try {
       const resp = await fetch(url, { headers });
       if (!resp.ok) throw new Error(`status ${resp.status}`);
       const blob = await resp.blob();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = suggestedName || path.split("/").pop();
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
     } catch (err) {
       console.error("downloadFile error:", err);
       alert("Could not download file");
@@ -267,6 +267,13 @@ export default function ChatWindow({ room }) {
     <div className="chat-window">
       {/* Header */}
       <div className="m-header">
+        <button
+          className="back-btn"
+          onClick={onBack}
+          aria-label="Back to chat list"
+        >
+          <FaArrowLeft />
+        </button>
         <UserAvatar
           photoUrl={room.photo_url}
           role={room.role}
@@ -274,7 +281,14 @@ export default function ChatWindow({ room }) {
           apiKey={process.env.REACT_APP_API_KEY}
           className="header-avatar"
         />
-        <div className="chat-header-title">{room.name}</div>
+        <div className="chat-header-title">
+          {room.name || // if no explicit room.name, assume private and build from members:
+            room.members
+              ?.filter((m) => m.employeeId !== meId)
+              .map((m) => m.name)
+              .join(", ") ||
+            "Chat"}
+        </div>
         {room.is_group === 1 && (
           <button
             className="members-btn"
