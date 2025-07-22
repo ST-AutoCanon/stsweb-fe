@@ -168,24 +168,18 @@ export default function EmployeeDetails() {
     }
   };
 
-  const handleUpdate = async (data) => {
-    try {
-      await axios.put(`${BASE_URL}/full/${data.employee_id}`, data, {
-        headers: {
-          "x-api-key": API_KEY,
-          "x-employee-id": employeeId,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      showAlert("Employee updated successfully.");
-      closeForm();
-      fetchEmployees();
-    } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        "Failed to update employee. Please try again.";
-      throw new Error(msg);
-    }
+  // AFTER
+  const handleUpdate = async (id, formData) => {
+    await axios.put(`${BASE_URL}/full/${id}`, formData, {
+      headers: {
+        "x-api-key": API_KEY,
+        "x-employee-id": employeeId,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    showAlert("Employee updated successfully.");
+    closeForm();
+    fetchEmployees();
   };
 
   const handleEditClick = async (id) => {
@@ -354,13 +348,19 @@ export default function EmployeeDetails() {
                 className="emp-form-close-icon"
               />
             </div>
-            <EmployeeForm
-              initialData={formMode === "edit" ? selectedEmployee : {}}
-              onSubmit={formMode === "edit" ? handleUpdate : handleAdd}
-              onCancel={closeForm}
-              departments={departments}
-              supervisors={supervisors}
-            />
+            {formMode && (
+              <EmployeeForm
+                initialData={formMode === "edit" ? selectedEmployee : {}}
+                onSubmit={
+                  formMode === "edit"
+                    ? (fd) => handleUpdate(selectedEmployee.employee_id, fd)
+                    : handleAdd
+                }
+                onCancel={closeForm}
+                departments={departments}
+                supervisors={supervisors}
+              />
+            )}
           </div>
         </div>
       )}

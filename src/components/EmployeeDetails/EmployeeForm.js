@@ -11,12 +11,24 @@ export default function EmployeeForm({
   onSubmit,
   onCancel,
   departments = [],
-  positions = [],
   supervisors = [],
 }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState("");
+
+  // Sanitize initialData to ensure arrays are never null
+  const sanitizedInitialData = {
+    ...initialData,
+    experience: Array.isArray(initialData.experience)
+      ? initialData.experience
+      : [],
+    other_docs: Array.isArray(initialData.other_docs)
+      ? initialData.other_docs
+      : [],
+  };
+
   const [formData, setFormData] = useState({
+    // Default fields
     first_name: "",
     last_name: "",
     dob: null,
@@ -65,23 +77,32 @@ export default function EmployeeForm({
     position: "",
     supervisor_id: "",
     salary: "",
+    // Ensure arrays default
     experience: [],
-    resume: null,
     other_docs: [],
+    resume: null,
     bank_name: "",
     account_number: "",
     ifsc_code: "",
     branch_name: "",
-    ...initialData,
+    // Override with sanitized initial data
+    ...sanitizedInitialData,
   });
+
   const [loading, setLoading] = useState(false);
   const formRef = useRef();
 
+  // Debug logs (optional)
   console.log("resume:", formData.resume);
-  console.log("other_docs:", formData.other_docs);
+  console.log(
+    "other_docs:",
+    Array.isArray(formData.other_docs) ? formData.other_docs : []
+  );
   console.log(
     "experience docs:",
-    formData.experience.map((e) => e.doc)
+    Array.isArray(formData.experience)
+      ? formData.experience.map((e) => e.doc)
+      : []
   );
 
   const handleChange = (name, value) =>
@@ -103,8 +124,6 @@ export default function EmployeeForm({
     if (!validateStep()) return;
 
     if (STEPS[currentStep] === "personal") {
-      console.log("DOB raw value:", formData.dob, "type:", typeof formData.dob);
-
       if (!formData.dob) {
         setError("Please enter your date of birth.");
         return;
@@ -112,7 +131,6 @@ export default function EmployeeForm({
 
       const [year, month, day] = formData.dob.split("-").map(Number);
       const dob = new Date(year, month - 1, day);
-      console.log("Parsed DOB:", dob.toString());
 
       if (isNaN(dob.getTime())) {
         setError("Invalid date of birth.");
@@ -125,7 +143,6 @@ export default function EmployeeForm({
         today.getMonth(),
         today.getDate()
       );
-      console.log("Minimum allowed DOB:", minDob.toString());
 
       if (dob > minDob) {
         setError("Employee must be at least 18 years old.");
@@ -138,54 +155,42 @@ export default function EmployeeForm({
 
   const back = () => setCurrentStep((i) => Math.max(i - 1, 0));
 
-  // inside EmployeeForm …
   const handleSubmit = async () => {
     if (!validateStep()) return;
     setLoading(true);
     setError("");
 
     try {
-      // 1) Build FormData
       const fd = new FormData();
 
-      // append all primitive fields
       Object.entries(formData).forEach(([key, val]) => {
-        // skip experience & other_docs for now
         if (key === "experience" || key === "other_docs") return;
         if (val != null) fd.append(key, val);
       });
 
-      // 2) Add each experience entry
+      // Append experience entries
       formData.experience.forEach((exp, idx) => {
         fd.append(`experience[${idx}][company]`, exp.company);
         fd.append(`experience[${idx}][role]`, exp.role);
         fd.append(`experience[${idx}][start_date]`, exp.start_date);
         fd.append(`experience[${idx}][end_date]`, exp.end_date);
-
-        // and *this* is the important bit:
-        // FileInput called onChange("experience_${idx}_doc", file)
-        // so we need to pick it up here:
         if (exp.doc instanceof File) {
           fd.append(`experience_${idx}_doc`, exp.doc, exp.doc.name);
         }
       });
 
-      // 3) Other multi‑file fields
-      if (Array.isArray(formData.other_docs)) {
-        formData.other_docs.forEach((file, i) => {
-          if (file instanceof File) {
-            fd.append("other_docs", file, file.name);
-          }
-        });
-      }
+      // Append other_docs
+      formData.other_docs.forEach((file) => {
+        if (file instanceof File) {
+          fd.append("other_docs", file, file.name);
+        }
+      });
 
-      // 4) And finally the resume
       if (formData.resume instanceof File) {
         fd.append("resume", formData.resume, formData.resume.name);
       }
 
-      // 5) Send as multipart
-      await onSubmit(fd); // make sure your onSubmit/axios call doesn't JSON.stringify
+      await onSubmit(fd);
     } catch (err) {
       setError(err.message || "Failed to save data");
     } finally {
@@ -225,7 +230,6 @@ export default function EmployeeForm({
         ))}
       </div>
 
-      {/* wrap current step in its own <form> for HTML5 validation */}
       <form ref={formRef} noValidate>
         {renderStep()}
       </form>

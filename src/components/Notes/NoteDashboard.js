@@ -169,7 +169,7 @@ export default function NoteDashboard({ highlightedId }) {
   return (
     <div className="note-dashboard-container">
       {/* Header row: title + Add button */}
-      <div className="header-row">
+      <div className="nt-header-row">
         <h2 className="dashboard-title">My Notes</h2>
         <button className="nt-add-button" onClick={() => setAddMode(true)}>
           <LuFilePlus size={24} /> Add new Note

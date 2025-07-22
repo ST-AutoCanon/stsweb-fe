@@ -7,10 +7,10 @@ import "react-toastify/dist/ReactToastify.css";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const COOLDOWN_PERIOD = 5000; // 10 seconds cooldown (adjustable)
+const COOLDOWN_PERIOD = 10000; // 10 seconds cooldown (adjustable)
 const meId = JSON.parse(
-    localStorage.getItem("dashboardData") || "{}"
-  ).employeeId;
+  localStorage.getItem("dashboardData") || "{}"
+).employeeId;
 const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
 const FacePunch = () => {
@@ -90,7 +90,10 @@ const FacePunch = () => {
         setIsProcessing(true);
 
         const detections = await faceapi
-          .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+          .detectAllFaces(
+            videoRef.current,
+            new faceapi.TinyFaceDetectorOptions()
+          )
           .withFaceLandmarks()
           .withFaceDescriptors();
 
@@ -101,16 +104,60 @@ const FacePunch = () => {
             height: videoRef.current.videoHeight,
           };
           faceapi.matchDimensions(canvas, displaySize);
-          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+          const resizedDetections = faceapi.resizeResults(
+            detections,
+            displaySize
+          );
           canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
           faceapi.draw.drawDetections(canvas, resizedDetections);
         }
 
-        if (detections.length > 0) {
-          console.log("Face detected, initiating punch...");
-          await captureAndPunch(detections[0]);
+        if (detections.length === 1) {
+          const detection = detections[0];
+
+          const score = detection.detection.score;
+          const box = detection.detection.box;
+          const area = box.width * box.height;
+          const frameArea =
+            videoRef.current.videoWidth * videoRef.current.videoHeight;
+          const faceCoverage = area / frameArea;
+
+          console.log("Detection score:", score);
+          console.log("Face coverage:", faceCoverage.toFixed(2));
+
+          // Adjust thresholds for typical webcam use
+          if (score < 0.85) {
+            console.log("Face detection score too low:", score);
+            toast.warn("Face not clear. Please face the camera properly.", {
+              autoClose: 2000,
+            });
+            return;
+          }
+
+          if (faceCoverage < 0.06) {
+            console.log(
+              "Face too far or small in frame. Coverage:",
+              faceCoverage
+            );
+            toast.warn("Come closer to the camera.", { autoClose: 2000 });
+            return;
+          }
+
+          // All checks passed, proceed
+          console.log("Face detected properly, initiating punch...");
+          await captureAndPunch(detection);
           setLastPunchTime(Date.now());
           setCooldownRemaining(COOLDOWN_PERIOD / 1000);
+        } else if (detections.length > 1) {
+          console.log(
+            "Multiple faces detected. Please ensure only one person is in frame."
+          );
+          toast.warn(
+            "Multiple faces detected. Only one person should be visible.",
+            { autoClose: 2000 }
+          );
+        } else {
+          console.log("No face detected.");
         }
       } catch (err) {
         console.error("Detection error:", err);
@@ -128,7 +175,10 @@ const FacePunch = () => {
 
   const getLastPunchStatus = async (descriptorArray) => {
     try {
-      console.log("Fetching last punch status with descriptor:", descriptorArray);
+      console.log(
+        "Fetching last punch status with descriptor:",
+        descriptorArray
+      );
       const response = await axios.post(
         `${BACKEND_URL}/last-punch-status`,
         { descriptor: descriptorArray },
@@ -188,16 +238,30 @@ const FacePunch = () => {
       console.log("Full punch response:", response.data);
 
       // Extract status from response.data.message
-      const message = response.data.message ? response.data.message.toLowerCase() : "";
+      const message = response.data.message
+        ? response.data.message.toLowerCase()
+        : "";
       let announcementStatus;
-      if (message.includes("punch out") || message.includes("punched out") || message.includes("punch-out")) {
+      if (
+        message.includes("punch out") ||
+        message.includes("punched out") ||
+        message.includes("punch-out")
+      ) {
         announcementStatus = "punched out";
-      } else if (message.includes("punch in") || message.includes("punched in") || message.includes("punch-in")) {
+      } else if (
+        message.includes("punch in") ||
+        message.includes("punched in") ||
+        message.includes("punch-in")
+      ) {
         announcementStatus = "punched in";
       } else {
-        announcementStatus = punchType === "punch-in" ? "punched in" : "punched out";
+        announcementStatus =
+          punchType === "punch-in" ? "punched in" : "punched out";
       }
-      console.log("Extracted announcementStatus from message:", announcementStatus);
+      console.log(
+        "Extracted announcementStatus from message:",
+        announcementStatus
+      );
 
       // Update lastPunchStatus with confirmed punchType from backend or calculated
       const confirmedPunchType = response.data.punchType || punchType;
@@ -219,7 +283,7 @@ const FacePunch = () => {
       }
 
       toast.success(`${response.data.message} (${response.data.employee_id})`, {
-        autoClose: 5000,
+        autoClose: 2000,
       });
     } catch (error) {
       console.error(
@@ -232,9 +296,13 @@ const FacePunch = () => {
         error.response.data &&
         error.response.data.message === "Face not recognized"
       ) {
-        toast.warn("Face not recognized. Please try again.", { autoClose: 5000 });
+        toast.warn("Face not recognized. Please try again.", {
+          autoClose: 2000,
+        });
       } else {
-        toast.error("Something went wrong while punching.", { autoClose: 5000 });
+        toast.error("Something went wrong while punching.", {
+          autoClose: 2000,
+        });
       }
     }
   };
@@ -255,10 +323,12 @@ const FacePunch = () => {
 
       {employeeInfo ? (
         <div className="employee-info-message">
-          Detected ✅: {employeeInfo.name} ({employeeInfo.id})
+          Detected: {employeeInfo.name} ({employeeInfo.id})
         </div>
       ) : (
-        <div className="employee-info-message">No employee info detected yet.</div>
+        <div className="employee-info-message">
+          No employee info detected yet.
+        </div>
       )}
 
       {(isProcessing || cooldownRemaining > 0) && (
