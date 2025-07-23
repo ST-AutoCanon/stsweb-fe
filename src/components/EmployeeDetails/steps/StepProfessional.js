@@ -1,4 +1,3 @@
-// ./steps/StepProfessional.jsx
 import React from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import FileInput from "../FileInput";
@@ -10,7 +9,6 @@ export default function StepProfessional({
   supervisors = [],
 }) {
   const generatePositions = (deptId, role) => {
-    // find the department object so we can grab its name
     const dept = departments.find((d) => d.id === Number(deptId));
     const deptName = dept ? dept.name : "";
     if (!deptName) return [];
@@ -38,15 +36,14 @@ export default function StepProfessional({
 
   const positionsList = generatePositions(data.department_id, data.role);
   const expList = Array.isArray(data.experience) ? data.experience : [];
+  const isAdmin = (data.role || "").toLowerCase() === "admin";
 
-  // Update one field of an experience entry
   const updateExperience = (idx, field, value) => {
     const newList = [...expList];
     newList[idx] = { ...newList[idx], [field]: value };
     onChange("experience", newList);
   };
 
-  // Add a blank experience entry
   const addExperience = () => {
     onChange("experience", [
       ...expList,
@@ -54,13 +51,11 @@ export default function StepProfessional({
     ]);
   };
 
-  // Remove an entry
   const removeExperience = (idx) => {
     const newList = expList.filter((_, i) => i !== idx);
     onChange("experience", newList);
   };
 
-  // Compute total experience in months, then convert to years + months
   const totalMonths = expList.reduce((sum, exp) => {
     if (exp.start_date && exp.end_date) {
       const start = new Date(exp.start_date);
@@ -103,7 +98,6 @@ export default function StepProfessional({
         STS
       </label>
 
-      {/* Core fields */}
       <div className="st-pro">
         <label>
           Employee Type<span className="required">*</span>
@@ -112,6 +106,7 @@ export default function StepProfessional({
             value={data.employee_type || ""}
             onChange={(e) => onChange("employee_type", e.target.value)}
             required
+            disabled={isAdmin}
           >
             <option value="">Select</option>
             <option value="Permanent">Permanent</option>
@@ -143,6 +138,7 @@ export default function StepProfessional({
             value={data.department_id || ""}
             onChange={(e) => onChange("department_id", e.target.value)}
             required
+            disabled={isAdmin}
           >
             <option value="">Select</option>
             {departments.map((d) => (
@@ -160,6 +156,7 @@ export default function StepProfessional({
             value={data.position || ""}
             onChange={(e) => onChange("position", e.target.value)}
             required
+            disabled={isAdmin}
           >
             <option value="">Select</option>
             {positionsList.map((p) => (
@@ -199,12 +196,10 @@ export default function StepProfessional({
         </label>
       </div>
 
-      {/* Experiences */}
       <div className="edu-add-row">
         <button type="button" className="pj-next-btn" onClick={addExperience}>
           + Add Experience
         </button>
-        {/* Display total experience */}
         <div className="total-experience">
           <strong>
             Total Experience:{" "}
@@ -260,7 +255,6 @@ export default function StepProfessional({
               />
             </label>
 
-            {/* Only one FileInput per row */}
             <FileInput
               name={`experience_${idx}_doc`}
               label="Experience Letter"
@@ -277,7 +271,6 @@ export default function StepProfessional({
         ))}
       </div>
 
-      {/* Final document uploads */}
       <div className="st-pro">
         <FileInput
           name="resume"
@@ -293,7 +286,7 @@ export default function StepProfessional({
           label="Other Documents"
           accept=".pdf,image/*"
           multiple
-          existingUrl={data.other_docs_urls} // pass the array of existing URLs
+          existingUrl={data.other_docs_urls}
           onChange={onChange}
         />
       </div>

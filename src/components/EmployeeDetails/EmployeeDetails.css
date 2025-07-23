@@ -488,7 +488,7 @@
 
 .edit,
 .deactivate {
-  padding: 0 5px;
+  padding: 0 3px;
   cursor: pointer;
   font-size: x-large;
   border: none;
