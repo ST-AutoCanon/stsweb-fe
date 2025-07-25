@@ -55,6 +55,7 @@ const Reimbursement = () => {
   const [updateErrorMessage, setUpdateErrorMessage] = useState("");
   const [submitErrorMessage, setSubmitErrorMessage] = useState("");
   const [date, setDate] = useState("");
+  const [projects, setProjects] = useState([]);
   const [statusFilter, setStatusFilter] = useState(
     role === "Admin" ? "approved" : "pending"
   );
@@ -79,8 +80,21 @@ const Reimbursement = () => {
     meal_type: "",
     stationary: "",
     service_provider: "",
+    project: "",
     attachments: null,
   });
+
+  const formatDisplayDate = (raw) => {
+    if (!raw) return "N/A";
+
+    const d = raw instanceof Date ? raw : new Date(raw);
+    if (isNaN(d)) return raw;
+
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = d.toLocaleString("en-GB", { month: "short" });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
   // At the top of your component
   const [confirmModal, setConfirmModal] = useState({
@@ -196,6 +210,24 @@ const Reimbursement = () => {
       showAlert(errorMessage || "Error fetching reimbursements.");
     }
   };
+
+  useEffect(() => {
+    fetchReimbursements();
+
+    // Fetch projects for the dropdown
+    const fetchProjects = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
+          { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
+        );
+        setProjects(res.data);
+      } catch (err) {
+        console.error("Error fetching projects:", err);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -340,6 +372,7 @@ const Reimbursement = () => {
       stationary: claim.stationary || "",
       comments: claim.comments || "",
       service_provider: claim.service_provider || "",
+      project: claim.project || "",
       attachments: existingAttachments,
     });
     setSelectedFiles(
@@ -356,6 +389,19 @@ const Reimbursement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitErrorMessage("");
+
+    const wordCount = formData.purpose
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+
+    if (wordCount < 30) {
+      showAlert(
+        `Purpose Details / Comments must be at least 30 words. You have ${wordCount}.`
+      );
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("employeeId", formData.employeeId);
@@ -379,7 +425,7 @@ const Reimbursement = () => {
       formDataToSend.append("meal_type", formData.meal_type);
       formDataToSend.append("stationary", formData.stationary);
       formDataToSend.append("service_provider", formData.service_provider);
-
+      formDataToSend.append("project", formData.project);
       formDataToSend.append("role", role);
 
       if (formData.attachments && formData.attachments.length > 0) {
@@ -433,6 +479,7 @@ const Reimbursement = () => {
         stationary: "",
         comments: "",
         service_provider: "",
+        project: "",
         attachments: null,
       });
       setShowForm(false);
@@ -1220,6 +1267,7 @@ const Reimbursement = () => {
               meal_type: "",
               stationary: "",
               service_provider: "",
+              project: "",
               attachments: null,
             });
           }}
@@ -1228,7 +1276,7 @@ const Reimbursement = () => {
         </button>
       </div>
 
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
+      {errorMessage && <p className="rb-error-message">{errorMessage}</p>}
 
       <div className="reimbursement-table-scroll">
         <table className="reimbursement-table">
@@ -1255,20 +1303,10 @@ const Reimbursement = () => {
                   {claim.date_range
                     ? claim.date_range
                         .split(" - ")
-                        .map((date) =>
-                          new Date(date).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
-                        )
+                        .map(formatDisplayDate)
                         .join(" - ")
                     : claim.date
-                    ? new Date(claim.date).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })
+                    ? formatDisplayDate(claim.date)
                     : "N/A"}
                 </td>
                 <td>
@@ -1387,13 +1425,7 @@ const Reimbursement = () => {
                 </p>
                 <p>
                   <strong>Date:</strong>{" "}
-                  {claim.date
-                    ? new Date(claim.date).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "N/A"}
+                  {claim.date ? formatDisplayDate(claim.date) : "N/A"}
                 </p>
                 <p>
                   <strong>Purpose:</strong> {claim.purpose}
@@ -1456,13 +1488,31 @@ const Reimbursement = () => {
               />
             </div>
             {submitErrorMessage && (
-              <p className="error-message">{submitErrorMessage}</p>
+              <p className="rb-error-message">{submitErrorMessage}</p>
             )}
             {updateErrorMessage && (
-              <p className="error-message">{updateErrorMessage}</p>
+              <p className="rb-error-message">{updateErrorMessage}</p>
             )}
             <form className="reimbursement-form" onSubmit={handleSubmit}>
               <div className="claim-type">
+                <label>
+                  Project<span className="asterisk">*</span>
+                </label>
+                <select
+                  name="project"
+                  value={formData.project}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select project</option>
+                  <option value="STS CLAIM">STS CLAIM</option>
+                  {projects.map((proj, i) => (
+                    <option key={i} value={proj}>
+                      {proj}
+                    </option>
+                  ))}
+                </select>
+
                 <div className="rb-tabs">
                   {claimTypes.map(({ icon, label }) => (
                     <div

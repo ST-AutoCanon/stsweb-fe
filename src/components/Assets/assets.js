@@ -49,7 +49,7 @@ const Assets = () => {
   const [popupSuggestions, setPopupSuggestions] = useState({});
 
   // const togglePopup = () => setShowPopup(!showPopup);
- const togglePopup = () => {
+  const togglePopup = () => {
     if (showPopup) {
       // When closing the popup, reset the form
       resetFormforaddasset();
@@ -155,44 +155,44 @@ const Assets = () => {
   //   }
   // };
   const handleAssignedToInputChange = async (e, index) => {
-  const value = e.target.value;
-  updateAssignment(index, "assignedTo", value);
+    const value = e.target.value;
+    updateAssignment(index, "assignedTo", value);
 
-  if (value.length === 0) {
-    // Show default location suggestions when input is empty
-    setPopupSuggestions((prev) => ({
-      ...prev,
-      [index]: defaultLocationSuggestions,
-    }));
-  } else {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/search-employees?q=${value}`,
-        {
-          headers,
-        }
-      );
-
-      const suggestions = response.data.data.map((emp) => ({
-        name: emp.name,
-        employeeId: emp.employee_id,
-      }));
-
-      // Combine default locations + dynamic employee suggestions
-      setPopupSuggestions((prev) => ({
-        ...prev,
-        [index]: [...defaultLocationSuggestions, ...suggestions],
-      }));
-    } catch (err) {
-      console.error("Suggestion error:", err);
-      // Fallback to default location suggestions on error
+    if (value.length === 0) {
+      // Show default location suggestions when input is empty
       setPopupSuggestions((prev) => ({
         ...prev,
         [index]: defaultLocationSuggestions,
       }));
+    } else {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+          {
+            headers,
+          }
+        );
+
+        const suggestions = response.data.data.map((emp) => ({
+          name: emp.name,
+          employeeId: emp.employee_id,
+        }));
+
+        // Combine default locations + dynamic employee suggestions
+        setPopupSuggestions((prev) => ({
+          ...prev,
+          [index]: [...defaultLocationSuggestions, ...suggestions],
+        }));
+      } catch (err) {
+        console.error("Suggestion error:", err);
+        // Fallback to default location suggestions on error
+        setPopupSuggestions((prev) => ({
+          ...prev,
+          [index]: defaultLocationSuggestions,
+        }));
+      }
     }
-  }
-};
+  };
   const handleSuggestionSelect = (selectedEmp, index) => {
     updateAssignment(index, "assignedTo", selectedEmp.name);
     updateAssignment(index, "employeeId", selectedEmp.employeeId); // Save ID
@@ -212,7 +212,7 @@ const Assets = () => {
   useEffect(() => {
     if (assetId) {
       fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned/${assetId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
         {
           method: "GET",
           headers,
@@ -239,45 +239,45 @@ const Assets = () => {
 
   // Handling employee input changes
   const defaultLocationSuggestions = [
-  { name: 'sts-belagavi', employeeId: 'sts-belagavi' },
-  { name: 'sts-dharwad', employeeId: 'sts-dharwad' },
-  { name: 'sts-chennai', employeeId: 'sts-chennai' },
-];
-const handleBlurAssignPopup = (index) => {
-  setTimeout(() => {
-    setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
-  }, 150); // Delay allows time for onClick to register
-};
-const handleAssignedToChange2 = async (e) => {
-  const value = e.target.value;
-  setAssignedTo(value);
+    { name: "sts-belagavi", employeeId: "sts-belagavi" },
+    { name: "sts-dharwad", employeeId: "sts-dharwad" },
+    { name: "sts-chennai", employeeId: "sts-chennai" },
+  ];
+  const handleBlurAssignPopup = (index) => {
+    setTimeout(() => {
+      setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
+    }, 150); // Delay allows time for onClick to register
+  };
+  const handleAssignedToChange2 = async (e) => {
+    const value = e.target.value;
+    setAssignedTo(value);
 
-  if (value.length === 0) {
-    // Show default location-based suggestions
-    setEmployeeSuggestions(defaultLocationSuggestions);
-  } else {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/search-employees?q=${value}`,
-        {
-          headers,
-        }
-      );
+    if (value.length === 0) {
+      // Show default location-based suggestions
+      setEmployeeSuggestions(defaultLocationSuggestions);
+    } else {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+          {
+            headers,
+          }
+        );
 
-      console.log("API response:", response.data);
+        console.log("API response:", response.data);
 
-      const suggestions = response.data.data.map((emp) => ({
-        name: emp.name,
-        employeeId: emp.employee_id,
-      }));
+        const suggestions = response.data.data.map((emp) => ({
+          name: emp.name,
+          employeeId: emp.employee_id,
+        }));
 
-      // Combine default locations + dynamic suggestions
-      setEmployeeSuggestions([...defaultLocationSuggestions, ...suggestions]);
-    } catch (err) {
-      console.error("Suggestion error:", err);
+        // Combine default locations + dynamic suggestions
+        setEmployeeSuggestions([...defaultLocationSuggestions, ...suggestions]);
+      } catch (err) {
+        console.error("Suggestion error:", err);
+      }
     }
-  }
-};
+  };
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
@@ -295,7 +295,7 @@ const handleAssignedToChange2 = async (e) => {
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/assets/list`, {
             headers,
           }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/assignments`, {
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/assignments`, {
             headers,
           }),
         ]);
@@ -339,15 +339,15 @@ const handleAssignedToChange2 = async (e) => {
     setAssigningStatus("Pending");
   };
   const resetFormforaddasset = () => {
-  setAssetName("");
-  setConfiguration("");
-  setValuationDate("");
-  setAssignedTo("");
-  setDocument(null);
-  setSelectedCategory("");
-  setSelectedSubCategory("");
-  setStatus("In Use");
-};
+    setAssetName("");
+    setConfiguration("");
+    setValuationDate("");
+    setAssignedTo("");
+    setDocument(null);
+    setSelectedCategory("");
+    setSelectedSubCategory("");
+    setStatus("In Use");
+  };
 
   const closePopup = () => {
     resetForm(); // Clear form when closing popup
@@ -376,64 +376,64 @@ const handleAssignedToChange2 = async (e) => {
   };
 
   const openAssignPopup = (asset) => {
-  const assetId = asset.id;
-  setSelectedAssetId(assetId);
+    const assetId = asset.id;
+    setSelectedAssetId(assetId);
 
-  try {
-    let parsed = [];
-    if (asset.assigned_to) {
-      parsed =
-        typeof asset.assigned_to === "string"
-          ? JSON.parse(asset.assigned_to)
-          : asset.assigned_to;
-    }
+    try {
+      let parsed = [];
+      if (asset.assigned_to) {
+        parsed =
+          typeof asset.assigned_to === "string"
+            ? JSON.parse(asset.assigned_to)
+            : asset.assigned_to;
+      }
 
-    // Map backend "name" to frontend "assignedTo" and handle startDate fallback
-    const formattedAssignments = parsed.length
-      ? parsed.reverse().map((a) => ({
-          assignedTo: a.name || "",
-          startDate: a.startDate || asset.valuation_date || "", // Fallback to valuation_date
-          returnDate: a.returnDate || "",
-          assigningStatus: a.status || "Assigned",
-          comments: a.comments || "",
-          employeeId: a.employeeId || "", // Include employeeId if available
-        }))
-      : [
+      // Map backend "name" to frontend "assignedTo" and handle startDate fallback
+      const formattedAssignments = parsed.length
+        ? parsed.reverse().map((a) => ({
+            assignedTo: a.name || "",
+            startDate: a.startDate || asset.valuation_date || "", // Fallback to valuation_date
+            returnDate: a.returnDate || "",
+            assigningStatus: a.status || "Assigned",
+            comments: a.comments || "",
+            employeeId: a.employeeId || "", // Include employeeId if available
+          }))
+        : [
+            {
+              assignedTo: "",
+              startDate: asset.valuation_date || "", // Default to valuation_date
+              returnDate: "",
+              assigningStatus: "Pending",
+              comments: "",
+              employeeId: "",
+            },
+          ];
+
+      setAssignmentRowsByAsset((prev) => ({
+        ...prev,
+        [assetId]: formattedAssignments,
+      }));
+    } catch (err) {
+      console.error("Error parsing assigned_to:", err);
+      // Fallback to a default row with valuation_date
+      setAssignmentRowsByAsset((prev) => ({
+        ...prev,
+        [assetId]: [
           {
             assignedTo: "",
-            startDate: asset.valuation_date || "", // Default to valuation_date
+            startDate: asset.valuation_date || "",
             returnDate: "",
             assigningStatus: "Pending",
             comments: "",
             employeeId: "",
           },
-        ];
+        ],
+      }));
+    }
 
-    setAssignmentRowsByAsset((prev) => ({
-      ...prev,
-      [assetId]: formattedAssignments,
-    }));
-  } catch (err) {
-    console.error("Error parsing assigned_to:", err);
-    // Fallback to a default row with valuation_date
-    setAssignmentRowsByAsset((prev) => ({
-      ...prev,
-      [assetId]: [
-        {
-          assignedTo: "",
-          startDate: asset.valuation_date || "",
-          returnDate: "",
-          assigningStatus: "Pending",
-          comments: "",
-          employeeId: "",
-        },
-      ],
-    }));
-  }
-
-  setShowAssignPopup(true);
-  setSelectedAsset(asset);
-};
+    setShowAssignPopup(true);
+    setSelectedAsset(asset);
+  };
 
   const closeAssignPopup = () => {
     setShowAssignPopup(false);
@@ -495,7 +495,7 @@ const handleAssignedToChange2 = async (e) => {
       console.log("📤 Sending First Assignment:", firstAssignment);
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/assign`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
         firstAssignment,
         {
           headers,
@@ -549,29 +549,6 @@ const handleAssignedToChange2 = async (e) => {
     }
   };
 
-  // const handleViewDocument = async (documentPath) => {
-  //   if (!documentPath) {
-  //     showAlert("No document available.");
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/${documentPath.replace(/^\/?uploads\//, "uploads/")}`, {
-  //       headers: {
-  //         "x-api-key": API_KEY, // Send API key
-  //       },
-  //       responseType: "blob", // Ensure it's treated as a file
-  //     });
-
-  //     // Create a URL and open the document
-  //     const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
-  //     window.open(fileURL, "_blank");
-  //   } catch (error) {
-  //     console.error("Error opening document:", error.response?.data || error.message);
-  //     showAlert("Failed to open document.");
-  //   }
-  // };
-
   const handleViewDocument = async (documentPath) => {
     if (!documentPath) {
       showAlert("No document available.");
@@ -609,127 +586,78 @@ const handleAssignedToChange2 = async (e) => {
     }
   };
 
-  //   const handleSave = async () => {
-  //     if (!assetName || !configuration || !valuationDate ) {
-  //       showAlert("Please fill all required fields.");
-  //       return;
-  //     }
-
-  //     const formData = new FormData();
-  //     formData.append("asset_name", assetName);
-  //     formData.append("configuration", configuration);
-  //     formData.append("valuation_date", valuationDate);
-  //     formData.append("assigned_to", JSON.stringify([{ name: assignedTo || "STS" }]));
-  //     formData.append("category", selectedCategory);
-  //     formData.append("sub_category", selectedSubCategory);
-  //     formData.append("status", status); // Make sure status is included
-
-  //     if (document) {
-  //       formData.append("document", document);
-  //     }
-
-  //     // Debugging: Log FormData before sending
-  //     console.log("Sending FormData...");
-  //     for (let [key, value] of formData.entries()) {
-  //       console.log(key, value);
-  //     }
-
-  //     try {
-  //       const response = await axios.post(
-  //         `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
-  //         formData,
-  //         {
-  //           headers: {
-  //             "Content-Type": "multipart/form-data", // Ensure correct content type
-  //             "x-api-key": API_KEY, // If needed
-  //           },
-  //         }
-  //       );
-
-  //       console.log("Server Response:", response.data);
-  //       showAlert("Asset saved successfully!");
-  //       togglePopup(); // Close popup after save
-  //       fetchAssets(); // Refresh table after adding an asset
-
-  //     } catch (error) {
-  //       console.error("Error saving asset:", error); // Log the full error object
-  //       showAlert(`Failed to save asset: ${error.response?.data?.message || error.message || "Unknown error"}`);
-  //     }
-
-  //   };
-  // ;
   const handleSave = async () => {
-  if (!assetName || !configuration || !valuationDate) {
-    showAlert("Please fill all required fields.");
-    return;
-  }
+    if (!assetName || !configuration || !valuationDate) {
+      showAlert("Please fill all required fields.");
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append("asset_name", assetName);
-  formData.append("configuration", configuration);
-  formData.append("valuation_date", valuationDate);
-  formData.append("category", selectedCategory);
-  formData.append("sub_category", selectedSubCategory);
-  formData.append("status", status);
+    const formData = new FormData();
+    formData.append("asset_name", assetName);
+    formData.append("configuration", configuration);
+    formData.append("valuation_date", valuationDate);
+    formData.append("category", selectedCategory);
+    formData.append("sub_category", selectedSubCategory);
+    formData.append("status", status);
 
-  // Initialize assignedToArray based on whether assignedTo is provided
-  let assignedToArray = [];
+    // Initialize assignedToArray based on whether assignedTo is provided
+    let assignedToArray = [];
 
-  if (
-    assignedTo &&
-    typeof assignedTo === "object" &&
-    assignedTo.name &&
-    assignedTo.employeeId
-  ) {
-    // If assignedTo is provided, use it
-    assignedToArray.push({
-      name: assignedTo.name,
-      employeeId: assignedTo.employeeId,
-      startDate: valuationDate || null, // Use valuation_date as startDate if available
-      returnDate: null,
-      comments: "",
-      status: "Assigned",
-    });
-  } else {
-    // Otherwise, use default "STS"
-    assignedToArray.push({ name: "STS" });
-  }
+    if (
+      assignedTo &&
+      typeof assignedTo === "object" &&
+      assignedTo.name &&
+      assignedTo.employeeId
+    ) {
+      // If assignedTo is provided, use it
+      assignedToArray.push({
+        name: assignedTo.name,
+        employeeId: assignedTo.employeeId,
+        startDate: valuationDate || null, // Use valuation_date as startDate if available
+        returnDate: null,
+        comments: "",
+        status: "Assigned",
+      });
+    } else {
+      // Otherwise, use default "STS"
+      assignedToArray.push({ name: "STS" });
+    }
 
-  formData.append("assigned_to", JSON.stringify(assignedToArray));
+    formData.append("assigned_to", JSON.stringify(assignedToArray));
 
-  if (document) {
-    formData.append("document", document);
-  }
+    if (document) {
+      formData.append("document", document);
+    }
 
-  // Debugging
-  console.log("Sending FormData...");
-  for (let [key, value] of formData.entries()) {
-    console.log(key, value);
-  }
+    // Debugging
+    console.log("Sending FormData...");
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
 
-  try {
-    const response = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
-      formData,
-      {
-        headers,
-      }
-    );
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
+        formData,
+        {
+          headers,
+        }
+      );
 
-    console.log("Server Response:", response.data);
-    showAlert("Asset saved successfully!");
-    resetFormforaddasset();
-    togglePopup();
-    fetchAssets();
-  } catch (error) {
-    console.error("Error saving asset:", error);
-    showAlert(
-      `Failed to save asset: ${
-        error.response?.data?.message || error.message || "Unknown error"
-      }`
-    );
-  }
-};
+      console.log("Server Response:", response.data);
+      showAlert("Asset saved successfully!");
+      resetFormforaddasset();
+      togglePopup();
+      fetchAssets();
+    } catch (error) {
+      console.error("Error saving asset:", error);
+      showAlert(
+        `Failed to save asset: ${
+          error.response?.data?.message || error.message || "Unknown error"
+        }`
+      );
+    }
+  };
   useEffect(() => {
     fetchAssignedAssets();
   }, []);
@@ -737,7 +665,7 @@ const handleAssignedToChange2 = async (e) => {
   const fetchAssignedAssets = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned`,
         {
           headers,
         }
@@ -768,11 +696,12 @@ const handleAssignedToChange2 = async (e) => {
         return; // Stop execution if assetId is undefined
       }
 
-      const API_KEY = API_KEY;
+      const API_KEY =
+        "eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3";
       console.log(`📡 Fetching data for Asset ID: ${assetId}`);
 
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned/${assetId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
         {
           headers,
         }
@@ -821,7 +750,7 @@ const handleAssignedToChange2 = async (e) => {
   const handleSaveReturnDate = async () => {
     try {
       const response = await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/return-date`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/return-date`,
         {
           assetId: formData.assetId,
           employeeName: formData.employeeName,
@@ -879,7 +808,7 @@ const handleAssignedToChange2 = async (e) => {
 
   const submitAssignments = async () => {
     try {
-      const response = await fetch("/assets/assign", {
+      const response = await fetch("/api/assets/assign", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -953,7 +882,7 @@ const handleAssignedToChange2 = async (e) => {
   useEffect(() => {
     if (assetId) {
       fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/assigned/${assetId}`
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`
       )
         .then((res) => res.json())
         .then((data) => {
@@ -983,10 +912,10 @@ const handleAssignedToChange2 = async (e) => {
   }, [assetId]);
 
   const handleBlur2 = () => {
-  setTimeout(() => {
-    setEmployeeSuggestions([]); // Close the popup if nothing selected
-  }, 150); // Delay allows time for onClick to register
-};
+    setTimeout(() => {
+      setEmployeeSuggestions([]); // Close the popup if nothing selected
+    }, 150); // Delay allows time for onClick to register
+  };
 
   const handleBlur = () => {
     if (!employeeSuggestions.includes(assignedTo)) {
@@ -1032,799 +961,807 @@ const handleAssignedToChange2 = async (e) => {
       ) ||
       (asset.asset_code?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
-const truncateWords = (text, wordLimit) => {
-  if (!text) return "";
-  const words = text.split(" ");
-  if (words.length <= wordLimit) return text;
-  return words.slice(0, wordLimit).join(" ") + "...";
-};
+  const truncateWords = (text, wordLimit) => {
+    if (!text) return "";
+    const words = text.split(" ");
+    if (words.length <= wordLimit) return text;
+    return words.slice(0, wordLimit).join(" ") + "...";
+  };
 
   return (
     <div className="assets-container">
-    
+      <div className="asset-summary-buttons2">
+        <div className="left-buttons">
+          {/* ✅ Total Assets First */}
+          <div className="total-assets-box">
+            <strong>Total Assets:</strong>{" "}
+            <span>
+              {assetCounts.length > 0 ? assetCounts[0].total_assets : "0"}
+            </span>
+          </div>
 
-    <div className="asset-summary-buttons2">
-  <div className="left-buttons">
-
-    {/* ✅ Total Assets First */}
-    <div className="total-assets-box">
-      <strong>Total Assets:</strong>{" "}
-      <span>{assetCounts.length > 0 ? assetCounts[0].total_assets : "0"}</span>
-    </div>
-
-    {/* ✅ Then category buttons */}
-    {Object.entries(groupedAssetCounts).map(([category, data]) => (
-      <div className="category-button-wrapper" key={category}>
-        <button className="category-button">
-          {category} ({data.categoryTotal})
-        </button>
-        <div className="subcategory-tooltip">
-          {data.subcategories.map((sub, i) => (
-            <div className="subcategory-item" key={i}>
-              {sub.sub_category} {sub.sub_category_count}
+          {/* ✅ Then category buttons */}
+          {Object.entries(groupedAssetCounts).map(([category, data]) => (
+            <div className="category-button-wrapper" key={category}>
+              <button className="category-button">
+                {category} ({data.categoryTotal})
+              </button>
+              <div className="subcategory-tooltip">
+                {data.subcategories.map((sub, i) => (
+                  <div className="subcategory-item" key={i}>
+                    {sub.sub_category} {sub.sub_category_count}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
+
+        <div className="right-button">
+          <button className="add-assets-btn" onClick={togglePopup}>
+            <FaNetworkWired style={{ marginRight: "5px" }} />
+            Add New Asset
+          </button>
+        </div>
       </div>
-    ))}
-  </div>
 
-
-
-  <div className="right-button">
-    <button className="add-assets-btn" onClick={togglePopup}>
-      <FaNetworkWired style={{ marginRight: "5px" }} />
-      Add New Asset
-    </button>
-  </div>
-</div>
-
-<caption style={{ captionSide: "top", padding: "10px", textAlign: "left" }}>
-    <div className="asset-search-container">
-
-    
-    <input
-      type="text"
-      placeholder="Search by Asset_ID,Asset_code.."
-      className="asset-table-search-input"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-    />
-    </div>
-  </caption>
-
-
+      <caption
+        style={{ captionSide: "top", padding: "10px", textAlign: "left" }}
+      >
+        <div className="asset-search-container">
+          <input
+            type="text"
+            placeholder="Search by Asset_ID,Asset_code.."
+            className="asset-table-search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </caption>
 
       {showPopup && (
         <div className="asset-popup-overlay">
           <div className="asset-popup-content">
             <div className="asset-popup-header">New Asset</div>
-            <button className="close-btn-addasset" onClick={togglePopup}><MdOutlineCancel className="assetmain-close-popup-icon" /></button>
+            <button className="close-btn-addasset" onClick={togglePopup}>
+              <MdOutlineCancel className="assetmain-close-popup-icon" />
+            </button>
 
             {/* Main Categories */}
             <div className="sticky-options">
-              <button className={selectedCategory === "System" ? "active" : ""} onClick={() => handleCategoryChange("System")}> <div className="icon-group">  <Monitor className="icon" /> <span>    System</span></div> </button>
-              <button className={selectedCategory === "Furniture" ? "active" : ""} onClick={() => handleCategoryChange("Furniture")}><div className="icon-group"><GiOfficeChair className="icon" /></div><span>Furniture</span></button>
-              <button className={selectedCategory === "Equipment" ? "active" : ""} onClick={() => handleCategoryChange("Equipment")}><div className="icon-group"><Wrench className="icon" /></div>Equipment</button>
-              <button className={selectedCategory === "Others" ? "active" : ""} onClick={() => handleCategoryChange("Others")}><Package className="icon" />Others</button>
+              <button
+                className={selectedCategory === "System" ? "active" : ""}
+                onClick={() => handleCategoryChange("System")}
+              >
+                {" "}
+                <div className="icon-group">
+                  {" "}
+                  <Monitor className="icon" /> <span> System</span>
+                </div>{" "}
+              </button>
+              <button
+                className={selectedCategory === "Furniture" ? "active" : ""}
+                onClick={() => handleCategoryChange("Furniture")}
+              >
+                <div className="icon-group">
+                  <GiOfficeChair className="icon" />
+                </div>
+                <span>Furniture</span>
+              </button>
+              <button
+                className={selectedCategory === "Equipment" ? "active" : ""}
+                onClick={() => handleCategoryChange("Equipment")}
+              >
+                <div className="icon-group">
+                  <Wrench className="icon" />
+                </div>
+                Equipment
+              </button>
+              <button
+                className={selectedCategory === "Others" ? "active" : ""}
+                onClick={() => handleCategoryChange("Others")}
+              >
+                <Package className="icon" />
+                Others
+              </button>
             </div>
-            
+
             {/* Sub-options based on selected category */}
             {selectedCategory === "System" && (
               <div className="sticky-suboptions">
-                <button className={selectedSubCategory === "Laptop" ? "active" : ""} onClick={() => setSelectedSubCategory("Laptop")}>    <MdLaptop className="icon" />  Laptop</button>
-                <button className={selectedSubCategory === "Desktop" ? "active" : ""} onClick={() => setSelectedSubCategory("Desktop")}>           <FaDesktop className="icon" />Desktop</button>
-                <button className={selectedSubCategory === "Server" ? "active" : ""} onClick={() => setSelectedSubCategory("Server")}>       <Server className="icon" />Server</button>
+                <button
+                  className={selectedSubCategory === "Laptop" ? "active" : ""}
+                  onClick={() => setSelectedSubCategory("Laptop")}
+                >
+                  {" "}
+                  <MdLaptop className="icon" /> Laptop
+                </button>
+                <button
+                  className={selectedSubCategory === "Desktop" ? "active" : ""}
+                  onClick={() => setSelectedSubCategory("Desktop")}
+                >
+                  {" "}
+                  <FaDesktop className="icon" />
+                  Desktop
+                </button>
+                <button
+                  className={selectedSubCategory === "Server" ? "active" : ""}
+                  onClick={() => setSelectedSubCategory("Server")}
+                >
+                  {" "}
+                  <Server className="icon" />
+                  Server
+                </button>
               </div>
             )}
 
             {selectedCategory === "Furniture" && (
               <div className="sticky-suboptions">
-                <button className={selectedSubCategory === "Table" ? "active" : ""} onClick={() => setSelectedSubCategory("Table")}>      <GiTable className="icon" />    Table</button>
-                <button className={selectedSubCategory === "Chair" ? "active" : ""} onClick={() => setSelectedSubCategory("Chair")}>    <FaChair className="icon" />                Chair</button>
-                <button className={selectedSubCategory === "Drawers" ? "active" : ""} onClick={() => setSelectedSubCategory("Drawers")}>           <MdStorage className="icon" />Drawers</button>
-                <button className={selectedSubCategory === "cupboard" ? "active" : ""} onClick={() => setSelectedSubCategory("cupboard")}>           <LayoutPanelLeft className="icon" /> Cupboard</button>
-
-                
+                <button
+                  className={selectedSubCategory === "Table" ? "active" : ""}
+                  onClick={() => setSelectedSubCategory("Table")}
+                >
+                  {" "}
+                  <GiTable className="icon" /> Table
+                </button>
+                <button
+                  className={selectedSubCategory === "Chair" ? "active" : ""}
+                  onClick={() => setSelectedSubCategory("Chair")}
+                >
+                  {" "}
+                  <FaChair className="icon" /> Chair
+                </button>
+                <button
+                  className={selectedSubCategory === "Drawers" ? "active" : ""}
+                  onClick={() => setSelectedSubCategory("Drawers")}
+                >
+                  {" "}
+                  <MdStorage className="icon" />
+                  Drawers
+                </button>
+                <button
+                  className={selectedSubCategory === "cupboard" ? "active" : ""}
+                  onClick={() => setSelectedSubCategory("cupboard")}
+                >
+                  {" "}
+                  <LayoutPanelLeft className="icon" /> Cupboard
+                </button>
               </div>
             )}
 
             {selectedCategory === "Equipment" && (
-
               <div className="sticky-suboptions">
-                <button className={selectedSubCategory === "Electrical" ? "active" : ""} onClick={() => setSelectedSubCategory("Electrical")}><Plug className="icon" /><span>Electrical</span></button>
-                <button className={selectedSubCategory === "Non-Electrical" ? "active" : ""}  onClick={() => setSelectedSubCategory("Non-Electrical")}><Hammer className="icon" /><span>Non-Electrical</span></button>
-                 </div>
-              
+                <button
+                  className={
+                    selectedSubCategory === "Electrical" ? "active" : ""
+                  }
+                  onClick={() => setSelectedSubCategory("Electrical")}
+                >
+                  <Plug className="icon" />
+                  <span>Electrical</span>
+                </button>
+                <button
+                  className={
+                    selectedSubCategory === "Non-Electrical" ? "active" : ""
+                  }
+                  onClick={() => setSelectedSubCategory("Non-Electrical")}
+                >
+                  <Hammer className="icon" />
+                  <span>Non-Electrical</span>
+                </button>
+              </div>
             )}
 
             {/* Asset Details Form (Shown only when a sub-category is selected) */}
             {selectedSubCategory || selectedCategory === "Others" ? (
-  <div className="asset-details-grid">
-    <div className="row">
-      <label>Asset Name <span className="assets-required-asterisk">*</span></label>
-      <input type="text" placeholder="Enter Asset Name" value={assetName} onChange={(e) => setAssetName(e.target.value)} />
-      </div>
+              <div className="asset-details-grid">
+                <div className="row">
+                  <label>
+                    Asset Name{" "}
+                    <span className="assets-required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter Asset Name"
+                    value={assetName}
+                    onChange={(e) => setAssetName(e.target.value)}
+                  />
+                </div>
 
-    <div className="row">
-      <label>Configuration<span className="assets-required-asterisk">*</span></label>
-      <input type="text" placeholder="Enter Configuration" value={configuration} onChange={(e) => setConfiguration(e.target.value)} />
-      </div>
+                <div className="row">
+                  <label>
+                    Configuration
+                    <span className="assets-required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter Configuration"
+                    value={configuration}
+                    onChange={(e) => setConfiguration(e.target.value)}
+                  />
+                </div>
 
-    <div className="row">
-      <label>Purchased Date<span className="assets-required-asterisk">*</span></label>
-      <input type="date" value={valuationDate} onChange={(e) => setValuationDate(e.target.value)} />
-      </div>
+                <div className="row">
+                  <label>
+                    Purchased Date
+                    <span className="assets-required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={valuationDate}
+                    onChange={(e) => setValuationDate(e.target.value)}
+                  />
+                </div>
 
-      <div className="row" style={{ position: "relative" }}>
-  <label>Assigned To</label>
-  <input
-    type="text"
-    placeholder="Enter Assignee Name"
-    value={assignedTo?.name || assignedTo || ""}  // Handles both object or plain string
-    onChange={handleAssignedToChange2}
-    // onBlur={handleBlur}
-        onBlur={handleBlur2}
+                <div className="row" style={{ position: "relative" }}>
+                  <label>Assigned To</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Assignee Name"
+                    value={assignedTo?.name || assignedTo || ""} // Handles both object or plain string
+                    onChange={handleAssignedToChange2}
+                    // onBlur={handleBlur}
+                    onBlur={handleBlur2}
+                    autoComplete="off"
+                  />
 
-    autoComplete="off"
-    
-  />
+                  {employeeSuggestions.length > 0 && (
+                    <ul
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: "0",
+                        backgroundColor: "#fff",
+                        border: "1px solid #ccc",
+                        zIndex: 999,
+                        maxHeight: "150px",
+                        overflowY: "auto",
+                        listStyle: "none",
+                        padding: "0",
+                        margin: "0",
+                        width: "100%",
+                        maxWidth: "250px",
+                      }}
+                    >
+                      {employeeSuggestions.map((emp, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleSelectSuggestion(emp)}
+                          style={{
+                            padding: "8px",
+                            cursor: "pointer",
+                            borderBottom: "1px solid #eee",
+                          }}
+                        >
+                          {emp.name} ({emp.employeeId}){" "}
+                          {/* Displaying name and employee ID */}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
-  {employeeSuggestions.length > 0 && (
-    <ul
-      style={{
-        position: "absolute",
-        top: "100%",
-        left: "0",
-        backgroundColor: "#fff",
-        border: "1px solid #ccc",
-        zIndex: 999,
-        maxHeight: "150px",
-        overflowY: "auto",
-        listStyle: "none",
-        padding: "0",
-        margin: "0",
-        width: "100%",
-        maxWidth: "250px",
-      }}
-    >
-      {employeeSuggestions.map((emp, index) => (
-        <li
-          key={index}
-          onClick={() => handleSelectSuggestion(emp)}
-          style={{
-            padding: "8px",
-            cursor: "pointer",
-            borderBottom: "1px solid #eee",
-          }}
-        >
-          {emp.name} ({emp.employeeId}) {/* Displaying name and employee ID */}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+                <div className="row">
+                  <label>Status</label>
+                  <div className="asset-status-dropdown">
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                    >
+                      <option value="In Use">In Use</option>
+                      <option value="Not Using">Not Using</option>
+                      <option value="Decommissioned">Decommissioned</option>
+                    </select>
+                  </div>
+                </div>
 
-
-
-
-
-      <div className="row">
-  <label>Status</label>
-  <div className="asset-status-dropdown">
-    <select value={status} onChange={(e) => setStatus(e.target.value)}>
-      <option value="In Use">In Use</option>
-      <option value="Not Using">Not Using</option>
-      <option value="Decommissioned">Decommissioned</option>
-    </select>
-  </div>
-</div>
-
-    <div className="row">
-      <label>Upload Document</label>
-      <input type="file" onChange={handleFileChange} />
-      </div>
-      <div className="popup-buttons">
-              <button onClick={togglePopup} className="cancel-btn">Cancel</button>
-              <button className="save-btn" onClick={handleSave}>Save</button>
-            </div>
-  </div>
-  
-) : null}
-
+                <div className="row">
+                  <label>Upload Document</label>
+                  <input type="file" onChange={handleFileChange} />
+                </div>
+                <div className="popup-buttons">
+                  <button onClick={togglePopup} className="cancel-btn">
+                    Cancel
+                  </button>
+                  <button className="save-btn" onClick={handleSave}>
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
             {/* Popup Buttons */}
-            
           </div>
         </div>
       )}
 
-      
       {/* Display Assets in Table */}
       <div className="assets-table-wrapper">
-
-      <div className="assets-table">
-        <table>
-        
-    
-              <thead>
-            <tr>
-              <th>Asset_ID</th>
-              <th>Asset Code</th> 
-
-              <th>Asset Name</th>
-              <th>Configuration</th>
-              <th>Purchased Date</th>
-              <th>Assigned To</th>
-              <th>Category</th>
-              
-              <th>Status</th>
-              <th>Document</th>
-            </tr>
-          </thead>
-          {/* <tbody>
-          
-            {(filteredAssets.length > 0 ? filteredAssets : sortedAssets).length > 0 ? (
-  (filteredAssets.length > 0 ? filteredAssets : sortedAssets).map((asset) => (
-
-<tr
-  key={asset.id}
-  style={{
-    backgroundColor: (() => {
-      try {
-        const assignedData =
-          typeof asset.assigned_to === "string"
-            ? JSON.parse(asset.assigned_to)
-            : asset.assigned_to;
-
-        if (Array.isArray(assignedData) && assignedData.length > 0) {
-          const latestAssignment = assignedData[assignedData.length - 1];
-          if (latestAssignment.status === "Decommissioned") {
-            return "#e7d9d9"; // Light red background for decommissioned rows
-          }
-        }
-      } catch (error) {
-        console.error("Row style JSON parse error:", error);
-      }
-      return "transparent"; // default row background
-    })(),
-  }}
->
-                  <td> {asset.asset_id}</td>
-                  <td>{asset.asset_code}</td>
-                  <td>{asset.asset_name}</td>
-                  <td>{asset.configuration}</td>
-                  <td>{new Date(asset.valuation_date).toISOString().split("T")[0]}</td>
-                  <td>
-                  <td className="assigned-to-cell">
-                             <span className="assigned-name">  {(() => {
-    if (!asset.assigned_to || asset.assigned_to === "") return "Unassigned";
-
-    try {
-      // Parse JSON if stored as a string
-      const assignedData = typeof asset.assigned_to === "string"
-        ? JSON.parse(asset.assigned_to)
-        : asset.assigned_to;
-
-      // If it's an object, return the name
-      if (typeof assignedData === "object" && !Array.isArray(assignedData)) {
-        return assignedData.name || "Unassigned";
-      }
-
-      // If it's an array, return the last assigned person's name
-      if (Array.isArray(assignedData) && assignedData.length > 0) {
-        return assignedData[assignedData.length - 1].name || "Unassigned";
-      }
-
-      return "Unassigned";
-    } catch (error) {
-      // console.error("JSON Parsing Error:", error);
-      return "Unassigned";
-    }
-  })()}
-     </span>
-  <button
-  className="editassign-btn"
-  onClick={() => {
-    try {
-      const assignedData =
-        typeof asset.assigned_to === "string"
-          ? JSON.parse(asset.assigned_to)
-          : asset.assigned_to;
-
-      if (Array.isArray(assignedData) && assignedData.length > 0) {
-        const latestAssignment = assignedData[assignedData.length - 1];
-
-        if (latestAssignment.status === "Decommissioned") {
-          showAlert(" This device is decommissioned and cannot be assigned.");
-          
-          return; // Stop execution
-        }
-      }
-
-      // If not decommissioned, proceed with opening the assign popup
-      openAssignPopup(asset);
-    } catch (error) {
-      console.error("JSON Parsing Error:", error);
-      showAlert("Error: Unable to process asset assignment.");
-    }
-  }}
->
-<UserCheck size={16} style={{ marginRight: "5px" }} /> Assign
-</button>
-</td>
-
-  
-</td>
-
-          <td>{asset.category}</td>
-
-<td
-  style={{
-    color:
-      (() => {
-        try {
-          const assignedData =
-            typeof asset.assigned_to === "string"
-              ? JSON.parse(asset.assigned_to)
-              : asset.assigned_to;
-
-          if (Array.isArray(assignedData) && assignedData.length > 0) {
-            const latestAssignment = assignedData[assignedData.length - 1];
-
-            return latestAssignment.status === "Decommissioned" ? "red" : "black";
-          }
-        } catch (error) {
-          console.error("JSON Parsing Error:", error);
-        }
-        return "black"; // Default color
-      })(),
-  }}
->
-  {(() => {
-    if (!asset.assigned_to || asset.assigned_to === "") return "Unassigned";
-
-    try {
-      const assignedData =
-        typeof asset.assigned_to === "string"
-          ? JSON.parse(asset.assigned_to)
-          : asset.assigned_to;
-
-      if (Array.isArray(assignedData) && assignedData.length > 0) {
-        const latestAssignment = assignedData[assignedData.length - 1];
-
-        if (latestAssignment.status && latestAssignment.status !== "Assigned") {
-          return latestAssignment.status; // e.g., "Decommissioned"
-        }
-
-        return latestAssignment.returnDate ? "Returned" : "Assigned";
-      }
-    } catch (error) {
-      console.error("JSON Parsing Error:", error);
-    }
-    return "Unassigned";
-  })()}
-</td>
-
-<td>
-  {asset.document_path ? (
-    <div style={{ display: "flex", gap: "10px" }}>
-      <button
-        onClick={() => handleViewDocument(asset.document_path)}
-        className="view-doc-btn"
-      >
-        <Eye size={16} style={{ marginRight: "5px" }} /> View
-      </button>
-
-      <button
-        onClick={() => handleDownloadDocument(asset.document_path)}
-        className="download-doc-btn"
-      >
-        <Download size={16} style={{ marginRight: "5px" }} /> Download
-      </button>
-    </div>
-  ) : (
-    "No Document"
-  )}
-</td>
-
-
-                </tr>
-              ))
-            ) : (
+        <div className="assets-table">
+          <table>
+            <thead>
               <tr>
-                <td colSpan="7">No assets available</td>
-              </tr>
-            )}
-          </tbody> */}
-          <tbody>
-  {(filteredAssets.length > 0 ? filteredAssets : sortedAssets).length > 0 ? (
-    (filteredAssets.length > 0 ? filteredAssets : sortedAssets).map((asset) => (
-      <tr
-        key={asset.id}
-        style={{
-          backgroundColor: (() => {
-            try {
-              const assignedData =
-                typeof asset.assigned_to === "string"
-                  ? JSON.parse(asset.assigned_to)
-                  : asset.assigned_to;
+                <th>Asset_ID</th>
+                <th>Asset Code</th>
 
-              if (Array.isArray(assignedData) && assignedData.length > 0) {
-                const latestAssignment = assignedData[assignedData.length - 1];
-                if (latestAssignment.status === "Decommissioned") {
-                  return "#e7d9d9"; // Light red background for decommissioned rows
-                }
-              }
-            } catch (error) {
-              console.error("Row style JSON parse error:", error);
-            }
-            return "transparent"; // default row background
-          })(),
-        }}
-      >
-        <td>{asset.asset_id}</td>
-        <td>{asset.asset_code}</td>
-        {/* <td data-full-text={asset.asset_name}>
+                <th>Asset Name</th>
+                <th>Configuration</th>
+                <th>Purchased Date</th>
+                <th>Assigned To</th>
+                <th>Category</th>
+
+                <th>Status</th>
+                <th>Document</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {(filteredAssets.length > 0 ? filteredAssets : sortedAssets)
+                .length > 0 ? (
+                (filteredAssets.length > 0 ? filteredAssets : sortedAssets).map(
+                  (asset) => (
+                    <tr
+                      key={asset.id}
+                      style={{
+                        backgroundColor: (() => {
+                          try {
+                            const assignedData =
+                              typeof asset.assigned_to === "string"
+                                ? JSON.parse(asset.assigned_to)
+                                : asset.assigned_to;
+
+                            if (
+                              Array.isArray(assignedData) &&
+                              assignedData.length > 0
+                            ) {
+                              const latestAssignment =
+                                assignedData[assignedData.length - 1];
+                              if (
+                                latestAssignment.status === "Decommissioned"
+                              ) {
+                                return "#e7d9d9"; // Light red background for decommissioned rows
+                              }
+                            }
+                          } catch (error) {
+                            console.error("Row style JSON parse error:", error);
+                          }
+                          return "transparent"; // default row background
+                        })(),
+                      }}
+                    >
+                      <td>{asset.asset_id}</td>
+                      <td>{asset.asset_code}</td>
+                      {/* <td data-full-text={asset.asset_name}>
           {asset.asset_name}
         </td>
         <td data-full-text={asset.configuration}>
           {asset.configuration}
         </td> */}
-        <td title={asset.asset_name}>{truncateWords(asset.asset_name, 3)}</td>
-<td title={asset.configuration}>{truncateWords(asset.configuration, 3)}</td>
-<td>
-  {asset.valuation_date
-    ? (() => {
-        try {
-          const date = new Date(asset.valuation_date);
-          // Check if the date is valid
-          if (isNaN(date.getTime())) return "Invalid Date";
-          // Format as YYYY-MM-DD without timezone conversion
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const day = String(date.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        } catch (error) {
-          console.error("Error parsing valuation_date:", asset.valuation_date, error);
-          return "Invalid Date";
-        }
-      })()
-    : "N/A"}
-</td>
+                      <td title={asset.asset_name}>
+                        {truncateWords(asset.asset_name, 3)}
+                      </td>
+                      <td title={asset.configuration}>
+                        {truncateWords(asset.configuration, 3)}
+                      </td>
+                      <td>
+                        {asset.valuation_date
+                          ? (() => {
+                              try {
+                                const date = new Date(asset.valuation_date);
+                                // Check if the date is valid
+                                if (isNaN(date.getTime()))
+                                  return "Invalid Date";
+                                // Format as YYYY-MM-DD without timezone conversion
+                                const year = date.getFullYear();
+                                const month = String(
+                                  date.getMonth() + 1
+                                ).padStart(2, "0");
+                                const day = String(date.getDate()).padStart(
+                                  2,
+                                  "0"
+                                );
+                                return `${year}-${month}-${day}`;
+                              } catch (error) {
+                                console.error(
+                                  "Error parsing valuation_date:",
+                                  asset.valuation_date,
+                                  error
+                                );
+                                return "Invalid Date";
+                              }
+                            })()
+                          : "N/A"}
+                      </td>
 
-        <td className="assigned-to-cell">
-          <span className="assigned-name">
-            {(() => {
-              if (!asset.assigned_to || asset.assigned_to === "") return "Unassigned";
+                      <td className="assigned-to-cell">
+                        <span className="assigned-name">
+                          {(() => {
+                            if (!asset.assigned_to || asset.assigned_to === "")
+                              return "Unassigned";
 
-              try {
-                const assignedData =
-                  typeof asset.assigned_to === "string"
-                    ? JSON.parse(asset.assigned_to)
-                    : asset.assigned_to;
+                            try {
+                              const assignedData =
+                                typeof asset.assigned_to === "string"
+                                  ? JSON.parse(asset.assigned_to)
+                                  : asset.assigned_to;
 
-                if (typeof assignedData === "object" && !Array.isArray(assignedData)) {
-                  return assignedData.name || "Unassigned";
-                }
+                              if (
+                                typeof assignedData === "object" &&
+                                !Array.isArray(assignedData)
+                              ) {
+                                return assignedData.name || "Unassigned";
+                              }
 
-                if (Array.isArray(assignedData) && assignedData.length > 0) {
-                  return assignedData[assignedData.length - 1].name || "Unassigned";
-                }
+                              if (
+                                Array.isArray(assignedData) &&
+                                assignedData.length > 0
+                              ) {
+                                return (
+                                  assignedData[assignedData.length - 1].name ||
+                                  "Unassigned"
+                                );
+                              }
 
-                return "Unassigned";
-              } catch (error) {
-                console.error("JSON Parsing Error:", error);
-                return "Unassigned";
-              }
-            })()}
-          </span>
-          <button
-            className="editassign-btn"
-            onClick={() => {
-              try {
-                const assignedData =
-                  typeof asset.assigned_to === "string"
-                    ? JSON.parse(asset.assigned_to)
-                    : asset.assigned_to;
+                              return "Unassigned";
+                            } catch (error) {
+                              console.error("JSON Parsing Error:", error);
+                              return "Unassigned";
+                            }
+                          })()}
+                        </span>
+                        <button
+                          className="editassign-btn"
+                          onClick={() => {
+                            try {
+                              const assignedData =
+                                typeof asset.assigned_to === "string"
+                                  ? JSON.parse(asset.assigned_to)
+                                  : asset.assigned_to;
 
-                if (Array.isArray(assignedData) && assignedData.length > 0) {
-                  const latestAssignment = assignedData[assignedData.length - 1];
+                              if (
+                                Array.isArray(assignedData) &&
+                                assignedData.length > 0
+                              ) {
+                                const latestAssignment =
+                                  assignedData[assignedData.length - 1];
 
-                  if (latestAssignment.status === "Decommissioned") {
-                    showAlert("This device is decommissioned and cannot be assigned.");
-                    return;
-                  }
-                }
+                                if (
+                                  latestAssignment.status === "Decommissioned"
+                                ) {
+                                  showAlert(
+                                    "This device is decommissioned and cannot be assigned."
+                                  );
+                                  return;
+                                }
+                              }
 
-                openAssignPopup(asset);
-              } catch (error) {
-                console.error("JSON Parsing Error:", error);
-                showAlert("Error: Unable to process asset assignment.");
-              }
-            }}
-          >
-            <UserCheck size={16} style={{ marginRight: "5px" }} /> Assign
-          </button>
-        </td>
-        <td>{asset.category}</td>
-        <td
-          style={{
-            color: (() => {
-              try {
-                const assignedData =
-                  typeof asset.assigned_to === "string"
-                    ? JSON.parse(asset.assigned_to)
-                    : asset.assigned_to;
+                              openAssignPopup(asset);
+                            } catch (error) {
+                              console.error("JSON Parsing Error:", error);
+                              showAlert(
+                                "Error: Unable to process asset assignment."
+                              );
+                            }
+                          }}
+                        >
+                          <UserCheck size={16} style={{ marginRight: "5px" }} />{" "}
+                          Assign
+                        </button>
+                      </td>
+                      <td>{asset.category}</td>
+                      <td
+                        style={{
+                          color: (() => {
+                            try {
+                              const assignedData =
+                                typeof asset.assigned_to === "string"
+                                  ? JSON.parse(asset.assigned_to)
+                                  : asset.assigned_to;
 
-                if (Array.isArray(assignedData) && assignedData.length > 0) {
-                  const latestAssignment = assignedData[assignedData.length - 1];
-                  return latestAssignment.status === "Decommissioned" ? "red" : "black";
-                }
-              } catch (error) {
-                console.error("JSON Parsing Error:", error);
-              }
-              return "black";
-            })(),
-          }}
-        >
-          {(() => {
-            if (!asset.assigned_to || asset.assigned_to === "") return "Unassigned";
+                              if (
+                                Array.isArray(assignedData) &&
+                                assignedData.length > 0
+                              ) {
+                                const latestAssignment =
+                                  assignedData[assignedData.length - 1];
+                                return latestAssignment.status ===
+                                  "Decommissioned"
+                                  ? "red"
+                                  : "black";
+                              }
+                            } catch (error) {
+                              console.error("JSON Parsing Error:", error);
+                            }
+                            return "black";
+                          })(),
+                        }}
+                      >
+                        {(() => {
+                          if (!asset.assigned_to || asset.assigned_to === "")
+                            return "Unassigned";
 
-            try {
-              const assignedData =
-                typeof asset.assigned_to === "string"
-                  ? JSON.parse(asset.assigned_to)
-                  : asset.assigned_to;
+                          try {
+                            const assignedData =
+                              typeof asset.assigned_to === "string"
+                                ? JSON.parse(asset.assigned_to)
+                                : asset.assigned_to;
 
-              if (Array.isArray(assignedData) && assignedData.length > 0) {
-                const latestAssignment = assignedData[assignedData.length - 1];
-                if (latestAssignment.status && latestAssignment.status !== "Assigned") {
-                  return latestAssignment.status;
-                }
-                return latestAssignment.returnDate ? "Returned" : "Assigned";
-              }
-            } catch (error) {
-              console.error("JSON Parsing Error:", error);
-            }
-            return "Unassigned";
-          })()}
-        </td>
-        <td>
-          {asset.document_path ? (
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button
-                onClick={() => handleViewDocument(asset.document_path)}
-                className="view-doc-btn"
-              >
-                <Eye size={16} style={{ marginRight: "5px" }} /> View
-              </button>
-              <button
-                onClick={() => handleDownloadDocument(asset.document_path)}
-                className="download-doc-btn"
-              >
-                <Download size={16} style={{ marginRight: "5px" }} /> Download
-              </button>
-            </div>
-          ) : (
-            "No Document"
-          )}
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="9">No assets available</td>
-    </tr>
-  )}
-</tbody>
-        </table>
+                            if (
+                              Array.isArray(assignedData) &&
+                              assignedData.length > 0
+                            ) {
+                              const latestAssignment =
+                                assignedData[assignedData.length - 1];
+                              if (
+                                latestAssignment.status &&
+                                latestAssignment.status !== "Assigned"
+                              ) {
+                                return latestAssignment.status;
+                              }
+                              return latestAssignment.returnDate
+                                ? "Returned"
+                                : "Assigned";
+                            }
+                          } catch (error) {
+                            console.error("JSON Parsing Error:", error);
+                          }
+                          return "Unassigned";
+                        })()}
+                      </td>
+                      <td>
+                        {asset.document_path ? (
+                          <div style={{ display: "flex", gap: "10px" }}>
+                            <button
+                              onClick={() =>
+                                handleViewDocument(asset.document_path)
+                              }
+                              className="view-doc-btn"
+                            >
+                              <Eye size={16} style={{ marginRight: "5px" }} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDownloadDocument(asset.document_path)
+                              }
+                              className="download-doc-btn"
+                            >
+                              <Download
+                                size={16}
+                                style={{ marginRight: "5px" }}
+                              />
+                            </button>
+                          </div>
+                        ) : (
+                          "No Document"
+                        )}
+                      </td>
+                    </tr>
+                  )
+                )
+              ) : (
+                <tr>
+                  <td colSpan="9">No assets available</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-
       </div>
-
-
-
-
-
 
       {/* Assign Popup */}
       {showAssignPopup && selectedAsset && (
-        
-  <div className="assign-popup">
-    <h3>Assign Asset: {selectedAsset.asset_name}</h3>
-    <p><strong>Asset ID:</strong> {selectedAsset.asset_id}</p>
-    <p><strong>Category:</strong> {selectedAsset.category}</p>
-    {/* Other fields like configuration, current status, etc. */}
-    {/* Form to assign with fields like name, startDate, status, etc. */}
-  
-    <div className="assignpopup-overlay">
-    <div className="assignpopup-content">
-      <h3>Assign Asset</h3>
-      <button className="close-button-assign-asset" onClick={closeAssignPopup} aria-label="Close">
-      <MdOutlineCancel className="assign-close-popup-icon" />
-      </button>
+        <div className="assign-popup">
+          <h3>Assign Asset: {selectedAsset.asset_name}</h3>
+          <p>
+            <strong>Asset ID:</strong> {selectedAsset.asset_id}
+          </p>
+          <p>
+            <strong>Category:</strong> {selectedAsset.category}
+          </p>
+          {/* Other fields like configuration, current status, etc. */}
+          {/* Form to assign with fields like name, startDate, status, etc. */}
 
+          <div className="assignpopup-overlay">
+            <div className="assignpopup-content">
+              <h3>Assign Asset</h3>
+              <button
+                className="close-button-assign-asset"
+                onClick={closeAssignPopup}
+                aria-label="Close"
+              >
+                <MdOutlineCancel className="assign-close-popup-icon" />
+              </button>
 
-      {/* Asset Info */}
-      <div className="row">
+              {/* Asset Info */}
+              <div className="row"></div>
+
+              {/* Add Row Button */}
+              <button className="addrow-btn" onClick={addAssignmentRow}>
+                + Add Row
+              </button>
+              <div className="assignpopup-buttons">
+                <button className="assigncancel-btn" onClick={closeAssignPopup}>
+                  Cancel
+                </button>
+                <button className="assignsave-btn" onClick={handleAssign}>
+                  Assign
+                </button>
+              </div>
+
+              <div className="assetform-header">
+                <div>Assigned To</div>
+                <div>Start Date</div>
+                <div>Return Date</div>
+                <div>Status</div>
+                <div>Comments</div>
+              </div>
+              {/* Form Rows */}
+              {/* Form Rows */}
+              {assignmentRowsByAsset[selectedAssetId]?.map(
+                (assignment, index) => (
+                  <div key={index} className="assetform-row">
+                    <div style={{ position: "relative", width: "100%" }}>
+                      <input
+                        type="text"
+                        placeholder="Assigned To"
+                        value={assignment.assignedTo}
+                        onChange={(e) => handleAssignedToInputChange(e, index)}
+                        onBlur={() => handleBlurAssignPopup(index)} // Add blur handler
+                        className={`input-style ${
+                          fieldErrors[index]?.assignedTo ? "error-border" : ""
+                        }`}
+                        autoComplete="off"
+                      />
+
+                      {popupSuggestions[index]?.length > 0 && (
+                        <ul
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: "0px",
+                            background: "#fff",
+                            border: "1px solid #ccc",
+                            zIndex: 9999,
+                            width: "250px",
+                            listStyle: "none",
+                            padding: 0,
+                            margin: 0,
+                            maxHeight: "150px",
+                            overflowY: "auto",
+                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                          }}
+                        >
+                          {popupSuggestions[index].map((emp, i) => (
+                            <li
+                              key={i}
+                              onClick={() => handleSuggestionSelect(emp, index)}
+                              style={{
+                                padding: "8px",
+                                cursor: "pointer",
+                                borderBottom: "1px solid #eee",
+                              }}
+                            >
+                              {emp.name} ({emp.employeeId})
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <input
+                      type="date"
+                      value={assignment.startDate}
+                      onChange={(e) =>
+                        updateAssignment(index, "startDate", e.target.value)
+                      }
+                      className={`input-style ${
+                        fieldErrors[index]?.startDate ? "error-border" : ""
+                      }`}
+                    />
+                    <input
+                      type="date"
+                      value={assignment.returnDate}
+                      onChange={(e) =>
+                        updateAssignment(index, "returnDate", e.target.value)
+                      }
+                      className={`input-style ${
+                        fieldErrors[index]?.returnDate ? "error-border" : ""
+                      }`}
+                    />
+
+                    <select
+                      value={assignment.assigningStatus}
+                      onChange={(e) =>
+                        updateAssignment(
+                          index,
+                          "assigningStatus",
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value="Pending">Unassigned</option>
+                      <option value="Assigned">Assigned</option>
+                      <option value="Returned">Returned</option>
+                      <option value="Decommissioned">Decommissioned</option>
+                    </select>
+
+                    <textarea
+                      placeholder="Enter comments"
+                      value={assignment.comments}
+                      onChange={(e) =>
+                        updateAssignment(index, "comments", e.target.value)
+                      }
+                    />
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+
+          {showForm && (
+            <div className="returndateform-container">
+              <h3>Enter Return Date</h3>
+              <form>
+                <div>
+                  <label>Asset ID:</label>
+                  <input
+                    type="text"
+                    name="assetId"
+                    value={formData.assetId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, assetId: e.target.value })
+                    }
+                    maxLength={50} // Adjust the maximum length according to your requirement
+                  />
+                </div>
+                <div>
+                  <label>Employee Name:</label>
+                  <input
+                    type="text"
+                    name="employeeName"
+                    value={formData.employeeName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label>Return Date:</label>
+                  <input
+                    type="date"
+                    name="returnDate"
+                    value={formData.returnDate}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="returndateform-buttons">
+                  <button
+                    type="button"
+                    className="rcancel-btn"
+                    onClick={() => setShowForm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="rsave-btn"
+                    onClick={handleSaveReturnDate}
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
-
-      {/* Add Row Button */}
-      <button className="addrow-btn" onClick={addAssignmentRow}>+ Add Row</button>
-      <div className="assignpopup-buttons">
-        <button className="assigncancel-btn" onClick={closeAssignPopup}>
-          Cancel
-        </button>
-        <button className="assignsave-btn" onClick={handleAssign}>
-          Assign
-        </button>
-      </div>
-    
-      <div className="assetform-header">
-  <div>Assigned To</div>
-  <div>Start Date</div>
-  <div>Return Date</div>
-  <div>Status</div>
-  <div>Comments</div>
-</div>
-      {/* Form Rows */}
-      {/* Form Rows */}
-      {assignmentRowsByAsset[selectedAssetId]?.map((assignment, index) => (
-  <div key={index} className="assetform-row">
-   <div style={{ position: "relative", width: "100%" }}>
-  <input
-  type="text"
-  placeholder="Assigned To"
-  value={assignment.assignedTo}
-  onChange={(e) => handleAssignedToInputChange(e, index)}
-  onBlur={() => handleBlurAssignPopup(index)} // Add blur handler
-  className={`input-style ${fieldErrors[index]?.assignedTo ? "error-border" : ""}`}
-  autoComplete="off"
-/>
-
-{popupSuggestions[index]?.length > 0 && (
-  <ul
-    style={{
-      position: "absolute",
-      top: "100%",
-      left: "0px",
-      background: "#fff",
-      border: "1px solid #ccc",
-      zIndex: 9999,
-      width: "250px",
-      listStyle: "none",
-      padding: 0,
-      margin: 0,
-      maxHeight: "150px",
-      overflowY: "auto",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    }}
-  >
-    {popupSuggestions[index].map((emp, i) => (
-      <li
-        key={i}
-        onClick={() => handleSuggestionSelect(emp, index)}
-        style={{
-          padding: "8px",
-          cursor: "pointer",
-          borderBottom: "1px solid #eee",
-        }}
+      )}
+      {/* Alert Modal for displaying messages */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
       >
-        {emp.name} ({emp.employeeId})
-      </li>
-    ))}
-  </ul>
-)}
-
-</div>
-
-<input
-  type="date"
-  value={assignment.startDate}
-  onChange={(e) => updateAssignment(index, "startDate", e.target.value)}
-  className={`input-style ${fieldErrors[index]?.startDate ? "error-border" : ""}`}
-
-/>
-<input
-  type="date"
-  value={assignment.returnDate}
-  onChange={(e) => updateAssignment(index, "returnDate", e.target.value)}
-  className={`input-style ${fieldErrors[index]?.returnDate ? "error-border" : ""}`}
-
-/>
-
-<select
-      value={assignment.assigningStatus}
-      onChange={(e) =>
-        updateAssignment(index, "assigningStatus", e.target.value)
-      }
-    >
-      <option value="Pending">Unassigned</option>
-      <option value="Assigned">Assigned</option>
-      <option value="Returned">Returned</option>
-      <option value="Decommissioned">Decommissioned</option>
-    </select>
-
-
-<textarea
-  placeholder="Enter comments"
-  value={assignment.comments}
-  onChange={(e) => updateAssignment(index, "comments", e.target.value)}
-/>
-
-  </div>
-  
-))}
-
-  </div>
-  
-    </div>
-  
-
-
-
-
-
-
-
-
-      {showForm && (
-    <div className="returndateform-container">
-      <h3>Enter Return Date</h3>
-      <form>
-        <div>
-          <label>Asset ID:</label>
-         <input
-  type="text"
-  name="assetId"
-  value={formData.assetId}
-  onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
-  maxLength={50} // Adjust the maximum length according to your requirement
-/>
-        </div>
-        <div>
-          <label>Employee Name:</label>
-          <input
-            type="text"
-            name="employeeName"
-            value={formData.employeeName}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Return Date:</label>
-          <input
-            type="date"
-            name="returnDate"
-            value={formData.returnDate}
-            onChange={handleInputChange}
-            required
-          />
-        </div><div className="returndateform-buttons">
-  
-  <button type="button" className="rcancel-btn" onClick={() => setShowForm(false)}>
-    Cancel
-  </button>
-  <button type="button" className="rsave-btn" onClick={handleSaveReturnDate}>
-    Save
-  </button>
-</div>
-      </form>
-    </div>
-  )}
-  </div>
-    
-     
-)}
-{/* Alert Modal for displaying messages */}
-        <Modal
-          isVisible={alertModal.isVisible}
-          onClose={closeAlert}
-          buttons={[{ label: "OK", onClick: closeAlert }]}
-        >
-          <p>{alertModal.message}</p>
-        </Modal>
+        <p>{alertModal.message}</p>
+      </Modal>
     </div>
   );
 };

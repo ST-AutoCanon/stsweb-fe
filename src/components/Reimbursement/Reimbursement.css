@@ -200,6 +200,11 @@
   flex-wrap: wrap; /* Ensures wrapping in smaller screens */
 }
 
+.claim-type label {
+  margin: 1%;
+  font-weight: bold;
+}
+
 .rb-tabs {
   width: 100%;
   display: flex;
@@ -234,7 +239,12 @@
 }
 
 .claim-type select {
-  padding: 2%;
+  width: 300px;
+  padding: 0.9% 2%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: medium;
+  margin-bottom: 2%;
 }
 
 .rb-groups {
@@ -488,10 +498,11 @@
   display: inline-block;
 }
 
-.error-message {
+.rb-error-message {
   color: red;
   font-weight: bold;
   margin-top: 10px;
+  text-align: center;
 }
 
 .disabled-icon {

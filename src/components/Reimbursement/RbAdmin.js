@@ -30,22 +30,57 @@ const RbAdmin = () => {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState("");
   const [projectSelections, setProjectSelections] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const formatDisplayDate = (raw) => {
+    if (!raw) return "N/A";
+    const d = raw instanceof Date ? raw : new Date(raw);
+    if (isNaN(d)) return raw;
+    const day = String(d.getDate()).padStart(2, "0");
+    const mon = d.toLocaleString("en-GB", { month: "short" });
+    const year = d.getFullYear();
+    return `${day}-${mon}-${year}`;
+  };
 
   const filteredEmployees = employees
     .map((emp) => ({
       ...emp,
       claims: emp.claims.filter((claim) => {
         const status = claim.status?.toLowerCase().trim();
-        if (statusFilter === "Paid") {
-          return (
-            status === "approved" &&
-            claim.payment_status?.toLowerCase().trim() === "paid"
-          );
+        const pay = claim.payment_status?.toLowerCase().trim();
+
+        switch (statusFilter) {
+          case "approved":
+            return status === "approved";
+
+          case "rejected":
+            return status === "rejected";
+
+          case "pending":
+            return status === "pending";
+
+          case "approved_pending":
+            return status === "approved" && pay === "pending";
+
+          case "approved_paid":
+            return status === "approved" && pay === "paid";
+
+          default:
+            return false;
         }
-        return status === statusFilter.toLowerCase().trim();
       }),
     }))
-    .filter((emp) => emp.claims.length > 0);
+    .filter((emp) => emp.claims.length > 0)
+    // ◀ filter by searchQuery on name or id
+    .filter((emp) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      // emp.claims[0].employee_name is how you're displaying the name
+      const name = (emp.claims[0]?.employee_name || "").toLowerCase();
+      // IDs are numbers; convert to string
+      const idStr = String(emp.employee_id).toLowerCase();
+      return name.includes(q) || idStr.includes(q);
+    });
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -109,6 +144,16 @@ const RbAdmin = () => {
         });
       });
       setAttachments(attachmentsMap);
+      const initialProjects = {};
+      response.data.forEach((emp) =>
+        emp.claims.forEach((claim) => {
+          // if the backend sent a project, use it
+          if (claim.project) {
+            initialProjects[claim.id] = claim.project;
+          }
+        })
+      );
+      setProjectSelections(initialProjects);
     } catch (error) {
       console.error("Error fetching employees:", error);
       showAlert("Error fetching employees.");
@@ -339,6 +384,44 @@ const RbAdmin = () => {
     setView(e.target.checked ? "self" : "all");
   };
 
+  // inside your RbAdmin component, above return
+  const downloadExcel = async () => {
+    try {
+      const resp = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/reimbursements/export`,
+        {
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+          params: {
+            submittedFrom: submittedFrom || null,
+            submittedTo: submittedTo || null,
+          },
+          responseType: "blob", // important!
+        }
+      );
+      // figure out filename from headers or fallback
+      const cd = resp.headers["content-disposition"];
+      let filename = "reimbursements.xlsx";
+      if (cd) {
+        const match = cd.match(/filename="?([^"]+)"?/);
+        if (match?.[1]) filename = match[1];
+      }
+      const blob = new Blob([resp.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      showAlert("Failed to download Excel. Please try again.");
+    }
+  };
+
   return (
     <div className="rb-admin">
       <h2>Reimbursement Requests</h2>
@@ -360,17 +443,27 @@ const RbAdmin = () => {
         <>
           <div className="rb-filters">
             <div className="rb-filter-group">
+              <input
+                type="text"
+                placeholder="Search by Name or ID…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="rb-filter-group">
               <label>Status By</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
                 <option value="pending">Pending</option>
-                <option value="Paid">Paid</option>
+                <option value="approved_pending">Approved/Pending</option>
+                <option value="approved_paid">Approved/Paid</option>
               </select>
             </div>
+
             <div className="rb-filter-group">
               <label>Submitted From:</label>
               <input
@@ -380,7 +473,7 @@ const RbAdmin = () => {
               />
             </div>
             <div className="rb-filter-group">
-              <label>Submitted To</label>
+              <label>To:</label>
               <input
                 type="date"
                 value={submittedTo}
@@ -389,6 +482,13 @@ const RbAdmin = () => {
             </div>
             <button className="rb-search" onClick={fetchEmployees}>
               <FaSearch /> Search
+            </button>
+            <button
+              className="rb-search"
+              onClick={downloadExcel}
+              style={{ marginLeft: "8px" }}
+            >
+              <FiDownload /> Export
             </button>
           </div>
           {/* Employee List */}
@@ -454,6 +554,7 @@ const RbAdmin = () => {
                               <th>Claim Type</th>
                               <th>Date</th>
                               <th>Amount</th>
+                              <th>Purpose</th>
                               <th>Attachments</th>
                               <th>Status</th>
                               <th>Projects</th>
@@ -471,29 +572,19 @@ const RbAdmin = () => {
                                   {claim.date_range
                                     ? claim.date_range
                                         .split(" - ")
-                                        .map((date) =>
-                                          new Date(date).toLocaleDateString(
-                                            "en-GB",
-                                            {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            }
-                                          )
-                                        )
+                                        .map(formatDisplayDate)
                                         .join(" - ")
                                     : claim.date
-                                    ? new Date(claim.date).toLocaleDateString(
-                                        "en-GB",
-                                        {
-                                          day: "2-digit",
-                                          month: "short",
-                                          year: "numeric",
-                                        }
-                                      )
+                                    ? formatDisplayDate(claim.date)
                                     : "N/A"}
                                 </td>
                                 <td>₹{claim.total_amount}</td>
+                                <td
+                                  className="purpose-cell"
+                                  title={claim.purpose}
+                                >
+                                  {claim.purpose}
+                                </td>
                                 <td>
                                   {attachments[claim.id] &&
                                   attachments[claim.id].length > 0 ? (
@@ -619,9 +710,9 @@ const RbAdmin = () => {
                                             claim.payment_status.slice(1)
                                           : "N/A"}
                                         {claim.paid_date
-                                          ? ` (${new Date(
+                                          ? ` (${formatDisplayDate(
                                               claim.paid_date
-                                            ).toLocaleDateString("en-GB")})`
+                                            )})`
                                           : ""}
                                       </span>
                                     )
@@ -708,12 +799,13 @@ const RbAdmin = () => {
                 <input
                   type="radio"
                   name="paymentOption"
-                  value="paid"
-                  checked={selectedPaymentOption === "paid"}
+                  value="rejected"
+                  checked={selectedPaymentOption === "rejected"}
                   onChange={(e) => setSelectedPaymentOption(e.target.value)}
                 />
-                Payable
+                Reject
               </label>
+
               <label style={{ marginLeft: "20px" }}>
                 <input
                   type="radio"
@@ -723,6 +815,16 @@ const RbAdmin = () => {
                   onChange={(e) => setSelectedPaymentOption(e.target.value)}
                 />
                 Pending
+              </label>
+              <label style={{ marginLeft: "20px" }}>
+                <input
+                  type="radio"
+                  name="paymentOption"
+                  value="paid"
+                  checked={selectedPaymentOption === "paid"}
+                  onChange={(e) => setSelectedPaymentOption(e.target.value)}
+                />
+                Payable
               </label>
             </div>
             <p>I'll make sure to process the payment today</p>
@@ -737,9 +839,8 @@ const RbAdmin = () => {
                   await axios.put(
                     `${process.env.REACT_APP_BACKEND_URL}/reimbursement/payment-status/${selectedPaymentClaim.id}`,
                     {
-                      payment_status:
-                        selectedPaymentOption === "paid" ? "paid" : "pending",
-                      user_role: "admin", // adjust role as needed
+                      payment_status: selectedPaymentOption,
+                      user_role: "admin",
                     },
                     {
                       headers: {

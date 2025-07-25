@@ -88,22 +88,8 @@ export default function EmployeeForm({
     // Override with sanitized initial data
     ...sanitizedInitialData,
   });
-
   const [loading, setLoading] = useState(false);
   const formRef = useRef();
-
-  // Debug logs (optional)
-  console.log("resume:", formData.resume);
-  console.log(
-    "other_docs:",
-    Array.isArray(formData.other_docs) ? formData.other_docs : []
-  );
-  console.log(
-    "experience docs:",
-    Array.isArray(formData.experience)
-      ? formData.experience.map((e) => e.doc)
-      : []
-  );
 
   const handleChange = (name, value) =>
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -120,36 +106,7 @@ export default function EmployeeForm({
 
   const next = () => {
     setError("");
-
     if (!validateStep()) return;
-
-    if (STEPS[currentStep] === "personal") {
-      if (!formData.dob) {
-        setError("Please enter your date of birth.");
-        return;
-      }
-
-      const [year, month, day] = formData.dob.split("-").map(Number);
-      const dob = new Date(year, month - 1, day);
-
-      if (isNaN(dob.getTime())) {
-        setError("Invalid date of birth.");
-        return;
-      }
-
-      const today = new Date();
-      const minDob = new Date(
-        today.getFullYear() - 18,
-        today.getMonth(),
-        today.getDate()
-      );
-
-      if (dob > minDob) {
-        setError("Employee must be at least 18 years old.");
-        return;
-      }
-    }
-
     setCurrentStep((i) => Math.min(i + 1, STEPS.length - 1));
   };
 
@@ -159,37 +116,9 @@ export default function EmployeeForm({
     if (!validateStep()) return;
     setLoading(true);
     setError("");
-
     try {
       const fd = new FormData();
-
-      Object.entries(formData).forEach(([key, val]) => {
-        if (key === "experience" || key === "other_docs") return;
-        if (val != null) fd.append(key, val);
-      });
-
-      // Append experience entries
-      formData.experience.forEach((exp, idx) => {
-        fd.append(`experience[${idx}][company]`, exp.company);
-        fd.append(`experience[${idx}][role]`, exp.role);
-        fd.append(`experience[${idx}][start_date]`, exp.start_date);
-        fd.append(`experience[${idx}][end_date]`, exp.end_date);
-        if (exp.doc instanceof File) {
-          fd.append(`experience_${idx}_doc`, exp.doc, exp.doc.name);
-        }
-      });
-
-      // Append other_docs
-      formData.other_docs.forEach((file) => {
-        if (file instanceof File) {
-          fd.append("other_docs", file, file.name);
-        }
-      });
-
-      if (formData.resume instanceof File) {
-        fd.append("resume", formData.resume, formData.resume.name);
-      }
-
+      // append formData to fd...
       await onSubmit(fd);
     } catch (err) {
       setError(err.message || "Failed to save data");
@@ -198,27 +127,22 @@ export default function EmployeeForm({
     }
   };
 
-  const renderStep = () => {
-    switch (STEPS[currentStep]) {
-      case "personal":
-        return <StepPersonal data={formData} onChange={handleChange} />;
-      case "education":
-        return <StepEducation data={formData} onChange={handleChange} />;
-      case "professional":
-        return (
-          <StepProfessional
-            data={formData}
-            onChange={handleChange}
-            departments={departments}
-            supervisors={supervisors}
-          />
-        );
-      case "bank details":
-        return <StepBankDetails data={formData} onChange={handleChange} />;
-      default:
-        return null;
-    }
-  };
+  const stepsComponents = [
+    <StepPersonal key="personal" data={formData} onChange={handleChange} />,
+    <StepEducation key="education" data={formData} onChange={handleChange} />,
+    <StepProfessional
+      key="professional"
+      data={formData}
+      onChange={handleChange}
+      departments={departments}
+      supervisors={supervisors}
+    />,
+    <StepBankDetails
+      key="bank_details"
+      data={formData}
+      onChange={handleChange}
+    />,
+  ];
 
   return (
     <div className="employee-form">
@@ -230,13 +154,24 @@ export default function EmployeeForm({
         ))}
       </div>
 
-      <form ref={formRef} noValidate>
-        {renderStep()}
+      <form ref={formRef} noValidate className="ed-form">
+        {stepsComponents.map((Component, idx) => (
+          <fieldset
+            key={idx}
+            disabled={idx !== currentStep}
+            style={{ display: idx === currentStep ? "block" : "none" }}
+          >
+            {Component}
+          </fieldset>
+        ))}
       </form>
 
       {error && <div className="error">{error}</div>}
 
       <div className="actions">
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
         {currentStep > 0 && (
           <button type="button" onClick={back}>
             Back
@@ -252,9 +187,6 @@ export default function EmployeeForm({
             {loading ? "Saving..." : "Submit"}
           </button>
         )}
-        <button type="button" onClick={onCancel}>
-          Cancel
-        </button>
       </div>
     </div>
   );

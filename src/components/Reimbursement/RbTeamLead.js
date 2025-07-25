@@ -35,6 +35,16 @@ const RbTeamLead = () => {
   const [selectedProject, setSelectedProject] = useState("");
   const [projectSelections, setProjectSelections] = useState({});
 
+  const formatDisplayDate = (raw) => {
+    if (!raw) return "N/A";
+    const d = raw instanceof Date ? raw : new Date(raw);
+    if (isNaN(d)) return raw;
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mon = d.toLocaleString("en-GB", { month: "short" });
+    const yy = d.getFullYear();
+    return `${dd}-${mon}-${yy}`;
+  };
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -442,6 +452,7 @@ const RbTeamLead = () => {
                               <th>Claim Type</th>
                               <th>Date</th>
                               <th>Amount</th>
+                              <th>Purpose</th>
                               <th>Attachments</th>
                               <th>Status</th>
                               <th>Projects</th>
@@ -459,29 +470,16 @@ const RbTeamLead = () => {
                                   {rb.date_range
                                     ? rb.date_range
                                         .split(" - ")
-                                        .map((date) =>
-                                          new Date(date).toLocaleDateString(
-                                            "en-GB",
-                                            {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            }
-                                          )
-                                        )
+                                        .map(formatDisplayDate)
                                         .join(" - ")
                                     : rb.date
-                                    ? new Date(rb.date).toLocaleDateString(
-                                        "en-GB",
-                                        {
-                                          day: "2-digit",
-                                          month: "short",
-                                          year: "numeric",
-                                        }
-                                      )
+                                    ? formatDisplayDate(rb.date)
                                     : "N/A"}
                                 </td>
                                 <td>₹{rb.total_amount}</td>
+                                <td className="purpose-cell" title={rb.purpose}>
+                                  {rb.purpose}
+                                </td>
                                 <td>
                                   {attachments[rb.id] &&
                                   attachments[rb.id].length > 0 ? (
@@ -604,9 +602,9 @@ const RbTeamLead = () => {
                                             rb.payment_status.slice(1)
                                           : "N/A"}
                                         {rb.paid_date
-                                          ? ` (${new Date(
+                                          ? ` (${formatDisplayDate(
                                               rb.paid_date
-                                            ).toLocaleDateString("en-GB")})`
+                                            )})`
                                           : ""}
                                       </span>
                                     )
