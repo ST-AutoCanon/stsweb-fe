@@ -33,6 +33,7 @@
   border-radius: 5px;
   height: 35px;
   font-size: medium;
+  width: 120px;
 }
 
 .rb-filter-group input {
@@ -271,4 +272,13 @@ td:hover {
   cursor: pointer;
   border-radius: 4px;
   margin-top: 10px;
+}
+
+/* RbAdmin.css */
+
+.rb-sub-table .purpose-cell {
+  max-width: 150px; /* or whatever fits your layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

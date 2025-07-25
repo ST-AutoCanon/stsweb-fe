@@ -18,7 +18,7 @@
 
 .add-vendor-btn {
   padding: 12px 24px;
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
   border: none;
   border-radius: 6px;
@@ -48,19 +48,20 @@
   padding: 8px 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: border-color 0.2s ease;
+  margin-right: 10px;
 }
 
 .search-container:focus-within {
-  border-color: #00468C;
+  border-color: #00468c;
 }
 
-.search-input {
+/* .search-input {
   flex: 1;
   border: none;
   font-size: 14px;
   outline: none;
   background-color: transparent;
-}
+} */
 
 .search-icon {
   color: #666;
@@ -82,7 +83,7 @@
 
 .vendor-popup-form {
   position: relative;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   color: #000;
   padding: 30px;
   border-radius: 8px;
@@ -114,7 +115,7 @@
 
 .vendor-popup-form legend {
   font-weight: 600;
-  color: #00468C;
+  color: #00468c;
   font-size: 18px;
   padding: 0 10px;
 }
@@ -135,7 +136,7 @@
 
 .vendor-popup-form input:focus,
 .vendor-popup-form select:focus {
-  border-color: #00468C;
+  border-color: #00468c;
   outline: none;
 }
 
@@ -155,7 +156,7 @@
 }
 
 .vendor-form-title {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   padding: 15px 20px;
   border-top-left-radius: 8px;
@@ -166,7 +167,7 @@
 }
 
 .vendor-popup-title {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   padding: 15px;
   margin: -20px -20px 20px -20px;
@@ -182,8 +183,8 @@
   top: 12px;
   right: 12px;
   background-color: #ffffff;
-  color: #00468C;
-  border: 2px solid #00468C;
+  color: #00468c;
+  border: 2px solid #00468c;
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -197,7 +198,7 @@
 }
 
 .vendor-popup-close-btn:hover {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   transform: scale(1.1);
 }
@@ -229,7 +230,7 @@
 }
 
 .vendor-submit-btn {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
 }
 
@@ -265,7 +266,7 @@
 }
 
 .vendor-table th {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   font-weight: 600;
   position: sticky;
@@ -282,37 +283,44 @@
 }
 
 .vendor-table th:nth-child(1),
-.vendor-table td:nth-child(1) { /* Vendor ID */
+.vendor-table td:nth-child(1) {
+  /* Vendor ID */
   width: 60px;
 }
 
 .vendor-table th:nth-child(2),
-.vendor-table td:nth-child(2) { /* Company Name */
+.vendor-table td:nth-child(2) {
+  /* Company Name */
   width: 150px;
 }
 
 .vendor-table th:nth-child(3),
-.vendor-table td:nth-child(3) { /* Company Details */
+.vendor-table td:nth-child(3) {
+  /* Company Details */
   width: 100px;
 }
 
 .vendor-table th:nth-child(4),
-.vendor-table td:nth-child(4) { /* Contact Details */
+.vendor-table td:nth-child(4) {
+  /* Contact Details */
   width: 100px;
 }
 
 .vendor-table th:nth-child(5),
-.vendor-table td:nth-child(5) { /* Bank Details */
+.vendor-table td:nth-child(5) {
+  /* Bank Details */
   width: 100px;
 }
 
 .vendor-table th:nth-child(6),
-.vendor-table td:nth-child(6) { /* Business Information */
+.vendor-table td:nth-child(6) {
+  /* Business Information */
   width: 120px;
 }
 
 .vendor-table th:nth-child(7),
-.vendor-table td:nth-child(7) { /* Documents */
+.vendor-table td:nth-child(7) {
+  /* Documents */
   min-width: 120px !important;
   text-align: center;
   white-space: nowrap;
@@ -362,7 +370,7 @@
 .documents-popup {
   max-width: 400px;
   padding: 20px;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   border-radius: 8px;
 }
 
@@ -402,11 +410,6 @@
   flex: 1;
   color: #333;
 }
-
-
-
-
-
 
 .feildsetbankdetails,
 .companydetailsfeildset,
@@ -536,10 +539,10 @@
 .contact-table-header {
   font-size: 16px;
   font-weight: 600;
-  color: #00468C;
+  color: #00468c;
   margin-bottom: 12px;
   padding: 5px 0;
-  border-bottom: 3px solid #00468C;
+  border-bottom: 3px solid #00468c;
   text-align: left;
 }
 
@@ -671,7 +674,7 @@
 
 .add-vendor-btn {
   padding: 12px 24px;
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
   border: none;
   border-radius: 6px;
@@ -681,8 +684,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
-
-
 
 .add-vendor-btn:active {
   transform: translateY(0);
@@ -732,7 +733,7 @@
 
 .vendor-popup-form {
   position: relative;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   color: #000;
   padding: 30px;
   border-radius: 8px;
@@ -764,7 +765,7 @@
 
 .vendor-popup-form legend {
   font-weight: 600;
-  color: #00468C;
+  color: #00468c;
   font-size: 18px;
   padding: 0 10px;
 }
@@ -785,7 +786,7 @@
 
 .vendor-popup-form input:focus,
 .vendor-popup-form select:focus {
-  border-color: #00468C;
+  border-color: #00468c;
   outline: none;
 }
 
@@ -805,7 +806,7 @@
 }
 
 .vendor-form-title {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   padding: 15px 20px;
   border-top-left-radius: 8px;
@@ -816,7 +817,7 @@
 }
 
 .vendor-popup-title {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   padding: 15px;
   margin: -20px -20px 20px -20px;
@@ -832,8 +833,8 @@
   top: 12px;
   right: 12px;
   background-color: #ffffff;
-  color: #00468C;
-  border: 2px solid #00468C;
+  color: #00468c;
+  border: 2px solid #00468c;
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -847,7 +848,7 @@
 }
 
 .vendor-popup-close-btn:hover {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   transform: scale(1.1);
 }
@@ -879,7 +880,7 @@
 }
 
 .vendor-submit-btn {
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
 }
 
@@ -914,7 +915,6 @@
   white-space: nowrap;
 }
 
-
 .vendor-table th {
   background-color: white;
   color: black;
@@ -933,37 +933,44 @@
 }
 
 .vendor-table th:nth-child(1),
-.vendor-table td:nth-child(1) { /* Vendor ID */
+.vendor-table td:nth-child(1) {
+  /* Vendor ID */
   width: 60px;
 }
 
 .vendor-table th:nth-child(2),
-.vendor-table td:nth-child(2) { /* Company Name */
+.vendor-table td:nth-child(2) {
+  /* Company Name */
   width: 150px;
 }
 
 .vendor-table th:nth-child(3),
-.vendor-table td:nth-child(3) { /* Company Details */
+.vendor-table td:nth-child(3) {
+  /* Company Details */
   width: 100px;
 }
 
 .vendor-table th:nth-child(4),
-.vendor-table td:nth-child(4) { /* Contact Details */
+.vendor-table td:nth-child(4) {
+  /* Contact Details */
   width: 100px;
 }
 
 .vendor-table th:nth-child(5),
-.vendor-table td:nth-child(5) { /* Bank Details */
+.vendor-table td:nth-child(5) {
+  /* Bank Details */
   width: 100px;
 }
 
 .vendor-table th:nth-child(6),
-.vendor-table td:nth-child(6) { /* Business Information */
+.vendor-table td:nth-child(6) {
+  /* Business Information */
   width: 120px;
 }
 
 .vendor-table th:nth-child(7),
-.vendor-table td:nth-child(7) { /* Documents */
+.vendor-table td:nth-child(7) {
+  /* Documents */
   min-width: 120px !important;
   text-align: center;
   white-space: nowrap;
@@ -1013,7 +1020,7 @@
 .documents-popup {
   max-width: 400px;
   padding: 20px;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   border-radius: 8px;
 }
 
@@ -1053,7 +1060,6 @@
   flex: 1;
   color: #333;
 }
-
 
 .feildsetbankdetails,
 .companydetailsfeildset,
@@ -1183,10 +1189,10 @@
 .contact-box-header {
   font-size: 16px;
   font-weight: 600;
-  color: #00468C;
+  color: #00468c;
   margin-bottom: 12px;
   padding: 5px 0;
-  border-bottom: 3px solid #00468C;
+  border-bottom: 3px solid #00468c;
   text-align: left;
 }
 
@@ -1310,20 +1316,19 @@
 .vendor-download-doc-btn {
   display: flex;
   align-items: center;
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   border: none;
   padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  color:white;
+  color: white;
 }
 
 .vendor-view-doc-btn:hover,
 .vendor-download-doc-btn:hover {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
 }
-
 
 /* Responsive Design */
 @media (max-width: 768px) {

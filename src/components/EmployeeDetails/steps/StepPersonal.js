@@ -2,7 +2,7 @@ import React from "react";
 import FileInput from "../FileInput";
 
 export default function StepPersonal({ data, onChange }) {
-  // compute max selectable date = today minus 18 years
+  const today = new Date().toISOString().split("T")[0];
   const eighteenYearsAgo = new Date();
   eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
   const maxDob = eighteenYearsAgo.toISOString().split("T")[0]; // YYYY-MM-DD
@@ -30,7 +30,7 @@ export default function StepPersonal({ data, onChange }) {
           name="last_name"
           value={data.last_name || ""}
           onChange={(e) => onChange("last_name", e.target.value)}
-          pattern="^[A-Z][a-zA-Z]+$"
+          pattern="^[A-Z][a-zA-Z]*$"
           title="Must start with a capital letter and contain only letters"
           required
         />
@@ -121,8 +121,10 @@ export default function StepPersonal({ data, onChange }) {
             <input
               type="date"
               name="marriage_date"
+              max={today}
               value={data.marriage_date ? data.marriage_date.split("T")[0] : ""}
               onChange={(e) => onChange("marriage_date", e.target.value)}
+              title={`Marriage date cannot be in the future (on or before ${today})`}
               required
             />
           </label>

@@ -388,7 +388,7 @@ export default function EmployeeDetails() {
             <tbody>
               {employees.length === 0 ? (
                 <tr>
-                  <td colSpan="9">No employees found</td>
+                  <td colSpan="10">No employees found</td>
                 </tr>
               ) : (
                 employees.map((emp) => (
