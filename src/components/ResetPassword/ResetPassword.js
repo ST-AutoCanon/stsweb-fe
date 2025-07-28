@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate, useLocation } from 'react-router-dom';
-import './ResetPassword.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
+import "./ResetPassword.css";
 
 const ResetPassword = () => {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [token, setToken] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [token, setToken] = useState("");
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -17,20 +17,20 @@ const ResetPassword = () => {
   // Extract token from URL query parameters
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const tokenFromUrl = queryParams.get('token');
+    const tokenFromUrl = queryParams.get("token");
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
-      setError(''); // Clear any previous error
+      setError(""); // Clear any previous error
     } else {
-      setError('Invalid or missing token');
+      setError("Invalid or missing token");
     }
   }, [location]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'password') {
+    if (name === "password") {
       setPassword(value);
-    } else if (name === 'confirmPassword') {
+    } else if (name === "confirmPassword") {
       setConfirmPassword(value);
     }
   };
@@ -39,7 +39,7 @@ const ResetPassword = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
@@ -51,20 +51,20 @@ const ResetPassword = () => {
         { resetToken: token, newPassword: password },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY,
-          }
+            "Content-Type": "application/json",
+            "x-api-key": process.env.REACT_APP_API_KEY,
+          },
         }
       );
 
       if (response.status === 200) {
         setSuccess(true);
-        setError(''); // Clear the error state on success
-        setTimeout(() => navigate('/login'), 2000); // Redirect after success
+        setError(""); // Clear the error state on success
+        setTimeout(() => navigate("/"), 2000); // Redirect after success
       }
     } catch (error) {
       console.error(error);
-      setError('Failed to reset password. Please try again.');
+      setError("Failed to reset password. Please try again.");
       setSuccess(false);
     } finally {
       setIsLoading(false); // Reset loading state
@@ -73,16 +73,18 @@ const ResetPassword = () => {
 
   return (
     <div className="reset-password-container">
-      <div className='reset-header'>
-      <h2>Reset Your Password</h2>
+      <div className="reset-header">
+        <h2>Reset Your Password</h2>
       </div>
       {success ? (
-        <div className="success-message">Password reset successfully! Redirecting to login...</div>
+        <div className="success-message">
+          Password reset successfully! Redirecting to login...
+        </div>
       ) : (
-        error && <div className="error-message">{error}</div>
+        error && <div className="re-error-message">{error}</div>
       )}
-      <form className='reset-form' onSubmit={handleSubmit}>
-        <div className='reset-group'>
+      <form className="reset-form" onSubmit={handleSubmit}>
+        <div className="reset-group">
           <label htmlFor="password">New Password:</label>
           <input
             type="password"
@@ -94,7 +96,7 @@ const ResetPassword = () => {
             minLength="8"
           />
         </div>
-        <div className='reset-group'>
+        <div className="reset-group">
           <label htmlFor="confirmPassword">Confirm Password:</label>
           <input
             type="password"
@@ -106,10 +108,10 @@ const ResetPassword = () => {
             minLength="8"
           />
         </div>
-        <div className='reset-button'>
-        <button className='submit-reset' type="submit" disabled={isLoading}>
-          {isLoading ? 'Resetting...' : 'Reset Password'}
-        </button>
+        <div className="reset-button">
+          <button className="submit-reset" type="submit" disabled={isLoading}>
+            {isLoading ? "Resetting..." : "Reset Password"}
+          </button>
         </div>
       </form>
     </div>

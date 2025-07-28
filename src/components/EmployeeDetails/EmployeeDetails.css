@@ -75,7 +75,7 @@
   border: 2px solid #cccbce;
   background-color: #f2f2f2;
   padding: 1% 0;
-  font-weight: bold;
+  font-weight: 600;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -119,7 +119,7 @@
   flex: 1;
   text-align: center;
   padding: 0.5rem 0;
-  border-bottom: 2px solid #ccc;
+  border-bottom: 5px solid #ccc;
   text-transform: capitalize;
 }
 
@@ -313,13 +313,24 @@
   overflow-y: auto;
 }
 
+.doc-table {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid #000;
+}
+
+.docs-section {
+  padding: 2%;
+  border: 1px solid #000;
+}
+
 .doc-link {
   background: none;
   color: blue;
   text-decoration: underline;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 5px;
   font-size: 1rem;
 }
 
@@ -327,6 +338,24 @@
   color: #888;
   font-size: x-large;
   margin: 0 10%;
+}
+
+.view-btn {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 3%;
+  width: 90px;
+  border: none;
+  border-radius: 50px;
+  background-color: #f2f2f2;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.view-btn-icon {
+  color: #949494;
+  font-size: x-large;
 }
 
 .employee-form .step-bank {
@@ -484,7 +513,7 @@
 }
 
 .edit {
-  margin-right: 2px;
+  margin-right: 5px;
   cursor: pointer;
   font-size: x-large;
   border: none;
@@ -494,7 +523,7 @@
 }
 
 .deactivate {
-  margin-left: 2px;
+  margin-left: 5px;
   cursor: pointer;
   font-size: x-large;
   border: none;
@@ -587,6 +616,110 @@
   border: none;
   margin: 0;
   padding: 0;
+}
+
+/* Popup overlay */
+.ed-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* Popup container */
+.ed-popup-content {
+  background: #fff;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+/* Header */
+.ed-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eee;
+  background-color: #00468c;
+}
+
+.ed-popup-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Close button */
+.ed-popup-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #fff;
+  transition: color 0.2s ease;
+}
+.ed-popup-close:hover {
+  color: #fff;
+}
+
+/* Change to a grid with two columns: labels and values */
+.detail-list {
+  display: grid;
+  grid-template-columns: 0.6fr 1fr;
+  margin: 0;
+  padding: 0;
+  border: solid 0.5px #c5c4c4;
+}
+
+.detail-list dl {
+  margin: 0;
+}
+
+/* Style labels (dt) and values (dd) */
+.detail-list dt {
+  background: #ecebeb;
+  font-weight: 600;
+  color: #333;
+  border: solid 0.5px #c5c4c4;
+  padding: 2%;
+}
+
+.detail-list dd {
+  margin: 0;
+  color: #555;
+  border: solid 0.5px #c5c4c4;
+  padding: 2%;
+}
+
+/* Optional: add a subtle border/padding to the entire body */
+.ed-popup-body {
+  padding: 1.5rem;
+  border-top: 1px solid #e1e1e1;
+  background-color: #fafafa;
+}
+
+/* Keyframes for gentle fade-in */
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Responsive Adjustments */

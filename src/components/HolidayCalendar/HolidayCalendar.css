@@ -2,8 +2,7 @@
   width: 350px;
   height: 330px;
   text-align: center;
-  background: #00468c;
-  padding: 10px;
+  background: #ffffff;
   border-radius: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
@@ -18,28 +17,35 @@
 
 .react-calendar {
   height: 100%;
-  background: #f2f2f2;
+  background: #ffffff;
 }
 
 .react-calendar__navigation {
   height: 20%;
+  background: #79c42b;
 }
 .react-calendar__navigation__arrow {
   width: 20%;
   font-size: xx-large;
-  color: #00468c;
+  color: #fff;
 }
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+  background-color: #79c42b;
+}
+
 .react-calendar__navigation__label {
   font-size: 1.5rem;
   font-weight: bold;
   pointer-events: none;
-  color: #00468c;
+  color: #fff;
 }
 
 .react-calendar__month-view__weekdays {
   font-size: 0.9rem;
   border: none;
-  color: #00468c;
+  color: #79c42b;
   margin-top: 2%;
 }
 
@@ -76,7 +82,7 @@
   position: absolute;
   top: 2px;
   right: 10px;
-  background-color: #fc4f4f;
+  background-color: #d32f2f;
   z-index: 4;
 }
 
@@ -91,7 +97,7 @@
 }
 
 .optional-dot {
-  background-color: #fc4f4f;
+  background-color: #d32f2f;
 }
 
 .company-dot {
@@ -122,8 +128,8 @@
 
 .holiday-legend-top {
   position: absolute;
-  top: 65px;
-  left: 27%;
+  top: 72px;
+  left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: 1rem;
@@ -144,7 +150,7 @@
 }
 
 .color-box.optional {
-  background-color: #fc4f4f;
+  background-color: #d32f2f;
 }
 
 .color-box.company {

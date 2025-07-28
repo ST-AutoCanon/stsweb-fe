@@ -88,17 +88,16 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: #00468c;
-  color: white;
+  background: none;
   border: none;
   padding: 2% 3%;
   border-radius: 50%;
   cursor: pointer;
-  font-size: small;
+  font-size: large;
   z-index: 10;
 }
 .close-btn:hover {
-  background: darkred;
+  color: red;
 }
 
 /* Apply interactive effects to Font Awesome icons */

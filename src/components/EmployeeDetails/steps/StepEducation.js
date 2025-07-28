@@ -119,17 +119,16 @@ export default function StepEducation({ data, onChange }) {
 
       {/* Undergraduate */}
       <label>
-        UG Institution<span className="required">*</span>
+        UG Institution
         <input
           type="text"
           name="ug_institution"
           value={data.ug_institution || ""}
           onChange={(e) => onChange("ug_institution", e.target.value)}
-          required
         />
       </label>
       <label>
-        UG Year<span className="required">*</span>
+        UG Year
         <input
           type="number"
           name="ug_year"
@@ -137,21 +136,19 @@ export default function StepEducation({ data, onChange }) {
           max={new Date().getFullYear()}
           value={data.ug_year || ""}
           onChange={(e) => onChange("ug_year", e.target.value)}
-          required
         />
       </label>
       <label>
-        UG University<span className="required">*</span>
+        UG University
         <input
           type="text"
           name="ug_board"
           value={data.ug_board || ""}
           onChange={(e) => onChange("ug_board", e.target.value)}
-          required
         />
       </label>
       <label>
-        UG Score (%)<span className="required">*</span>
+        UG Score (%)
         <input
           type="number"
           name="ug_score"
@@ -160,7 +157,6 @@ export default function StepEducation({ data, onChange }) {
           step="0.01"
           value={data.ug_score || ""}
           onChange={(e) => onChange("ug_score", e.target.value)}
-          required
         />
       </label>
 
@@ -168,7 +164,6 @@ export default function StepEducation({ data, onChange }) {
         name="ug_cert"
         label="UG Certificate"
         accept=".pdf,image/*"
-        required
         existingUrl={data.ug_cert_url}
         onChange={onChange}
       />
@@ -232,6 +227,26 @@ export default function StepEducation({ data, onChange }) {
           name="additional_cert_name"
           value={data.additional_cert_name || ""}
           onChange={(e) => onChange("additional_cert_name", e.target.value)}
+        />
+      </label>
+      <label>
+        Year
+        <input
+          type="number"
+          name="ad_year"
+          min="1900"
+          max={new Date().getFullYear()}
+          value={data.ad_year || ""}
+          onChange={(e) => onChange("ad_year", e.target.value)}
+        />
+      </label>
+      <label>
+        Institution
+        <input
+          type="text"
+          name="ad_institution"
+          value={data.ad_institution || ""}
+          onChange={(e) => onChange("ad_institution", e.target.value)}
         />
       </label>
 
