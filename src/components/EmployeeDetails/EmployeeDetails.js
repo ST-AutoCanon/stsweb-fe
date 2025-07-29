@@ -14,6 +14,22 @@ import Modal from "../Modal/Modal";
 import EmployeeForm from "./EmployeeForm";
 import "./EmployeeDetails.css";
 
+function CustomPopup({ title, children, onClose }) {
+  return (
+    <div className="ed-popup-overlay">
+      <div className="ed-popup-content">
+        <header className="ed-popup-header">
+          <h3>{title}</h3>
+          <button className="ed-popup-close" onClick={onClose}>
+            ×
+          </button>
+        </header>
+        <div className="ed-popup-body">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function EmployeeDetails() {
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,8 +38,10 @@ export default function EmployeeDetails() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [departments, setDepartments] = useState([]);
-  const [supervisors, setSupervisors] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupTitle, setPopupTitle] = useState("");
+  const [popupContent, setPopupContent] = useState(null);
   const [deleteEmployeeId, setDeleteEmployeeId] = useState(null);
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
@@ -49,13 +67,6 @@ export default function EmployeeDetails() {
       .get(`${BASE_URL}/departments`, { headers: { "x-api-key": API_KEY } })
       .then((res) => setDepartments(res.data.departments))
       .catch((err) => console.error(err));
-    axios
-      .get(`${BASE_URL}/supervisors`, { headers: { "x-api-key": API_KEY } })
-      .then((res) => {
-        // assuming your handler returns { data: [ { employee_id, name }, … ] }
-        setSupervisors(res.data.data || []);
-      })
-      .catch((err) => console.error("Failed to load supervisors", err));
   }, []);
 
   useEffect(() => {
@@ -80,70 +91,135 @@ export default function EmployeeDetails() {
     }
   };
 
+  const openPopup = (title, content) => {
+    setPopupTitle(title);
+    setPopupContent(content);
+    setPopupVisible(true);
+  };
+  const closePopup = () => setPopupVisible(false);
+
   const showAlert = (message) => setAlertModal({ isVisible: true, message });
   const closeAlert = () => setAlertModal({ isVisible: false, message: "" });
 
-  const handleViewDocs = async (empId, empName) => {
-    console.log("🔍 handleViewDocs starting for", empId);
+  // Updated handleViewDocs with 3-column categorization (Personal, Educational, Professional)
+  // Updated handleViewDocs with Resume moved to Professional section
+  const handleViewDocs = async (empId) => {
     try {
       const res = await axios.get(`${BASE_URL}/full/${empId}`, {
         headers: { "x-api-key": API_KEY },
       });
       const data = res.data.data;
 
-      const docs = [];
+      // Categorize documents
+      const personalDocs = [
+        ["Aadhaar Copy", data.aadhaar_doc_url],
+        ["PAN Copy", data.pan_doc_url],
+        ["Passport Copy", data.passport_doc_url],
+        ["Photo", data.photo_url],
+      ]
+        .filter(([, url]) => url)
+        .map(([label, url]) => ({ label, url }));
 
-      // Static fields
-      if (data.aadhaar_doc_url)
-        docs.push({ label: "Aadhaar Copy", url: data.aadhaar_doc_url });
-      if (data.pan_doc_url)
-        docs.push({ label: "PAN Copy", url: data.pan_doc_url });
-      if (data.passport_doc_url)
-        docs.push({ label: "Passport Copy", url: data.passport_doc_url });
-      if (data.photo_url) docs.push({ label: "Photo", url: data.photo_url });
-      if (data.resume_url) docs.push({ label: "Resume", url: data.resume_url });
+      const educationalDocs = [
+        ["10th Certificate", data.tenth_cert_url],
+        ["12th Certificate", data.twelfth_cert_url],
+        ["UG Certificate", data.ug_cert_url],
+        ["PG Certificate", data.pg_cert_url],
+        ["Additional Certificate", data.additional_cert_url],
+      ]
+        .filter(([, url]) => url)
+        .map(([label, url]) => ({ label, url }));
 
-      // Education documents
-      if (data.tenth_cert_url)
-        docs.push({ label: "10th Certificate", url: data.tenth_cert_url });
-      if (data.twelfth_cert_url)
-        docs.push({ label: "12th Certificate", url: data.twelfth_cert_url });
-      if (data.ug_cert_url)
-        docs.push({ label: "UG Certificate", url: data.ug_cert_url });
-      if (data.pg_cert_url)
-        docs.push({ label: "PG Certificate", url: data.pg_cert_url });
-      if (data.additional_cert_url)
-        docs.push({
-          label: "Additional Certificate",
-          url: data.additional_cert_url,
-        });
-
+      const professionalDocs = [];
+      // Resume moved to Professional section
+      if (data.resume_url) {
+        professionalDocs.push({ label: "Resume", url: data.resume_url });
+      }
       // Experience documents
       if (Array.isArray(data.experience)) {
         data.experience.forEach((exp, idx) => {
           if (exp.doc_url) {
-            docs.push({
-              label: `Experience Document #${idx + 1} (${exp.company})`,
+            professionalDocs.push({
+              label: `Experience #${idx + 1} (${exp.company})`,
               url: exp.doc_url,
             });
           }
         });
       }
-
-      // Other documents
+      // Other docs
       if (Array.isArray(data.other_docs_urls)) {
         data.other_docs_urls.forEach((url, idx) => {
           if (url) {
-            docs.push({ label: `Other Document #${idx + 1}`, url });
+            professionalDocs.push({ label: `Other #${idx + 1}`, url });
           }
         });
       }
 
-      console.log("📑 final docs list:", docs);
-      setDocsModal({ visible: true, docs, employeeName: empName });
+      // Prepare sections for rendering
+      const sections = [
+        { title: "Personal", docs: personalDocs },
+        { title: "Educational", docs: educationalDocs },
+        { title: "Professional", docs: professionalDocs },
+      ];
+
+      // Render in popup as 3-column grid
+      openPopup(
+        "Documents",
+        <div className="doc-table">
+          {sections.map(({ title, docs }) => (
+            <div key={title} className="docs-section">
+              <label>
+                <strong>{title}</strong>
+              </label>
+              {docs.length > 0 ? (
+                <div className="space-y-1">
+                  {docs.map((doc, i) => (
+                    <div key={i}>
+                      <button
+                        className="doc-link"
+                        onClick={() => downloadDoc(doc.url)}
+                      >
+                        {doc.label}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No documents.</p>
+              )}
+            </div>
+          ))}
+        </div>
+      );
     } catch (err) {
-      console.error("❌ handleViewDocs CATCHED:", err);
-      showAlert("Unable to fetch documents.");
+      console.error(err);
+      openPopup("Documents", <p>Unable to load documents.</p>);
+    }
+  };
+
+  const downloadDoc = async (url) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/docs${url}`, {
+        headers: {
+          "x-api-key": API_KEY,
+          "x-employee-id": employeeId,
+        },
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"],
+      });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", url.split("/").pop());
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("downloadDoc error:", err);
+      setPopupVisible(false);
+      showAlert("Failed to download document");
     }
   };
 
@@ -230,39 +306,15 @@ export default function EmployeeDetails() {
     fetchEmployees();
   };
 
-  const handleDownloadDoc = async (doc) => {
-    try {
-      const response = await axios.get(`${BASE_URL}/docs${doc.url}`, {
-        headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
-        responseType: "blob",
-      });
-
-      const blob = new Blob([response.data], {
-        type: response.headers["content-type"],
-      });
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      // Open in new tab
-      const newTab = window.open(blobUrl, "_blank");
-      if (!newTab) {
-        showAlert("Popup blocked! Please allow popups for this site.");
-      }
-
-      // Optional: revoke the blob URL after some time
-      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
-    } catch (error) {
-      console.error("Failed to fetch document:", error);
-      showAlert("Unable to download document.");
-    }
-  };
-
   return (
     <div className="employee-details-container">
-      <h2 class="header-title">Employee Details</h2>
+      <h2>Employee Details</h2>
       <div class="header-container">
         {/* Search Employee */}
         <div className="search-container">
-          <label>Search by</label>
+          <label>
+            <strong>Search by</strong>
+          </label>
           <div className="search-box">
             <input
               type="text"
@@ -276,7 +328,9 @@ export default function EmployeeDetails() {
 
         {/* Date From Input Group */}
         <div className="calendar-input-group">
-          <label className="calendar-label">Date From</label>
+          <label className="calendar-label">
+            <strong>Date From:</strong>
+          </label>
           <div className="calendar-input-wrapper">
             <DatePicker
               selected={fromDate}
@@ -300,7 +354,9 @@ export default function EmployeeDetails() {
 
         {/* Date To Input Group */}
         <div className="calendar-input-group">
-          <label className="calendar-label">To</label>
+          <label className="calendar-label">
+            <strong>To:</strong>
+          </label>
           <div className="calendar-input-wrapper">
             <DatePicker
               selected={toDate}
@@ -358,7 +414,6 @@ export default function EmployeeDetails() {
                 }
                 onCancel={closeForm}
                 departments={departments}
-                supervisors={supervisors}
               />
             )}
           </div>
@@ -373,14 +428,14 @@ export default function EmployeeDetails() {
           <table className="employee-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Name</th>
+                <th>Emp ID</th>
+                <th>Emp Name</th>
                 <th>DOJ</th>
                 <th>Status</th>
-                <th>Email</th>
-                <th>Contact</th>
-                <th>Position</th>
-                <th>Salary</th>
+                <th>Personal</th>
+                <th>Education</th>
+                <th>Professional</th>
+                <th>Bank</th>
                 <th>Docs</th>
                 <th>Actions</th>
               </tr>
@@ -393,7 +448,9 @@ export default function EmployeeDetails() {
               ) : (
                 employees.map((emp) => (
                   <tr key={emp.employee_id}>
-                    <td>{emp.employee_id}</td>
+                    <td>
+                      <strong>{emp.employee_id}</strong>
+                    </td>
                     <td>{emp.name}</td>
                     <td>{format(new Date(emp.joining_date), "dd MMM yyyy")}</td>
                     <td
@@ -405,18 +462,157 @@ export default function EmployeeDetails() {
                     >
                       {emp.status}
                     </td>
-                    <td>{emp.email}</td>
-                    <td>{emp.phone_number}</td>
-                    <td>{emp.position}</td>
-                    <td>{emp.salary}</td>
                     <td>
-                      <MdOutlineRemoveRedEye
-                        className="view-docs-icon"
+                      <button
+                        className="view-btn"
                         onClick={() =>
-                          handleViewDocs(emp.employee_id, emp.name)
+                          openPopup(
+                            "Personal Details",
+                            <dl className="detail-list">
+                              <dt>Name:</dt>
+                              <dd>{emp.name}</dd>
+                              <dt>Email:</dt>
+                              <dd>{emp.email}</dd>
+                              <dt>Mobile:</dt>
+                              <dd>{emp.phone_number}</dd>
+                              <dt>Address:</dt>
+                              <dd>{emp.address}</dd>
+                              <dt>DOB:</dt>
+                              <dd>
+                                {format(new Date(emp.dob), "dd MMM yyyy")}
+                              </dd>
+                              <dt>Gender:</dt>
+                              <dd>{emp.gender}</dd>
+                              <dt>Marital Status:</dt>
+                              <dd>{emp.marital_status}</dd>
+                              <dt>Father's Name:</dt>
+                              <dd>{emp.father_name}</dd>
+                              <dt>Mother's Name:</dt>
+                              <dd>{emp.mother_name}</dd>
+                              <dt>Aadhaar No:</dt>
+                              <dd>{emp.aadhaar_number}</dd>
+                              <dt>Pan No:</dt>
+                              <dd>{emp.pan_number}</dd>
+                              <dt>Passport No:</dt>
+                              <dd>{emp.passport_number}</dd>
+                              <dt>Voter ID:</dt>
+                              <dd>{emp.voter_id}</dd>
+                            </dl>
+                          )
                         }
-                        style={{ cursor: "pointer" }}
-                      />
+                      >
+                        <MdOutlineRemoveRedEye className="view-btn-icon" />
+                        View
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        className="view-btn"
+                        onClick={() =>
+                          openPopup(
+                            "Education Details",
+                            <dl className="detail-list">
+                              <dt>10th:</dt>
+                              <dd>
+                                {emp.tenth_board} ({emp.tenth_year}) -{" "}
+                                {emp.tenth_score}%
+                              </dd>
+                              <dt>12th:</dt>
+                              <dd>
+                                {emp.twelfth_board} ({emp.twelfth_year}) -{" "}
+                                {emp.twelfth_score}%
+                              </dd>
+                              <dt>UG:</dt>
+                              <dd>
+                                {emp.ug_board} ({emp.ug_year}) - {emp.ug_score}%
+                              </dd>
+                              <dt>PG:</dt>
+                              <dd>
+                                {emp.pg_board} ({emp.pg_year}) - {emp.pg_score}%
+                              </dd>
+                              <dt>Additional Certification:</dt>
+                              <dd>{emp.additional_cert_name}</dd>
+                            </dl>
+                          )
+                        }
+                      >
+                        <MdOutlineRemoveRedEye className="view-btn-icon" />
+                        View
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        className="view-btn"
+                        onClick={() =>
+                          openPopup(
+                            "Professional Details",
+                            <dl className="detail-list">
+                              <dt>Employee Type:</dt>
+                              <dd>{emp.employee_type}</dd>
+                              <dt>Department:</dt>
+                              <dd>{emp.department}</dd>
+                              <dt>Position:</dt>
+                              <dd>{emp.position}</dd>
+                              <dt>Role:</dt>
+                              <dd>{emp.role}</dd>
+                              <dt>Supervisor ID:</dt>
+                              <dd>{emp.supervisor_id}</dd>
+                              <dt>Salary:</dt>
+                              <dd>{emp.salary}</dd>
+                              <dt>Experience:</dt>
+                              <dl>
+                                {(emp.experience || []).map((exp, i) => (
+                                  <dd key={i}>
+                                    {exp.company}:{" "}
+                                    {format(
+                                      new Date(exp.start_date),
+                                      "MM/yyyy"
+                                    )}{" "}
+                                    -{" "}
+                                    {format(new Date(exp.end_date), "MM/yyyy")}{" "}
+                                    ({exp.designation})
+                                  </dd>
+                                ))}
+                              </dl>
+                            </dl>
+                          )
+                        }
+                      >
+                        <MdOutlineRemoveRedEye className="view-btn-icon" />
+                        View
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        className="view-btn"
+                        onClick={() =>
+                          openPopup(
+                            "Bank Details",
+                            <dl className="detail-list">
+                              <dt>Bank:</dt>
+                              <dd>{emp.bank_name}</dd>
+                              <dt>Account No:</dt>
+                              <dd>{emp.account_number}</dd>
+                              <dt>IFSC:</dt>
+                              <dd>{emp.ifsc_code}</dd>
+                              <dt>Branch:</dt>
+                              <dd>{emp.branch_name}</dd>
+                            </dl>
+                          )
+                        }
+                      >
+                        <MdOutlineRemoveRedEye className="view-btn-icon" />
+                        View
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        className="view-btn"
+                        onClick={() => handleViewDocs(emp.employee_id)}
+                      >
+                        <MdOutlineRemoveRedEye className="view-btn-icon" />
+                        View
+                      </button>
                     </td>
                     <td>
                       <MdOutlineEdit
@@ -444,37 +640,22 @@ export default function EmployeeDetails() {
         </div>
       )}
 
-      {docsModal.visible && (
-        <Modal
-          isVisible
-          onClose={() => setDocsModal((m) => ({ ...m, visible: false }))}
-          buttons={[
-            {
-              label: "Close",
-              onClick: () => setDocsModal((m) => ({ ...m, visible: false })),
-            },
-          ]}
-        >
-          <ul className="docs-list">
-            {docsModal.docs.map((doc, idx) => (
-              <div key={idx}>
-                <button
-                  className="doc-link"
-                  onClick={() => handleDownloadDoc(doc)}
-                >
-                  {doc.label}
-                </button>
-              </div>
-            ))}
-          </ul>
-        </Modal>
+      {popupVisible && (
+        <CustomPopup title={popupTitle} onClose={closePopup}>
+          {popupContent}
+        </CustomPopup>
       )}
 
       {modalVisible && (
         <div className="delete-modal-overlay">
           <div className="delete-modal">
             <h2>Confirm Deactivation</h2>
-            <p>Are you sure you want to deactivate this employee?</p>
+            <p>
+              Deactivating this employee will immediately freeze their account:
+              they will no longer be able to log in, access company resources,
+              or receive system notifications.
+            </p>
+            <p>Do you really want to proceed?</p>
             <div className="delete-buttons">
               <button
                 onClick={() => setModalVisible(false)}

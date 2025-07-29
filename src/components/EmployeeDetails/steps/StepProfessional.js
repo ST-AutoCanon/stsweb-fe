@@ -1,42 +1,62 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import FileInput from "../FileInput";
 
-export default function StepProfessional({
-  data,
-  onChange,
-  departments = [],
-  supervisors = [],
-}) {
-  const generatePositions = (deptId, role) => {
-    const dept = departments.find((d) => d.id === Number(deptId));
-    const deptName = dept ? dept.name : "";
-    if (!deptName) return [];
-    const positions = [];
-    const roleLower = (role || "").toLowerCase();
-    if (deptName === "HR") {
-      if (roleLower === "manager") return ["HR Manager"];
-      return ["HR Specialist", "HR Coordinator"];
-    }
-    if (deptName === "Finance") {
-      if (roleLower === "manager") return ["Finance Manager"];
-      return ["Accountant", "Financial Analyst"];
-    }
-    if (deptName === "Office Support") {
-      if (roleLower === "manager") return ["Office Support Manager"];
-      return ["Office Staff", "General Staff"];
-    }
-    if (roleLower === "manager") return [`${deptName} Manager`];
-    return [
-      `Senior ${deptName} Engineer`,
-      `${deptName} Engineer`,
-      `Associate ${deptName} Engineer`,
-    ];
-  };
+export default function StepProfessional({ data, onChange, departments = [] }) {
+  const [roleOptions, setRoleOptions] = useState([]);
+  const [positionsList, setPositionsList] = useState([]);
+  const [supervisorsList, setSupervisorsList] = useState([]);
 
-  const positionsList = generatePositions(data.department_id, data.role);
+  const API_KEY = process.env.REACT_APP_API_KEY;
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/user_roles`, { headers: { "x-api-key": API_KEY } })
+      .then((r) => r.json())
+      .then((json) => setRoleOptions(json.data || []))
+      .catch(() => setRoleOptions([]));
+  }, []);
+
+  useEffect(() => {
+    if (!data.role) {
+      setPositionsList([]);
+      return;
+    }
+    const deptParam = data.department_id || "";
+    fetch(
+      `${BASE_URL}/positions?role=${encodeURIComponent(
+        data.role
+      )}&department_id=${deptParam}`,
+      { headers: { "x-api-key": API_KEY } }
+    )
+      .then((res) => res.json())
+      .then((json) => setPositionsList(json.data || []))
+      .catch(() => setPositionsList([]));
+  }, [data.role, data.department_id]);
+
+  // Fetch supervisors based on selected position & department
+  useEffect(() => {
+    if (!data.position) {
+      setSupervisorsList([]);
+      return;
+    }
+    const deptParam = data.department_id || "";
+    fetch(
+      `${BASE_URL}/positions/supervisors?position=${encodeURIComponent(
+        data.position
+      )}&department_id=${deptParam}`,
+      { headers: { "x-api-key": API_KEY } }
+    )
+      .then((res) => res.json())
+      .then((json) => setSupervisorsList(json.data || []))
+      .catch(() => setSupervisorsList([]));
+  }, [data.position, data.department_id]);
+
   const expList = Array.isArray(data.experience) ? data.experience : [];
   const isAdmin = (data.role || "").toLowerCase() === "admin";
+  const isSupAdmin = (data.role || "").toLowerCase() === "super admin";
+  const isTopRole = data.role === "CEO" || data.role === "Senior Manager";
+  const isCEO = (data.role || "").toLowerCase() === "ceo";
 
   const updateExperience = (idx, field, value) => {
     const newList = [...expList];
@@ -106,7 +126,6 @@ export default function StepProfessional({
             value={data.employee_type || ""}
             onChange={(e) => onChange("employee_type", e.target.value)}
             required
-            disabled={isAdmin}
           >
             <option value="">Select</option>
             <option value="Permanent">Permanent</option>
@@ -123,11 +142,11 @@ export default function StepProfessional({
             required
           >
             <option value="">Select</option>
-            <option value="Admin">Admin</option>
-            <option value="Employee">Employee</option>
-            <option value="Manager">Manager</option>
-            <option value="Supervisor">Supervisor</option>
-            <option value="General">General</option>
+            {roleOptions.map((r) => (
+              <option key={r.id} value={r.name}>
+                {r.name}
+              </option>
+            ))}
           </select>
         </label>
 
@@ -138,7 +157,7 @@ export default function StepProfessional({
             value={data.department_id || ""}
             onChange={(e) => onChange("department_id", e.target.value)}
             required
-            disabled={isAdmin}
+            disabled={isAdmin || isSupAdmin || isTopRole}
           >
             <option value="">Select</option>
             {departments.map((d) => (
@@ -156,7 +175,7 @@ export default function StepProfessional({
             value={data.position || ""}
             onChange={(e) => onChange("position", e.target.value)}
             required
-            disabled={isAdmin}
+            disabled={isAdmin || isSupAdmin}
           >
             <option value="">Select</option>
             {positionsList.map((p) => (
@@ -174,11 +193,12 @@ export default function StepProfessional({
             value={data.supervisor_id || ""}
             onChange={(e) => onChange("supervisor_id", e.target.value)}
             required
+            disabled={isAdmin || isSupAdmin || isCEO}
           >
             <option value="">Select</option>
-            {supervisors.map((s) => (
+            {supervisorsList.map((s) => (
               <option key={s.employee_id} value={s.employee_id}>
-                {s.name}
+                {s.name} — {s.position}
               </option>
             ))}
           </select>

@@ -11,7 +11,6 @@ export default function EmployeeForm({
   onSubmit,
   onCancel,
   departments = [],
-  supervisors = [],
 }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState("");
@@ -118,7 +117,34 @@ export default function EmployeeForm({
     setError("");
     try {
       const fd = new FormData();
-      // append formData to fd...
+
+      Object.entries(formData).forEach(([key, val]) => {
+        if (key === "experience" || key === "other_docs") return;
+        if (val != null) fd.append(key, val);
+      });
+
+      // Append experience entries
+      formData.experience.forEach((exp, idx) => {
+        fd.append(`experience[${idx}][company]`, exp.company);
+        fd.append(`experience[${idx}][role]`, exp.role);
+        fd.append(`experience[${idx}][start_date]`, exp.start_date);
+        fd.append(`experience[${idx}][end_date]`, exp.end_date);
+        if (exp.doc instanceof File) {
+          fd.append(`experience_${idx}_doc`, exp.doc, exp.doc.name);
+        }
+      });
+
+      // Append other_docs
+      formData.other_docs.forEach((file) => {
+        if (file instanceof File) {
+          fd.append("other_docs", file, file.name);
+        }
+      });
+
+      if (formData.resume instanceof File) {
+        fd.append("resume", formData.resume, formData.resume.name);
+      }
+
       await onSubmit(fd);
     } catch (err) {
       setError(err.message || "Failed to save data");
@@ -135,7 +161,6 @@ export default function EmployeeForm({
       data={formData}
       onChange={handleChange}
       departments={departments}
-      supervisors={supervisors}
     />,
     <StepBankDetails
       key="bank_details"

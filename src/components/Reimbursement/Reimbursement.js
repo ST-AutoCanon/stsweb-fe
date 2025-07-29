@@ -395,9 +395,9 @@ const Reimbursement = () => {
       .split(/\s+/)
       .filter(Boolean).length;
 
-    if (wordCount < 30) {
+    if (wordCount < 10) {
       showAlert(
-        `Purpose Details / Comments must be at least 30 words. You have ${wordCount}.`
+        `Purpose Details / Comments must be at least 10 words. You have ${wordCount}.`
       );
       return;
     }
@@ -564,20 +564,40 @@ const Reimbursement = () => {
   };
 
   const handleOpenAttachments = async (files, claim) => {
+    console.log("Attachments:", files, "Claim:", claim);
+    const authToken = localStorage.getItem("token");
+
     try {
       const fetchedFiles = await Promise.all(
         files.map(async (file) => {
           if (!file?.file_name) return null;
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${file.year}/${file.month}/${file.employeeId}/${file.file_name}`,
-            {
-              headers: {
-                "x-api-key": process.env.REACT_APP_API_KEY,
-                Authorization: `Bearer ${authToken}`,
-              },
-              responseType: "blob",
-            }
-          );
+
+          // 1) Pull "YYYY" and "MM" from the filename, which you prefix in multer:
+          //    e.g. "2025-07-26-162738...-original.pdf"
+          const match = file.file_name.match(/^(\d{4})-(\d{2})/);
+          if (!match) {
+            console.warn("Could not parse year/month from", file.file_name);
+            return null;
+          }
+          const [, year, month] = match;
+
+          // 2) Use the claim object for employeeId
+          const empId = claim.employee_id;
+
+          const url =
+            `${process.env.REACT_APP_BACKEND_URL}` +
+            `/reimbursement/${year}/${month}/${empId}/${file.file_name}`;
+
+          console.log("Fetching attachment from", url);
+
+          const response = await axios.get(url, {
+            headers: {
+              "x-api-key": process.env.REACT_APP_API_KEY,
+              Authorization: `Bearer ${authToken}`,
+            },
+            responseType: "blob",
+          });
+
           return {
             name: file.file_name,
             url: URL.createObjectURL(
@@ -588,7 +608,14 @@ const Reimbursement = () => {
           };
         })
       );
-      setSelectedFiles(fetchedFiles.filter(Boolean));
+
+      const validFiles = fetchedFiles.filter((f) => f !== null);
+      if (validFiles.length === 0) {
+        showAlert("No valid attachments could be loaded.");
+        return;
+      }
+
+      setSelectedFiles(validFiles);
       setSelectedClaim(claim);
       setIsModalOpen(true);
     } catch (error) {
