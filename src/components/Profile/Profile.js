@@ -1,185 +1,255 @@
 import React, { useEffect, useState } from "react";
-import "./Profile.css";
 import axios from "axios";
 import { MdOutlineCancel } from "react-icons/md";
+import "./Profile.css";
+import Modal from "../Modal/Modal";
+
+const TABS = ["Personal Info", "Professional Info"];
 
 const Profile = ({ onClose }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Start with an empty string; avatar will be determined by gender
   const [avatar, setAvatar] = useState("");
+  const [assignedAssets, setAssignedAssets] = useState([]);
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    message: "",
+  });
+  const [activeTab, setActiveTab] = useState(0);
+
+  const showAlert = (message) => setAlertModal({ isVisible: true, message });
+  const closeAlert = () => setAlertModal({ isVisible: false, message: "" });
 
   const API_KEY = process.env.REACT_APP_API_KEY;
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL;
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employeeId || null;
-  const [assignedAssets, setAssignedAssets] = useState([]); // Added state for assigned assets
 
-  // Helper to determine default avatar based on gender
-  const getDefaultAvatar = (gender) => {
-    return gender === "Female"
+  const fetchBlob = async (url) => {
+    const res = await axios.get(`${BASE_URL}/docs${url}`, {
+      headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
+      responseType: "blob",
+    });
+    return new Blob([res.data], { type: res.headers["content-type"] });
+  };
+
+  const downloadDoc = async (url) => {
+    try {
+      const blob = await fetchBlob(url);
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", url.split("/").pop());
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      showAlert("Failed to download document");
+    }
+  };
+
+  const viewDoc = async (url) => {
+    try {
+      const blob = await fetchBlob(url);
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      showAlert("Failed to view document");
+    }
+  };
+
+  const getDefaultAvatar = (gender) =>
+    gender === "Female"
       ? "/images/female-avatar.jpeg"
       : "/images/male-avatar.jpeg";
-  };
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/full/${employeeId}`,
-          {
-            headers: {
-              "x-api-key": API_KEY,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const profileData = response.data.data;
-        setProfile(profileData);
-
-        // If photo_url exists, try to fetch the image as blob and set it as avatar
-        if (profileData.photo_url) {
+        const r = await axios.get(`${BASE_URL}/full/${employeeId}`, {
+          headers: { "x-api-key": API_KEY, "Content-Type": "application/json" },
+        });
+        const data = r.data.data;
+        setProfile(data);
+        if (data.photo_url) {
           try {
-            const imageResponse = await axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/docs${profileData.photo_url}`,
-              {
-                headers: {
-                  "x-api-key": API_KEY,
-                },
-                responseType: "blob",
-              }
-            );
-            const imageUrl = URL.createObjectURL(imageResponse.data);
-            setAvatar(imageUrl);
-          } catch (error) {
-            console.error("Error fetching photo, using default avatar:", error);
-            setAvatar(getDefaultAvatar(profileData.gender));
+            const blob = await fetchBlob(data.photo_url);
+            setAvatar(URL.createObjectURL(blob));
+          } catch {
+            setAvatar(getDefaultAvatar(data.gender));
           }
         } else {
-          // No photo_url, so set avatar based on gender
-          setAvatar(getDefaultAvatar(profileData.gender));
+          setAvatar(getDefaultAvatar(data.gender));
         }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        // In case of error, if profile is not fetched, the avatar remains unset
+      } catch {
+        showAlert("Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
-
-    const fetchAssignedAssets = async () => {
+    const fetchAssets = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned-assets/${employeeId}`,
-          {
-            headers: {
-              "x-api-key": API_KEY,
-              "x-employee-id": employeeId,
-            },
-          }
+        const r = await axios.get(
+          `${BASE_URL}/api/assets/assigned-assets/${employeeId}`,
+          { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
         );
-        setAssignedAssets(response.data.data || []);
-      } catch (error) {
-        console.error("Error fetching assigned assets:", error);
+        setAssignedAssets(r.data.data || []);
+      } catch {
+        showAlert("Failed to load assets");
       }
     };
-
     if (employeeId) {
       fetchProfile();
-      fetchAssignedAssets(); // Fetch assigned assets
+      fetchAssets();
     }
-  }, [employeeId, API_KEY]);
+  }, [employeeId]);
 
-  if (loading) {
-    return <div className="profile-popup">Loading...</div>;
-  }
+  if (loading) return <div className="profile-popup">Loading...</div>;
+  if (!profile) return <div className="profile-popup">No data.</div>;
 
-  if (!profile) {
-    return <div className="profile-popup">No profile data available.</div>;
-  }
-  ``;
   return (
     <div className="profile-popup">
       <div className="profile-content">
-        <MdOutlineCancel className="profile-close" onClick={onClose} />
         <div className="profile-header">
           <img src={avatar} alt="profile-photo" className="profile-photo" />
           <div className="profile-name">
             <h3>{`${profile.first_name} ${profile.last_name}`}</h3>
-            <p>
+            <p className="info-secondary">
               {profile.position} - {profile.department}
             </p>
-            <p>Employee Id: {profile.employee_id}</p>
+            <p className="info-secondary">ID: {profile.employee_id}</p>
           </div>
+          <MdOutlineCancel className="profile-close" onClick={onClose} />
         </div>
-        <div className="profile-details">
-          <p>
-            <strong>Email:</strong> {profile.email}
-          </p>
-          <p>
-            <strong>Mobile:</strong> {profile.phone_number}
-          </p>
-          <p>
-            <strong>Date of Birth:</strong>{" "}
-            {new Date(profile.dob).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Address:</strong> {profile.address}
-          </p>
-          <p>
-            <strong>Aadhaar Number:</strong> {profile.aadhaar_number}
-          </p>
-          <p>
-            <strong>PAN Number:</strong> {profile.pan_number}
-          </p>
-          <p>
-            <strong>Gender:</strong> {profile.gender}
-          </p>
-          <p>
-            <strong>Marital Status:</strong> {profile.marital_status}
-          </p>
-          {profile.marital_status === "Married" && (
-            <>
-              <p>
-                <strong>Spouse Name:</strong> {profile.spouse_name}
-              </p>
-              <p>
-                <strong>Marriage Anniversary:</strong>{" "}
-                {new Date(profile.marriage_date).toLocaleDateString()}
-              </p>
-            </>
-          )}
-          <p>
-            <strong>Father's Name:</strong> {profile.father_name}
-          </p>
-          <p>
-            <strong>Mother's Name:</strong> {profile.mother_name}
-          </p>
+
+        <div className="tabs">
+          {TABS.map((tab, i) => (
+            <button
+              key={tab}
+              className={`tab-btn ${activeTab === i ? "active" : ""}`}
+              onClick={() => setActiveTab(i)}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
-        {/* Display assigned assets */}
-        <div className="assigned-assets-row">
-          <div className="assigned-assets-label">
-            <strong>Assigned Assets:</strong>
+
+        {activeTab === 0 ? (
+          <div className="tab-panel personal-grid">
+            <div className="update-profile-btn-wrapper">
+              <button
+                className="update-profile-btn"
+                onClick={() =>
+                  setAlertModal({
+                    isVisible: true,
+                    message: "Update Profile Modal (To be implemented)",
+                  })
+                }
+              >
+                Update Profile
+              </button>
+            </div>
+            <div className="field-pair">
+              <div className="field-row">
+                <span className="field-label">Mobile</span>
+                <span className="field-value">{profile.phone_number}</span>
+              </div>
+              <div className="field-row">
+                <span className="field-label">DOB</span>
+                <span className="field-value">
+                  {new Date(profile.dob).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="field-row">
+                <span className="field-label">Gender</span>
+                <span className="field-value">{profile.gender}</span>
+              </div>
+              <div className="field-row">
+                <span className="field-label">Marital Status</span>
+                <span className="field-value">{profile.marital_status}</span>
+              </div>
+
+              {profile.marital_status === "Married" && (
+                <>
+                  <div className="field-row">
+                    <span className="field-label">Spouse</span>
+                    <span className="field-value">{profile.spouse_name}</span>
+                  </div>
+                  <div className="field-row">
+                    <span className="field-label">Anniversary</span>
+                    <span className="field-value">
+                      {new Date(profile.marriage_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              <div className="field-row">
+                <span className="field-label">Father's Name</span>
+                <span className="field-value">{profile.father_name}</span>
+              </div>
+              <div className="field-row">
+                <span className="field-label">Mother's Name</span>
+                <span className="field-value">{profile.mother_name}</span>
+              </div>
+            </div>
+
+            <div className="field-row full-width">
+              <span className="field-label">Email</span>
+              <span className="field-value">{profile.email}</span>
+            </div>
+            <div className="field-row full-width">
+              <span className="field-label">Address</span>
+              <span className="field-value">{profile.address}</span>
+            </div>
           </div>
-          <div className="assigned-assets-values">
-            {assignedAssets.length > 0 ? (
-              assignedAssets.map((asset, index) => (
-                <p key={asset.asset_id}>
-                  <strong>
-                    {asset.asset_id} - {asset.asset_code}
-                  </strong>{" "}
-                  - {asset.asset_name}
-                  <strong>
-                    {index < assignedAssets.length - 1 && ","}
-                  </strong>{" "}
-                  {/* Add comma except for the last asset */}
-                </p>
-              ))
-            ) : (
-              <p>No assets assigned.</p>
-            )}
+        ) : (
+          <div className="tab-panel">
+            <div className="sub-block">
+              <div className="field-row">
+                <span className="field-label">Assigned Supervisor</span>
+                <span className="field-value">{profile.supervisor_name}</span>
+              </div>
+              <div className="field-row assets-row">
+                <span className="field-label">Assigned Assets</span>
+                <span className="field-value assets-list">
+                  {assignedAssets.length > 0
+                    ? assignedAssets.map((a) => a.asset_code).join(", ")
+                    : "None"}
+                </span>
+              </div>
+            </div>
+            <div className="sub-block docs-block">
+              <span className="documents">
+                <strong>Documents</strong>
+              </span>
+              {[
+                ["Aadhaar", profile.aadhaar_doc_url],
+                ["PAN", profile.pan_doc_url],
+                ["Insurance", profile.insurance_doc],
+              ].map(([label, url]) => (
+                <div className="field-row docs-row" key={label}>
+                  <span className="field-label">{label}</span>
+                  {url && (
+                    <span className="doc-actions">
+                      <button onClick={() => viewDoc(url)}>View</button>
+                      <button onClick={() => downloadDoc(url)}>Download</button>
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {alertModal.isVisible && (
+        <Modal
+          isVisible
+          onClose={closeAlert}
+          buttons={[{ label: "OK", onClick: closeAlert }]}
+        >
+          <p>{alertModal.message}</p>
+        </Modal>
+      )}
     </div>
   );
 };
