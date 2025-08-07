@@ -118,7 +118,7 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
         STS
       </label>
 
-      <div className="st-pro">
+      <div className="step-personal">
         <label>
           Employee Type<span className="required">*</span>
           <select
@@ -131,6 +131,15 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
             <option value="Permanent">Permanent</option>
             <option value="Consultant">Consultant</option>
           </select>
+        </label>
+
+        <label>
+          Joining Date<span className="required">*</span>
+          <input
+            type="date"
+            value={data.joining_date || ""}
+            onChange={(e) => onChange("joining_date", e.target.value)}
+          />
         </label>
 
         <label>
@@ -198,7 +207,7 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
             <option value="">Select</option>
             {supervisorsList.map((s) => (
               <option key={s.employee_id} value={s.employee_id}>
-                {s.name} — {s.position}
+                {s.name}-{s.position}({s.department})
               </option>
             ))}
           </select>
@@ -276,9 +285,10 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
             </label>
 
             <FileInput
-              name={`experience_${idx}_doc`}
+              name={`experience[${idx}][doc]`}
               label="Experience Letter"
               accept=".pdf,image/*"
+              multiple
               existingUrl={exp.doc_url}
               onChange={(name, file) => updateExperience(idx, "doc", file)}
             />

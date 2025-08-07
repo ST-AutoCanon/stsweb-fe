@@ -147,6 +147,9 @@
 .st-pro label input,
 .st-pro label select,
 .st-pro label textarea,
+.st-pro2 label input,
+.st-pro2 label select,
+.st-pro2 label textarea,
 .step-bank label input,
 .step-bank label select,
 .step-bank label textarea {
@@ -267,6 +270,7 @@
   color: #fff;
 }
 
+.st-pro2 label,
 .step-education label,
 .step-personal label,
 .st-pro label {
@@ -306,6 +310,13 @@
   grid-template-columns: repeat(6, minmax(16%, 1fr));
   gap: 0.1%;
   padding: 1%;
+}
+
+.employee-form .st-pro2 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(16%, 1fr));
+  gap: 0.1%;
+  padding: 0 1%;
 }
 
 .exp-box {

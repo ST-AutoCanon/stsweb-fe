@@ -68,7 +68,7 @@ const InvoicePrint = React.forwardRef(({ invoiceData }, ref) => {
             ? "Tax Invoice"
             : invoiceType === "proforma"
             ? "Proforma Invoice"
-            : invoiceType
+            : invoiceType || ""
           ).toUpperCase()}
         </div>
         <div className="bill-header">

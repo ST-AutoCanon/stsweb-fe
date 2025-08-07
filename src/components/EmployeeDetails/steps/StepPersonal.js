@@ -61,6 +61,16 @@ export default function StepPersonal({ data, onChange }) {
       </label>
 
       <label>
+        Alternate Email
+        <input
+          type="email"
+          name="alternate_email"
+          value={data.alternate_email || ""}
+          onChange={(e) => onChange("alternate_email", e.target.value)}
+        />
+      </label>
+
+      <label>
         Mobile<span className="required">*</span>
         <input
           type="tel"
@@ -70,6 +80,18 @@ export default function StepPersonal({ data, onChange }) {
           pattern="^[6-9]\d{9}$"
           title="10‑digit Indian mobile number starting with 6–9"
           required
+        />
+      </label>
+
+      <label>
+        Alternate Mobile
+        <input
+          type="tel"
+          name="alternate_number"
+          value={data.alternate_number || ""}
+          onChange={(e) => onChange("alternate_number", e.target.value)}
+          pattern="^[6-9]\d{9}$"
+          title="10‑digit Indian mobile number starting with 6–9"
         />
       </label>
 
@@ -88,137 +110,46 @@ export default function StepPersonal({ data, onChange }) {
         </select>
       </label>
 
-      {/* Marital */}
       <label>
-        Marital Status<span className="required">*</span>
+        Blood Group
         <select
-          name="marital_status"
-          value={data.marital_status || ""}
-          onChange={(e) => onChange("marital_status", e.target.value)}
-          required
+          name="blood_group"
+          value={data.blood_group || ""}
+          onChange={(e) => onChange("blood_group", e.target.value)}
         >
           <option value="">Select</option>
-          <option>Married</option>
-          <option>Unmarried</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
         </select>
       </label>
-      {data.marital_status === "Married" && (
-        <>
-          <label>
-            Spouse Name<span className="required">*</span>
-            <input
-              type="text"
-              name="spouse_name"
-              value={data.spouse_name || ""}
-              onChange={(e) => onChange("spouse_name", e.target.value)}
-              pattern="^[A-Z][a-zA-Z]+$"
-              title="Must start with a capital letter and contain only letters"
-              required
-            />
-          </label>
-          <label>
-            Marriage Date<span className="required">*</span>
-            <input
-              type="date"
-              name="marriage_date"
-              max={today}
-              value={data.marriage_date ? data.marriage_date.split("T")[0] : ""}
-              onChange={(e) => onChange("marriage_date", e.target.value)}
-              title={`Marriage date cannot be in the future (on or before ${today})`}
-              required
-            />
-          </label>
-        </>
-      )}
 
-      {/* Family */}
       <label>
-        Father’s Name
+        Emergency Contact Name<span className="required">*</span>
         <input
           type="text"
-          name="father_name"
-          value={data.father_name || ""}
-          onChange={(e) => onChange("father_name", e.target.value)}
-          pattern="^[A-Z][a-zA-Z]+$"
-          title="Must start with a capital letter and contain only letters"
-        />
-      </label>
-      <label>
-        Mother’s Name
-        <input
-          type="text"
-          name="mother_name"
-          value={data.mother_name || ""}
-          onChange={(e) => onChange("mother_name", e.target.value)}
-          pattern="^[A-Z][a-zA-Z]+$"
-          title="Must start with a capital letter and contain only letters"
-        />
-      </label>
-
-      {/* Govt IDs */}
-      <label>
-        Aadhaar Number<span className="required">*</span>
-        <input
-          type="text"
-          name="aadhaar_number"
-          value={data.aadhaar_number || ""}
-          onChange={(e) => onChange("aadhaar_number", e.target.value)}
-          pattern="^\d{12}$"
-          title="Enter exactly 12 digits"
+          name="emergency_name"
+          value={data.emergency_name || ""}
+          onChange={(e) => onChange("emergency_name", e.target.value)}
           required
         />
       </label>
-      <FileInput
-        name="aadhaar_doc"
-        label="Aadhaar Copy"
-        accept=".pdf,image/*"
-        required
-        existingUrl={data.aadhaar_doc_url}
-        onChange={onChange}
-      />
 
       <label>
-        PAN Number<span className="required">*</span>
+        Emergency Contact Number<span className="required">*</span>
         <input
-          type="text"
-          name="pan_number"
-          value={data.pan_number || ""}
-          onChange={(e) => onChange("pan_number", e.target.value)}
-          pattern="^[A-Z]{5}[0-9]{4}[A-Z]$"
-          title="Format: ABCDE1234F"
+          type="tel"
+          name="emergency_number"
+          value={data.emergency_number || ""}
+          onChange={(e) => onChange("emergency_number", e.target.value)}
+          pattern="^[6-9]\d{9}$"
+          title="10‑digit Indian mobile number starting with 6–9"
           required
-        />
-      </label>
-      <FileInput
-        name="pan_doc"
-        label="PAN Copy"
-        accept=".pdf,image/*"
-        required
-        existingUrl={data.pan_doc_url}
-        onChange={onChange}
-      />
-
-      <label>
-        Passport Number
-        <input
-          type="text"
-          name="passport_number"
-          value={data.passport_number || ""}
-          onChange={(e) => onChange("passport_number", e.target.value)}
-          pattern="^[A-Z][0-9]{7}$"
-          title="1 letter followed by 7 digits"
-        />
-      </label>
-
-      <label>
-        Voter ID
-        <input
-          type="text"
-          name="voter_id"
-          value={data.voter_id || ""}
-          onChange={(e) => onChange("voter_id", e.target.value)}
-          pattern="^[A-Z]{3}[0-9]{7}$"
-          title="3 letters followed by 7 digits"
         />
       </label>
 
