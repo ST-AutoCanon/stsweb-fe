@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect, useContext } from "react";
 import "./Sidebar.css";
 import * as MdIcons from "react-icons/md";
 import EmployeeDetails from "../EmployeeDetails/EmployeeDetails";
 import AddDepartment from "../AddDepartment/AddDepartment";
-
 import AdminQuery from "../EmployeeQueries/AdminQuery";
 import EmployeeQuery from "../EmployeeQueries/EmployeeQuery";
 import UpdateProject from "../UpdateProjects/ProjectsDashboard";
@@ -12,7 +12,7 @@ import LeaveRequest from "../LeaveQueries/LeaveRequest";
 import Profile from "../Profile/Profile";
 import MyDashboard from "../MyDashboard/MyDashboard";
 import MyEmpDashboard from "../MyEmpDashboard/MyEmpDashboard";
-import Salary_Statement from "../Salary_statement/Salary_Statement";
+import SalaryStatementWrapper from "../Salary_statement/SalaryStatementWrapper";
 import PayrollSummary from "../PayrollSummary/PayrollSummary";
 import Reimbursement from "../Reimbursement/Reimbursement";
 import RbAdmin from "../Reimbursement/RbAdmin";
@@ -21,27 +21,29 @@ import Assets from "../Assets/assets";
 import Vendors from "../vendors/vendors";
 import Chat from "../Chat/ChatPage";
 import EmployeeLogin from "../EmployeeLogin/EmployeeLogin";
-import SalaryStatementWrapper from "../Salary_statement/SalaryStatementWrapper";
 import LetterHead from "../letterHead/letterhead";
 import NoteDashboard from "../Notes/NoteDashboard";
+import CreateCompensation from "../Compensation/createCompensation";
+import AssignCompensation from "../Compensation/assignCompensation";
+import SalaryBreakup from "../Compensation/salaryBreakup";
+import OvertimeDetails from "../Compensation/OvertimeDetails";
 import { ContentContext } from "./Context";
 
 const Sidebar = () => {
   const { setActiveContent } = useContext(ContentContext);
   const [menuItems, setMenuItems] = useState([]);
-  const [activeItem, setActiveItem] = useState(""); // Track active menu item
+  const [activeItem, setActiveItem] = useState("");
+  const [activeSubItem, setActiveSubItem] = useState("");
   const [showProfile, setShowProfile] = useState(false);
+  const [showCompensationDropdown, setShowCompensationDropdown] = useState(false);
   const employeeId = localStorage.getItem("employeeId");
   const userRole = localStorage.getItem("userRole") || "Employee";
-  const dashboardData = JSON.parse(
-    localStorage.getItem("dashboardData") || "{}"
-  );
+  const dashboardData = JSON.parse(localStorage.getItem("dashboardData") || "{}");
   const userPosition = dashboardData.position;
   const [activeNav, setActiveNav] = useState("/dashboard");
-  const [showMobileMenu, setShowMobileMenu] = useState(false); // State for mobile popup
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
-    // Load menu items from local storage
     const storedData = localStorage.getItem("sidebarMenu");
     if (storedData) {
       try {
@@ -53,28 +55,35 @@ const Sidebar = () => {
       }
     }
 
-    // Set default active content (Dashboard) on first load
     if (setActiveContent) {
-    }
-    if (userRole === "Admin") {
-      setActiveContent(<MyDashboard />);
-
-      setActiveItem("/dashboard");
-    } else {
-      setActiveContent(<MyEmpDashboard />);
+      if (userRole === "Admin") {
+        setActiveContent(<MyDashboard />);
+        setActiveItem("/dashboard");
+      } else {
+        setActiveContent(<MyEmpDashboard />);
+      }
+      setActiveSubItem("");
+      setShowCompensationDropdown(false);
     }
   }, [setActiveContent, userRole]);
 
-  const handleMenuClick = (item) => {
+  const handleMenuClick = (item, subOption = null) => {
     setActiveItem(item.path);
     setActiveNav(item.path);
-    setShowMobileMenu(false); // Close popup when selecting an item
+    setShowMobileMenu(false);
+
+    if (item.path === "/compensation" && !subOption) {
+      setShowCompensationDropdown((prev) => !prev);
+      setActiveSubItem("");
+      return;
+    }
+
+    setShowCompensationDropdown(subOption ? true : false);
+    setActiveSubItem(subOption || "");
 
     switch (item.path) {
       case "/dashboard":
-        setActiveContent(
-          userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />
-        );
+        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />);
         break;
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);
@@ -92,23 +101,18 @@ const Sidebar = () => {
           setActiveContent(<LeaveRequest />);
         }
         break;
-
       case "/Salary_Statement":
         setActiveContent(<SalaryStatementWrapper />);
         break;
       case "/letterHead":
         setActiveContent(<LetterHead />);
-
         break;
-
       case "/payrollSummary":
         setActiveContent(<PayrollSummary />);
         break;
-
       case "/messenger":
         setActiveContent(<Chat />);
         break;
-
       case "/reimbursement":
         if (userRole === "Admin") {
           setActiveContent(<RbAdmin />);
@@ -118,11 +122,8 @@ const Sidebar = () => {
           setActiveContent(<Reimbursement />);
         }
         break;
-
       case "/employeeQueries":
-        setActiveContent(
-          userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />
-        );
+        setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
         break;
       case "/assets":
         setActiveContent(<Assets />);
@@ -136,6 +137,24 @@ const Sidebar = () => {
       case "/EmployeeLogin":
         setActiveContent(<EmployeeLogin />);
         break;
+      case "/Overtime":
+        setActiveContent(<OvertimeDetails />);
+        break;
+      case "/compensation":
+        switch (subOption) {
+          case "create":
+            setActiveContent(<CreateCompensation />);
+            break;
+          case "assign":
+            setActiveContent(<AssignCompensation />);
+            break;
+          case "salaryBreakup":
+            setActiveContent(<SalaryBreakup />);
+            break;
+          default:
+            setActiveContent(<p>Please select a compensation option.</p>);
+        }
+        break;
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }
@@ -144,92 +163,121 @@ const Sidebar = () => {
   const toggleProfile = () => {
     setShowProfile(!showProfile);
   };
+
   return (
     <>
-      {/* Sidebar (Desktop) */}
-      <div className="sidebar">
+      <div className="sidebar bg-gray-800 text-white min-h-screen w-64 fixed">
         {userRole !== "Admin" && (
-          <div className="view-profile">
+          <div className="view-profile p-4">
             <span
               onClick={() => setShowProfile(!showProfile)}
-              className="view-profile-text"
+              className="view-profile-text cursor-pointer hover:text-blue-400"
             >
               View Profile
             </span>
           </div>
         )}
-        <ul>
+        <ul className="mt-4">
           {menuItems.length > 0 ? (
             menuItems.map((item, index) => {
-              const IconComponent =
-                MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
+              const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
               return (
-                <li
-                  key={index}
-                  className={activeItem === item.path ? "active" : ""}
-                  onClick={() => handleMenuClick(item)}
-                >
-                  <span className="icon">
-                    <IconComponent />
-                  </span>
-                  <span className="menu-text">{item.label}</span>
+                <li key={index} className="relative">
+                  <div
+                    className={`flex items-center p-4 cursor-pointer hover:bg-gray-700 ${
+                      activeItem === item.path && !activeSubItem ? "bg-gray-700" : ""
+                    }`}
+                    onClick={() => handleMenuClick(item)}
+                  >
+                    <span className="icon mr-2">
+                      <IconComponent size={24} />
+                    </span>
+                    <span className="menu-text flex-1">{item.label}</span>
+                  </div>
+                  {item.path === "/compensation" && showCompensationDropdown && (
+                    <ul className="ml-8 bg-gray-900 rounded-md">
+                      <li
+                        className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                          activeSubItem === "create" ? "bg-gray-700" : ""
+                        }`}
+                        onClick={() => handleMenuClick(item, "create")}
+                      >
+                        Create Compensation
+                      </li>
+                      <li
+                        className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                          activeSubItem === "assign" ? "bg-gray-700" : ""
+                        }`}
+                        onClick={() => handleMenuClick(item, "assign")}
+                      >
+                        Assign Compensation
+                      </li>
+                      <li
+                        className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                          activeSubItem === "salaryBreakup" ? "bg-gray-700" : ""
+                        }`}
+                        onClick={() => handleMenuClick(item, "salaryBreakup")}
+                      >
+                        Salary Breakup
+                      </li>
+                    </ul>
+                  )}
                 </li>
               );
             })
           ) : (
-            <p className="no-menu">No menu items available</p>
+            <p className="no-menu p-4">No menu items available</p>
           )}
         </ul>
         {showProfile && (
-          <Profile
-            employeeId={employeeId}
-            onClose={() => setShowProfile(false)}
-          />
+          <Profile employeeId={employeeId} onClose={() => setShowProfile(false)} />
         )}
       </div>
 
-      {/* Bottom Navigation for Mobile */}
-      <div className="bottom-nav">
+      <div className="bottom-nav fixed bottom-0 w-full bg-gray-800 text-white flex justify-around py-2 md:hidden">
         <button
-          className={activeNav === "/dashboard" ? "active" : ""}
+          className={`p-2 ${activeNav === "/dashboard" ? "text-blue-400" : ""}`}
           onClick={() => handleMenuClick({ path: "/dashboard" })}
         >
-          <MdIcons.MdHome />
+          <MdIcons.MdHome size={24} />
         </button>
         <button
-          className={activeNav === "/employeeQueries" ? "active" : ""}
+          className={`p-2 ${activeNav === "/employeeQueries" ? "text-blue-400" : ""}`}
           onClick={() => handleMenuClick({ path: "/employeeQueries" })}
         >
-          <MdIcons.MdOutlineContactPhone />
+          <MdIcons.MdOutlineContactPhone size={24} />
         </button>
         <button
-          className={activeNav === "/leaveQueries" ? "active" : ""}
+          className={`p-2 ${activeNav === "/leaveQueries" ? "text-blue-400" : ""}`}
           onClick={() => handleMenuClick({ path: "/leaveQueries" })}
         >
-          <MdIcons.MdOutlineCommentBank />
+          <MdIcons.MdOutlineCommentBank size={24} />
         </button>
         <button
-          className={activeNav === "/reimbursement" ? "active" : ""}
+          className={`p-2 ${activeNav === "/reimbursement" ? "text-blue-400" : ""}`}
           onClick={() => handleMenuClick({ path: "/reimbursement" })}
         >
-          <MdIcons.MdCurrencyRupee />
+          <MdIcons.MdCurrencyRupee size={24} />
         </button>
         <button
-          onClick={() => setShowMobileMenu(true)} // Show popup menu
+          className="p-2"
+          onClick={() => setShowMobileMenu(true)}
         >
-          <MdIcons.MdMenu />
+          <MdIcons.MdMenu size={24} />
         </button>
       </div>
 
-      {/* Mobile Sidebar Popup */}
       {showMobileMenu && (
         <div
-          className="mobile-menu-overlay"
+          className="mobile-menu-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-end"
           onClick={() => setShowMobileMenu(false)}
         >
-          <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mobile-menu bg-gray-800 text-white w-64 h-full p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              className="close-menu"
+              className="close-menu text-xl mb-4"
               onClick={() => setShowMobileMenu(false)}
             >
               ✖
@@ -237,23 +285,53 @@ const Sidebar = () => {
             <ul>
               {menuItems.length > 0 ? (
                 menuItems.map((item, index) => {
-                  const IconComponent =
-                    MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
+                  const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
                   return (
-                    <li
-                      key={index}
-                      className={activeItem === item.path ? "active" : ""}
-                      onClick={() => handleMenuClick(item)}
-                    >
-                      <span className="icon">
-                        <IconComponent />
-                      </span>
-                      <span className="menu-text">{item.label}</span>
+                    <li key={index} className="relative">
+                      <div
+                        className={`flex items-center p-2 cursor-pointer hover:bg-gray-700 ${
+                          activeItem === item.path && !activeSubItem ? "bg-gray-700" : ""
+                        }`}
+                        onClick={() => handleMenuClick(item)}
+                      >
+                        <span className="icon mr-2">
+                          <IconComponent size={24} />
+                        </span>
+                        <span className="menu-text flex-1">{item.label}</span>
+                      </div>
+                      {item.path === "/compensation" && showCompensationDropdown && (
+                        <ul className="ml-8 bg-gray-900 rounded-md">
+                          <li
+                            className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                              activeSubItem === "create" ? "bg-gray-700" : ""
+                            }`}
+                            onClick={() => handleMenuClick(item, "create")}
+                          >
+                            Create Compensation
+                          </li>
+                          <li
+                            className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                              activeSubItem === "assign" ? "bg-gray-700" : ""
+                            }`}
+                            onClick={() => handleMenuClick(item, "assign")}
+                          >
+                            Assign Compensation
+                          </li>
+                          <li
+                            className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                              activeSubItem === "salaryBreakup" ? "bg-gray-700" : ""
+                            }`}
+                            onClick={() => handleMenuClick(item, "salaryBreakup")}
+                          >
+                            Salary Breakup
+                          </li>
+                        </ul>
+                      )}
                     </li>
                   );
                 })
               ) : (
-                <p className="no-menu">No menu items available</p>
+                <p className="no-menu p-2">No menu items available</p>
               )}
             </ul>
           </div>
