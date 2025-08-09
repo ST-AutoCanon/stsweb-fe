@@ -10,6 +10,12 @@
   margin: 0 0 3% 0;
 }
 
+.policy-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .filters {
   display: flex;
   justify-content: space-between;
@@ -261,6 +267,119 @@
   max-height: 1000px;
 }
 
+.policy-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: end;
+}
+
+.policy-form input[type="text"],
+.policy-form input[type="date"],
+.policy-form input[type="number"] {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.policy-form label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.policy-form input[type="checkbox"] {
+  margin-right: 0.4rem;
+  transform: scale(1.1);
+}
+
+.policy-form button {
+  grid-column: span 2;
+  justify-self: start;
+  padding: 0.6rem 1.2rem;
+  background-color: #00468c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.policy-form button:hover {
+  background-color: #003a70;
+}
+
+.policy-form button:active {
+  transform: scale(0.98);
+}
+
+/* ——— Policy Table ——— */
+.policy-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 3rem;
+}
+
+.policy-table th,
+.policy-table td {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.policy-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.policy-table td {
+  background-color: #fff;
+}
+
+.policy-table tr:hover td {
+  background-color: #f9f9f9;
+}
+
+/* make the “Actions” column narrower */
+.policy-table th:last-child,
+.policy-table td:last-child {
+  width: 120px;
+}
+
+/* Edit / Delete buttons in table */
+.policy-table button {
+  margin: 0 0.2rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.policy-table button:first-child {
+  background-color: #7fbd2c;
+  color: #fff;
+}
+
+.policy-table button:first-child:hover {
+  opacity: 0.9;
+}
+
+.policy-table button:last-child {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.policy-table button:last-child:hover {
+  opacity: 0.9;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .container {
@@ -281,5 +400,15 @@
   table th,
   table td {
     font-size: 12px;
+  }
+
+  .policy-form {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-table th,
+  .policy-table td {
+    font-size: 0.8rem;
+    padding: 0.6rem;
   }
 }

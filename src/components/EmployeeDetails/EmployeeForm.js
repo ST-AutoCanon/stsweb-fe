@@ -24,6 +24,9 @@ export default function EmployeeForm({
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState("");
 
+  const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
+  const employeeId = dashboardData.employeeId || null;
+
   const sanitizedInitialData = {
     ...initialData,
     experience: Array.isArray(initialData.experience)
@@ -261,6 +264,32 @@ export default function EmployeeForm({
         }
       }
       await onSubmit(fd);
+
+      // only record a new assignment if the supervisor really changed
+      if (
+        initialData.employee_id &&
+        initialData.supervisor_id !== formData.supervisor_id
+      ) {
+        const today = new Date().toISOString().slice(0, 10);
+        await fetch(`${process.env.REACT_APP_BACKEND_URL}/supervisor/assign`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.REACT_APP_API_KEY,
+            "x-employee-id": employeeId,
+          },
+          body: JSON.stringify({
+            employeeId: initialData.employee_id,
+            supervisorId: formData.supervisor_id,
+            startDate: today,
+          }),
+        })
+          .then((r) => r.json())
+          .then((json) => {
+            if (!json.success) console.error("Supervisor assign failed", json);
+          })
+          .catch(console.error);
+      }
     } catch (err) {
       setError(err.message || "Failed to save data");
     } finally {

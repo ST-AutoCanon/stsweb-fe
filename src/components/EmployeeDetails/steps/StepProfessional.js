@@ -6,9 +6,92 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
   const [roleOptions, setRoleOptions] = useState([]);
   const [positionsList, setPositionsList] = useState([]);
   const [supervisorsList, setSupervisorsList] = useState([]);
+  const [prevSupervisor, setPrevSupervisor] = useState(null);
+  const [historyFetched, setHistoryFetched] = useState(false);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+
+  const formatDate = (iso) => {
+    if (!iso) return "";
+    // iso expected like "2025-08-06T18:30:00.000Z" — keep YYYY-MM-DD part
+    return iso.split("T")[0];
+  };
+
+  useEffect(() => {
+    if (!data.employee_id) {
+      setPrevSupervisor(null);
+      setHistoryFetched(false);
+      return;
+    }
+
+    setHistoryFetched(false);
+
+    fetch(`${BASE_URL}/supervisor/history/${data.employee_id}`, {
+      headers: { "x-api-key": API_KEY },
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        console.log("supervisor history response:", json);
+
+        const entries =
+          json && json.data && Array.isArray(json.data.history)
+            ? json.data.history
+            : Array.isArray(json.data)
+            ? json.data
+            : Array.isArray(json)
+            ? json
+            : [];
+
+        if (!entries.length) {
+          setPrevSupervisor(null);
+          setHistoryFetched(true);
+          return;
+        }
+
+        // Sort oldest -> newest (ascending)
+        entries.sort((a, b) => {
+          const da = a.start_date ? new Date(a.start_date) : new Date(0);
+          const db = b.start_date ? new Date(b.start_date) : new Date(0);
+          return da - db;
+        });
+
+        // Index of current assignment (end_date === null)
+        let currentIndex = entries.findIndex((e) => e.end_date === null);
+        if (currentIndex === -1) currentIndex = entries.length - 1; // fallback: last entry = latest
+
+        // current supervisor id (if present)
+        const currentSupId = entries[currentIndex]?.supervisor_id;
+
+        // Walk backward to find previous different supervisor
+        let prev = null;
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          const e = entries[i];
+          if (!e) continue;
+          if (!currentSupId || e.supervisor_id !== currentSupId) {
+            prev = e;
+            break;
+          }
+        }
+
+        // If still null (all previous entries are same supervisor), prev remains null
+        if (prev) {
+          prev = {
+            ...prev,
+            start_date: prev.start_date ? prev.start_date.split("T")[0] : "",
+            end_date: prev.end_date ? prev.end_date.split("T")[0] : null,
+          };
+        }
+
+        setPrevSupervisor(prev);
+        setHistoryFetched(true);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch supervisor history:", err);
+        setPrevSupervisor(null);
+        setHistoryFetched(true);
+      });
+  }, [data.employee_id]);
 
   useEffect(() => {
     fetch(`${BASE_URL}/user_roles`, { headers: { "x-api-key": API_KEY } })
@@ -194,6 +277,31 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
             ))}
           </select>
         </label>
+
+        {historyFetched ? (
+          prevSupervisor ? (
+            <div className="previous-supervisor">
+              <label>
+                Previous Supervisor :
+                <br />
+                &nbsp;
+                <strong>{prevSupervisor.supervisor_name}</strong>
+                <br />
+                &nbsp;({prevSupervisor.start_date} ↔{" "}
+                {prevSupervisor.end_date || "Present"})
+              </label>
+            </div>
+          ) : (
+            <div className="previous-supervisor">
+              <small>No previous supervisor on record.</small>
+            </div>
+          )
+        ) : (
+          // optional: small loading placeholder while fetching
+          <div className="previous-supervisor">
+            <small>Loading previous supervisor…</small>
+          </div>
+        )}
 
         <label>
           Supervisor<span className="required">*</span>
