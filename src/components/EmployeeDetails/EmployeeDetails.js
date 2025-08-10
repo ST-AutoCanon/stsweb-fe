@@ -30,6 +30,164 @@ function CustomPopup({ title, children, onClose }) {
   );
 }
 
+function TabbedPersonalDetails({ emp }) {
+  const [tab, setTab] = useState("self");
+
+  const fmt = (d) => {
+    if (!d) return "—";
+    try {
+      return format(new Date(d), "dd MMM yyyy");
+    } catch {
+      return (d || "").split("T")[0] || "—";
+    }
+  };
+
+  return (
+    <div>
+      <div className="ed-tab-panel">
+        <button
+          type="button"
+          onClick={() => setTab("self")}
+          className={tab === "self" ? "ed-tab-active" : "ed-tab"}
+        >
+          Self Details
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("gov")}
+          className={tab === "gov" ? "ed-tab-active" : "ed-tab"}
+        >
+          Government Details
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("family")}
+          className={tab === "family" ? "ed-tab-active" : "ed-tab"}
+        >
+          Family Details
+        </button>
+      </div>
+
+      {tab === "self" && (
+        <dl className="detail-list">
+          <dt>Name</dt>
+          <dd>{emp.name ?? "—"}</dd>
+
+          <dt>Email</dt>
+          <dd>{emp.email ?? "—"}</dd>
+
+          <dt>Alternate Email</dt>
+          <dd>{emp.alternate_email ?? "—"}</dd>
+
+          <dt>Mobile</dt>
+          <dd>{emp.phone_number ?? "—"}</dd>
+
+          <dt>Alternate Mobile</dt>
+          <dd>{emp.alternate_number ?? "—"}</dd>
+
+          <dt>Address</dt>
+          <dd>{emp.address ?? "—"}</dd>
+
+          <dt>DOB</dt>
+          <dd>{fmt(emp.dob)}</dd>
+
+          <dt>Gender</dt>
+          <dd>{emp.gender ?? "—"}</dd>
+
+          <dt>Blood Group</dt>
+          <dd>{emp.blood_group ?? "—"}</dd>
+
+          <dt>Emergency</dt>
+          <dd>
+            {emp.emergency_name ? `${emp.emergency_name}` : "—"}
+            {emp.emergency_number ? ` (${emp.emergency_number})` : ""}
+          </dd>
+
+          <dt>Employee ID</dt>
+          <dd>{emp.employee_id ?? "—"}</dd>
+
+          <dt>Joining Date</dt>
+          <dd>{fmt(emp.joining_date)}</dd>
+        </dl>
+      )}
+
+      {tab === "gov" && (
+        <dl className="detail-list">
+          <dt>Aadhaar No</dt>
+          <dd>{emp.aadhaar_number ?? "—"}</dd>
+
+          <dt>PAN No</dt>
+          <dd>{emp.pan_number ?? "—"}</dd>
+
+          <dt>Passport No</dt>
+          <dd>{emp.passport_number ?? "—"}</dd>
+
+          <dt>Driving License</dt>
+          <dd>{emp.driving_license_number ?? "—"}</dd>
+
+          <dt>Voter ID</dt>
+          <dd>{emp.voter_id ?? "—"}</dd>
+
+          <dt>UAN</dt>
+          <dd>{emp.uan_number ?? "—"}</dd>
+
+          <dt>PF</dt>
+          <dd>{emp.pf_number ?? "—"}</dd>
+
+          <dt>ESI</dt>
+          <dd>{emp.esi_number ?? "—"}</dd>
+        </dl>
+      )}
+
+      {tab === "family" && (
+        <dl className="detail-list">
+          <dt>Father's Name</dt>
+          <dd>{emp.father_name ?? "—"}</dd>
+
+          <dt>Father's DOB</dt>
+          <dd>{fmt(emp.father_dob)}</dd>
+
+          <dt>Mother's Name</dt>
+          <dd>{emp.mother_name ?? "—"}</dd>
+
+          <dt>Mother's DOB</dt>
+          <dd>{fmt(emp.mother_dob)}</dd>
+
+          <dt>Marital Status</dt>
+          <dd>{emp.marital_status ?? "—"}</dd>
+
+          <dt>Spouse Name</dt>
+          <dd>{emp.spouse_name ?? "—"}</dd>
+
+          <dt>Spouse DOB</dt>
+          <dd>{fmt(emp.spouse_dob)}</dd>
+
+          <dt>Child 1</dt>
+          <dd>
+            {emp.child1_name
+              ? `${emp.child1_name} (${fmt(emp.child1_dob)})`
+              : "—"}
+          </dd>
+
+          <dt>Child 2</dt>
+          <dd>
+            {emp.child2_name
+              ? `${emp.child2_name} (${fmt(emp.child2_dob)})`
+              : "—"}
+          </dd>
+
+          <dt>Child 3</dt>
+          <dd>
+            {emp.child3_name
+              ? `${emp.child3_name} (${fmt(emp.child3_dob)})`
+              : "—"}
+          </dd>
+        </dl>
+      )}
+    </div>
+  );
+}
+
 export default function EmployeeDetails() {
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,125 +259,265 @@ export default function EmployeeDetails() {
   const showAlert = (message) => setAlertModal({ isVisible: true, message });
   const closeAlert = () => setAlertModal({ isVisible: false, message: "" });
 
-  // Updated handleViewDocs with 3-column categorization (Personal, Educational, Professional)
-  // Updated handleViewDocs with Resume moved to Professional section
+  // ---- place near your other helpers / components ----
+  function toUrlArray(maybe) {
+    if (!maybe) return [];
+    if (Array.isArray(maybe)) return maybe.filter(Boolean);
+    if (typeof maybe === "string") {
+      const trimmed = maybe.trim();
+      // maybe a json-encoded array
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        } catch (e) {
+          // fallthrough
+        }
+      }
+      // single path string
+      if (trimmed.startsWith("/")) return [trimmed];
+    }
+    return [];
+  }
+
+  function DocsPopup({ sections, onOpen, onDownload, onClose }) {
+    const [tab, setTab] = useState(sections?.[0]?.title || "Personal");
+
+    return (
+      <div>
+        <div className="ed-tab-panel">
+          {sections.map((s) => (
+            <button
+              key={s.title}
+              type="button"
+              onClick={() => setTab(s.title)}
+              className={tab === s.title ? "ed-tab-active" : "ed-tab"}
+            >
+              {s.title}
+            </button>
+          ))}
+        </div>
+
+        <div>
+          {sections.map(({ title, docs }) =>
+            title !== tab ? null : (
+              <div key={title}>
+                {docs && docs.length ? (
+                  docs.map((doc, idx) => (
+                    <div key={idx}>
+                      <dl className="detail-list">
+                        <dt>{doc.label}</dt>
+                        <dd>
+                          <button
+                            type="button"
+                            className="doc-link"
+                            onClick={() => onOpen(doc.url)}
+                          >
+                            Open
+                          </button>
+                          <button
+                            type="button"
+                            className="doc-link"
+                            onClick={() => onDownload(doc.url)}
+                          >
+                            Download
+                          </button>
+                        </dd>
+                      </dl>
+                    </div>
+                  ))
+                ) : (
+                  <p>No documents.</p>
+                )}
+              </div>
+            )
+          )}
+        </div>
+
+        <div></div>
+      </div>
+    );
+  }
+  // ----------------------------------------------------
+
+  /*
+  Replace your current handleViewDocs + downloadDoc with this implementation.
+  This uses axios to fetch the employee record, collects docs into sections,
+  and opens the popup with the DocsPopup component.
+*/
   const handleViewDocs = async (empId) => {
     try {
       const res = await axios.get(`${BASE_URL}/full/${empId}`, {
         headers: { "x-api-key": API_KEY },
       });
-      const data = res.data.data;
+      const d = res.data.data || {};
 
-      // Categorize documents
-      const personalDocs = [
-        ["Aadhaar Copy", data.aadhaar_doc_url],
-        ["PAN Copy", data.pan_doc_url],
-        ["Passport Copy", data.passport_doc_url],
-        ["Photo", data.photo_url],
-      ]
-        .filter(([, url]) => url)
-        .map(([label, url]) => ({ label, url }));
-
-      const educationalDocs = [
-        ["10th Certificate", data.tenth_cert_url],
-        ["12th Certificate", data.twelfth_cert_url],
-        ["UG Certificate", data.ug_cert_url],
-        ["PG Certificate", data.pg_cert_url],
-        ["Additional Certificate", data.additional_cert_url],
-      ]
-        .filter(([, url]) => url)
-        .map(([label, url]) => ({ label, url }));
-
-      const professionalDocs = [];
-      // Resume moved to Professional section
-      if (data.resume_url) {
-        professionalDocs.push({ label: "Resume", url: data.resume_url });
-      }
-      // Experience documents
-      if (Array.isArray(data.experience)) {
-        data.experience.forEach((exp, idx) => {
-          if (exp.doc_url) {
-            professionalDocs.push({
-              label: `Experience #${idx + 1} (${exp.company})`,
-              url: exp.doc_url,
-            });
-          }
-        });
-      }
-      // Other docs
-      if (Array.isArray(data.other_docs_urls)) {
-        data.other_docs_urls.forEach((url, idx) => {
-          if (url) {
-            professionalDocs.push({ label: `Other #${idx + 1}`, url });
-          }
-        });
-      }
-
-      // Prepare sections for rendering
-      const sections = [
-        { title: "Personal", docs: personalDocs },
-        { title: "Educational", docs: educationalDocs },
-        { title: "Professional", docs: professionalDocs },
+      const personal = [
+        ...toUrlArray(d.photo_url).map((u) => ({ label: "Photo", url: u })),
+        ...toUrlArray(d.aadhaar_doc_url).map((u) => ({
+          label: "Aadhaar",
+          url: u,
+        })),
+        ...toUrlArray(d.pan_doc_url).map((u) => ({ label: "PAN", url: u })),
+        ...toUrlArray(d.passport_doc_url).map((u) => ({
+          label: "Passport",
+          url: u,
+        })),
       ];
 
-      // Render in popup as 3-column grid
+      const education = [
+        ...toUrlArray(d.tenth_cert_url).map((u) => ({
+          label: "10th Certificate",
+          url: u,
+        })),
+        ...toUrlArray(d.twelfth_cert_url).map((u) => ({
+          label: "12th Certificate",
+          url: u,
+        })),
+        ...toUrlArray(d.ug_cert_url).map((u) => ({
+          label: "UG Certificate",
+          url: u,
+        })),
+        ...toUrlArray(d.pg_cert_url).map((u) => ({
+          label: "PG Certificate",
+          url: u,
+        })),
+      ];
+
+      const professional = [];
+      if (d.resume_url)
+        professional.push({ label: "Resume", url: d.resume_url });
+
+      // experience docs (support several shapes)
+      if (Array.isArray(d.experience)) {
+        d.experience.forEach((exp, idx) => {
+          const desc = exp.company
+            ? `Experience: ${exp.company}`
+            : `Experience #${idx + 1}`;
+          professional.push(
+            ...toUrlArray(exp.doc_url).map((u) => ({ label: desc, url: u })),
+            ...toUrlArray(exp.doc_urls).map((u) => ({ label: desc, url: u })),
+            ...toUrlArray(exp.doc).map((u) => ({ label: desc, url: u }))
+          );
+        });
+      }
+
+      // other docs
+      professional.push(
+        ...toUrlArray(d.other_docs_urls).map((u, i) => ({
+          label: `Other #${i + 1}`,
+          url: u,
+        }))
+      );
+
+      // additional certs
+      if (Array.isArray(d.additional_certs)) {
+        d.additional_certs.forEach((c, idx) => {
+          const title = c.name
+            ? `Cert: ${c.name}`
+            : `Additional Cert #${idx + 1}`;
+          professional.push(
+            ...toUrlArray(c.file_urls).map((u) => ({ label: title, url: u })),
+            ...toUrlArray(c.file_url).map((u) => ({ label: title, url: u })),
+            ...toUrlArray(c.file).map((u) => ({ label: title, url: u }))
+          );
+        });
+      }
+
+      const family = [
+        ...toUrlArray(d.father_gov_doc_url).map((u, i) => ({
+          label: `Father Doc #${i + 1}`,
+          url: u,
+        })),
+        ...toUrlArray(d.mother_gov_doc_url).map((u, i) => ({
+          label: `Mother Doc #${i + 1}`,
+          url: u,
+        })),
+        ...toUrlArray(d.child1_gov_doc_url).map((u, i) => ({
+          label: `Child1 Doc #${i + 1}`,
+          url: u,
+        })),
+        ...toUrlArray(d.child2_gov_doc_url).map((u, i) => ({
+          label: `Child2 Doc #${i + 1}`,
+          url: u,
+        })),
+        ...toUrlArray(d.child3_gov_doc_url).map((u, i) => ({
+          label: `Child3 Doc #${i + 1}`,
+          url: u,
+        })),
+      ];
+
+      const sections = [
+        { title: "Personal", docs: personal },
+        { title: "Educational", docs: education },
+        { title: "Professional", docs: professional },
+        { title: "Family", docs: family },
+      ];
+
+      // functions to open / download with required headers
+      const openDoc = async (url) => {
+        if (!url) return showAlert("No document URL");
+        try {
+          const resp = await axios.get(`${BASE_URL}/docs${url}`, {
+            responseType: "blob",
+            headers: {
+              "x-api-key": API_KEY,
+              "x-employee-id": employeeId,
+            },
+          });
+          const blob = new Blob([resp.data], {
+            type: resp.headers["content-type"] || "application/octet-stream",
+          });
+          const blobUrl = URL.createObjectURL(blob);
+          // open in new tab
+          window.open(blobUrl, "_blank");
+          // optionally revoke after some delay
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000 * 60);
+        } catch (err) {
+          console.error("openDoc error:", err);
+          showAlert("Failed to open document");
+        }
+      };
+
+      const downloadDoc = async (url) => {
+        if (!url) return showAlert("No document URL");
+        try {
+          const resp = await axios.get(`${BASE_URL}/docs${url}`, {
+            responseType: "blob",
+            headers: {
+              "x-api-key": API_KEY,
+              "x-employee-id": employeeId,
+            },
+          });
+          const blob = new Blob([resp.data], {
+            type: resp.headers["content-type"] || "application/octet-stream",
+          });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = url.split("/").pop() || "document";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(link.href), 1000 * 60);
+        } catch (err) {
+          console.error("downloadDoc error:", err);
+          showAlert("Failed to download document");
+        }
+      };
+
+      // show popup using your openPopup helper
       openPopup(
         "Documents",
-        <div className="doc-table">
-          {sections.map(({ title, docs }) => (
-            <div key={title} className="docs-section">
-              <label>
-                <strong>{title}</strong>
-              </label>
-              {docs.length > 0 ? (
-                <div className="space-y-1">
-                  {docs.map((doc, i) => (
-                    <div key={i}>
-                      <button
-                        className="doc-link"
-                        onClick={() => downloadDoc(doc.url)}
-                      >
-                        {doc.label}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">No documents.</p>
-              )}
-            </div>
-          ))}
-        </div>
+        <DocsPopup
+          sections={sections}
+          onOpen={openDoc}
+          onDownload={downloadDoc}
+          onClose={closePopup}
+        />
       );
     } catch (err) {
-      console.error(err);
+      console.error("handleViewDocs error:", err);
       openPopup("Documents", <p>Unable to load documents.</p>);
-    }
-  };
-
-  const downloadDoc = async (url) => {
-    try {
-      const response = await axios.get(`${BASE_URL}/docs${url}`, {
-        headers: {
-          "x-api-key": API_KEY,
-          "x-employee-id": employeeId,
-        },
-        responseType: "blob",
-      });
-
-      const blob = new Blob([response.data], {
-        type: response.headers["content-type"],
-      });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", url.split("/").pop());
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      console.error("downloadDoc error:", err);
-      setPopupVisible(false);
-      showAlert("Failed to download document");
     }
   };
 
@@ -309,7 +607,7 @@ export default function EmployeeDetails() {
   return (
     <div className="employee-details-container">
       <h2>Employee Details</h2>
-      <div class="header-container">
+      <div class="ed-header-container">
         {/* Search Employee */}
         <div className="search-container">
           <label>
@@ -335,13 +633,13 @@ export default function EmployeeDetails() {
             <DatePicker
               selected={fromDate}
               onChange={(date) => setFromDate(date)}
-              dateFormat="yyyy-MM-dd"
+              dateFormat="dd-MM-yyyy"
               isClearable
               customInput={
                 <div className="custom-calendar-input">
                   <input
                     type="text"
-                    value={fromDate ? format(fromDate, "yyyy-MM-dd") : ""}
+                    value={fromDate ? format(fromDate, "dd-MM-yyyy") : ""}
                     readOnly
                     placeholder="Select Date"
                   />
@@ -361,13 +659,13 @@ export default function EmployeeDetails() {
             <DatePicker
               selected={toDate}
               onChange={(date) => setToDate(date)} // Set the toDate
-              dateFormat="yyyy-MM-dd"
+              dateFormat="dd-MM-yyyy"
               isClearable
               customInput={
                 <div className="custom-calendar-input">
                   <input
                     type="text"
-                    value={toDate ? format(toDate, "yyyy-MM-dd") : ""}
+                    value={toDate ? format(toDate, "dd-MM-yyyy") : ""}
                     readOnly
                     placeholder="Select Date"
                   />
@@ -468,36 +766,7 @@ export default function EmployeeDetails() {
                         onClick={() =>
                           openPopup(
                             "Personal Details",
-                            <dl className="detail-list">
-                              <dt>Name:</dt>
-                              <dd>{emp.name}</dd>
-                              <dt>Email:</dt>
-                              <dd>{emp.email}</dd>
-                              <dt>Mobile:</dt>
-                              <dd>{emp.phone_number}</dd>
-                              <dt>Address:</dt>
-                              <dd>{emp.address}</dd>
-                              <dt>DOB:</dt>
-                              <dd>
-                                {format(new Date(emp.dob), "dd MMM yyyy")}
-                              </dd>
-                              <dt>Gender:</dt>
-                              <dd>{emp.gender}</dd>
-                              <dt>Marital Status:</dt>
-                              <dd>{emp.marital_status}</dd>
-                              <dt>Father's Name:</dt>
-                              <dd>{emp.father_name}</dd>
-                              <dt>Mother's Name:</dt>
-                              <dd>{emp.mother_name}</dd>
-                              <dt>Aadhaar No:</dt>
-                              <dd>{emp.aadhaar_number}</dd>
-                              <dt>Pan No:</dt>
-                              <dd>{emp.pan_number}</dd>
-                              <dt>Passport No:</dt>
-                              <dd>{emp.passport_number}</dd>
-                              <dt>Voter ID:</dt>
-                              <dd>{emp.voter_id}</dd>
-                            </dl>
+                            <TabbedPersonalDetails emp={emp} />
                           )
                         }
                       >
@@ -555,10 +824,12 @@ export default function EmployeeDetails() {
                               <dd>{emp.position}</dd>
                               <dt>Role:</dt>
                               <dd>{emp.role}</dd>
-                              <dt>Supervisor ID:</dt>
-                              <dd>{emp.supervisor_id}</dd>
+                              <dt>Supervisor:</dt>
+                              <dd>{emp.supervisor_name}</dd>
                               <dt>Salary:</dt>
                               <dd>{emp.salary}</dd>
+                              <dt>Joining Date:</dt>
+                              <dd>{emp.joining_date}</dd>
                               <dt>Experience:</dt>
                               <dl>
                                 {(emp.experience || []).map((exp, i) => (
