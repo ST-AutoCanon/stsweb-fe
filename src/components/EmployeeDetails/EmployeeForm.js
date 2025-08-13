@@ -164,31 +164,78 @@ export default function EmployeeForm({
     if (!validateStep()) return;
     setLoading(true);
     setError("");
+
     try {
       const fd = new FormData();
-      // append simple fields (exclude arrays)
-      Object.entries(formData).forEach(([key, val]) => {
-        if (
-          [
-            "experience",
-            "other_docs",
-            "additional_certs",
-            "tenth_cert",
-            "twelfth_cert",
-            "ug_cert",
-            "pg_cert",
-            "father_gov_doc",
-            "mother_gov_doc",
-            "spouse_gov_doc",
-            "child1_gov_doc",
-            "child2_gov_doc",
-            "child3_gov_doc",
-          ].includes(key)
-        )
+
+      // helpers
+      const isFile = (v) => v instanceof File;
+      const hasFileIn = (val) => {
+        if (!val) return false;
+        if (Array.isArray(val)) return val.some(isFile);
+        return isFile(val);
+      };
+
+      // appendUrlArray: always appends a JSON string array of URLs when there are only URLs (no File)
+      function appendUrlArray(fd, key, maybeArr) {
+        if (!maybeArr) return;
+        if (Array.isArray(maybeArr)) {
+          const urls = maybeArr.filter((v) => typeof v === "string");
+          if (urls.length) fd.append(key, JSON.stringify(urls));
           return;
-        if (val != null) fd.append(key, val);
+        }
+        const s = String(maybeArr).trim();
+        if (!s) return;
+        if (s.startsWith("[") && s.endsWith("]")) {
+          try {
+            JSON.parse(s);
+            fd.append(key, s);
+            return;
+          } catch {
+            // fall through to comma separated
+          }
+        }
+        if (s.includes(",")) {
+          const parts = s
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean);
+          if (parts.length) fd.append(key, JSON.stringify(parts));
+          return;
+        }
+        fd.append(key, JSON.stringify([s]));
+      }
+
+      // -----------------------
+      // 1) append simple (non-file) fields
+      // -----------------------
+      const skipKeys = new Set([
+        "experience",
+        "other_docs",
+        "additional_certs",
+        "tenth_cert",
+        "twelfth_cert",
+        "ug_cert",
+        "pg_cert",
+        "father_gov_doc",
+        "mother_gov_doc",
+        "spouse_gov_doc",
+        "child1_gov_doc",
+        "child2_gov_doc",
+        "child3_gov_doc",
+        "resume",
+      ]);
+
+      Object.entries(formData).forEach(([key, val]) => {
+        if (skipKeys.has(key)) return;
+        // Note: include url fields if user prefilled them (we handle them below more carefully)
+        if (val !== undefined && val !== null) fd.append(key, val);
       });
-      // multiple file arrays
+
+      // -----------------------
+      // 2) append multi-file arrays (actual file uploads)
+      // names here match the file input names your server code expects
+      // -----------------------
       [
         "other_docs",
         "tenth_cert",
@@ -197,44 +244,13 @@ export default function EmployeeForm({
         "pg_cert",
       ].forEach((field) => {
         const arr = formData[field];
-        if (Array.isArray(arr)) {
-          arr.forEach((file) => {
-            if (file instanceof File) fd.append(field, file, file.name);
-          });
-        }
-      });
-      // experience
-      formData.experience.forEach((exp, idx) => {
-        fd.append(`experience[${idx}][company]`, exp.company);
-        fd.append(`experience[${idx}][role]`, exp.role);
-        fd.append(`experience[${idx}][start_date]`, exp.start_date);
-        fd.append(`experience[${idx}][end_date]`, exp.end_date);
-        if (Array.isArray(exp.doc)) {
-          exp.doc.forEach((f) => {
-            fd.append(`experience[${idx}][doc]`, f, f.name);
-          });
-        } else if (exp.doc instanceof File) {
-          fd.append(`experience[${idx}][doc]`, exp.doc, exp.doc.name);
-        }
-      });
-      // additional certs
-      formData.additional_certs.forEach((cert, idx) => {
-        fd.append(`additional_certs[${idx}][name]`, cert.name);
-        fd.append(`additional_certs[${idx}][year]`, cert.year);
-        fd.append(`additional_certs[${idx}][institution]`, cert.institution);
-        if (Array.isArray(cert.file)) {
-          cert.file.forEach((f) => {
-            fd.append(`additional_certs[${idx}][file]`, f, f.name);
-          });
-        } else if (cert.file instanceof File) {
-          fd.append(
-            `additional_certs[${idx}][file]`,
-            cert.file,
-            cert.file.name
-          );
+        if (!Array.isArray(arr)) return;
+        for (const f of arr) {
+          if (isFile(f)) fd.append(field, f, f.name);
         }
       });
 
+      // family gov doc file inputs
       [
         "father_gov_doc",
         "mother_gov_doc",
@@ -244,17 +260,182 @@ export default function EmployeeForm({
         "child3_gov_doc",
       ].forEach((field) => {
         const arr = formData[field];
+        if (!arr) return;
         if (Array.isArray(arr)) {
-          arr.forEach((f) => fd.append(field, f, f.name));
+          for (const f of arr) {
+            if (isFile(f)) fd.append(field, f, f.name);
+          }
+        } else if (isFile(arr)) {
+          fd.append(field, arr, arr.name);
         }
       });
 
-      // resume
-      if (formData.resume instanceof File)
+      // resume (single file)
+      if (isFile(formData.resume)) {
         fd.append("resume", formData.resume, formData.resume.name);
-      // …inside handleSubmit, just before await onSubmit(fd):
+      }
+
+      // -----------------------
+      // 3) experience array: append scalar fields + files (or urls fallback)
+      // server.editFullEmployee expects experience items with doc_urls for existing URLs
+      // -----------------------
+      (formData.experience || []).forEach((exp, idx) => {
+        fd.append(`experience[${idx}][company]`, exp.company ?? "");
+        fd.append(`experience[${idx}][role]`, exp.role ?? "");
+        fd.append(`experience[${idx}][start_date]`, exp.start_date ?? "");
+        fd.append(`experience[${idx}][end_date]`, exp.end_date ?? "");
+
+        // If this exp has File(s), append them under experience[IDX][doc]
+        if (Array.isArray(exp.doc) && exp.doc.some(isFile)) {
+          for (const f of exp.doc) {
+            if (isFile(f)) fd.append(`experience[${idx}][doc]`, f, f.name);
+          }
+        } else if (isFile(exp.doc)) {
+          fd.append(`experience[${idx}][doc]`, exp.doc, exp.doc.name);
+        } else {
+          // no files -> if URLs exist, send doc_urls JSON array
+          if (Array.isArray(exp.doc)) {
+            const urlOnly = exp.doc.filter((x) => typeof x === "string");
+            if (urlOnly.length)
+              fd.append(
+                `experience[${idx}][doc_urls]`,
+                JSON.stringify(urlOnly)
+              );
+          } else if (typeof exp.doc === "string" && exp.doc.trim()) {
+            fd.append(
+              `experience[${idx}][doc_urls]`,
+              JSON.stringify([exp.doc.trim()])
+            );
+          } else if (Array.isArray(exp.files)) {
+            // older naming variants: exp.files
+            const urlOnly = exp.files.filter((x) => typeof x === "string");
+            if (urlOnly.length)
+              fd.append(
+                `experience[${idx}][doc_urls]`,
+                JSON.stringify(urlOnly)
+              );
+          }
+        }
+      });
+
+      // -----------------------
+      // 4) additional_certs: append scalars + files (or url fallback)
+      // server.editFullEmployee expects additional_certs[*].file_urls for existing URLs
+      // -----------------------
+      (formData.additional_certs || []).forEach((cert, idx) => {
+        fd.append(`additional_certs[${idx}][name]`, cert.name ?? "");
+        fd.append(`additional_certs[${idx}][year]`, cert.year ?? "");
+        fd.append(
+          `additional_certs[${idx}][institution]`,
+          cert.institution ?? ""
+        );
+
+        if (Array.isArray(cert.file) && cert.file.some(isFile)) {
+          for (const f of cert.file) {
+            if (isFile(f))
+              fd.append(`additional_certs[${idx}][file]`, f, f.name);
+          }
+        } else if (isFile(cert.file)) {
+          fd.append(
+            `additional_certs[${idx}][file]`,
+            cert.file,
+            cert.file.name
+          );
+        } else {
+          // fallback to url array keys if no files
+          if (
+            Array.isArray(cert.files) &&
+            cert.files.some((x) => typeof x === "string")
+          ) {
+            fd.append(
+              `additional_certs[${idx}][file_urls]`,
+              JSON.stringify(cert.files.filter((x) => typeof x === "string"))
+            );
+          } else if (
+            Array.isArray(cert.file) &&
+            cert.file.every((x) => typeof x === "string")
+          ) {
+            fd.append(
+              `additional_certs[${idx}][file_urls]`,
+              JSON.stringify(cert.file)
+            );
+          } else if (typeof cert.file === "string" && cert.file.trim()) {
+            fd.append(
+              `additional_certs[${idx}][file_urls]`,
+              JSON.stringify([cert.file.trim()])
+            );
+          } else if (Array.isArray(cert.file_urls)) {
+            fd.append(
+              `additional_certs[${idx}][file_urls]`,
+              JSON.stringify(cert.file_urls)
+            );
+          } else if (
+            typeof cert.file_urls === "string" &&
+            cert.file_urls.trim()
+          ) {
+            // maybe comma separated or JSON
+            appendUrlArray(
+              fd,
+              `additional_certs[${idx}][file_urls]`,
+              cert.file_urls
+            );
+          }
+        }
+      });
+
+      // -----------------------
+      // 5) fallback: append existing URL arrays for fields that had no new files
+      // send keys the server expects: tenth_cert_url, twelfth_cert_url, ug_cert_url, pg_cert_url, other_docs_urls, resume_url, family *_gov_doc_url
+      // -----------------------
+      if (!hasFileIn(formData.tenth_cert))
+        appendUrlArray(fd, "tenth_cert_url", formData.tenth_cert);
+      if (!hasFileIn(formData.twelfth_cert))
+        appendUrlArray(fd, "twelfth_cert_url", formData.twelfth_cert);
+      if (!hasFileIn(formData.ug_cert))
+        appendUrlArray(fd, "ug_cert_url", formData.ug_cert);
+      if (!hasFileIn(formData.pg_cert))
+        appendUrlArray(fd, "pg_cert_url", formData.pg_cert);
+
+      // other_docs: file uploads are 'other_docs'. if none uploaded, send other_docs_urls
+      if (!hasFileIn(formData.other_docs))
+        appendUrlArray(
+          fd,
+          "other_docs_urls",
+          formData.other_docs || formData.other_docs_urls
+        );
+
+      // resume
+      if (!isFile(formData.resume) && formData.resume) {
+        // formData.resume might be a string or array-of-strings
+        appendUrlArray(fd, "resume_url", formData.resume);
+      } else if (!formData.resume && formData.resume_url) {
+        // if backend returned resume_url earlier and front didn't set resume
+        appendUrlArray(fd, "resume_url", formData.resume_url);
+      }
+
+      // family gov doc urls fallback (only if no new files were provided)
+      const familyPairs = [
+        ["father_gov_doc", "father_gov_doc_url"],
+        ["mother_gov_doc", "mother_gov_doc_url"],
+        ["spouse_gov_doc", "spouse_gov_doc_url"],
+        ["child1_gov_doc", "child1_gov_doc_url"],
+        ["child2_gov_doc", "child2_gov_doc_url"],
+        ["child3_gov_doc", "child3_gov_doc_url"],
+      ];
+      for (const [fileField, urlField] of familyPairs) {
+        // prefer either the `*_gov_doc` or existing `*_gov_doc_url` keys from formData
+        const maybeFiles = formData[fileField];
+        const maybeUrls = formData[urlField] || formData[fileField + "_url"];
+        // if no file present, append the url array
+        if (!hasFileIn(maybeFiles)) {
+          appendUrlArray(fd, urlField, maybeUrls || maybeFiles);
+        }
+      }
+
+      // -----------------------
+      // 6) final debug log of FormData entries (useful to inspect duplicates)
+      // -----------------------
       for (let [key, val] of fd.entries()) {
-        // If it's a File, log name + size; otherwise just log the value
         if (val instanceof File) {
           console.log(
             `↪︎ FormData field: ${key} ⇒ File { name: ${val.name}, size: ${val.size} }`
@@ -263,9 +444,11 @@ export default function EmployeeForm({
           console.log(`↪︎ FormData field: ${key} ⇒`, val);
         }
       }
+
+      // 7) send to server
       await onSubmit(fd);
 
-      // only record a new assignment if the supervisor really changed
+      // 8) create supervisor assignment if required (existing logic)
       if (
         initialData.employee_id &&
         initialData.supervisor_id !== formData.supervisor_id
@@ -291,6 +474,7 @@ export default function EmployeeForm({
           .catch(console.error);
       }
     } catch (err) {
+      console.error("handleSubmit error:", err);
       setError(err.message || "Failed to save data");
     } finally {
       setLoading(false);

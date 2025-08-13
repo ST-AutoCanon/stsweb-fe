@@ -3,6 +3,7 @@ import axios from "axios";
 import { MdOutlineCancel } from "react-icons/md";
 import "./Profile.css";
 import Modal from "../Modal/Modal";
+import UpdateProfile from "./UpdateProfileEmployee";
 
 const TABS = ["Personal Info", "Professional Info"];
 
@@ -16,6 +17,8 @@ const Profile = ({ onClose }) => {
     message: "",
   });
   const [activeTab, setActiveTab] = useState(0);
+
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const showAlert = (message) => setAlertModal({ isVisible: true, message });
   const closeAlert = () => setAlertModal({ isVisible: false, message: "" });
@@ -105,6 +108,17 @@ const Profile = ({ onClose }) => {
   if (loading) return <div className="profile-popup">Loading...</div>;
   if (!profile) return <div className="profile-popup">No data.</div>;
 
+  const handleProfileSaved = (updatedProfile) => {
+    if (updatedProfile) {
+      setProfile(updatedProfile);
+    }
+    setShowUpdateModal(false);
+    setAlertModal({
+      isVisible: true,
+      message: "Profile updated successfully.",
+    });
+  };
+
   return (
     <div className="profile-popup">
       <div className="profile-content">
@@ -137,16 +151,12 @@ const Profile = ({ onClose }) => {
             <div className="update-profile-btn-wrapper">
               <button
                 className="update-profile-btn"
-                onClick={() =>
-                  setAlertModal({
-                    isVisible: true,
-                    message: "Update Profile Modal (To be implemented)",
-                  })
-                }
+                onClick={() => setShowUpdateModal(true)}
               >
                 Update Profile
               </button>
             </div>
+
             <div className="field-pair">
               <div className="field-row">
                 <span className="field-label">Mobile</span>
@@ -249,6 +259,16 @@ const Profile = ({ onClose }) => {
         >
           <p>{alertModal.message}</p>
         </Modal>
+      )}
+
+      {showUpdateModal && (
+        <UpdateProfile
+          profile={profile}
+          isVisible={showUpdateModal}
+          onClose={() => setShowUpdateModal(false)}
+          onSaved={handleProfileSaved}
+          employeeId={employeeId}
+        />
       )}
     </div>
   );

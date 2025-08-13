@@ -15,13 +15,19 @@ export default function FileInput({
   const [confirmVisible, setConfirmVisible] = useState(false);
   const inputRef = useRef();
 
+  // Normalize existingUrl into a boolean that treats empty arrays/strings as "no existing"
+  const hasExisting = Array.isArray(existingUrl)
+    ? existingUrl.length > 0
+    : Boolean(existingUrl);
+
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
     if (!multiple) {
       const file = files[0];
-      if (existingUrl) {
+      // use hasExisting instead of plain existingUrl
+      if (hasExisting) {
         setPendingFile(file);
         setConfirmVisible(true);
       } else {
@@ -56,7 +62,8 @@ export default function FileInput({
             accept={accept}
             multiple={multiple}
             onChange={handleFileSelect}
-            {...(required && !existingUrl ? { required: true } : {})}
+            // treat empty existingUrl as "no existing" for required logic too
+            {...(required && !hasExisting ? { required: true } : {})}
           />
         </label>
       </div>

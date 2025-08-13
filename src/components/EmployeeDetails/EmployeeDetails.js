@@ -220,6 +220,15 @@ export default function EmployeeDetails() {
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employeeId || null;
 
+  function formatSafeMonthYear(dateStr) {
+    if (!dateStr) return "—";
+    try {
+      return format(new Date(dateStr), "dd/MM/yyyy");
+    } catch {
+      return dateStr.split("T")[0] || dateStr;
+    }
+  }
+
   useEffect(() => {
     axios
       .get(`${BASE_URL}/departments`, { headers: { "x-api-key": API_KEY } })
@@ -264,18 +273,22 @@ export default function EmployeeDetails() {
     if (!maybe) return [];
     if (Array.isArray(maybe)) return maybe.filter(Boolean);
     if (typeof maybe === "string") {
-      const trimmed = maybe.trim();
-      // maybe a json-encoded array
-      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      const s = maybe.trim();
+      // try JSON
+      if (s.startsWith("[") && s.endsWith("]")) {
         try {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) return parsed.filter(Boolean);
-        } catch (e) {
-          // fallthrough
-        }
+          const p = JSON.parse(s);
+          if (Array.isArray(p)) return p.filter(Boolean);
+        } catch {}
       }
-      // single path string
-      if (trimmed.startsWith("/")) return [trimmed];
+      // comma separated fallback
+      if (s.includes(","))
+        return s
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
+      // single path
+      return [s];
     }
     return [];
   }
@@ -363,6 +376,14 @@ export default function EmployeeDetails() {
           label: "Passport",
           url: u,
         })),
+        ...toUrlArray(d.voter_id_doc_url).map((u) => ({
+          label: "Voter Id",
+          url: u,
+        })),
+        ...toUrlArray(d.driving_license_doc_url).map((u) => ({
+          label: "Driving License",
+          url: u,
+        })),
       ];
 
       const education = [
@@ -384,27 +405,28 @@ export default function EmployeeDetails() {
         })),
       ];
 
-      const professional = [];
-      if (d.resume_url)
-        professional.push({ label: "Resume", url: d.resume_url });
+      const professional = [
+        ...toUrlArray(d.resume_url).map((u) => ({ label: "Resume", url: u })),
+      ];
 
-      // experience docs (support several shapes)
+      // experience docs
       if (Array.isArray(d.experience)) {
         d.experience.forEach((exp, idx) => {
           const desc = exp.company
             ? `Experience: ${exp.company}`
             : `Experience #${idx + 1}`;
-          professional.push(
-            ...toUrlArray(exp.doc_url).map((u) => ({ label: desc, url: u })),
-            ...toUrlArray(exp.doc_urls).map((u) => ({ label: desc, url: u })),
-            ...toUrlArray(exp.doc).map((u) => ({ label: desc, url: u }))
-          );
+          const candidateKeys = [exp.files, exp.doc_urls, exp.doc, exp.doc_url];
+          candidateKeys.forEach((k) => {
+            toUrlArray(k).forEach((u) =>
+              professional.push({ label: desc, url: u })
+            );
+          });
         });
       }
 
       // other docs
       professional.push(
-        ...toUrlArray(d.other_docs_urls).map((u, i) => ({
+        ...toUrlArray(d.other_docs).map((u, i) => ({
           label: `Other #${i + 1}`,
           url: u,
         }))
@@ -416,10 +438,10 @@ export default function EmployeeDetails() {
           const title = c.name
             ? `Cert: ${c.name}`
             : `Additional Cert #${idx + 1}`;
-          professional.push(
-            ...toUrlArray(c.file_urls).map((u) => ({ label: title, url: u })),
-            ...toUrlArray(c.file_url).map((u) => ({ label: title, url: u })),
-            ...toUrlArray(c.file).map((u) => ({ label: title, url: u }))
+          toUrlArray(c.files || c.file_urls || c.file_url || c.file).forEach(
+            (u) => {
+              education.push({ label: title, url: u });
+            }
           );
         });
       }
@@ -431,6 +453,10 @@ export default function EmployeeDetails() {
         })),
         ...toUrlArray(d.mother_gov_doc_url).map((u, i) => ({
           label: `Mother Doc #${i + 1}`,
+          url: u,
+        })),
+        ...toUrlArray(d.spouse_gov_doc_url).map((u, i) => ({
+          label: `Spouse Doc #${i + 1}`,
           url: u,
         })),
         ...toUrlArray(d.child1_gov_doc_url).map((u, i) => ({
@@ -799,8 +825,30 @@ export default function EmployeeDetails() {
                               <dd>
                                 {emp.pg_board} ({emp.pg_year}) - {emp.pg_score}%
                               </dd>
-                              <dt>Additional Certification:</dt>
-                              <dd>{emp.additional_cert_name}</dd>
+                              <dt>Additional Certifications:</dt>
+                              <dd>
+                                {(emp.additional_certs || []).length === 0 ? (
+                                  "—"
+                                ) : (
+                                  <div>
+                                    {(emp.additional_certs || []).map(
+                                      (c, i) => (
+                                        <dd key={i}>
+                                          <strong>
+                                            {c.name ||
+                                              c.cert_name ||
+                                              "Untitled"}
+                                          </strong>
+                                          {c.institution
+                                            ? ` — ${c.institution}`
+                                            : ""}
+                                          {c.year ? ` (${c.year})` : ""}
+                                        </dd>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                              </dd>
                             </dl>
                           )
                         }
@@ -831,20 +879,35 @@ export default function EmployeeDetails() {
                               <dt>Joining Date:</dt>
                               <dd>{emp.joining_date}</dd>
                               <dt>Experience:</dt>
-                              <dl>
-                                {(emp.experience || []).map((exp, i) => (
-                                  <dd key={i}>
-                                    {exp.company}:{" "}
-                                    {format(
-                                      new Date(exp.start_date),
-                                      "MM/yyyy"
-                                    )}{" "}
-                                    -{" "}
-                                    {format(new Date(exp.end_date), "MM/yyyy")}{" "}
-                                    ({exp.designation})
-                                  </dd>
-                                ))}
-                              </dl>
+                              <dd>
+                                {(emp.experience || []).length === 0 ? (
+                                  "—"
+                                ) : (
+                                  <dl>
+                                    {(emp.experience || []).map((exp, i) => {
+                                      const role =
+                                        exp.role ||
+                                        exp.designation ||
+                                        exp.title ||
+                                        "—";
+                                      const s = exp.start_date
+                                        ? formatSafeMonthYear(exp.start_date)
+                                        : "—";
+                                      const e = exp.end_date
+                                        ? formatSafeMonthYear(exp.end_date)
+                                        : "Present";
+                                      return (
+                                        <dd key={i}>
+                                          {exp.company
+                                            ? `${exp.company}: `
+                                            : ""}
+                                          {s} - {e} ({role})
+                                        </dd>
+                                      );
+                                    })}
+                                  </dl>
+                                )}
+                              </dd>
                             </dl>
                           )
                         }
