@@ -36,26 +36,155 @@ const Profile = ({ onClose }) => {
     return new Blob([res.data], { type: res.headers["content-type"] });
   };
 
-  const downloadDoc = async (url) => {
+  // ---------- Helpers ----------
+  const normalizeInputUrl = (maybe) => {
+    // Accept string, object with .url/.path, arrays, etc.
+    if (!maybe && maybe !== 0) return null;
+
+    if (typeof maybe === "string") return maybe;
+    if (Array.isArray(maybe) && maybe.length)
+      return normalizeInputUrl(maybe[0]);
+    if (typeof maybe === "object") {
+      // common shapes
+      if (typeof maybe.url === "string" && maybe.url) return maybe.url;
+      if (typeof maybe.path === "string" && maybe.path) return maybe.path;
+      if (typeof maybe.file === "string" && maybe.file) return maybe.file;
+      // fallback to JSON string (won't be a valid fetch URL, but at least won't crash)
+      try {
+        return JSON.stringify(maybe);
+      } catch {
+        return String(maybe);
+      }
+    }
+    // fallback
+    return String(maybe);
+  };
+
+  const getSafeFilename = (maybeUrl) => {
+    const u = normalizeInputUrl(maybeUrl);
+    if (!u) return "document";
+
     try {
-      const blob = await fetchBlob(url);
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", url.split("/").pop());
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch {
-      showAlert("Failed to download document");
+      // if it's an absolute URL, use URL to parse pathname
+      if (u.startsWith("http://") || u.startsWith("https://")) {
+        try {
+          const pathname = new URL(u).pathname || "";
+          return decodeURIComponent(pathname.split("/").pop() || "document");
+        } catch (e) {
+          /* fallthrough */
+        }
+      }
+      // treat as path-like
+      const last = u.split("/").pop() || "document";
+      return decodeURIComponent(last.replace(/[?#].*$/, "")); // remove queries/hashes
+    } catch (e) {
+      return "document";
     }
   };
 
-  const viewDoc = async (url) => {
+  const buildFetchUrl = (maybeUrl) => {
+    // returns a URL string you can pass to axios.get
+    const u = normalizeInputUrl(maybeUrl);
+    if (!u) return null;
+
+    // If it already looks absolute, use it
+    if (u.startsWith("http://") || u.startsWith("https://")) return u;
+
+    // if already starts with /docs, no need to add base again
+    if (u.startsWith("/docs")) {
+      // handle when backend expects exact full path (you may choose to strip /docs)
+      return `${BASE_URL}${u}`; // e.g. BASE_URL + /docs/...
+    }
+
+    // ensure it starts with '/'
+    const path = u.startsWith("/") ? u : `/${u}`;
+
+    // final: prefix with /docs
+    return `${BASE_URL}/docs${path}`;
+  };
+
+  // ---------- view & download ----------
+  const viewDoc = async (maybeUrl) => {
+    const raw = normalizeInputUrl(maybeUrl);
+    if (!raw) return showAlert("No document URL");
+
+    console.log("viewDoc called with:", maybeUrl);
+
     try {
-      const blob = await fetchBlob(url);
-      window.open(URL.createObjectURL(blob), "_blank");
-    } catch {
+      const fetchUrl = buildFetchUrl(maybeUrl);
+      if (!fetchUrl) return showAlert("Invalid document URL");
+
+      const resp = await axios.get(fetchUrl, {
+        responseType: "arraybuffer",
+        headers: {
+          "x-api-key": API_KEY,
+          "x-employee-id": employeeId,
+        },
+      });
+
+      const contentType =
+        resp.headers["content-type"] || "application/octet-stream";
+      const blob = new Blob([resp.data], { type: contentType });
+      const blobUrl = URL.createObjectURL(blob);
+
+      // open the blob for viewing
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (err) {
+      console.error("viewDoc error:", err, { maybeUrl });
       showAlert("Failed to view document");
+    }
+  };
+
+  const downloadDoc = async (maybeUrl) => {
+    const raw = normalizeInputUrl(maybeUrl);
+    if (!raw) return showAlert("No document URL");
+
+    console.log("downloadDoc called with:", maybeUrl);
+
+    try {
+      const fetchUrl = buildFetchUrl(maybeUrl);
+      if (!fetchUrl) return showAlert("Invalid document URL");
+
+      const resp = await axios.get(fetchUrl, {
+        responseType: "arraybuffer",
+        headers: {
+          "x-api-key": API_KEY,
+          "x-employee-id": employeeId,
+        },
+      });
+
+      const contentType =
+        resp.headers["content-type"] || "application/octet-stream";
+      const blob = new Blob([resp.data], { type: contentType });
+      const objectUrl = URL.createObjectURL(blob);
+
+      const filename = getSafeFilename(maybeUrl);
+
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+
+      // Some browsers prefer dispatchEvent for trusted click in some contexts:
+      a.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        })
+      );
+
+      a.remove();
+      setTimeout(() => {
+        try {
+          URL.revokeObjectURL(objectUrl);
+        } catch (e) {}
+      }, 60_000);
+    } catch (err) {
+      console.error("downloadDoc error:", err, { maybeUrl });
+      showAlert("Failed to download document");
     }
   };
 
