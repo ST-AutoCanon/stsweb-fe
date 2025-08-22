@@ -1,3 +1,4 @@
+
 export const parseApplicableMonth = (monthStr) => {
   if (!monthStr || typeof monthStr !== 'string') {
     console.log(`Invalid applicable_month format: ${monthStr}`);
@@ -54,14 +55,12 @@ export const calculateSalaryDetails = (
   employeeId,
   overtimeRecords = [],
   bonusRecords = [],
-  advances = [],
-  lopDetails = []
+  advances = []
 ) => {
   // Ensure input arrays are valid
   const safeOvertimeRecords = Array.isArray(overtimeRecords) ? overtimeRecords : [];
   const safeBonusRecords = Array.isArray(bonusRecords) ? bonusRecords : [];
   const safeAdvances = Array.isArray(advances) ? advances : [];
-  const safeLopDetails = Array.isArray(lopDetails) ? lopDetails : [];
 
   // Log input for debugging
   console.log(`calculateSalaryDetails inputs: employeeId=${employeeId}, ctc=${ctc}, planData=`, JSON.stringify(planData, null, 2));
@@ -98,8 +97,7 @@ export const calculateSalaryDetails = (
       professionalTax = 0,
       otherAllowances = 0,
       advanceRecovery = 0,
-      insurance = 0,
-      lopDeduction = 0;
+      insurance = 0;
 
   // Validate planData
   if (!planData || typeof planData !== 'object') {
@@ -207,38 +205,41 @@ export const calculateSalaryDetails = (
   }, 0);
   console.log(`Total bonusPay for employee ${employeeId}: ₹${bonusPay}`);
 
-  // Employee PF
-  if (planData?.isPFApplicable && planData.pfType === "percentage" && planData.pfPercentage && !isNaN(parseFloat(planData.pfPercentage))) {
-    employeePF = Math.round(basicSalary * (parseFloat(planData.pfPercentage) / 100));
-  } else if (planData?.pfAmount && !isNaN(parseFloat(planData.pfAmount))) {
-    employeePF = Math.round(parseFloat(planData.pfAmount) / 12);
-  } else {
-    employeePF = Math.round(basicSalary * 0.12);
-    console.warn(`Using default employeePF (12% of basicSalary) for employee ${employeeId}`);
-  }
-  console.log(`Employee PF (monthly): ₹${employeePF}`);
+// Employee PF
+if (planData?.isPFApplicable && planData.isPFEmployee && planData.pfEmployeeType === "percentage" && planData.pfEmployeePercentage && !isNaN(parseFloat(planData.pfEmployeePercentage))) {
+  employeePF = Math.round(basicSalary * (parseFloat(planData.pfEmployeePercentage) / 100));
+  planData.pfEmployeeText = `${planData.pfEmployeePercentage}% of Basic`;
+} else if (planData?.pfEmployeeAmount && !isNaN(parseFloat(planData.pfEmployeeAmount))) {
+  employeePF = Math.round(parseFloat(planData.pfEmployeeAmount) / 12);
+  planData.pfEmployeeText = `₹${planData.pfEmployeeAmount} (Fixed)`;
+} else {
+  employeePF = 0;
+  planData.pfEmployeeText = `Not Applicable`;
+  console.warn(`No Employee PF defined for employee ${employeeId}`);
+}
 
-  // Employer PF
-  if (planData?.isPfEmployer && planData.pfEmployerType === "percentage" && planData.pfEmployerCeilingPercentage && !isNaN(parseFloat(planData.pfEmployerCeilingPercentage))) {
-    employerPF = Math.min(Math.round(basicSalary * (parseFloat(planData.pfEmployerCeilingPercentage) / 100)), 1800);
-  } else if (planData?.pfEmployerAmount && !isNaN(parseFloat(planData.pfEmployerAmount))) {
-    employerPF = Math.round(parseFloat(planData.pfEmployerAmount) / 12);
-  } else {
-    employerPF = employeePF;
-    console.warn(`Using default employerPF (equal to employeePF) for employee ${employeeId}`);
-  }
-  console.log(`Employer PF (monthly): ₹${employerPF}`);
+// Employer PF
+if (planData?.isPFApplicable && planData.isPFEmployer && planData.pfEmployerType === "percentage" && planData.pfEmployerPercentage && !isNaN(parseFloat(planData.pfEmployerPercentage))) {
+  employerPF = Math.round(basicSalary * (parseFloat(planData.pfEmployerPercentage) / 100));
+  planData.pfEmployerText = `${planData.pfEmployerPercentage}% of Basic`;
+} else if (planData?.pfEmployerAmount && !isNaN(parseFloat(planData.pfEmployerAmount))) {
+  employerPF = Math.round(parseFloat(planData.pfEmployerAmount) / 12);
+  planData.pfEmployerText = `₹${planData.pfEmployerAmount} (Fixed)`;
+} else {
+  employerPF = 0;
+  planData.pfEmployerText = `Not Applicable`;
+  console.warn(`No Employer PF defined for employee ${employeeId}`);
+}
 
   // ESIC
-  if (planData?.isESICApplicable && planData.esicType === "percentage" && planData.esicPercentage && !isNaN(parseFloat(planData.esicPercentage))) {
-    esic = Math.round(monthlyCtc * (parseFloat(planData.esicPercentage) / 100));
-  } else if (planData?.esicAmount && !isNaN(parseFloat(planData.esicAmount))) {
-    esic = Math.round(parseFloat(planData.esicAmount) / 12);
-  } else {
-    esic = 0;
-    console.warn(`No ESIC defined for employee ${employeeId}`);
-  }
-  console.log(`ESIC (monthly): ₹${esic}`);
+if (planData?.isESICEmployee && planData.esicEmployeeType === "percentage" && planData.esicEmployeePercentage && !isNaN(parseFloat(planData.esicEmployeePercentage))) {
+  esic = Math.round(monthlyCtc * (parseFloat(planData.esicEmployeePercentage) / 100));
+} else if (planData?.esicEmployeeAmount && !isNaN(parseFloat(planData.esicEmployeeAmount))) {
+  esic = Math.round(parseFloat(planData.esicEmployeeAmount) / 12);
+} else {
+  esic = 0;
+  console.warn(`No ESIC defined for employee ${employeeId}`);
+}
 
   // Gratuity
   if (planData?.isGratuityApplicable && planData.gratuityType === "percentage" && planData.gratuityPercentage && !isNaN(parseFloat(planData.gratuityPercentage))) {
@@ -310,31 +311,6 @@ export const calculateSalaryDetails = (
   }, 0);
   console.log(`Total Advance Recovery (monthly): ₹${advanceRecovery}`);
 
-  // LOP Deduction
-  const employeeLopRecords = safeLopDetails.filter((lop) => lop.employee_id === employeeId);
-  if (employeeLopRecords.length > 0) {
-    const totalLopDays = employeeLopRecords.reduce((sum, lop) => {
-      const lopDays = parseFloat(lop.emp_lop);
-      return (lop.emp_lop !== null && !isNaN(lopDays) && lopDays >= 0) ? sum + lopDays : sum;
-    }, 0);
-    if (totalLopDays > 0) {
-      const workingDaysInMonth = getWorkingDaysInMonth(parseInt(currentYear), parseInt(currentMonth));
-      if (workingDaysInMonth === 0) {
-        console.log(`No working days in ${currentYear}-${currentMonth}, setting lopDeduction to 0`);
-        lopDeduction = 0;
-      } else {
-        const dailySalary = monthlyCtc / workingDaysInMonth;
-        lopDeduction = Math.round(totalLopDays * dailySalary);
-        console.log(`LOP Deduction for ${employeeId}: ${totalLopDays} days * ₹${dailySalary.toFixed(2)} = ₹${lopDeduction}`);
-      }
-    } else {
-      console.log(`No valid LOP days found for employee ${employeeId}`);
-    }
-  } else {
-    console.log(`No LOP records found for employee ${employeeId}`);
-  }
-  console.log(`LOP Deduction (monthly): ₹${lopDeduction}`);
-
   // Insurance
   if (planData?.isInsuranceApplicable && planData.insuranceType === "percentage" && planData.insurancePercentage && !isNaN(parseFloat(planData.insurancePercentage))) {
     insurance = Math.round(monthlyCtc * (parseFloat(planData.insurancePercentage) / 100));
@@ -350,34 +326,30 @@ export const calculateSalaryDetails = (
   const taxableIncome = basicSalary + hra + ltaAllowance + incentives + overtimePay + bonusPay + otherAllowances - employeePF - esic - insurance;
   console.log(`Taxable Income (monthly): ₹${taxableIncome}`);
 
-  // TDS Calculation
-  let tds = 0;
-  if (planData.isTDSApplicable && Array.isArray(planData.tdsSlabs) && planData.tdsSlabs.length > 0) {
-    const annualCtc = parseFloat(ctc);
-    const annualTaxable = taxableIncome * 12;
-    const sortedSlabs = [...planData.tdsSlabs].sort((a, b) => parseInt(a.from) - parseInt(b.from));
+let tds = 0;
+if (planData.isTDSApplicable && Array.isArray(planData.tdsSlabs) && planData.tdsSlabs.length > 0) {
+  const annualCtc = parseFloat(ctc);
+  const annualTaxable = taxableIncome * 12;
+  const sortedSlabs = [...planData.tdsSlabs].sort((a, b) => parseInt(a.from) - parseInt(b.from));
 
-    for (const slab of sortedSlabs) {
-      const lower = parseInt(slab.from) || 0;
-      const upper = parseInt(slab.to) || Infinity;
-      const rate = parseFloat(slab.percentage) / 100 || 0;
+  for (const slab of sortedSlabs) {
+    const lower = parseInt(slab.from) || 0;
+    const upper = parseInt(slab.to) || Infinity;
+    const rate = parseFloat(slab.percentage) / 100 || 0;
 
-      // Check if annual CTC falls within the slab range
-      if (annualCtc >= lower && (upper === Infinity || annualCtc <= upper) && rate > 0) {
-        tds = Math.round(annualTaxable * rate / 12);
-        console.log(`TDS calculated for CTC ₹${annualCtc}: slab [${lower}-${upper}], rate=${rate*100}%, monthly TDS=₹${tds}`);
-        break;
-      }
+    if (annualTaxable >= lower && (upper === Infinity || annualTaxable <= upper) && rate > 0) {
+      tds = Math.round(annualTaxable * rate / 12);
+      console.log(`TDS calculated for taxable income ₹${annualTaxable}: slab [${lower}-${upper}], rate=${rate*100}%, monthly TDS=₹${tds}`);
+      break;
     }
-  } else {
-    console.log(`No valid TDS slabs or TDS not applicable for employee ${employeeId}, setting TDS to 0`);
-    tds = 0;
   }
-  console.log(`TDS (monthly): ₹${tds}`);
-
+} else {
+  console.log(`No valid TDS slabs or TDS not applicable for employee ${employeeId}, setting TDS to 0`);
+  tds = 0;
+}
   // Calculate Gross and Net Salary
   const grossSalary = basicSalary + hra + ltaAllowance + incentives + overtimePay + bonusPay + otherAllowances;
-  const netSalary = grossSalary - employeePF - professionalTax - tds - esic - advanceRecovery - insurance - lopDeduction;
+  const netSalary = grossSalary - employeePF - professionalTax - tds - esic - advanceRecovery - insurance;
 
   const salaryDetails = {
     basicSalary: Math.round(basicSalary),
@@ -395,7 +367,6 @@ export const calculateSalaryDetails = (
     tds: Math.round(tds),
     advanceRecovery: Math.round(advanceRecovery),
     insurance: Math.round(insurance),
-    lopDeduction: Math.round(lopDeduction),
     grossSalary: Math.round(grossSalary),
     netSalary: Math.round(netSalary),
   };
@@ -404,7 +375,7 @@ export const calculateSalaryDetails = (
   return salaryDetails;
 };
 
-export const calculateTotals = (employees, overtimeRecords, bonusRecords, advances, lopDetails) => {
+export const calculateTotals = (employees, overtimeRecords, bonusRecords, advances) => {
   if (!Array.isArray(employees)) {
     console.error("Invalid employees array in calculateTotals");
     return {
@@ -417,7 +388,6 @@ export const calculateTotals = (employees, overtimeRecords, bonusRecords, advanc
       totalEmployeePF: 0,
       totalEmployerPF: 0,
       totalInsurance: 0,
-      totalLopDeduction: 0,
     };
   }
 
@@ -429,8 +399,7 @@ export const calculateTotals = (employees, overtimeRecords, bonusRecords, advanc
         emp.employee_id,
         overtimeRecords,
         bonusRecords,
-        advances,
-        lopDetails
+        advances
       );
       if (!salaryDetails) {
         console.warn(`No salary details for employee ${emp.employee_id}`);
@@ -447,7 +416,6 @@ export const calculateTotals = (employees, overtimeRecords, bonusRecords, advanc
         totalEmployeePF: totals.totalEmployeePF + salaryDetails.employeePF,
         totalEmployerPF: totals.totalEmployerPF + salaryDetails.employerPF,
         totalInsurance: totals.totalInsurance + salaryDetails.insurance,
-        totalLopDeduction: totals.totalLopDeduction + salaryDetails.lopDeduction,
       };
     },
     {
@@ -460,7 +428,6 @@ export const calculateTotals = (employees, overtimeRecords, bonusRecords, advanc
       totalEmployeePF: 0,
       totalEmployerPF: 0,
       totalInsurance: 0,
-      totalLopDeduction: 0,
     }
   );
 };

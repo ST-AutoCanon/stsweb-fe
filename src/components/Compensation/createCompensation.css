@@ -473,3 +473,91 @@ overflow-x: hidden;
   width: 100%;
   max-width: 1000px;
 }
+/* Styling for the Add Slab button */
+.compensation-add-slab-button {
+  background-color: #7FBD2C; /* Matches other buttons */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compensation-add-slab-button:hover {
+  background-color: #6aa423; /* Matches hover effect of other buttons */
+  transform: translateY(-1px); /* Subtle lift effect on hover */
+}
+
+.compensation-add-slab-button:active {
+  transform: translateY(0); /* Reset transform on click */
+}
+
+/* Styling for the Remove button */
+.compensation-remove-button {
+  background-color: #dc3545; /* Red color for remove action */
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compensation-remove-button:hover {
+  background-color: #c82333; /* Darker red on hover */
+  transform: translateY(-1px); /* Subtle lift effect */
+}
+
+.compensation-remove-button:active {
+  transform: translateY(0); /* Reset transform on click */
+}
+
+/* Adjust the compensation-input-group for TDS slabs to ensure proper alignment */
+.compensation-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* Allow wrapping for smaller screens */
+}
+
+/* Ensure the TDS slab inputs and buttons are well-spaced */
+.compensation-input-group select,
+.compensation-input-group input {
+  flex: 1;
+  min-width: 120px;
+  max-width: 150px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .compensation-input-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .compensation-add-slab-button,
+  .compensation-remove-button {
+    width: 100%;
+    max-width: 150px;
+    margin-top: 5px;
+  }
+
+  .compensation-input-group select,
+  .compensation-input-group input {
+    width: 100%;
+    max-width: none;
+  }
+}
