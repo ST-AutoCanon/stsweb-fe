@@ -296,6 +296,13 @@
   min-width: 80px;
 }
 
+.lv-policy-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin: 2% 0;
+}
+
 .leave-approved {
   background-color: #d7f2ce;
 }
@@ -673,6 +680,7 @@
   font-size: 16px;
   display: flex;
   gap: 8px;
+  padding: 5% 0;
   align-items: baseline;
   font-weight: 500;
 }
@@ -697,7 +705,7 @@
   background: linear-gradient(180deg, #fff8f8, #fff3f3);
   border: 1px solid rgba(204, 0, 0, 0.08);
   color: #8a0000;
-  min-width: 110px;
+  min-width: 150px;
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
@@ -720,16 +728,17 @@
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
-  padding: 6px;
+  padding: 4px;
   border-radius: 6px;
   color: #8a0000;
   transition: background-color 0.12s ease, opacity 0.12s ease;
+  margin-top: 2px;
 }
 
 /* hover/focus affordance */
 .total-lop-card button:hover,
 .total-lop-card button:focus {
-  background: rgba(138, 0, 0, 0.06);
+  background: #8a00000f;
   outline: none;
 }
 
@@ -759,6 +768,7 @@
 /* big LOP number */
 .total-lop-card .lop-value {
   font-size: 20px;
+  text-align: center;
   font-weight: 800;
   color: #cc0000;
   line-height: 1;
@@ -789,4 +799,381 @@
 .balance-mini-card button:focus {
   box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.12);
   border-radius: 6px;
+}
+
+.policy-modal-content {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.policy-dates {
+  display: flex;
+  justify-content: space-around;
+  margin: 12px;
+}
+
+.date-label {
+  font-weight: bold;
+  color: #555;
+  margin-right: 4px;
+}
+
+.date-value {
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.policy-note {
+  background: #f9f9f9;
+  padding: 4px 8px;
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.policy-note .carry-forward {
+  color: green;
+  font-weight: bold;
+}
+
+.policy-note .lapse {
+  color: red;
+  font-weight: bold;
+}
+
+.leave-policy-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.leave-policy-table th,
+.leave-policy-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.leave-policy-table th {
+  background-color: #007bff;
+  color: white;
+}
+
+.lv-title {
+  margin: 0.5% 0;
+}
+
+.lv-filter-button {
+  padding: 0 1%;
+  font-size: 100%;
+  cursor: pointer;
+  background-color: #00468c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.1s ease,
+    box-shadow 0.3s ease;
+}
+
+/* ---------- VENN DIAGRAM STYLES (add to LeaveRequest.css) ---------- */
+
+/* Card that wraps each Venn diagram (was venn-card-fixed) */
+.venn-card.venn-card-fixed {
+  min-width: 200px; /* matches previous minWidth */
+  flex: 0 0 auto; /* keep a fixed card in the horizontal row */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  height: auto; /* or set a min-height */
+  overflow: visible;
+}
+
+/* small label above each diagram */
+.venn-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1f2d3d;
+  text-transform: capitalize;
+  width: 100%;
+  text-align: center;
+}
+
+/* responsive SVG sizing — use viewBox for perfect scaling */
+.venn-svg {
+  width: 100%;
+  height: auto;
+  max-width: 200px;
+  display: block;
+
+  overflow: visible;
+}
+
+/* Horizontal row wrapper for Venn diagrams (legacy scrollable layout) */
+.venn-grid.horizontal {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 12px 4px;
+  align-items: flex-start;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* header row near the Venn area (keeps LOP card aligned) */
+.venn-header.venn-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* tiny explanatory note under the section title */
+.venn-note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #555;
+}
+
+/* legend under each diagram */
+.venn-legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  color: #333;
+}
+
+/* colored swatches used in legend */
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03) inset;
+}
+
+.legend-swatch.used {
+  background: rgba(220, 53, 69, 0.6);
+}
+
+.legend-swatch.remaining {
+  background: rgba(25, 135, 84, 0.6);
+}
+
+/* ---------- NEW: VENN NAVIGATION LAYOUT (replaces x-axis scroll) ---------- */
+
+/* top-level section wrapper containing policy period + venn area */
+.venn-balance-section {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+/* Layout: LOP card | left nav | cards | right nav */
+.venn-grid-with-nav {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  /* hide any accidental overflow to avoid showing horizontal scrollbar */
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 8px 4px;
+}
+
+/* The column used for the small prev/next nav buttons */
+.venn-nav-column {
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4% 0;
+}
+
+.policy-period-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Primary nav button styling (circular icon) */
+.venn-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: #f2f4f7;
+  color: #333;
+  cursor: pointer;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.12s ease, transform 0.08s ease,
+    box-shadow 0.12s ease, opacity 0.12s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.venn-nav-btn:hover {
+  background: #e6e9ee;
+  transform: translateY(-1px);
+}
+
+.venn-nav-btn:active {
+  transform: translateY(0);
+}
+
+.venn-nav-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 70, 140, 0.08);
+  border-radius: 8px;
+}
+
+/* Disabled state: visually subdued and not interactive */
+.venn-nav-btn[disabled],
+.venn-nav-btn[aria-disabled="true"],
+.venn-nav-btn.disabled {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
+  pointer-events: none;
+  background: #f7f7f7;
+}
+
+/* Container for visible venn cards (JS controls which are rendered) */
+.venn-cards-container {
+  display: flex;
+  align-items: flex-start;
+
+  /* keep content left-aligned */
+  justify-content: flex-start;
+  /* ensure consistent height */
+
+  box-sizing: border-box;
+}
+
+/* wrapper around each Venn card — helps spacing/placeholder sizing */
+.venn-card-wrapper {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  width: 180px;
+}
+
+/* placeholder boxes to keep layout stable when fewer cards than slots */
+.venn-card-placeholder {
+  min-width: 200px;
+  height: 160px;
+  border-radius: 8px;
+  background: transparent;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+/* small pager under the venn area */
+.venn-pager {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #444;
+  text-align: left;
+  padding-left: 6px;
+}
+
+/* make LOP card visually attached to the venn area */
+.venn-grid-with-nav .total-lop-card {
+  align-self: flex-start;
+  margin-right: 4px;
+}
+
+/* Accessibility: visible focus ring for card wrappers (keyboard users) */
+.venn-card-wrapper:focus-within,
+.venn-card-wrapper:focus {
+  outline: 3px solid rgba(0, 70, 140, 0.08);
+  border-radius: 6px;
+}
+
+/* a11y helper for nav tooltip look */
+.venn-nav-btn[title] {
+  position: relative;
+}
+
+/* a little responsive resizing */
+@media (max-width: 900px) {
+  .venn-nav-column {
+    width: 36px;
+  }
+  .venn-nav-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .venn-card-placeholder,
+  .venn-card.venn-card-fixed {
+    min-width: 180px;
+  }
+  .venn-cards-container {
+    min-height: 140px;
+  }
+}
+
+@media (max-width: 600px) {
+  .venn-grid-with-nav {
+    gap: 8px;
+    padding: 6px 2px;
+  }
+  .venn-nav-column {
+    width: 32px;
+  }
+  .venn-nav-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .venn-card-placeholder,
+  .venn-card.venn-card-fixed {
+    min-width: 160px;
+  }
+  .venn-cards-container {
+    gap: 12px;
+  }
+}
+
+/* a bit of breathing room on small screens */
+@media (max-width: 520px) {
+  .venn-card.venn-card-fixed {
+    min-width: 200px;
+    padding: 6px 8px;
+  }
+  .venn-svg {
+    max-width: 200px;
+  }
+}
+
+/* ensure focus outlines for keyboard users */
+.venn-card.venn-card-fixed button:focus {
+  box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.12);
+  border-radius: 6px;
+}
+
+.show-lop-btn {
+  margin: 0 8px;
+  padding: 6px 8px;
+  background: #00468c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 400;
+}
+.show-lop-btn:hover {
+  background: #005494;
+}
+.show-lop-btn:active {
+  transform: translateY(1px);
+}
+.show-lop-btn:focus {
+  outline: 3px solid rgba(0, 102, 179, 0.18);
 }
