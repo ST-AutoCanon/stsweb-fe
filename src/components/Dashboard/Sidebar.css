@@ -1,4 +1,3 @@
-
 .sidebar {
   width: 250px;
   background-color: #f4f4f4;
@@ -6,24 +5,23 @@
 
   position: fixed; /* Keeps sidebar fixed on the left */
   left: 0;
- margin-top:100%;
+  margin-top: 100%;
   padding: 0;
 }
 
 .sidebar ul {
-  
   list-style-type: none;
   padding: 0;
-  margin-top:15%;
+  margin-top: 15%;
 }
 
 .sidebar li {
   padding: 15px;
   margin: 5px 0;
- 
+
   cursor: pointer;
   background-color: white;
-  border-radius:6px 0 0 6px;
+  border-radius: 6px 0 0 6px;
   /* border: 1px solid #ddd;  */
   transition: background-color 0.3s;
 }
@@ -31,8 +29,6 @@
 .sidebar li:hover {
   background-color: #ddd;
 }
-
-
 
 .sidebar .icon {
   font-size: 20px;
@@ -44,7 +40,6 @@
   font-size: 16px;
   color: #333;
 }
-
 
 /* Sidebar.css */
 .view-profile {
@@ -71,7 +66,6 @@
   font-weight: bold;
 }
 
-
 /* Bottom Navigation Bar for Mobile */
 .bottom-nav {
   display: none; /* Hidden on desktop */
@@ -87,7 +81,6 @@
   z-index: 1000;
 }
 
-
 /* Mobile menu overlay */
 .mobile-menu-overlay {
   position: fixed;
@@ -101,8 +94,6 @@
   align-items: center;
   z-index: 1000;
 }
-
-
 
 /* Mobile menu container */
 .mobile-menu {
@@ -163,7 +154,6 @@
   color: black;
 }
 
-
 /* Close button */
 .close-menu {
   position: absolute;
@@ -221,7 +211,7 @@
 }
 
 .bottom-nav button.active {
-  color: #004DC6; /* Highlight active button */
+  color: #004dc6; /* Highlight active button */
 }
 .bottom-nav button svg {
   font-size: 28px;

@@ -1,9 +1,10 @@
-// Notifications.js
+// src/components/Topbar/Notifications.js
 import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { ContentContext } from "./Context";
 import NoteDashboard from "../Notes/NoteDashboard";
 import "./Notifications.css";
+import Admin from "../LeaveQueries/Admin";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -11,6 +12,7 @@ const meId = JSON.parse(
   localStorage.getItem("dashboardData") || "{}"
 ).employeeId;
 
+// IMPORTANT: import Admin (main Leave Queries/Admin view)
 export default function Notifications({ visible, onClose, onRead }) {
   const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
@@ -23,7 +25,7 @@ export default function Notifications({ visible, onClose, onRead }) {
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       })
       .then((res) => {
-        if (res.data.success) setNotifications(res.data.notifications);
+        if (res.data.success) setNotifications(res.data.notifications || []);
       })
       .catch((err) => console.error("Error fetching notifications", err));
   }, [visible]);
@@ -52,13 +54,41 @@ export default function Notifications({ visible, onClose, onRead }) {
       .catch((err) => console.error("Error marking notification read", err));
   };
 
-  const handleClickNotification = (note) => {
-    markRead(note.id).then(() => {
-      onClose();
-      setActiveContent(
-        <NoteDashboard key={note.meeting_id} highlightedId={note.meeting_id} />
-      );
-    });
+  const handleClickNotification = async (note) => {
+    try {
+      // mark notification as read first
+      await markRead(note.id);
+
+      // close dropdown if parent provided onClose
+      if (typeof onClose === "function") onClose();
+
+      // If notification relates to a policy -> open Admin + open PolicyModal for that policy
+      if (note.policy_id) {
+        // Render the Admin view as the active content and pass openPolicyId prop
+        setActiveContent(
+          <Admin
+            key={`admin-policy-${note.policy_id}`}
+            openPolicyId={note.policy_id}
+          />
+        );
+        return;
+      }
+
+      // Meeting-related: keep existing NoteDashboard behavior
+      if (note.meeting_id) {
+        setActiveContent(
+          <NoteDashboard
+            key={note.meeting_id}
+            highlightedId={note.meeting_id}
+          />
+        );
+        return;
+      }
+
+      // fallback: do nothing for other notification types (or extend as needed)
+    } catch (err) {
+      console.error("Error handling notification click:", err);
+    }
   };
 
   if (!visible) return null;
@@ -74,6 +104,13 @@ export default function Notifications({ visible, onClose, onRead }) {
             key={note.id}
             className="notification-item"
             onClick={() => handleClickNotification(note)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ")
+                handleClickNotification(note);
+            }}
+            aria-label={`Notification: ${note.message}`}
           >
             <p className="n_message">{note.message}</p>
             <small className="n_time">
@@ -85,6 +122,7 @@ export default function Notifications({ visible, onClose, onRead }) {
                 e.stopPropagation();
                 markRead(note.id);
               }}
+              aria-label="Mark as read"
             >
               ✓
             </button>
