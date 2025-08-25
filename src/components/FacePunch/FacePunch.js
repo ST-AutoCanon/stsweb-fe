@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const COOLDOWN_PERIOD = 5000; // 10 seconds cooldown (adjustable)
+const COOLDOWN_PERIOD = 10000; // 10 seconds cooldown (adjustable)
 const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
