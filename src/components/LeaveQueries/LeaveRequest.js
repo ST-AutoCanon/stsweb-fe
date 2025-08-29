@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import "./LeaveRequest.css";
 import Modal from "../Modal/Modal";
+import CompensationPopup from "../LeaveQueries/CompensationPopup";
 import { MdOutlineCancel } from "react-icons/md";
 import { IoSearch } from "react-icons/io5";
 import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
@@ -15,7 +16,40 @@ const parseLocalDate = (dateStr) => {
   return d.toISOString().split("T")[0];
 };
 
-// helper: normalize advance notice number from setting object
+// parse date-only robustly (handles YYYY-MM-DD or full ISO)
+const parseDateOnly = (isoDate) => {
+  if (!isoDate) return null;
+  const d = new Date(isoDate);
+  if (!isNaN(d.getTime())) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  // fallback for 'YYYY-MM-DD'
+  const parts = String(isoDate).split("-");
+  if (parts.length >= 3) {
+    const [y, m, day] = parts;
+    return new Date(Number(y), Number(m) - 1, Number(day));
+  }
+  return null;
+};
+
+// inclusive day count (handles half-day single-day case via h_f_day)
+const calculateDays = (startDate, endDate, h_f_day = "") => {
+  const s = parseDateOnly(startDate);
+  const e = parseDateOnly(endDate);
+  if (!s || !e || e < s) return 0;
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const diffDays = Math.round((e - s) / msPerDay);
+  const total = diffDays >= 0 ? diffDays + 1 : 0;
+  if (
+    String(h_f_day).toLowerCase().includes("half") &&
+    s.getTime() === e.getTime()
+  ) {
+    return 0.5;
+  }
+  return total;
+};
+
+// helper to normalize advance notice number from setting object
 const getAdvanceNoticeDays = (setting) =>
   Number(setting?.advance_notice_days ?? setting?.advanceNoticeDays ?? 0);
 
@@ -30,6 +64,16 @@ const headers = {
   "Content-Type": "application/json",
   "x-employee-id": meId,
 };
+
+const rolesWithTeamView = new Set([
+  "supervisor",
+  "manager",
+  "admin",
+  "ceo",
+  "super admin",
+  "superadmin",
+  "super_admin",
+]);
 
 const LeaveRequest = () => {
   const [isFormVisible, setFormVisible] = useState(false);
@@ -55,6 +99,10 @@ const LeaveRequest = () => {
     onConfirm: null,
   });
 
+  // Team-specific filters
+  const [teamSearch, setTeamSearch] = useState("");
+  const [teamStatus, setTeamStatus] = useState("");
+
   // leave balances and policies
   const [balances, setBalances] = useState([]); // from /leave-balance
   const [policies, setPolicies] = useState([]); // policy periods array
@@ -68,25 +116,60 @@ const LeaveRequest = () => {
   const [lopYear, setLopYear] = useState(now.getFullYear());
   const [monthlyLop, setMonthlyLop] = useState(0);
 
-  // NEW: Venn navigation state (replaces x-axis scroll)
-  // start index for visible balance cards (0-based)
+  // NEW: separate LOP modal boolean (for Total LOP display)
+  const [isLopModalOpen, setIsLopModalOpen] = useState(false);
+
+  // Compensation popup (LOP) state — wired to CompensationPopup component (approval flows)
+  const [lopModal, setLopModal] = useState({
+    isVisible: false,
+    leaveId: null,
+    deficit: 0,
+    days: 0,
+    remaining: 0,
+    message: "",
+    compensatedDays: 0,
+    deductedDays: 0,
+    lopDays: 0,
+    approveDeficit: null,
+    setAllCompensated: null,
+    setAllDeducted: null,
+    applyFlexibleSplit: null,
+    error: "",
+  });
+
+  // Venn navigation state (UI)
   const [vennStartIndex, setVennStartIndex] = useState(0);
-  // how many balance cards to show at once (responsive)
   const [vennVisibleCount, setVennVisibleCount] = useState(6);
-  const [showLopCard, setShowLopCard] = useState(false); // false -> hidden by default
 
   const employeeId = employeeData?.employeeId;
   const name = employeeData?.name;
-  const role = localStorage.getItem("userRole") || null;
+  const roleRaw = localStorage.getItem("userRole") || null;
 
-  // ---------- Helper: detect bereavement-like types ----------
-  const isBereavementType = (type) => {
-    if (!type) return false;
-    const t = String(type).toLowerCase();
-    return t.includes("bereav") || t.includes("brev");
+  const roleNormalized = String(roleRaw || "")
+    .toLowerCase()
+    .replace(/[_\s]+/g, " ")
+    .trim();
+
+  const canViewTeam = rolesWithTeamView.has(roleNormalized);
+
+  // ---------- Alerts/Modals ----------
+  const showAlert = (message, title = "") => {
+    // force-close compensation popup first to avoid stacking
+    setLopModal((m) => ({ ...m, isVisible: false }));
+    setTimeout(() => {
+      setAlertModal({ isVisible: true, title, message });
+    }, 120);
   };
+  const closeAlert = () =>
+    setAlertModal({ isVisible: false, title: "", message: "" });
 
-  // fetch leave balance for the employee
+  const showConfirm = (message, onConfirm) => {
+    setConfirmModal({ isVisible: true, message, onConfirm });
+  };
+  const closeConfirm = () =>
+    setConfirmModal({ isVisible: false, message: "", onConfirm: null });
+
+  // ---------- Balance & Policy fetch ----------
   const fetchLeaveBalance = async () => {
     if (!employeeId) return;
     try {
@@ -97,7 +180,6 @@ const LeaveRequest = () => {
       if (!res.ok) throw new Error("Failed to load leave balance");
       const json = await res.json();
       setBalances(json.data || []);
-      // reset venn navigation when balances change
       setVennStartIndex(0);
     } catch (err) {
       console.error(err);
@@ -105,20 +187,78 @@ const LeaveRequest = () => {
     }
   };
 
-  const fetchMonthlyLop = async (
-    month = lopMonth,
-    year = lopYear,
-    { forceCompute = false } = {}
-  ) => {
-    if (!employeeId) return;
+  const fetchPolicies = async () => {
+    try {
+      const res = await fetch(`${BACKEND}/api/leave-policies`, { headers });
+      const json = await res.json();
+      setPolicies(json.data || []);
+    } catch (err) {
+      console.error("Could not fetch policies", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPolicies();
+    fetchLeaveBalance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employeeId]);
+
+  useEffect(() => {
+    if (!Array.isArray(policies) || policies.length === 0) return;
+    const today = new Date();
+    const inRange = policies.find((p) => {
+      try {
+        const s = new Date(p.year_start);
+        const e = new Date(p.year_end);
+        return s <= today && today <= e;
+      } catch {
+        return false;
+      }
+    });
+    setActivePolicy(
+      inRange ||
+        policies
+          .slice()
+          .sort((a, b) => new Date(b.year_start) - new Date(a.year_start))[0] ||
+        null
+    );
+  }, [policies]);
+
+  useEffect(() => {
+    const calcVisible = () => {
+      const w = window.innerWidth;
+      if (w < 600) return 1;
+      if (w < 900) return 2;
+      return 6;
+    };
+    const onResize = () => {
+      const newCount = calcVisible();
+      setVennVisibleCount((prev) => {
+        if (prev !== newCount) {
+          setVennStartIndex((start) => {
+            const maxStart = Math.max(
+              0,
+              Math.min(start, Math.max(0, balances.length - newCount))
+            );
+            return maxStart;
+          });
+          return newCount;
+        }
+        return prev;
+      });
+    };
+    setVennVisibleCount(calcVisible());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [balances.length]);
+
+  // ---------- Fetch monthly LOP & compute handlers ----------
+  const fetchMonthlyLop = async (month = lopMonth, year = lopYear) => {
+    if (!employeeId) return 0;
     try {
       const url = `${BACKEND}/api/leave-policies/employee/${employeeId}/monthly-lop?month=${month}&year=${year}`;
       const res = await fetch(url, { headers });
       if (!res.ok) {
-        if (forceCompute) {
-          await computeMonthlyLop(month, year);
-          return fetchMonthlyLop(month, year, { forceCompute: false });
-        }
         throw new Error(`HTTP ${res.status}`);
       }
       const json = await res.json();
@@ -135,20 +275,8 @@ const LeaveRequest = () => {
     }
   };
 
-  // fetch policies (periods)
-  const fetchPolicies = async () => {
-    try {
-      const res = await fetch(`${BACKEND}/api/leave-policies`, { headers });
-      const json = await res.json();
-      setPolicies(json.data || []);
-    } catch (err) {
-      console.error("Could not fetch policies", err);
-    }
-  };
-
-  // New: force compute & persist monthly LOP (POST)
   const computeMonthlyLop = async (month = lopMonth, year = lopYear) => {
-    if (!employeeId) return;
+    if (!employeeId) return null;
     try {
       const url = `${BACKEND}/api/leave-policies/employee/${employeeId}/compute-monthly-lop`;
       const res = await fetch(url, {
@@ -174,131 +302,36 @@ const LeaveRequest = () => {
     }
   };
 
-  // determine active policy: where today is between start/end, else pick latest by year_start
-  const pickActivePolicy = (policyList) => {
-    if (!Array.isArray(policyList) || policyList.length === 0) return null;
-    const today = new Date();
-    const inRange = policyList.find((p) => {
-      try {
-        const s = new Date(p.year_start);
-        const e = new Date(p.year_end);
-        return s <= today && today <= e;
-      } catch {
-        return false;
-      }
-    });
-    if (inRange) return inRange;
-    return policyList
-      .slice()
-      .sort((a, b) => new Date(b.year_start) - new Date(a.year_start))[0];
-  };
-
-  // load policies + balances + monthly lop on mount (or when employeeId changes)
-  useEffect(() => {
-    fetchPolicies();
-    fetchLeaveBalance();
-    fetchMonthlyLop(lopMonth, lopYear);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeeId]);
-
-  useEffect(() => {
-    const p = pickActivePolicy(policies);
-    setActivePolicy(p || null);
-    setFormData((f) => ({ ...f, leavetype: "" }));
-    setSelectedSetting(null);
-  }, [policies]);
-
+  // fetch monthlyLop on change (so LOP modal is ready)
   useEffect(() => {
     (async () => {
-      const val = await fetchMonthlyLop(lopMonth, lopYear);
+      await fetchMonthlyLop(lopMonth, lopYear);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lopMonth, lopYear, employeeId]);
 
-  // responsive visible count for venn cards: 1 on small, 2 on medium, 3 on desktop
-  useEffect(() => {
-    const calcVisible = () => {
-      const w = window.innerWidth;
-      if (w < 600) return 1;
-      if (w < 900) return 2;
-      return 6;
-    };
-    const onResize = () => {
-      const newCount = calcVisible();
-      setVennVisibleCount((prev) => {
-        if (prev !== newCount) {
-          // adjust start index so currently visible items remain valid
-          setVennStartIndex((start) => {
-            const maxStart = Math.max(
-              0,
-              Math.min(start, Math.max(0, balances.length - newCount))
-            );
-            return maxStart;
-          });
-          return newCount;
-        }
-        return prev;
-      });
-    };
-
-    // initialize
-    setVennVisibleCount(calcVisible());
-
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [balances.length]);
-
-  // update selectedSetting when user picks a leave type
-  useEffect(() => {
-    if (!activePolicy || !formData.leavetype) {
-      setSelectedSetting(null);
-      return;
-    }
-    const ls = (activePolicy.leave_settings || []).find(
-      (s) =>
-        (s.type || "").toLowerCase() ===
-        String(formData.leavetype).toLowerCase()
-    );
-    setSelectedSetting(ls || null);
-  }, [formData.leavetype, activePolicy]);
-
-  // UI helpers
-  const showAlert = (message, title = "") => {
-    setAlertModal({ isVisible: true, title, message });
-  };
-  const closeAlert = () =>
-    setAlertModal({ isVisible: false, title: "", message: "" });
-
-  // Reset form
-  const resetForm = () => {
-    setFormData({
-      reason: "",
-      leavetype: "",
-      h_f_day: "Full Day",
-      startDate: "",
-      endDate: "",
-    });
-    setEditingId(null);
-    setSelectedSetting(null);
-  };
-
-  const handleOpenModal = () => {
-    resetForm();
-    setFormVisible(true);
-  };
-  const handleCloseModal = () => {
-    resetForm();
-    setFormVisible(false);
-  };
-
-  // fetch leave requests (self and team)
+  // ---------- Fetch leave requests (self & team) ----------
   useEffect(() => {
     if (employeeId) fetchLeaveRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeeId]);
+  }, [employeeId, teamSearch, teamStatus, filters.from_date, filters.to_date]);
+
+  const extractArrayFromTeamResult = (obj) => {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    if (Array.isArray(obj.data)) return obj.data;
+    if (Array.isArray(obj.message?.data)) return obj.message.data;
+    if (Array.isArray(obj.message)) return obj.message;
+    if (Array.isArray(obj.result)) return obj.result;
+    for (const key of Object.keys(obj)) {
+      if (Array.isArray(obj[key])) return obj[key];
+    }
+    return [];
+  };
 
   const fetchLeaveRequests = async () => {
     try {
+      // self requests
       const selfUrl = `${BACKEND}/employee/leave/${employeeId}`;
       const selfParams = new URLSearchParams();
       if (filters.from_date) selfParams.append("from_date", filters.from_date);
@@ -306,7 +339,6 @@ const LeaveRequest = () => {
       const selfFinalUrl = selfParams.toString()
         ? `${selfUrl}?${selfParams.toString()}`
         : selfUrl;
-
       const selfResponse = await fetch(selfFinalUrl, {
         method: "GET",
         headers,
@@ -314,16 +346,21 @@ const LeaveRequest = () => {
       let selfRequests = [];
       if (selfResponse.ok) {
         const selfResult = await selfResponse.json();
-        selfRequests = selfResult?.data || [];
+        selfRequests = selfResult?.data || selfResult?.message?.data || [];
+        if (!Array.isArray(selfRequests))
+          selfRequests = extractArrayFromTeamResult(selfResult);
       }
 
+      // team requests (if allowed)
       let teamRequests = [];
-      if (role === "Manager") {
+      if (canViewTeam) {
         const teamUrl = `${BACKEND}/team-lead/${employeeId}`;
         const teamParams = new URLSearchParams();
         if (filters.from_date)
           teamParams.append("from_date", filters.from_date);
         if (filters.to_date) teamParams.append("to_date", filters.to_date);
+        if (teamSearch) teamParams.append("search", teamSearch);
+        if (teamStatus) teamParams.append("status", teamStatus);
         const teamFinalUrl = teamParams.toString()
           ? `${teamUrl}?${teamParams.toString()}`
           : teamUrl;
@@ -333,68 +370,406 @@ const LeaveRequest = () => {
         });
         if (teamResponse.ok) {
           const teamResult = await teamResponse.json();
-          teamRequests = teamResult?.message?.data || [];
+          const maybeArray = extractArrayFromTeamResult(
+            teamResult?.data ?? teamResult ?? teamResult?.message ?? {}
+          );
+          teamRequests = maybeArray;
+        } else {
+          console.warn(
+            "Team request fetch returned non-OK status",
+            teamResponse.status
+          );
         }
       }
 
       setLeaveRequests({ self: selfRequests, team: teamRequests });
       setStatusUpdates({});
-    } catch (error) {
-      console.error("Error fetching leave requests:", error);
+    } catch (err) {
+      console.error("Error fetching leave requests:", err);
       setLeaveRequests({ self: [], team: [] });
     }
   };
 
-  // update admin status of leaves (kept as-is)
-  const handleUpdate = async (leaveId) => {
+  // ---------- Utility: load leave balance for an employee (cache per-page) ----------
+  const [leaveBalancesCache, setLeaveBalancesCache] = useState({});
+  const loadLeaveBalance = async (employeeIdToLoad) => {
+    if (!employeeIdToLoad) return [];
+    if (leaveBalancesCache[employeeIdToLoad])
+      return leaveBalancesCache[employeeIdToLoad];
     try {
-      const update = statusUpdates[leaveId];
-      if (!update) return;
-      const response = await fetch(`${BACKEND}/admin/leave/${leaveId}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(update),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      if (data.success) {
-        showAlert(data.message || "Leave request updated successfully.");
-        fetchLeaveRequests();
-      } else {
-        showAlert(data.message || "Failed to update leave request.");
-      }
-    } catch (error) {
-      console.error("Error updating leave request:", error);
-      showAlert("An error occurred while updating the leave request.");
+      const url = `${BACKEND}/api/leave-policies/employee/${employeeIdToLoad}/leave-balance`;
+      const res = await fetch(url, { headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const arr = json.data || [];
+      setLeaveBalancesCache((prev) => ({ ...prev, [employeeIdToLoad]: arr }));
+      return arr;
+    } catch (err) {
+      console.warn("loadLeaveBalance failed:", err);
+      setLeaveBalancesCache((prev) => ({ ...prev, [employeeIdToLoad]: [] }));
+      return [];
     }
   };
 
+  // ---------- doUpdateLocal: normalized PUT to admin endpoint ----------
+  const doUpdateLocal = async (leaveId, payload = {}, closeModal = null) => {
+    try {
+      // normalize similar to Admin.doUpdate
+      let compensatedRaw;
+      if (payload.hasOwnProperty("compensated_days"))
+        compensatedRaw = payload.compensated_days;
+      else if (payload.hasOwnProperty("compensatedDays"))
+        compensatedRaw = payload.compensatedDays;
+      else if (payload.hasOwnProperty("compensated"))
+        compensatedRaw = payload.compensated;
+      else compensatedRaw = 0;
+      const compensated = Number(compensatedRaw) || 0;
+
+      let deductedRaw;
+      if (payload.hasOwnProperty("deducted_days"))
+        deductedRaw = payload.deducted_days;
+      else if (payload.hasOwnProperty("deductedDays"))
+        deductedRaw = payload.deductedDays;
+      else if (payload.hasOwnProperty("deducted"))
+        deductedRaw = payload.deducted;
+      else deductedRaw = 0;
+      const deducted = Number(deductedRaw) || 0;
+
+      let lopRaw;
+      if (payload.hasOwnProperty("loss_of_pay_days"))
+        lopRaw = payload.loss_of_pay_days;
+      else if (payload.hasOwnProperty("lopDays")) lopRaw = payload.lopDays;
+      else if (payload.hasOwnProperty("loss_of_pay"))
+        lopRaw = payload.loss_of_pay;
+      else lopRaw = 0;
+      const lop = Number(lopRaw) || 0;
+
+      let preservedRaw = null;
+      if (payload.hasOwnProperty("preserved_leave_days"))
+        preservedRaw = payload.preserved_leave_days;
+      else if (payload.hasOwnProperty("preservedLeaveDays"))
+        preservedRaw = payload.preservedLeaveDays;
+      else if (payload.hasOwnProperty("preserved"))
+        preservedRaw = payload.preserved;
+      const preserved =
+        preservedRaw === null || preservedRaw === undefined
+          ? null
+          : Number(preservedRaw);
+
+      let status = "";
+      if (payload.hasOwnProperty("status")) status = payload.status;
+      else if (payload.hasOwnProperty("statusText"))
+        status = payload.statusText;
+
+      let comments = null;
+      if (payload.hasOwnProperty("comments")) comments = payload.comments;
+      else if (payload.hasOwnProperty("comment")) comments = payload.comment;
+
+      // actorId fallback from localStorage (optional)
+      let actorId = null;
+      try {
+        const raw = localStorage.getItem("dashboardData");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          actorId = parsed?.employeeId ?? parsed?.id ?? null;
+        }
+      } catch (_) {
+        actorId = null;
+      }
+
+      const fullPayload = {
+        status,
+        comments,
+        compensated_days: compensated,
+        deducted_days: deducted,
+        loss_of_pay_days: lop,
+        preserved_leave_days: preserved === undefined ? null : preserved,
+        actorId,
+      };
+
+      const url = `${BACKEND}/admin/leave/${leaveId}`;
+      console.log("[doUpdateLocal] PUT", url, fullPayload);
+
+      const res = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(fullPayload),
+      });
+
+      let json = null;
+      let text = null;
+      try {
+        json = await res.json();
+      } catch (e) {
+        try {
+          text = await res.text();
+        } catch {
+          text = "<failed to read text>";
+        }
+      }
+
+      if (!res.ok) {
+        const serverMsg =
+          (json && (json.message || (json.error && json.error.message))) ||
+          text ||
+          `Server returned ${res.status}`;
+        console.warn("[doUpdateLocal] server error:", serverMsg);
+        showAlert(serverMsg);
+        return { ok: false, status: res.status, body: json || text };
+      }
+
+      if (json && json.success) {
+        // refresh the list after update
+        await fetchLeaveRequests();
+        if (closeModal) closeModal(); // close modal on success
+        showAlert("Leave updated successfully!");
+        return { ok: true, status: res.status, body: json };
+      }
+
+      const serverMsg =
+        (json && (json.message || json.error)) ||
+        "Failed to update leave (no success flag)";
+      console.warn("[doUpdateLocal] warning:", serverMsg);
+      showAlert(serverMsg);
+      return { ok: false, status: res.status, body: json };
+    } catch (err) {
+      console.error("[doUpdateLocal] unexpected:", err);
+      showAlert(
+        err?.message || "Error updating leave (network or client error)."
+      );
+      return { ok: false, error: err };
+    }
+  };
+
+  // ---------- handleUpdate: supervisor uses same logic as admin ----------
+  const handleUpdate = async (leaveId) => {
+    const upd = statusUpdates[leaveId] || {};
+    // find the corresponding leave in team data
+    const query = (leaveRequests.team || []).find(
+      (l) => l.leave_id === leaveId
+    );
+    console.log("[handleUpdate-supervisor] invoked", { leaveId, upd, query });
+    if (!query) {
+      showAlert("Leave request not found in current team list.");
+      return;
+    }
+
+    if (upd.status === "Approved") {
+      const days = calculateDays(
+        query.start_date,
+        query.end_date,
+        query.H_F_day
+      );
+      const balances = await loadLeaveBalance(query.employee_id);
+      const bal = (balances || []).find((r) => r.type === query.leave_type);
+      const remaining =
+        bal && bal.remaining !== undefined ? Number(bal.remaining) || 0 : 0;
+      const deficit = Math.max(0, days - remaining);
+      const EPS = 1e-6;
+
+      const approveDeficit = async () => {
+        const preserved_leave_days = Number(remaining) || 0;
+        const result = await doUpdateLocal(leaveId, {
+          ...(upd || {}),
+          status: "Approved",
+          compensated_days: 0,
+          deducted_days: 0,
+          loss_of_pay_days: Number(days) || 0,
+          preserved_leave_days,
+          total_days: Number(days),
+        });
+        if (result && result.ok) {
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
+        } else {
+          const serverMsg =
+            (result &&
+              (result.message || (result.body && result.body.message))) ||
+            JSON.stringify(result && result.body) ||
+            "Failed to approve as LoP — see alert.";
+          setLopModal((m) => ({ ...m, error: serverMsg }));
+        }
+        return result;
+      };
+
+      const setAllCompensated = async () => {
+        const compensated_days = Number(days) || 0;
+        const preserved_leave_days = Number(remaining) || 0;
+        const result = await doUpdateLocal(leaveId, {
+          ...(upd || {}),
+          status: "Approved",
+          compensated_days,
+          deducted_days: 0,
+          loss_of_pay_days: 0,
+          preserved_leave_days,
+          total_days: Number(days),
+        });
+        if (result && result.ok) {
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
+        } else {
+          const serverMsg =
+            (result &&
+              (result.message || (result.body && result.body.message))) ||
+            JSON.stringify(result && result.body) ||
+            "Failed to set all compensated — see alert.";
+          setLopModal((m) => ({ ...m, error: serverMsg }));
+        }
+        return result;
+      };
+
+      const setAllDeducted = async () => {
+        const daysNum = Number(days) || 0;
+        const remainingNum = Number(remaining) || 0;
+        const deducted_clamped = Math.min(daysNum, remainingNum);
+        const lop_days = Math.max(0, daysNum - deducted_clamped);
+        const preserved_leave_days = Math.max(
+          0,
+          remainingNum - deducted_clamped
+        );
+        const result = await doUpdateLocal(leaveId, {
+          ...(upd || {}),
+          status: "Approved",
+          compensated_days: 0,
+          deducted_days: deducted_clamped,
+          loss_of_pay_days: lop_days,
+          preserved_leave_days,
+          total_days: Number(days),
+        });
+        if (result && result.ok) {
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
+        } else {
+          const serverMsg =
+            (result &&
+              (result.message || (result.body && result.body.message))) ||
+            JSON.stringify(result && result.body) ||
+            "Failed to set all deducted — see alert.";
+          setLopModal((m) => ({ ...m, error: serverMsg }));
+        }
+        return result;
+      };
+
+      const applyFlexibleSplit = async (
+        compensatedDays,
+        deductedDays,
+        lopDays
+      ) => {
+        const c = Number(compensatedDays) || 0;
+        const d = Number(deductedDays) || 0;
+        const l = Number(lopDays) || 0;
+        if (Math.abs(c + d + l - days) > EPS) {
+          const msg = `Split values must add up to total requested days (${days}). Received: compensated=${c}, deducted=${d}, loss_of_pay=${l}.`;
+          setLopModal((m) => ({ ...m, error: msg }));
+          return { ok: false, message: "validation_failed", body: msg };
+        }
+        const deducted_clamped = Math.min(Number(remaining) || 0, d);
+        if (deducted_clamped + EPS < d) {
+          const msg = `Deducted days (${d}) exceed remaining (${remaining}). Please adjust.`;
+          setLopModal((m) => ({ ...m, error: msg }));
+          return {
+            ok: false,
+            message: "deducted_exceeds_remaining",
+            body: msg,
+          };
+        }
+        let preserved_leave_days = Math.max(
+          0,
+          Number(remaining) - Number(deducted_clamped)
+        );
+        preserved_leave_days = Number(preserved_leave_days.toFixed(2));
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
+          compensated_days: Number(c.toFixed(2)),
+          deducted_days: Number(deducted_clamped.toFixed(2)),
+          loss_of_pay_days: Number(l.toFixed(2)),
+          preserved_leave_days,
+        };
+        const result = await doUpdateLocal(leaveId, payload);
+        if (result && result.ok) {
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
+        } else if (
+          result &&
+          result.status &&
+          result.status >= 200 &&
+          result.status < 300
+        ) {
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
+        } else {
+          const serverMsg =
+            (result &&
+              (result.message || (result.body && result.body.message))) ||
+            JSON.stringify(result && result.body) ||
+            "Failed to apply split — see alert.";
+          setLopModal((m) => ({ ...m, error: serverMsg }));
+        }
+        return result;
+      };
+
+      // Open compensation popup with prepared handlers and defaults
+      // NOTE: this opens the compensation popup used for approval flows (NOT the Total-LOP modal)
+      setLopModal({
+        isVisible: true,
+        leaveId,
+        deficit: Number(deficit),
+        days: Number(days),
+        remaining: Number(remaining),
+        message: `Employee requested ${days} day(s); remaining balance = ${remaining}. Deficit = ${deficit}. Choose how to allocate the ${days} requested days:`,
+        compensatedDays: 0,
+        deductedDays: Math.min(Number(remaining), Number(days)),
+        lopDays: Math.max(
+          0,
+          Number(days) - Math.min(Number(remaining), Number(days))
+        ),
+        approveDeficit,
+        setAllCompensated,
+        setAllDeducted,
+        applyFlexibleSplit,
+        error: "",
+      });
+      return;
+    }
+
+    // Not Approved or simple flow: send simple update
+    const result = await doUpdateLocal(leaveId, upd);
+    if (result && result.ok) {
+      const msg = (result.body && result.body.message) || "Leave updated";
+      showAlert(msg);
+    } else {
+      const message =
+        (result && result.message) || "Failed to update leave request.";
+      showAlert(message);
+    }
+  };
+
+  // ---------- Status change UI handler ----------
   const handleStatusChange = (leaveId, key, value) => {
     setStatusUpdates((prev) => ({
       ...prev,
       [leaveId]: { ...prev[leaveId], [key]: value },
     }));
   };
+
+  // ---------- Form/Submit related functions (existing) ----------
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "leavetype") {
-      if (isBereavementType(value)) {
-        showAlert(
-          "Bereavement Leave is for emergency/critical cases only. Please ensure this is an emergency before applying."
-        );
-      }
-
-      const ls =
-        (activePolicy?.leave_settings || []).find(
+      if (!value) {
+        setSelectedSetting(null);
+      } else {
+        const ls = (activePolicy?.leave_settings || []).find(
           (s) => (s.type || "").toLowerCase() === String(value).toLowerCase()
-        ) || null;
-
-      const noticeDays = getAdvanceNoticeDays(ls);
-      if (ls && noticeDays > 0) {
-        showAlert(
-          `Note: ${value} requires applying at least ${noticeDays} day(s) before the start date.`
         );
+        setSelectedSetting(ls || null);
+        const noticeDays = getAdvanceNoticeDays(ls);
+        if (ls && noticeDays > 0) {
+          showAlert(
+            `Note: ${value} requires applying at least ${noticeDays} day(s) before the start date.`
+          );
+        }
       }
     }
 
@@ -406,13 +781,11 @@ const LeaveRequest = () => {
             (s.type || "").toLowerCase() ===
             String(formData.leavetype).toLowerCase()
         );
-
       const noticeDays = getAdvanceNoticeDays(settingToCheck);
       if (settingToCheck && noticeDays > 0 && value) {
         const today = new Date();
         const minDate = new Date(today);
         minDate.setDate(today.getDate() + noticeDays);
-
         const chosen = new Date(value);
         const d1 = new Date(
           minDate.getFullYear(),
@@ -424,7 +797,6 @@ const LeaveRequest = () => {
           chosen.getMonth(),
           chosen.getDate()
         );
-
         if (d2 < d1) {
           showAlert(
             `Selected start date is within the ${noticeDays}-day advance-notice period for this leave. You must apply at least ${noticeDays} day(s) before the start date.`
@@ -457,7 +829,6 @@ const LeaveRequest = () => {
     fetchLeaveRequests();
   };
 
-  // compute requested days (inclusive)
   const computeRequestedDays = (start, end, h_f_day) => {
     if (!start || !end) return 0;
     const s = new Date(start);
@@ -467,7 +838,6 @@ const LeaveRequest = () => {
     return diff;
   };
 
-  // helper to find balance for a given type from balances (server-calculated)
   const getBalanceForType = (type) => {
     if (!balances || balances.length === 0) return null;
     return (
@@ -477,11 +847,29 @@ const LeaveRequest = () => {
     );
   };
 
-  // Submit leave request: validate against settings & balances
+  const resetForm = () => {
+    setFormData({
+      reason: "",
+      leavetype: "",
+      h_f_day: "Full Day",
+      startDate: "",
+      endDate: "",
+    });
+    setEditingId(null);
+    setSelectedSetting(null);
+  };
+
+  const handleOpenModal = () => {
+    resetForm();
+    setFormVisible(true);
+  };
+  const handleCloseModal = () => {
+    resetForm();
+    setFormVisible(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // 1) required
     if (
       !formData.leavetype ||
       !formData.startDate ||
@@ -491,26 +879,20 @@ const LeaveRequest = () => {
       showAlert("Please fill in all required fields.");
       return;
     }
-
-    // 2) date ordering
     if (new Date(formData.endDate) < new Date(formData.startDate)) {
       showAlert("End date cannot be earlier than start date.");
       return;
     }
-
-    // 3) find the selected setting from activePolicy
     const setting = selectedSetting;
     if (!setting) {
       showAlert("Selected leave type is not available in current policy.");
       return;
     }
-
     const noticeDays = getAdvanceNoticeDays(setting);
     if (!editingId && noticeDays > 0) {
       const today = new Date();
       const minDate = new Date(today);
       minDate.setDate(today.getDate() + noticeDays);
-
       const chosenStart = new Date(formData.startDate);
       const ds = new Date(
         minDate.getFullYear(),
@@ -522,7 +904,6 @@ const LeaveRequest = () => {
         chosenStart.getMonth(),
         chosenStart.getDate()
       );
-
       if (dc < ds) {
         showAlert(
           `You must apply for ${formData.leavetype} at least ${noticeDays} day(s) before the start date.`
@@ -530,23 +911,17 @@ const LeaveRequest = () => {
         return;
       }
     }
-
-    // 4) compute requested days
     const requestedDays = computeRequestedDays(
       formData.startDate,
       formData.endDate,
       formData.h_f_day
     );
-
-    // 5) determine allowance and used depending on type (try using balances if available)
     const balanceRow = getBalanceForType(setting.type);
-    let allowance = 0;
-    let used = 0;
-    let remaining = 0;
-    let carry_forward = Number(setting.carry_forward || 0);
-
+    let allowance = 0,
+      used = 0,
+      remaining = 0,
+      carry_forward = Number(setting.carry_forward || 0);
     if (balanceRow) {
-      // server provided values: preferred
       allowance = Number(
         balanceRow.allowance ??
           balanceRow.earned ??
@@ -557,30 +932,21 @@ const LeaveRequest = () => {
       remaining = Number(balanceRow.remaining ?? 0);
       carry_forward = Number(balanceRow.carry_forward ?? carry_forward);
     } else {
-      // fall back to client-side compute from setting:
-      if (String(setting.type).toLowerCase() === "earned") {
+      if (String(setting.type).toLowerCase() === "earned")
         allowance = Number(setting.earned_leaves || 0) + carry_forward;
-      } else {
-        allowance = Number(setting.value || 0) + carry_forward;
-      }
-      used = 0; // unknown client-side without queries
+      else allowance = Number(setting.value || 0) + carry_forward;
+      used = 0;
       remaining = allowance - used;
     }
-
-    // 8) Build request payload (but don't send yet if we need confirmation)
     if (!employeeId || !name) {
       showAlert("Employee data not found. Please log in again.");
       return;
     }
-
     const requestData = { employeeId, name, ...formData };
-
     const url = editingId
       ? `${BACKEND}/edit/${editingId}`
       : `${BACKEND}/employee/leave`;
     const method = editingId ? "PUT" : "POST";
-
-    // helper to actually send request
     const doSubmit = async (data, submitUrl, submitMethod) => {
       try {
         const response = await fetch(submitUrl, {
@@ -589,7 +955,6 @@ const LeaveRequest = () => {
           body: JSON.stringify(data),
         });
         const responseData = await response.json();
-
         if (response.ok) {
           showAlert(
             editingId
@@ -613,44 +978,29 @@ const LeaveRequest = () => {
         showAlert("An error occurred while submitting the leave request.");
       }
     };
-
-    // 7) If requestedDays > remaining => warn about LOP using app Modal (not window.confirm)
     if (requestedDays > remaining) {
       const deficit = requestedDays - remaining;
       const confirmMsg = `You're requesting ${requestedDays} day(s), but you have only ${remaining} remaining (${allowance} allowance, ${used} used, ${carry_forward} carry-forward). This will incur ${deficit} Loss-of-Pay day(s). Do you want to continue?`;
-
-      // Use the app's confirm modal (showConfirm) and pass doSubmit as onConfirm
       showConfirm(confirmMsg, async () => {
         await doSubmit(requestData, url, method);
         closeConfirm();
       });
-
       return;
     }
-
-    // If no LOP or within remaining, submit directly
     await doSubmit(requestData, url, method);
   };
 
-  // Edit existing request
   const handleEdit = (request) => {
     setFormData({
       reason: request.reason,
       leavetype: request.leave_type,
-      h_f_day: request.h_f_day || "Full Day",
+      h_f_day: request.H_F_day || "Full Day",
       startDate: parseLocalDate(request.start_date),
       endDate: parseLocalDate(request.end_date),
     });
-    setEditingId(request.id);
+    setEditingId(request.id || request.leave_id || null);
     setFormVisible(true);
   };
-
-  // Cancel (delete) request
-  const showConfirm = (message, onConfirm) => {
-    setConfirmModal({ isVisible: true, message, onConfirm });
-  };
-  const closeConfirm = () =>
-    setConfirmModal({ isVisible: false, message: "", onConfirm: null });
 
   const handleCancel = (id) => {
     showConfirm(
@@ -677,7 +1027,7 @@ const LeaveRequest = () => {
     );
   };
 
-  // Build leave type options from activePolicy.leave_settings
+  // ---------- UI pieces reused from earlier file (Venn etc.) ----------
   const leaveTypeOptions = (activePolicy?.leave_settings || [])
     .filter((s) => s && (s.enabled === undefined ? true : s.enabled))
     .map((s) => ({
@@ -691,7 +1041,6 @@ const LeaveRequest = () => {
       raw: s,
     }));
 
-  // --- Venn diagram balances + total LOP with month navigation (HORIZONTAL) ---
   const monthName = (m) =>
     new Date(lopYear, m - 1, 1).toLocaleString(undefined, { month: "short" });
 
@@ -707,9 +1056,8 @@ const LeaveRequest = () => {
     const cur = new Date();
     const curMonth = cur.getMonth() + 1;
     const curYear = cur.getFullYear();
-    if (lopYear > curYear || (lopYear === curYear && lopMonth >= curMonth)) {
+    if (lopYear > curYear || (lopYear === curYear && lopMonth >= curMonth))
       return;
-    }
     if (lopMonth === 12) {
       setLopMonth(1);
       setLopYear((y) => y + 1);
@@ -718,7 +1066,6 @@ const LeaveRequest = () => {
     }
   };
 
-  // VENN: navigation for balances (not LOP card)
   const vennTotalCount = balances.length;
   const canPrevVenn = vennStartIndex > 0;
   const canNextVenn = vennStartIndex + vennVisibleCount < vennTotalCount;
@@ -733,36 +1080,25 @@ const LeaveRequest = () => {
     );
   };
 
-  // Render a simple 2-circle Venn where left = Used, right = Remaining, union = Total
   const RenderVenn = ({ label, allowance = 0, used = 0, remaining = 0 }) => {
-    // formatting helper: 1 decimal place
     const formatOne = (v) => {
       const n = Number(v);
       return Number.isFinite(n) ? n.toFixed(1) : "0.0";
     };
-
-    // Ensure numbers are sane (as numeric values)
     const aNum = Number.isFinite(Number(allowance)) ? Number(allowance) : 0;
     const uNum = Number.isFinite(Number(used)) ? Number(used) : 0;
     const rNum = Number.isFinite(Number(remaining))
       ? Number(remaining)
       : Math.max(aNum - uNum, 0);
-
-    // when values are inconsistent, adjust remaining to match union
     const adjustedRemainingNum = Math.max(rNum, aNum - uNum);
-
-    // geometry: choose circle positions so they overlap
-    const width = 320;
-    const height = 140;
-    const rCircle = 74; // radius
-    const cy = 70;
-    const cx1 = 110; // left circle center
-    const cx2 = 200; // right circle center (distance = 100 < r1+r2=120 => overlap)
-
-    // midpoint (intersection center) used to place the Total label
-    const midX = (cx1 + cx2) / 2;
-    const midY = cy;
-
+    const width = 320,
+      height = 140,
+      rCircle = 74,
+      cy = 70,
+      cx1 = 110,
+      cx2 = 200;
+    const midX = (cx1 + cx2) / 2,
+      midY = cy;
     return (
       <div
         className="venn-card venn-card-fixed"
@@ -778,8 +1114,6 @@ const LeaveRequest = () => {
           <title
             id={`venn-${label}-title`}
           >{`${label} - Used vs Remaining`}</title>
-
-          {/* left circle: Used (semi-transparent) */}
           <circle
             cx={cx1}
             cy={cy}
@@ -787,8 +1121,6 @@ const LeaveRequest = () => {
             fill="rgba(220,53,69,0.28)"
             stroke="rgba(220,53,69,0.6)"
           />
-
-          {/* right circle: Remaining (semi-transparent) */}
           <circle
             cx={cx2}
             cy={cy}
@@ -796,8 +1128,6 @@ const LeaveRequest = () => {
             fill="rgba(25,135,84,0.28)"
             stroke="rgba(25,135,84,0.6)"
           />
-
-          {/* Used label */}
           <text
             x={cx1 - 12}
             y={cy - 22}
@@ -818,8 +1148,6 @@ const LeaveRequest = () => {
           >
             {formatOne(uNum)}
           </text>
-
-          {/* Remaining label */}
           <text
             x={cx2 + 11}
             y={cy - 22}
@@ -840,8 +1168,6 @@ const LeaveRequest = () => {
           >
             {formatOne(adjustedRemainingNum)}
           </text>
-
-          {/* TOTAL inside the overlap region (midpoint of centers) */}
           <g>
             <text
               x={midX}
@@ -871,29 +1197,18 @@ const LeaveRequest = () => {
 
   const renderVennBalanceSection = () => {
     if (!balances || balances.length === 0) return null;
-    // compute policy period strings safely from activePolicy
     const start = activePolicy?.year_start
       ? new Date(activePolicy.year_start).toLocaleDateString()
       : "-";
     const end = activePolicy?.year_end
       ? new Date(activePolicy.year_end).toLocaleDateString()
       : "-";
-
-    // slice balances according to current navigation window
     const visibleBalances = balances.slice(
       vennStartIndex,
       vennStartIndex + vennVisibleCount
     );
-
-    // helper to format LOP with 1 decimal
-    const formatLop = (v) => {
-      const n = Number(v);
-      return Number.isFinite(n) ? n.toFixed(1) : "0.0";
-    };
-
     return (
       <div className="venn-balance-section">
-        {/* Policy period separate container */}
         <div className="policy-period">
           <div className="policy-modal-content">
             <div className="policy-period-row">
@@ -904,83 +1219,28 @@ const LeaveRequest = () => {
                 </span>
               </div>
               <div>
+                {/* OPEN the Total-LOP modal (separate boolean) */}
                 <button
                   type="button"
                   className="show-lop-btn"
-                  onClick={() => setShowLopCard((s) => !s)}
-                  aria-pressed={showLopCard}
-                  title={showLopCard ? "Hide Total LOP" : "Show Total LOP"}
+                  onClick={() => setIsLopModalOpen(true)}
                 >
-                  {showLopCard ? "Hide LOP" : "Show LOP"}
+                  Show LOP
                 </button>
               </div>
             </div>
           </div>
         </div>
-
-        {/* LOP card + Venn cards with navigation */}
         <div className="venn-grid-with-nav">
-          {/* LOP card (conditionally rendered) */}
-          {showLopCard && (
-            <div className="balance-mini-card total-lop-card">
-              <div>
-                <strong>Total LOP</strong>
-              </div>
-
-              <div className="lop-month-row">
-                <button
-                  type="button"
-                  onClick={prevLopMonth}
-                  aria-label="Previous month"
-                >
-                  ◀
-                </button>
-                <div>
-                  {monthName(lopMonth)} {lopYear}
-                </div>
-                <button
-                  type="button"
-                  onClick={nextLopMonth}
-                  aria-label="Next month"
-                >
-                  ▶
-                </button>
-              </div>
-
-              <div className="lop-controls">
-                {/* Format monthlyLop to 2 decimals */}
-                <div className="lop-value">{formatLop(monthlyLop)} days</div>
-
-                <div className="lop-actions">
-                  <button
-                    type="button"
-                    className="recompute-button"
-                    title="Force compute monthly LOP"
-                    onClick={async () => {
-                      await computeMonthlyLop(lopMonth, lopYear);
-                    }}
-                  >
-                    Recompute
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Navigation buttons for venn cards */}
           <div className="venn-nav-column">
             <button
               className="venn-nav-btn venn-prev"
               onClick={prevVenn}
               disabled={!canPrevVenn}
-              aria-label="Show previous balances"
-              title={!canPrevVenn ? "No previous items" : "Previous"}
             >
               ◀
             </button>
           </div>
-
-          {/* Visible Venn cards container */}
           <div
             className="venn-cards-container"
             role="list"
@@ -1000,7 +1260,6 @@ const LeaveRequest = () => {
               const remaining = Number(
                 b.remaining ?? Math.max(allowance - used, 0)
               );
-
               return (
                 <div key={b.type} role="listitem" className="venn-card-wrapper">
                   <RenderVenn
@@ -1012,7 +1271,6 @@ const LeaveRequest = () => {
                 </div>
               );
             })}
-            {/* If less than visible slots, render placeholders to keep layout stable */}
             {visibleBalances.length < vennVisibleCount &&
               Array.from({
                 length: vennVisibleCount - visibleBalances.length,
@@ -1020,15 +1278,11 @@ const LeaveRequest = () => {
                 <div key={`ph-${idx}`} className="venn-card-placeholder" />
               ))}
           </div>
-
-          {/* Navigation right */}
           <div className="venn-nav-column">
             <button
               className="venn-nav-btn venn-next"
               onClick={nextVenn}
               disabled={!canNextVenn}
-              aria-label="Show next balances"
-              title={!canNextVenn ? "No more items" : "Next"}
             >
               ▶
             </button>
@@ -1038,15 +1292,12 @@ const LeaveRequest = () => {
     );
   };
 
-  const renderPolicyInfo = () => {
-    if (!activePolicy) return null;
-    const start = new Date(activePolicy.year_start).toLocaleDateString();
-    const end = new Date(activePolicy.year_end).toLocaleDateString();
-
-    return (
+  // ---------- Render ----------
+  return (
+    <div className="leave-container">
+      {/* Policy header (small) */}
       <div className="lv-policy-header">
         <h2 className="lv-title">Leave Queries</h2>
-
         {isPolicyModalOpen && (
           <Modal
             isVisible={isPolicyModalOpen}
@@ -1056,39 +1307,47 @@ const LeaveRequest = () => {
             ]}
           >
             <div className="policy-modal-content">
-              {/* Policy Period */}
               <div className="policy-dates">
                 <div>
                   <span className="date-label">Start Date:</span>
-                  <span className="date-value">{start}</span>
+                  <span className="date-value">
+                    {activePolicy
+                      ? new Date(activePolicy.year_start).toLocaleDateString()
+                      : "-"}
+                  </span>
                 </div>
                 <div>
                   <span className="date-label">End Date:</span>
-                  <span className="date-value">{end}</span>
+                  <span className="date-value">
+                    {activePolicy
+                      ? new Date(activePolicy.year_end).toLocaleDateString()
+                      : "-"}
+                  </span>
                 </div>
               </div>
-
-              {/* Policy Note */}
               <div className="policy-note">
                 <p>
                   <strong>Note:</strong> Leaves remaining after{" "}
-                  <strong>{end}</strong> will{" "}
+                  <strong>
+                    {activePolicy
+                      ? new Date(activePolicy.year_end).toLocaleDateString()
+                      : "-"}
+                  </strong>{" "}
+                  will{" "}
                   <span
                     className={
-                      activePolicy.carry_forward_enabled
+                      activePolicy?.carry_forward_enabled
                         ? "carry-forward"
                         : "lapse"
                     }
                   >
-                    {activePolicy.carry_forward_enabled
+                    {activePolicy?.carry_forward_enabled
                       ? "be carried forward as per policy."
                       : "lapse at the end of the policy period."}
                   </span>
                 </p>
               </div>
-
-              {/* Leave Breakdown Table */}
-              {Array.isArray(activePolicy.leave_settings) &&
+              {Array.isArray(activePolicy?.leave_settings) &&
                 activePolicy.leave_settings.length > 0 && (
                   <table className="leave-policy-table">
                     <thead>
@@ -1113,16 +1372,11 @@ const LeaveRequest = () => {
           </Modal>
         )}
       </div>
-    );
-  };
 
-  return (
-    <div className="leave-container">
-      {renderPolicyInfo()}
-
-      {/* — replace the small compact cards with Venn diagrams */}
+      {/* Venn balances */}
       <div>{renderVennBalanceSection()}</div>
 
+      {/* Filters */}
       <div className="leave-filters">
         <label>From:</label>
         <input
@@ -1140,15 +1394,40 @@ const LeaveRequest = () => {
           onChange={handleFilterChange}
           className="date-filter-input"
         />
+        {canViewTeam && (
+          <>
+            <label>Search:</label>
+            <input
+              type="text"
+              placeholder="Name, Emp ID, Reason"
+              value={teamSearch}
+              onChange={(e) => setTeamSearch(e.target.value)}
+              className="team-search-input"
+            />
+            <label>Status:</label>
+            <div>
+              <select
+                className="team-search-input"
+                value={teamStatus}
+                onChange={(e) => setTeamStatus(e.target.value)}
+              >
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          </>
+        )}
         <button className="filter-button" onClick={handleFilterSubmit}>
           <IoSearch /> Search
         </button>
-
         <button className="leave-form-button" onClick={handleOpenModal}>
           Leave Request
         </button>
       </div>
 
+      {/* Leave request form modal */}
       {isFormVisible && (
         <div className="leave-modal">
           <div className="leave-modal-content">
@@ -1157,7 +1436,6 @@ const LeaveRequest = () => {
                 <h2>Leave Request Form</h2>
                 <MdOutlineCancel className="icon" onClick={handleCloseModal} />
               </div>
-
               <div className="leave-form-grid">
                 <div className="leave-form-group">
                   <label>Type of Leave</label>
@@ -1174,7 +1452,6 @@ const LeaveRequest = () => {
                     ))}
                   </select>
                 </div>
-
                 <div className="leave-form-group">
                   <label>Start Date</label>
                   <input
@@ -1186,7 +1463,6 @@ const LeaveRequest = () => {
                     min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
-
                 <div className="leave-form-group">
                   <label>End Date</label>
                   <input
@@ -1198,7 +1474,6 @@ const LeaveRequest = () => {
                     required
                   />
                 </div>
-
                 <div className="leave-form-group">
                   <label>Half/Full Day</label>
                   <select
@@ -1215,7 +1490,6 @@ const LeaveRequest = () => {
                     <option value="Half Day">Half Day</option>
                   </select>
                 </div>
-
                 <div className="leave-form-group">
                   <label>Leave Reason</label>
                   <input
@@ -1227,7 +1501,6 @@ const LeaveRequest = () => {
                   />
                 </div>
               </div>
-
               <div className="leave-form-actions">
                 <button
                   type="button"
@@ -1245,27 +1518,33 @@ const LeaveRequest = () => {
         </div>
       )}
 
-      {role === "Manager" && (
+      {/* Team Leave Requests (Supervisor/Admin style table) */}
+      {canViewTeam && (
         <>
           <h4 className="my-leaves">Team Leave Requests</h4>
           <div className="leave-request-table">
             <table className="leave-requests">
               <thead>
                 <tr>
-                  <th>Employee Id</th>
+                  <th>Emp Name</th>
+                  <th>Emp ID</th>
                   <th>Leave Type</th>
+                  <th>Half/Full Day</th>
                   <th>Start Date</th>
                   <th>End Date</th>
-                  <th>Half/Full Day</th>
                   <th>Reason</th>
+                  <th>Days</th>
                   <th>Status</th>
                   <th>Comments</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {leaveRequests?.team
-                  ?.sort((a, b) => b.leave_id - a.leave_id)
+                {(leaveRequests.team || [])
+                  .sort(
+                    (a, b) =>
+                      (b.leave_id || b.id || 0) - (a.leave_id || a.id || 0)
+                  )
                   .map((leave) => {
                     const update = statusUpdates?.[leave.leave_id] || {};
                     const currentStatus = update.status || leave.status || "";
@@ -1278,19 +1557,36 @@ const LeaveRequest = () => {
                     const isAlreadyUpdated = leave.status !== "pending";
                     const isUpdating =
                       update.status && update.status !== leave.status;
+                    const statusBy =
+                      leave.status_by ||
+                      leave.approved_by ||
+                      leave.updated_by ||
+                      "";
+                    const days = calculateDays(
+                      leave.start_date,
+                      leave.end_date,
+                      leave.H_F_day
+                    );
                     return (
                       <tr
-                        key={leave.leave_id}
+                        key={leave.leave_id || leave.id}
                         className={isAlreadyUpdated ? "row-updated" : ""}
                       >
+                        <td>
+                          {leave.name ||
+                            `${leave.first_name || ""} ${
+                              leave.last_name || ""
+                            }`.trim()}
+                        </td>
                         <td>{leave.employee_id}</td>
                         <td>{leave.leave_type}</td>
+                        <td>{leave.H_F_day}</td>
                         <td>{parseLocalDate(leave.start_date)}</td>
                         <td>{parseLocalDate(leave.end_date)}</td>
-                        <td>{leave.H_F_day}</td>
                         <td className="comments-col">
                           <div className="comment-preview">{leave.reason}</div>
                         </td>
+                        <td>{days}</td>
                         <td>
                           <select
                             value={currentStatus}
@@ -1309,6 +1605,7 @@ const LeaveRequest = () => {
                             <option value="Rejected">Rejected</option>
                           </select>
                         </td>
+
                         <td className="comments-col">
                           <div className="comment-preview">
                             {leave.comments ? (
@@ -1357,8 +1654,8 @@ const LeaveRequest = () => {
         </>
       )}
 
+      {/* My Leave Requests (self) - unchanged UI */}
       <h4 className="my-leaves">My Leave Requests</h4>
-      {/* Desktop Table View */}
       <div className="leave-request-table desktop-view">
         <table className="leave-requests">
           <thead>
@@ -1374,10 +1671,12 @@ const LeaveRequest = () => {
             </tr>
           </thead>
           <tbody>
-            {leaveRequests.self
-              .sort((a, b) => b.start_date.localeCompare(a.start_date))
+            {(leaveRequests.self || [])
+              .sort((a, b) =>
+                String(b.start_date).localeCompare(String(a.start_date))
+              )
               .map((request) => (
-                <tr key={request.id}>
+                <tr key={request.id || request.leave_id}>
                   <td>{request.leave_type}</td>
                   <td>{parseLocalDate(request.start_date)}</td>
                   <td>{parseLocalDate(request.end_date)}</td>
@@ -1423,7 +1722,7 @@ const LeaveRequest = () => {
                           request.status !== "Approved" &&
                           request.status !== "Rejected"
                         )
-                          handleCancel(request.id);
+                          handleCancel(request.id || request.leave_id);
                       }}
                       className={`action-button ${
                         request.status === "Approved" ||
@@ -1438,12 +1737,15 @@ const LeaveRequest = () => {
           </tbody>
         </table>
       </div>
-      {/* Mobile Card View */}
+
+      {/* mobile view (self) */}
       <div className="mobile-view">
-        {leaveRequests.self
-          .sort((a, b) => b.start_date.localeCompare(a.start_date))
+        {(leaveRequests.self || [])
+          .sort((a, b) =>
+            String(b.start_date).localeCompare(String(a.start_date))
+          )
           .map((request) => (
-            <div key={request.id} className="leave-card">
+            <div key={request.id || request.leave_id} className="leave-card">
               <div className="leave-header">
                 <span className="leave-type">{request.leave_type}</span>
                 <span
@@ -1497,7 +1799,7 @@ const LeaveRequest = () => {
                       request.status !== "Approved" &&
                       request.status !== "Rejected"
                     )
-                      handleCancel(request.id);
+                      handleCancel(request.id || request.leave_id);
                   }}
                   className={`action-button ${
                     request.status === "Approved" ||
@@ -1510,6 +1812,11 @@ const LeaveRequest = () => {
             </div>
           ))}
       </div>
+
+      {/* Compensation popup (rendered BEFORE alert) - ONLY opens when lopModal.isVisible */}
+      <CompensationPopup lopModal={lopModal} setLopModal={setLopModal} />
+
+      {/* Alerts & Confirm modals */}
       <Modal
         title={alertModal.title}
         isVisible={alertModal.isVisible}
@@ -1518,6 +1825,7 @@ const LeaveRequest = () => {
       >
         <p>{alertModal.message}</p>
       </Modal>
+
       <Modal
         isVisible={confirmModal.isVisible}
         onClose={closeConfirm}
@@ -1527,6 +1835,61 @@ const LeaveRequest = () => {
         ]}
       >
         <p>{confirmModal.message}</p>
+      </Modal>
+
+      {/* Total LOP Modal (separate from compensation popup) */}
+      <Modal
+        isVisible={isLopModalOpen}
+        onClose={() => setIsLopModalOpen(false)}
+        buttons={[
+          { label: "Close", onClick: () => setIsLopModalOpen(false) },
+          {
+            label: "Recompute",
+            onClick: async () => {
+              await computeMonthlyLop(lopMonth, lopYear);
+            },
+          },
+        ]}
+      >
+        <div className="lop-modal-content">
+          <h4 className="lop-title">Total LOP</h4>
+          <div
+            className="lop-month-row"
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <button
+              type="button"
+              onClick={prevLopMonth}
+              aria-label="Previous month"
+            >
+              ◀
+            </button>
+            <div className="lop-month-title">
+              {monthName(lopMonth)} {lopYear}
+            </div>
+            <button
+              type="button"
+              onClick={nextLopMonth}
+              aria-label="Next month"
+            >
+              ▶
+            </button>
+          </div>
+
+          <div
+            className="lop-value-big"
+            style={{ fontSize: 28, marginTop: 12 }}
+          >
+            {Number.isFinite(Number(monthlyLop))
+              ? monthlyLop.toFixed(2)
+              : "0.00"}{" "}
+            days
+          </div>
+
+          <p className="lop-note" style={{ marginTop: 12 }}>
+            Note: Use Recompute if the displayed value looks outdated.
+          </p>
+        </div>
       </Modal>
     </div>
   );

@@ -14,9 +14,7 @@ const formatDate = (isoDate) => {
 
 const parseDateOnly = (isoDate) => {
   if (!isoDate) return null;
-  // expecting 'YYYY-MM-DD' or ISO full date; extract parts robustly
   const d = new Date(isoDate);
-  // fallback: if parsing produced an invalid date, try manual parse
   if (isNaN(d.getTime())) {
     const parts = isoDate.split("-");
     if (parts.length >= 3) {
@@ -25,7 +23,6 @@ const parseDateOnly = (isoDate) => {
     }
     return null;
   }
-  // create a local date with same year/month/day (midnight local)
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 };
 
@@ -34,8 +31,8 @@ const calculateDays = (startDate, endDate) => {
   const e = parseDateOnly(endDate);
   if (!s || !e) return 0;
   const msPerDay = 24 * 60 * 60 * 1000;
-  const diffDays = Math.round((e - s) / msPerDay); // integer days difference
-  return diffDays >= 0 ? diffDays + 1 : 0; // inclusive
+  const diffDays = Math.round((e - s) / msPerDay);
+  return diffDays >= 0 ? diffDays + 1 : 0;
 };
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL;
@@ -58,6 +55,7 @@ export default function Admin({ openPolicyId = null }) {
   const [leaveBalances, setLeaveBalances] = useState({});
   const location = useLocation();
 
+  // centralized alert modal state
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
@@ -85,8 +83,19 @@ export default function Admin({ openPolicyId = null }) {
     error: "",
   });
 
-  const showAlert = (message, title = "") =>
-    setAlertModal({ isVisible: true, title, message });
+  /**
+   * showAlert
+   * - ensures compensation popup is forcibly closed first (so alert appears above it)
+   * - small delay (120ms) to allow modal to disappear before showing alert
+   */
+  const showAlert = (message, title = "") => {
+    // force-close popup immediately (parent state)
+    setLopModal((m) => ({ ...m, isVisible: false }));
+    // wait a bit to ensure popup unmount/animation completes (keeps UI clean)
+    setTimeout(() => {
+      setAlertModal({ isVisible: true, title, message });
+    }, 120);
+  };
   const closeAlert = () =>
     setAlertModal({ isVisible: false, title: "", message: "" });
 
@@ -256,6 +265,9 @@ export default function Admin({ openPolicyId = null }) {
   /**
    * doUpdate - sends normalized payload and logs request/response for debugging.
    * This expects preserved_leave_days to already be present on payload (computed upstream).
+   *
+   * NOTE: this function does NOT show success alerts. Callers should call showAlert(...)
+   * after they decide to show a global alert. doUpdate will show alerts for server errors.
    */
   const doUpdate = async (leaveId, payload = {}, query = null) => {
     try {
@@ -380,7 +392,7 @@ export default function Admin({ openPolicyId = null }) {
 
       // success handling
       if (json && json.success) {
-        showAlert(json.message || "Leave updated");
+        // do NOT show success alert here — callers will call showAlert(...)
         setUpdatedQueries((s) => new Set(s).add(leaveId));
         // fetch the latest list after update
         await fetchLeaveQueries();
@@ -435,7 +447,6 @@ export default function Admin({ openPolicyId = null }) {
           preserved_leave_days,
         });
 
-        // call doUpdate and close modal only on success
         const result = await doUpdate(
           leaveId,
           {
@@ -451,7 +462,9 @@ export default function Admin({ openPolicyId = null }) {
         );
 
         if (result && result.ok) {
-          setLopModal((m) => ({ ...m, isVisible: false, error: "" }));
+          const msg = (result.body && result.body.message) || "Leave updated";
+          // showAlert will close popup and then display alert
+          showAlert(msg);
         } else {
           const serverMsg =
             (result && result.message) ||
@@ -465,7 +478,6 @@ export default function Admin({ openPolicyId = null }) {
       };
 
       const setAllCompensated = async () => {
-        // Compensated days do not touch the leave balance -> preserved remains the same
         const compensated_days = Number(days) || 0;
         const preserved_leave_days = Number(remaining) || 0;
         console.log("[setAllCompensated] called", {
@@ -490,7 +502,8 @@ export default function Admin({ openPolicyId = null }) {
         );
 
         if (result && result.ok) {
-          setLopModal((m) => ({ ...m, isVisible: false, error: "" }));
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
         } else {
           const serverMsg =
             (result && result.message) ||
@@ -537,7 +550,8 @@ export default function Admin({ openPolicyId = null }) {
         );
 
         if (result && result.ok) {
-          setLopModal((m) => ({ ...m, isVisible: false, error: "" }));
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
         } else {
           const serverMsg =
             (result && result.message) ||
@@ -617,14 +631,14 @@ export default function Admin({ openPolicyId = null }) {
 
         console.log("[applyFlexibleSplit] sending payload:", payload);
 
-        // call doUpdate and close modal only on success
+        // call doUpdate
         const result = await doUpdate(leaveId, payload, query);
 
-        // DEBUG: always log full result for troubleshooting
         console.log("[applyFlexibleSplit] doUpdate result:", result);
 
         if (result && result.ok) {
-          setLopModal((m) => ({ ...m, isVisible: false, error: "" }));
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
         } else if (
           result &&
           result.status &&
@@ -636,7 +650,8 @@ export default function Admin({ openPolicyId = null }) {
             "[applyFlexibleSplit] fallback: treating 2xx as success",
             result
           );
-          setLopModal((m) => ({ ...m, isVisible: false, error: "" }));
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
         } else {
           const serverMsg =
             (result && result.message) ||
@@ -679,7 +694,11 @@ export default function Admin({ openPolicyId = null }) {
       leaveId,
       payload: upd,
     });
-    await doUpdate(leaveId, upd);
+    const result = await doUpdate(leaveId, upd);
+    if (result && result.ok) {
+      const msg = (result.body && result.body.message) || "Leave updated";
+      showAlert(msg);
+    }
   };
 
   const handleStatusChange = (leaveId, key, value) => {
@@ -948,7 +967,10 @@ export default function Admin({ openPolicyId = null }) {
         </div>
       </div>
 
-      {/* Alert Modal */}
+      {/* Compensation popup (rendered BEFORE alert) */}
+      <CompensationPopup lopModal={lopModal} setLopModal={setLopModal} />
+
+      {/* Alert Modal (rendered after popup to avoid stacking surprises) */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}
@@ -956,9 +978,6 @@ export default function Admin({ openPolicyId = null }) {
       >
         <p>{alertModal.message}</p>
       </Modal>
-
-      {/* Compensation popup */}
-      <CompensationPopup lopModal={lopModal} setLopModal={setLopModal} />
     </div>
   );
 }
