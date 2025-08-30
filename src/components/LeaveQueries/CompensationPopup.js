@@ -1,5 +1,5 @@
 // src/components/LeaveQueries/CompensationPopup.js
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./CompensationPopup.css";
 
 /**
@@ -7,61 +7,80 @@ import "./CompensationPopup.css";
  * - lopModal: object (shape from Admin)
  * - setLopModal: setter from Admin
  *
- * NOTE: Admin must set lopModal.days and lopModal.remaining before opening this popup.
+ * Admin is expected to provide:
+ * - lopModal.days (number)
+ * - lopModal.remaining (number)
+ * - lopModal.leaveId
+ * - lopModal.approveDeficit, setAllCompensated, setAllDeducted, applyFlexibleSplit
+ *
+ * Each handler should return a result object similar to doUpdate:
+ *   { ok: true, status, body } on success
+ *   { ok: false, status, body } on failure
+ *
+ * UX behavior:
+ * - Only the clicked button shows "Processing…" (using loadingAction).
+ * - Other buttons are disabled while an action is running, but keep their normal labels.
+ * - If admin closes the popup while a request is in-flight, we avoid calling setState on unmounted component.
  */
 export default function CompensationPopup({ lopModal, setLopModal }) {
+  const [loadingAction, setLoadingAction] = useState(null); // null | 'approve' | 'compensated' | 'deducted' | 'apply'
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   if (!lopModal?.isVisible) return null;
 
   const days = Number(lopModal.days) || Number(lopModal.deficit) || 0;
   const remaining = Number(lopModal.remaining) || 0;
 
-  // Allow decimals (use parseFloat, do not floor)
+  // -- helpers
+  const toNumberSafe = (v) =>
+    v === "" || v === null || v === undefined ? 0 : Number(v) || 0;
+
+  // update one of the numeric fields in parent state, allow empty string so user can type
   const updateField = (key, value) => {
-    // keep raw input so user can type `.5` etc — parse to number for clamping
+    if (value === "" || value === null || value === undefined) {
+      setLopModal((m) => ({ ...m, [key]: "", error: "" }));
+      return;
+    }
     const parsed = parseFloat(String(value));
     const isNum = Number.isFinite(parsed);
     const base = isNum ? Math.max(0, parsed) : 0;
 
-    // clamp depending on key (but keep decimal precision)
     let clamped = base;
-    const daysNum = Number(lopModal.days) || 0;
-    const remainingNum = Number(lopModal.remaining) || 0;
-
     if (key === "compensatedDays") {
-      clamped = Math.min(base, daysNum);
+      clamped = Math.min(base, days);
     } else if (key === "deductedDays") {
-      clamped = Math.min(base, daysNum, remainingNum);
+      clamped = Math.min(base, days, remaining);
     } else if (key === "lopDays") {
-      clamped = Math.min(base, daysNum);
+      clamped = Math.min(base, days);
     }
 
-    // If user cleared the field (empty string), allow empty string to be stored
-    // so they can type a new value.
-    const valueToStore =
-      value === "" || value === null || value === undefined
-        ? ""
-        : // keep the numeric value (with decimals)
-          clamped;
-
-    setLopModal((m) => ({ ...m, [key]: valueToStore, error: "" }));
+    setLopModal((m) => ({ ...m, [key]: clamped, error: "" }));
   };
 
   const close = () =>
-    setLopModal((m) => ({ ...m, isVisible: false, error: "" }));
-
-  // compute sum (coerce empty to 0)
-  const toNumberSafe = (v) =>
-    v === "" || v === null || v === undefined ? 0 : Number(v) || 0;
+    setLopModal((m) => ({
+      ...m,
+      isVisible: false,
+      error: "",
+      compensatedDays: 0,
+      deductedDays: Math.min(remaining, days),
+      lopDays: Math.max(0, days - Math.min(remaining, days)),
+    }));
 
   const sum =
     toNumberSafe(lopModal.compensatedDays) +
     toNumberSafe(lopModal.deductedDays) +
     toNumberSafe(lopModal.lopDays);
 
-  // floating-tolerance helper
   const EPS = 1e-6;
 
-  // helper validation before apply (tolerant to float rounding)
   const validateBeforeApply = (c, d, l) => {
     if (Math.abs(c + d + l - days) > EPS) {
       return `Split must add up to total requested days (${days}). Current sum: ${
@@ -73,6 +92,62 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
     }
     return null;
   };
+
+  /**
+   * runHandler
+   * - actionKey: string to identify which button invoked the call (used to set loadingAction)
+   * - handler: function from lopModal (may be undefined)
+   * - args: args forwarded to handler
+   *
+   * Behavior:
+   * - sets loadingAction so only the clicked button shows processing label
+   * - disables other buttons while running
+   * - on failure, writes error into parent's lopModal.error (only if popup is still visible)
+   * - on success, Admin is expected to close popup and show global alert (so we don't close here)
+   */
+  const runHandler = async (actionKey, handler, ...args) => {
+    if (typeof handler !== "function") {
+      // fallback: close if handler missing
+      close();
+      return;
+    }
+
+    try {
+      setLoadingAction(actionKey);
+      const result = await handler(...args);
+
+      if (!mountedRef.current) return;
+
+      if (!result || result.ok === false) {
+        // extract message from result
+        let msg = "Action failed";
+        if (result && result.body) {
+          if (typeof result.body === "string") msg = result.body;
+          else if (result.body.message) msg = result.body.message;
+          else msg = JSON.stringify(result.body);
+        } else if (result && result.message) msg = result.message;
+
+        // only update parent's error if popup still visible
+        if (lopModal.isVisible) {
+          setLopModal((m) => ({ ...m, error: msg }));
+        }
+      } else {
+        // success: Admin will typically close the popup & show global alert.
+        // We don't force-close here; Admin.showAlert closes the popup first.
+      }
+    } catch (err) {
+      console.error("[CompensationPopup] handler threw:", err);
+      const msg = err && err.message ? err.message : "Unexpected error";
+      if (lopModal.isVisible) {
+        setLopModal((m) => ({ ...m, error: msg }));
+      }
+    } finally {
+      if (mountedRef.current) setLoadingAction(null);
+    }
+  };
+
+  // Whether to disable form controls while some action is running
+  const anyRunning = Boolean(loadingAction);
 
   return (
     <div
@@ -93,6 +168,7 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
             className="comp-close"
             aria-label="Close dialog"
             onClick={close}
+            disabled={anyRunning}
           >
             ✕
           </button>
@@ -121,6 +197,7 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
                 step="any"
                 value={lopModal.compensatedDays ?? ""}
                 onChange={(e) => updateField("compensatedDays", e.target.value)}
+                disabled={anyRunning}
               />
             </label>
 
@@ -133,6 +210,7 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
                 step="any"
                 value={lopModal.deductedDays ?? ""}
                 onChange={(e) => updateField("deductedDays", e.target.value)}
+                disabled={anyRunning}
               />
               <small style={{ display: "block", marginTop: 6 }}>
                 Max deductible: {remaining}
@@ -148,6 +226,7 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
                 step="any"
                 value={lopModal.lopDays ?? ""}
                 onChange={(e) => updateField("lopDays", e.target.value)}
+                disabled={anyRunning}
               />
             </label>
           </div>
@@ -157,18 +236,9 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
               Sum: <strong>{sum}</strong> / Total requested days:{" "}
               <strong>{days}</strong>
             </small>
-            {lopModal.error && (
-              <div
-                className="comp-error"
-                role="alert"
-                style={{ color: "crimson" }}
-              >
-                {lopModal.error}
-              </div>
-            )}
           </div>
 
-          <div className="comp-quick-row">
+          <div className="comp-quick-row" style={{ marginTop: 10 }}>
             <button
               type="button"
               className="comp-btn comp-btn-ghost"
@@ -181,6 +251,7 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
                   error: "",
                 }))
               }
+              disabled={anyRunning}
             >
               Quick: All → LoP
             </button>
@@ -197,6 +268,7 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
                   error: "",
                 }))
               }
+              disabled={anyRunning}
             >
               Quick: All → Compensated
             </button>
@@ -213,66 +285,65 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
                   error: "",
                 }))
               }
+              disabled={anyRunning}
             >
               Quick: Use Balance → Deducted
             </button>
           </div>
 
-          <div className="comp-actions" style={{ marginTop: 12 }}>
-            <button className="comp-btn comp-btn-muted" onClick={close}>
+          <div className="comp-actions" style={{ marginTop: 16 }}>
+            <button
+              className="comp-btn comp-btn-muted"
+              onClick={close}
+              disabled={anyRunning}
+            >
               Cancel
             </button>
 
             <button
               className="comp-btn comp-btn-danger"
-              onClick={async () => {
-                // approve deficit as LoP for entire period
-                if (typeof lopModal.approveDeficit === "function") {
-                  console.log("[CompensationPopup] Approve as LoP:", {
-                    leaveId: lopModal.leaveId,
-                    days,
-                  });
-                  await lopModal.approveDeficit();
-                } else {
-                  close();
-                }
-              }}
+              onClick={async () =>
+                await runHandler(
+                  "approve",
+                  lopModal.approveDeficit,
+                  lopModal.leaveId
+                )
+              }
+              disabled={anyRunning}
             >
-              {`Approve ${days} LoP`}
+              {loadingAction === "approve"
+                ? "Processing…"
+                : `Approve ${days} LoP`}
             </button>
 
             <button
               className="comp-btn"
-              onClick={async () => {
-                if (typeof lopModal.setAllCompensated === "function") {
-                  console.log("[CompensationPopup] All compensated:", {
-                    leaveId: lopModal.leaveId,
-                    days,
-                  });
-                  await lopModal.setAllCompensated();
-                } else {
-                  close();
-                }
-              }}
+              onClick={async () =>
+                await runHandler(
+                  "compensated",
+                  lopModal.setAllCompensated,
+                  lopModal.leaveId
+                )
+              }
+              disabled={anyRunning}
             >
-              All Compensated
+              {loadingAction === "compensated"
+                ? "Processing…"
+                : "All Compensated"}
             </button>
 
             <button
               className="comp-btn"
-              onClick={async () => {
-                if (typeof lopModal.setAllDeducted === "function") {
-                  console.log("[CompensationPopup] All deducted:", {
-                    leaveId: lopModal.leaveId,
-                    days,
-                  });
-                  await lopModal.setAllDeducted();
-                } else {
-                  close();
-                }
-              }}
+              onClick={async () =>
+                await runHandler(
+                  "deducted",
+                  lopModal.setAllDeducted,
+                  lopModal.leaveId
+                )
+              }
+              disabled={anyRunning}
             >
-              All Deducted
+              {loadingAction === "deducted" ? "Processing…" : "All Deducted"}
             </button>
 
             <button
@@ -292,24 +363,22 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
                   return;
                 }
 
-                // all good — call handler which triggers doUpdate in Admin
-                console.log("[CompensationPopup] apply split payload:", {
-                  leaveId: lopModal.leaveId,
-                  compensated_days: c,
-                  deducted_days: d,
-                  loss_of_pay_days: l,
-                });
-
-                if (typeof lopModal.applyFlexibleSplit === "function") {
-                  await lopModal.applyFlexibleSplit(c, d, l);
-                }
+                // pass numeric values
+                await runHandler(
+                  "apply",
+                  lopModal.applyFlexibleSplit,
+                  Number(c),
+                  Number(d),
+                  Number(l)
+                );
               }}
+              disabled={anyRunning}
             >
-              Apply split
+              {loadingAction === "apply" ? "Processing…" : "Apply split"}
             </button>
           </div>
 
-          <div className="comp-note" style={{ marginTop: 8 }}>
+          <div className="comp-note" style={{ marginTop: 12 }}>
             <small>
               <em>Note:</em> Deducted days cannot exceed the employee's
               remaining balance ({remaining}). Sum must equal total requested

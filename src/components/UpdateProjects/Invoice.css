@@ -164,9 +164,23 @@
   position: relative;
 }
 
+.invoice-page {
+  position: relative; /* Ensure positioning context */
+  z-index: 1000;
+}
+
 .back-btn {
-  font-size: xx-large;
-  color: #004dc6;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 28px;
+  color: #00468c; /* or #333 depending on theme */
+  cursor: pointer;
+  z-index: 10001; /* Keep it above headers and tables */
+}
+
+.back-btn:hover {
+  color: #002b5c; /* Darker on hover */
 }
 
 /* Invoice Table Styling */

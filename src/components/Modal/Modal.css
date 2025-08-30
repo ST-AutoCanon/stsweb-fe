@@ -14,8 +14,8 @@
 .custom-modal-content {
   background-color: #fff;
   border-radius: 5px;
+  min-width: 300px;
   max-width: 500px;
-  width: 90%;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   border: 10px solid #00468c;
 }
@@ -23,8 +23,8 @@
 .modal-title {
   margin-top: 0;
   font-size: 1.5rem;
-  opacity: 1!important;
-  z-index: 99999!important;
+  opacity: 1 !important;
+  z-index: 99999 !important;
   margin-left: 10%;
 }
 
