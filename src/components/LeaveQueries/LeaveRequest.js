@@ -75,6 +75,44 @@ const rolesWithTeamView = new Set([
   "super_admin",
 ]);
 
+// Default leave settings to use when there is no policy
+const defaultLeaveSettings = [
+  {
+    type: "casual",
+    label: "Casual Leave",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    // IMPORTANT: we enforce 3 days advance for casual
+    advance_notice_days: 3,
+  },
+  {
+    type: "vacation",
+    label: "Vacation",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    advance_notice_days: 3,
+  },
+  {
+    type: "sick",
+    label: "Sick Leave",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    advance_notice_days: 0,
+  },
+  {
+    type: "other",
+    label: "Other",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    // mark other as 3 days too if you want; keeping 3-day rule only for casual+vacation
+    advance_notice_days: 3,
+  },
+];
+
 const LeaveRequest = () => {
   const [isFormVisible, setFormVisible] = useState(false);
   const [statusUpdates, setStatusUpdates] = useState({});
@@ -203,8 +241,12 @@ const LeaveRequest = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeId]);
 
+  // choose active policy (if any)
   useEffect(() => {
-    if (!Array.isArray(policies) || policies.length === 0) return;
+    if (!Array.isArray(policies) || policies.length === 0) {
+      setActivePolicy(null);
+      return;
+    }
     const today = new Date();
     const inRange = policies.find((p) => {
       try {
@@ -710,7 +752,6 @@ const LeaveRequest = () => {
       };
 
       // Open compensation popup with prepared handlers and defaults
-      // NOTE: this opens the compensation popup used for approval flows (NOT the Total-LOP modal)
       setLopModal({
         isVisible: true,
         leaveId,
@@ -756,13 +797,27 @@ const LeaveRequest = () => {
   // ---------- Form/Submit related functions (existing) ----------
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // handle leavetype selection: prefer activePolicy setting, else default
     if (name === "leavetype") {
       if (!value) {
         setSelectedSetting(null);
       } else {
-        const ls = (activePolicy?.leave_settings || []).find(
-          (s) => (s.type || "").toLowerCase() === String(value).toLowerCase()
-        );
+        const policySettings = activePolicy?.leave_settings || [];
+        let ls =
+          policySettings.find(
+            (s) => (s.type || "").toLowerCase() === String(value).toLowerCase()
+          ) || null;
+
+        // if no policy setting found and no active policy — fall back to default list
+        if (!ls && !activePolicy) {
+          ls =
+            defaultLeaveSettings.find(
+              (s) =>
+                (s.type || "").toLowerCase() === String(value).toLowerCase()
+            ) || null;
+        }
+
         setSelectedSetting(ls || null);
         const noticeDays = getAdvanceNoticeDays(ls);
         if (ls && noticeDays > 0) {
@@ -773,6 +828,7 @@ const LeaveRequest = () => {
       }
     }
 
+    // if startDate selected, and there is a setting (from policy or default), enforce notice
     if (name === "startDate") {
       const settingToCheck =
         selectedSetting ||
@@ -780,7 +836,14 @@ const LeaveRequest = () => {
           (s) =>
             (s.type || "").toLowerCase() ===
             String(formData.leavetype).toLowerCase()
+        ) ||
+        // fallback to defaults when no policy
+        defaultLeaveSettings.find(
+          (s) =>
+            (s.type || "").toLowerCase() ===
+            String(formData.leavetype).toLowerCase()
         );
+
       const noticeDays = getAdvanceNoticeDays(settingToCheck);
       if (settingToCheck && noticeDays > 0 && value) {
         const today = new Date();
@@ -883,11 +946,28 @@ const LeaveRequest = () => {
       showAlert("End date cannot be earlier than start date.");
       return;
     }
-    const setting = selectedSetting;
+
+    // determine applicable setting:
+    const setting =
+      selectedSetting ||
+      (activePolicy?.leave_settings || []).find(
+        (s) =>
+          (s.type || "").toLowerCase() ===
+          String(formData.leavetype).toLowerCase()
+      ) ||
+      // fallback to default setting if no policy
+      defaultLeaveSettings.find(
+        (s) =>
+          (s.type || "").toLowerCase() ===
+          String(formData.leavetype).toLowerCase()
+      );
+
     if (!setting) {
       showAlert("Selected leave type is not available in current policy.");
       return;
     }
+
+    // enforce advance notice at submit as well (for safety)
     const noticeDays = getAdvanceNoticeDays(setting);
     if (!editingId && noticeDays > 0) {
       const today = new Date();
@@ -911,11 +991,14 @@ const LeaveRequest = () => {
         return;
       }
     }
+
     const requestedDays = computeRequestedDays(
       formData.startDate,
       formData.endDate,
       formData.h_f_day
     );
+
+    // balance lookup
     const balanceRow = getBalanceForType(setting.type);
     let allowance = 0,
       used = 0,
@@ -938,6 +1021,7 @@ const LeaveRequest = () => {
       used = 0;
       remaining = allowance - used;
     }
+
     if (!employeeId || !name) {
       showAlert("Employee data not found. Please log in again.");
       return;
@@ -978,7 +1062,18 @@ const LeaveRequest = () => {
         showAlert("An error occurred while submitting the leave request.");
       }
     };
+
+    // If requestedDays greater than remaining and there is NO active policy,
+    // do NOT show the "incur LoP" confirm dialog — submit directly (user asked for this behavior).
     if (requestedDays > remaining) {
+      if (!activePolicy) {
+        // Proceed without confirm dialog. We still include the form data as-is.
+        // Note: backend may compute LOP/preserves; we are intentionally NOT blocking here.
+        await doSubmit(requestData, url, method);
+        return;
+      }
+
+      // else: policy exists -> show confirm about LOP (existing behavior)
       const deficit = requestedDays - remaining;
       const confirmMsg = `You're requesting ${requestedDays} day(s), but you have only ${remaining} remaining (${allowance} allowance, ${used} used, ${carry_forward} carry-forward). This will incur ${deficit} Loss-of-Pay day(s). Do you want to continue?`;
       showConfirm(confirmMsg, async () => {
@@ -987,6 +1082,7 @@ const LeaveRequest = () => {
       });
       return;
     }
+
     await doSubmit(requestData, url, method);
   };
 
@@ -1028,7 +1124,12 @@ const LeaveRequest = () => {
   };
 
   // ---------- UI pieces reused from earlier file (Venn etc.) ----------
-  const leaveTypeOptions = (activePolicy?.leave_settings || [])
+  // If activePolicy exists, use its leave_settings; otherwise fall back to defaultLeaveSettings
+  const leaveTypeOptions = (
+    activePolicy?.leave_settings && activePolicy.leave_settings.length > 0
+      ? activePolicy.leave_settings
+      : defaultLeaveSettings
+  )
     .filter((s) => s && (s.enabled === undefined ? true : s.enabled))
     .map((s) => ({
       type: s.type,

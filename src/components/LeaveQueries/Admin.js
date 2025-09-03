@@ -271,7 +271,7 @@ export default function Admin({ openPolicyId = null }) {
    */
   const doUpdate = async (leaveId, payload = {}, query = null) => {
     try {
-      // --- Normalize payload keys safely (no ?? / || mixing) ---
+      // --- Normalize payload keys safely ---
       let compensatedRaw;
       if (payload.hasOwnProperty("compensated_days"))
         compensatedRaw = payload.compensated_days;
@@ -338,13 +338,45 @@ export default function Admin({ openPolicyId = null }) {
         actorId = null;
       }
 
+      // Build robust payload with synonyms to satisfy different backend expectations
       const fullPayload = {
         status,
         comments,
+
+        // compensated synonyms
         compensated_days: compensated,
+        compensatedDays: compensated,
+        compensated: compensated,
+
+        // deducted synonyms
         deducted_days: deducted,
+        deductedDays: deducted,
+        deducted: deducted,
+
+        // loss-of-pay synonyms
         loss_of_pay_days: lop,
+        lopDays: lop,
+        loss_of_pay: lop,
+
+        // preserved synonyms
         preserved_leave_days: preserved === undefined ? null : preserved,
+        preservedLeaveDays: preserved === undefined ? null : preserved,
+        preserved: preserved === undefined ? null : preserved,
+
+        // total days fields if caller provided them (pass through if present)
+        total_days:
+          payload &&
+          (payload.total_days ??
+            payload.totalDays ??
+            payload.totalDaysRequested ??
+            null),
+        totalDays:
+          payload &&
+          (payload.totalDays ??
+            payload.total_days ??
+            payload.totalDaysRequested ??
+            null),
+
         actorId,
       };
 
@@ -414,6 +446,38 @@ export default function Admin({ openPolicyId = null }) {
     }
   };
 
+  /**
+   * Helper: findActivePolicyForRequestDate
+   * - returns a policy object if any policy covers the leave's start_date (inclusive),
+   *   otherwise returns null.
+   * - when no policy is found we treat policy as "not active / not present" for this request.
+   */
+  const findActivePolicyForRequestDate = (request) => {
+    if (!request) return null;
+    if (!Array.isArray(policies) || policies.length === 0) return null;
+    const startDate = request.start_date || request.startDate || null;
+    if (!startDate) return null;
+    try {
+      const req = new Date(startDate);
+      req.setHours(0, 0, 0, 0);
+      for (const p of policies) {
+        try {
+          const s = new Date(p.year_start);
+          const e = new Date(p.year_end);
+          s.setHours(0, 0, 0, 0);
+          e.setHours(0, 0, 0, 0);
+          if (s <= req && req <= e) return p;
+        } catch (e) {
+          // ignore malformed policy dates
+          continue;
+        }
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  };
+
   const handleUpdate = async (leaveId, query) => {
     const upd = statusUpdates[leaveId] || {};
     console.log(
@@ -438,28 +502,105 @@ export default function Admin({ openPolicyId = null }) {
       // --- Helpers (replace the old ones inside handleUpdate) ---
       const EPS = 1e-6;
 
+      // --- NEW: check for active policy for this request ---
+      // If there's no active policy covering the request date (or no policies at all),
+      // do not open the compensation popup. Instead perform a simple approval update
+      // and show the normal success message.
+      const activePolicyForRequest = findActivePolicyForRequestDate(query);
+
+      if (!activePolicyForRequest) {
+        // No active policy: perform a simple approve WITHOUT opening the compensation popup.
+        // IMPORTANT: The backend validates that compensated + deducted + loss_of_pay === total_days
+        // so we must send a split that sums to the requested days.
+        //
+        // Default behaviour here: treat the full requested days as Loss-of-Pay (LoP).
+        // If you prefer "deduct from remaining" as the default, change the payload accordingly.
+
+        const simplePayload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          // set default split -> all LoP
+          compensated_days: 0,
+          compensatedDays: 0,
+          compensated: 0,
+
+          deducted_days: 0,
+          deductedDays: 0,
+          deducted: 0,
+
+          loss_of_pay_days: Number(days),
+          lopDays: Number(days),
+          loss_of_pay: Number(days),
+
+          // preserved fields: set to remaining if any, else null
+          preserved_leave_days: remaining > 0 ? Number(remaining) : null,
+          preservedLeaveDays: remaining > 0 ? Number(remaining) : null,
+          preserved: remaining > 0 ? Number(remaining) : null,
+
+          // explicitly include total days so server can validate
+          total_days: Number(days),
+          totalDays: Number(days),
+        };
+
+        console.log(
+          "[handleUpdate] No active policy found for request — performing simple approve (default to LoP)",
+          { leaveId, simplePayload }
+        );
+
+        const result = await doUpdate(leaveId, simplePayload, query);
+        if (result && result.ok) {
+          const msg = (result.body && result.body.message) || "Leave updated";
+          showAlert(msg);
+        } else {
+          const msg =
+            (result &&
+              (result.message || (result.body && result.body.message))) ||
+            "Failed to update leave";
+          showAlert(msg);
+        }
+        return;
+      }
+
+      // If we reach here, there IS an active policy for the request -> show compensation popup as before
+
       const approveDeficit = async () => {
         // Approve as full LoP for all days — preserve the remaining (no change to balance)
         const preserved_leave_days = Number(remaining) || 0; // no deduction
-        console.log("[approveDeficit] called", {
-          leaveId,
-          days,
-          preserved_leave_days,
-        });
+        const lopDaysVal = Number(days) || 0;
 
-        const result = await doUpdate(
-          leaveId,
-          {
-            ...(upd || {}),
-            status: "Approved",
-            compensated_days: 0,
-            deducted_days: 0,
-            loss_of_pay_days: Number(days) || 0,
-            preserved_leave_days,
-            total_days: Number(days),
-          },
-          query
-        );
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          // compensated synonyms
+          compensated_days: 0,
+          compensatedDays: 0,
+          compensated: 0,
+
+          // deducted synonyms
+          deducted_days: 0,
+          deductedDays: 0,
+          deducted: 0,
+
+          // LoP synonyms (set to full days)
+          loss_of_pay_days: lopDaysVal,
+          lopDays: lopDaysVal,
+          loss_of_pay: lopDaysVal,
+
+          // preserved
+          preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          // totals
+          total_days: Number(days),
+          totalDays: Number(days),
+        };
+
+        console.log("[approveDeficit] payload:", payload);
+
+        const result = await doUpdate(leaveId, payload, query);
 
         if (result && result.ok) {
           const msg = (result.body && result.body.message) || "Leave updated";
@@ -480,26 +621,34 @@ export default function Admin({ openPolicyId = null }) {
       const setAllCompensated = async () => {
         const compensated_days = Number(days) || 0;
         const preserved_leave_days = Number(remaining) || 0;
-        console.log("[setAllCompensated] called", {
-          leaveId,
-          days,
-          compensated_days,
-          preserved_leave_days,
-        });
 
-        const result = await doUpdate(
-          leaveId,
-          {
-            ...(upd || {}),
-            status: "Approved",
-            compensated_days,
-            deducted_days: 0,
-            loss_of_pay_days: 0,
-            preserved_leave_days,
-            total_days: Number(days),
-          },
-          query
-        );
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          compensated_days: compensated_days,
+          compensatedDays: compensated_days,
+          compensated: compensated_days,
+
+          deducted_days: 0,
+          deductedDays: 0,
+          deducted: 0,
+
+          loss_of_pay_days: 0,
+          lopDays: 0,
+          loss_of_pay: 0,
+
+          preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          total_days: Number(days),
+          totalDays: Number(days),
+        };
+
+        console.log("[setAllCompensated] payload:", payload);
+
+        const result = await doUpdate(leaveId, payload, query);
 
         if (result && result.ok) {
           const msg = (result.body && result.body.message) || "Leave updated";
@@ -527,27 +676,33 @@ export default function Admin({ openPolicyId = null }) {
           remainingNum - deducted_clamped
         );
 
-        console.log("[setAllDeducted] called", {
-          leaveId,
-          days: daysNum,
-          deducted_clamped,
-          lop_days,
-          preserved_leave_days,
-        });
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
 
-        const result = await doUpdate(
-          leaveId,
-          {
-            ...(upd || {}),
-            status: "Approved",
-            compensated_days: 0,
-            deducted_days: deducted_clamped,
-            loss_of_pay_days: lop_days,
-            preserved_leave_days,
-            total_days: Number(days),
-          },
-          query
-        );
+          compensated_days: 0,
+          compensatedDays: 0,
+          compensated: 0,
+
+          deducted_days: deducted_clamped,
+          deductedDays: deducted_clamped,
+          deducted: deducted_clamped,
+
+          loss_of_pay_days: lop_days,
+          lopDays: lop_days,
+          loss_of_pay: lop_days,
+
+          preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          total_days: Number(days),
+          totalDays: Number(days),
+        };
+
+        console.log("[setAllDeducted] payload:", payload);
+
+        const result = await doUpdate(leaveId, payload, query);
 
         if (result && result.ok) {
           const msg = (result.body && result.body.message) || "Leave updated";
@@ -611,27 +766,38 @@ export default function Admin({ openPolicyId = null }) {
           };
         }
 
-        // compute preserved before send: remaining - deducted (keep decimals)
         let preserved_leave_days = Math.max(
           0,
           Number(remaining) - Number(deducted_clamped)
         );
-        // optionally round to 2 decimals for backend niceness:
         preserved_leave_days = Number(preserved_leave_days.toFixed(2));
 
-        // Build payload
         const payload = {
           ...(upd || {}),
           status: "Approved",
+
           compensated_days: Number(c.toFixed(2)),
+          compensatedDays: Number(c.toFixed(2)),
+          compensated: Number(c.toFixed(2)),
+
           deducted_days: Number(deducted_clamped.toFixed(2)),
+          deductedDays: Number(deducted_clamped.toFixed(2)),
+          deducted: Number(deducted_clamped.toFixed(2)),
+
           loss_of_pay_days: Number(l.toFixed(2)),
-          preserved_leave_days,
+          lopDays: Number(l.toFixed(2)),
+          loss_of_pay: Number(l.toFixed(2)),
+
+          preserved_leave_days: preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          total_days: Number(days),
+          totalDays: Number(days),
         };
 
-        console.log("[applyFlexibleSplit] sending payload:", payload);
+        console.log("[applyFlexibleSplit] payload:", payload);
 
-        // call doUpdate
         const result = await doUpdate(leaveId, payload, query);
 
         console.log("[applyFlexibleSplit] doUpdate result:", result);
