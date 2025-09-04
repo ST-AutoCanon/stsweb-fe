@@ -1,36 +1,40 @@
+// src/components/LeaveQueries/LopModal.js
 import React from "react";
+import Modal from "../Modal/Modal";
+import { monthName } from "./leaveUtils";
 
-const TotalLopModal = ({
-  isLopModalOpen,
+export default function LopModal({
+  isVisible,
   onClose,
-  prevLopMonth,
-  nextLopMonth,
   lopMonth,
   lopYear,
-  monthName,
   monthlyLop,
-  computeMonthlyLop,
-}) => {
-  if (!isLopModalOpen) return null;
+  prevMonth,
+  nextMonth,
+  onRecompute,
+}) {
   return (
-    <div>
+    <Modal
+      isVisible={isVisible}
+      onClose={onClose}
+      buttons={[
+        { label: "Close", onClick: onClose },
+        { label: "Recompute", onClick: onRecompute },
+      ]}
+    >
       <div className="lop-modal-content">
         <h4 className="lop-title">Total LOP</h4>
         <div
           className="lop-month-row"
           style={{ display: "flex", alignItems: "center", gap: 8 }}
         >
-          <button
-            type="button"
-            onClick={prevLopMonth}
-            aria-label="Previous month"
-          >
+          <button type="button" onClick={prevMonth} aria-label="Previous month">
             ◀
           </button>
           <div className="lop-month-title">
-            {monthName(lopMonth)} {lopYear}
+            {monthName(lopMonth, lopYear)} {lopYear}
           </div>
-          <button type="button" onClick={nextLopMonth} aria-label="Next month">
+          <button type="button" onClick={nextMonth} aria-label="Next month">
             ▶
           </button>
         </div>
@@ -44,8 +48,6 @@ const TotalLopModal = ({
           Note: Use Recompute if the displayed value looks outdated.
         </p>
       </div>
-    </div>
+    </Modal>
   );
-};
-
-export default TotalLopModal;
+}

@@ -1,3 +1,4 @@
+// src/components/LeaveQueries/leaveUtils.js
 export const parseLocalDate = (dateStr) => {
   if (!dateStr) return "";
   if (typeof dateStr === "string" && dateStr.length === 10) return dateStr;
@@ -36,6 +37,19 @@ export const calculateDays = (startDate, endDate, h_f_day = "") => {
   return total;
 };
 
+export const getAdvanceNoticeDays = (setting) => {
+  // Accept numeric/string values and multiple key name variations
+  if (!setting) return 0;
+  const raw =
+    setting?.advance_notice_days ??
+    setting?.advanceNoticeDays ??
+    setting?.advance_notice ??
+    setting?.advanceNotice ??
+    0;
+  const num = Number(raw);
+  return Number.isFinite(num) ? Math.max(0, Math.floor(num)) : 0;
+};
+
 export const computeRequestedDays = (start, end, h_f_day) => {
   if (!start || !end) return 0;
   const s = new Date(start);
@@ -45,5 +59,40 @@ export const computeRequestedDays = (start, end, h_f_day) => {
   return diff;
 };
 
-export const getAdvanceNoticeDays = (setting) =>
-  Number(setting?.advance_notice_days ?? setting?.advanceNoticeDays ?? 0);
+export const defaultLeaveSettings = [
+  {
+    type: "casual",
+    label: "Casual Leave",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    advance_notice_days: 3,
+  },
+  {
+    type: "vacation",
+    label: "Vacation",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    advance_notice_days: 3,
+  },
+  {
+    type: "sick",
+    label: "Sick Leave",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    advance_notice_days: 0,
+  },
+  {
+    type: "other",
+    label: "Other",
+    value: 0,
+    carry_forward: 0,
+    enabled: true,
+    advance_notice_days: 3,
+  },
+];
+
+export const monthName = (m, year) =>
+  new Date(year, m - 1, 1).toLocaleString(undefined, { month: "short" });
