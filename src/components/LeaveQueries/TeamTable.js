@@ -1,20 +1,15 @@
+// src/components/LeaveQueries/TeamTable.js
 import React from "react";
-import { calculateDays, parseLocalDate } from "./leaveUtils";
+import { parseLocalDate, calculateDays } from "./leaveUtils";
 
-/**
- * TeamRequestsTable - renders supervisor/admin table for team leaves
- *
- * Props:
- * - teamRequests: array
- * - statusUpdates, handleStatusChange, handleUpdate
- * - loadLeaveBalance (if used elsewhere)
- */
-const TeamRequestsTable = ({
-  teamRequests = [],
-  statusUpdates = {},
+export default function TeamTable({
+  leaveRequests,
+  statusUpdates,
   handleStatusChange,
-  handleUpdate,
-}) => {
+  onUpdate,
+  canViewTeam,
+}) {
+  if (!canViewTeam) return null;
   return (
     <>
       <h4 className="my-leaves">Team Leave Requests</h4>
@@ -36,7 +31,7 @@ const TeamRequestsTable = ({
             </tr>
           </thead>
           <tbody>
-            {(teamRequests || [])
+            {(leaveRequests.team || [])
               .sort(
                 (a, b) => (b.leave_id || b.id || 0) - (a.leave_id || a.id || 0)
               )
@@ -125,7 +120,7 @@ const TeamRequestsTable = ({
                         className={`update-button ${
                           isAlreadyUpdated ? "disabled-button" : ""
                         }`}
-                        onClick={() => handleUpdate(leave.leave_id)}
+                        onClick={() => onUpdate(leave.leave_id)}
                         disabled={
                           isAlreadyUpdated ||
                           !isUpdating ||
@@ -143,6 +138,4 @@ const TeamRequestsTable = ({
       </div>
     </>
   );
-};
-
-export default TeamRequestsTable;
+}

@@ -1,17 +1,23 @@
+// src/components/LeaveQueries/FiltersPanel.js
 import React from "react";
 import { IoSearch } from "react-icons/io5";
 
-const FiltersBar = ({
+export default function FiltersPanel({
   filters,
-  handleFilterChange,
-  handleFilterSubmit,
+  setFilters,
   canViewTeam,
   teamSearch,
   setTeamSearch,
   teamStatus,
   setTeamStatus,
-  handleOpenModal,
-}) => {
+  onSearch,
+  onOpenForm,
+}) {
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="leave-filters">
       <label>From:</label>
@@ -55,14 +61,12 @@ const FiltersBar = ({
           </div>
         </>
       )}
-      <button className="filter-button" onClick={handleFilterSubmit}>
+      <button className="filter-button" onClick={onSearch}>
         <IoSearch /> Search
       </button>
-      <button className="leave-form-button" onClick={handleOpenModal}>
+      <button className="leave-form-button" onClick={onOpenForm}>
         Leave Request
       </button>
     </div>
   );
-};
-
-export default FiltersBar;
+}

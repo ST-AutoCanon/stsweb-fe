@@ -1,18 +1,12 @@
+// src/components/LeaveQueries/SelfTable.js
 import React from "react";
-import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 import { parseLocalDate } from "./leaveUtils";
-/**
- * Renders both desktop and mobile views for "My Leave Requests"
- *
- * Props:
- * - selfRequests (array)
- * - handleEdit, handleCancel
- */
-const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
+import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
+
+export default function SelfTable({ leaveRequests, onEdit, onCancel }) {
   return (
     <>
       <h4 className="my-leaves">My Leave Requests</h4>
-
       <div className="leave-request-table desktop-view">
         <table className="leave-requests">
           <thead>
@@ -28,7 +22,7 @@ const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
             </tr>
           </thead>
           <tbody>
-            {(selfRequests || [])
+            {(leaveRequests.self || [])
               .sort((a, b) =>
                 String(b.start_date).localeCompare(String(a.start_date))
               )
@@ -64,7 +58,7 @@ const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
                           request.status !== "Approved" &&
                           request.status !== "Rejected"
                         )
-                          handleEdit(request);
+                          onEdit(request);
                       }}
                       className={`action-button ${
                         request.status === "Approved" ||
@@ -79,7 +73,7 @@ const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
                           request.status !== "Approved" &&
                           request.status !== "Rejected"
                         )
-                          handleCancel(request.id || request.leave_id);
+                          onCancel(request.id || request.leave_id);
                       }}
                       className={`action-button ${
                         request.status === "Approved" ||
@@ -97,7 +91,7 @@ const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
 
       {/* mobile view */}
       <div className="mobile-view">
-        {(selfRequests || [])
+        {(leaveRequests.self || [])
           .sort((a, b) =>
             String(b.start_date).localeCompare(String(a.start_date))
           )
@@ -141,7 +135,7 @@ const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
                       request.status !== "Approved" &&
                       request.status !== "Rejected"
                     )
-                      handleEdit(request);
+                      onEdit(request);
                   }}
                   className={`action-button ${
                     request.status === "Approved" ||
@@ -156,7 +150,7 @@ const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
                       request.status !== "Approved" &&
                       request.status !== "Rejected"
                     )
-                      handleCancel(request.id || request.leave_id);
+                      onCancel(request.id || request.leave_id);
                   }}
                   className={`action-button ${
                     request.status === "Approved" ||
@@ -171,6 +165,4 @@ const MyRequestsView = ({ selfRequests = [], handleEdit, handleCancel }) => {
       </div>
     </>
   );
-};
-
-export default MyRequestsView;
+}

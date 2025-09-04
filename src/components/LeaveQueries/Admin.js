@@ -212,6 +212,46 @@ export default function Admin({ openPolicyId = null }) {
     }
   };
 
+  // inside Admin component definitions (near showAlert, fetchPolicies)
+  const handleIgnorePolicyAlerts = async () => {
+    // actorId from local storage (same pattern as your backend expects)
+    let actorId = null;
+    try {
+      const raw = localStorage.getItem("dashboardData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        actorId = parsed.employeeId || parsed.id || null;
+      }
+    } catch (e) {
+      actorId = null;
+    }
+
+    try {
+      setShowPolicyAlertsModal(false); // hide modal immediately for snappiness
+      // call backend to auto-extend recent policies
+      const url = `${API_BASE}/api/leave-policies/auto-extend`;
+      const body = { extensionDays: 90, actorId };
+      const resp = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
+      const json = await resp.json();
+      if (!resp.ok) {
+        console.warn("[handleIgnorePolicyAlerts] server returned non-ok", json);
+        showAlert(json.message || "Failed to auto-extend policies.");
+        return;
+      }
+      // Refresh policies + queries so UI reflects newly-created entries
+      await fetchPolicies();
+      await fetchLeaveQueries();
+      showAlert(json.message || "Policy auto-extension processed.");
+    } catch (err) {
+      console.error("[handleIgnorePolicyAlerts] error:", err);
+      showAlert("Failed to auto-extend policies (network error).");
+    }
+  };
+
   // helper: load balance for one employee
   const loadLeaveBalance = async (employeeId) => {
     if (leaveBalances[employeeId]) {
@@ -903,7 +943,7 @@ export default function Admin({ openPolicyId = null }) {
         isVisible={showPolicyAlertsModal}
         onClose={() => setShowPolicyAlertsModal(false)}
         buttons={[
-          { label: "Close", onClick: () => setShowPolicyAlertsModal(false) },
+          { label: "Ignore & Auto-extend", onClick: handleIgnorePolicyAlerts },
           {
             label: "View Policy",
             onClick: () => {

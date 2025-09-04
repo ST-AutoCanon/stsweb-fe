@@ -1,6 +1,8 @@
+// src/components/LeaveQueries/VennBalances.js
 import React from "react";
-import { parseLocalDate } from "./leaveUtils";
-const RenderVenn = ({ label, allowance = 0, used = 0, remaining = 0 }) => {
+import { monthName } from "./leaveUtils";
+
+export function RenderVenn({ label, allowance = 0, used = 0, remaining = 0 }) {
   const formatOne = (v) => {
     const n = Number(v);
     return Number.isFinite(n) ? n.toFixed(1) : "0.0";
@@ -25,7 +27,15 @@ const RenderVenn = ({ label, allowance = 0, used = 0, remaining = 0 }) => {
       aria-label={`${label} leave balance`}
     >
       <div className="venn-label">{label}</div>
-      <svg className="venn-svg" viewBox={`0 0 ${width} ${height}`} role="img">
+      <svg
+        className="venn-svg"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-labelledby={`venn-${label}-title`}
+      >
+        <title
+          id={`venn-${label}-title`}
+        >{`${label} - Used vs Remaining`}</title>
         <circle
           cx={cx1}
           cy={cy}
@@ -105,31 +115,28 @@ const RenderVenn = ({ label, allowance = 0, used = 0, remaining = 0 }) => {
       </svg>
     </div>
   );
-};
+}
 
-const VennBalanceSection = ({
+export default function VennBalances({
   balances,
   activePolicy,
   vennStartIndex,
   vennVisibleCount,
   prevVenn,
   nextVenn,
-  onShowLop,
-}) => {
+  setIsLopModalOpen,
+}) {
   if (!balances || balances.length === 0) return null;
-
   const start = activePolicy?.year_start
     ? new Date(activePolicy.year_start).toLocaleDateString()
     : "-";
   const end = activePolicy?.year_end
     ? new Date(activePolicy.year_end).toLocaleDateString()
     : "-";
-
   const visibleBalances = balances.slice(
     vennStartIndex,
     vennStartIndex + vennVisibleCount
   );
-
   return (
     <div className="venn-balance-section">
       <div className="policy-period">
@@ -145,7 +152,7 @@ const VennBalanceSection = ({
               <button
                 type="button"
                 className="show-lop-btn"
-                onClick={onShowLop}
+                onClick={() => setIsLopModalOpen(true)}
               >
                 Show LOP
               </button>
@@ -172,11 +179,12 @@ const VennBalanceSection = ({
         >
           {visibleBalances.map((b) => {
             const typeLabel =
-              (b.type === "casual" && "Casual Leave") ||
-              (b.type === "earned" && "Earned Leave") ||
-              (b.type &&
-                String(b.type).charAt(0).toUpperCase() + b.type.slice(1)) ||
-              "Other";
+              b.type === "casual"
+                ? "Casual Leave"
+                : b.type === "earned"
+                ? "Earned Leave"
+                : b.type &&
+                  String(b.type).charAt(0).toUpperCase() + b.type.slice(1);
             const used = Number(b.used ?? 0);
             const allowance = Number(
               b.allowance ?? b.earned ?? b.annual_allowance ?? 0
@@ -195,12 +203,6 @@ const VennBalanceSection = ({
               </div>
             );
           })}
-          {visibleBalances.length < vennVisibleCount &&
-            Array.from({
-              length: vennVisibleCount - visibleBalances.length,
-            }).map((_, idx) => (
-              <div key={`ph-${idx}`} className="venn-card-placeholder" />
-            ))}
         </div>
 
         <div className="venn-nav-column">
@@ -215,6 +217,4 @@ const VennBalanceSection = ({
       </div>
     </div>
   );
-};
-
-export default VennBalanceSection;
+}
