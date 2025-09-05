@@ -159,6 +159,8 @@ export default function Admin({ openPolicyId = null }) {
     setShowPolicyAlertsModal(alerts.length > 0);
   }, [policies]);
 
+  // useEffect;
+
   useEffect(() => {
     // initial load + when filters change
     console.log(
