@@ -8,14 +8,6 @@ import UpdateProfile from "./UpdateProfileEmployee";
 
 const TABS = ["Personal Info", "Professional Info"];
 
-/**
- * Profile component
- * Props:
- *  - onClose: function to call when closing profile UI
- *  - notificationId: (optional) id of a "profile missing" notification — if provided,
- *                    Profile will auto-open the Update form when missing fields exist
- *                    and will mark the notification read only after successful save.
- */
 const Profile = ({ onClose, notificationId = null }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -43,23 +35,23 @@ const Profile = ({ onClose, notificationId = null }) => {
     ],
     government_docs: [
       { key: "aadhaar_number", label: "Aadhaar Number" },
-      { key: "aadhaar_doc", label: "Aadhaar Copy" },
+      { key: "aadhaar_doc_url", label: "Aadhaar Copy" },
       { key: "pan_number", label: "Pan Number" },
-      { key: "pan_doc", label: "Pan Copy" },
+      { key: "pan_doc_url", label: "Pan Copy" },
     ],
     education: [
       { key: "tenth_institution", label: "SSLC(10th) Institution" },
       { key: "tenth_year", label: "SSLC(10th) Year" },
       { key: "tenth_board", label: "SSLC(10th) Board" },
       { key: "tenth_score", label: "SSLC(10th) Score (%)" },
-      { key: "tenth_cert", label: "SSLC(10th) Certificate" },
+      { key: "tenth_cert_url", label: "SSLC(10th) Certificate" },
       { key: "twelfth_institution", label: "12th/Diploma Institution" },
       { key: "twelfth_year", label: "12th/Diploma Year" },
       { key: "twelfth_board", label: "12th/Diploma Board" },
       { key: "twelfth_score", label: "12th/Diploma Score (%)" },
-      { key: "twelfth_cert", label: "12th/Diploma Certificate" },
+      { key: "twelfth_cert_url", label: "12th/Diploma Certificate" },
     ],
-    professional: [{ key: "resume", label: "Resume Upload" }],
+    professional: [{ key: "resume_url", label: "Resume Upload" }],
     bank_details: [
       { key: "bank_name", label: "Bank Name" },
       { key: "account_number", label: "Account Number" },
@@ -325,13 +317,11 @@ const Profile = ({ onClose, notificationId = null }) => {
     } else {
       setLoading(false);
     }
-    // Note: intentionally only run when employeeId or notificationId changes
   }, [employeeId, notificationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className="profile-popup">Loading...</div>;
   if (!profile) return <div className="profile-popup">No data.</div>;
 
-  // When UpdateProfile calls onSaved, it should pass updatedProfile on success.
   const handleProfileSaved = async (updatedProfile) => {
     if (updatedProfile) {
       setProfile(updatedProfile);
@@ -465,6 +455,7 @@ const Profile = ({ onClose, notificationId = null }) => {
               <span className="documents">
                 <strong>Documents</strong>
               </span>
+
               {[
                 ["Aadhaar", profile.aadhaar_doc_url],
                 ["PAN", profile.pan_doc_url],
@@ -472,12 +463,15 @@ const Profile = ({ onClose, notificationId = null }) => {
               ].map(([label, url]) => (
                 <div className="field-row docs-row" key={label}>
                   <span className="field-label">{label}</span>
-                  {url && (
+
+                  {url ? (
                     <span className="doc-actions">
                       <button onClick={() => viewDoc(url)}>View</button>
                       <button onClick={() => downloadDoc(url)}>Download</button>
                     </span>
-                  )}
+                  ) : label === "Insurance" ? (
+                    <span className="field-value">Not available</span>
+                  ) : null}
                 </div>
               ))}
             </div>

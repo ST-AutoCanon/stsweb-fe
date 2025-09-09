@@ -828,3 +828,33 @@ input[type="checkbox"]:checked::after {
   color: red;
   font-size: larger;
 }
+
+/* radio group: keep inline, center vertically and space nicely */
+.sp2-radio {
+  display: inline-flex; /* inline group so it sits next to search box */
+  align-items: center; /* vertically center radio and label text */
+  gap: 12px; /* spacing between radio options */
+  margin-left: 6px; /* small left gap from the search box */
+  vertical-align: middle;
+  flex-wrap: nowrap;
+}
+
+/* make each option's label align items and provide gap */
+.sp2-radio label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* space between dot and text */
+  cursor: pointer;
+  font-weight: 600; /* match other labels (optional) */
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.sp2-radio input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+  accent-color: #79c42b;
+}

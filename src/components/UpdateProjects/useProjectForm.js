@@ -1057,6 +1057,7 @@ export default function useProjectForm({
     stepTwo: {
       stsOwners,
       filteredEmployees,
+      filterType,
       searchQuery,
       setSearchQuery,
       handleFilterChange,
