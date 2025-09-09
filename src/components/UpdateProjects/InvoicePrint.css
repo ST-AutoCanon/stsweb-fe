@@ -8,9 +8,8 @@
 .invoice-print-container {
   width: 100%;
   max-width: 100%;
-  height: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 10px;
   font-family: Arial, sans-serif;
   background-color: #fff;
   color: #000;
@@ -141,6 +140,15 @@
   text-align: center;
 }
 
+/* Avoid clipped tables across pages */
+.in-print-table,
+.in-print-table tr,
+.in-print-table td,
+.in-print-table th {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
 .tax-section {
   display: flex;
   justify-content: space-between;
@@ -200,9 +208,12 @@
   width: 49%;
 }
 
-.seal img {
-  width: 200px;
-  height: 150px;
+.seal img,
+.qr-code img {
+  max-width: 150px;
+  max-height: 150px;
+  width: auto;
+  height: auto;
 }
 
 .no-seal {
@@ -291,4 +302,9 @@
   text-align: center;
   color: #3b87fa;
   margin: 5%;
+}
+
+.invoice-footer,
+.note {
+  position: static; /* ensure not fixed */
 }

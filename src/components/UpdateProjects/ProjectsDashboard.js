@@ -136,7 +136,6 @@ const ProjectsDashboard = () => {
 
   const handleProjectAdded = () => {
     fetchProjects();
-    setShowForm(false);
   };
 
   const printRef = useRef(null);

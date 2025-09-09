@@ -184,3 +184,21 @@
 .modal-content p {
   color: var(--black) !important;
 }
+
+.missing-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.missing-bubble {
+  background-color: #ffe6e6;
+  color: #b30000;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #ffcccc;
+  white-space: nowrap;
+}

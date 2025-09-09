@@ -282,6 +282,8 @@ const Invoice = ({ onBack, project }) => {
     setShowInvoiceForm(true);
   };
 
+  // --- inside your component ---
+
   const handleDownloadInvoiceWithSeal = async () => {
     setShowSealModal(false);
 
@@ -289,32 +291,95 @@ const Invoice = ({ onBack, project }) => {
       ...selectedInvoice,
       withSeal: printWithSeal,
     };
-
     setSelectedInvoice(invoiceWithSeal);
 
-    setTimeout(async () => {
-      const element = document.getElementById("printableArea");
-      if (element) {
-        try {
-          const canvas = await html2canvas(element, { scale: 2 });
-          const imgData = canvas.toDataURL("image/png");
-          const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "pt",
-            format: "a4",
-          });
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-          pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-          pdf.save(`Invoice-${invoiceWithSeal.invoiceNo}.pdf`);
-          showAlert("Invoice PDF downloaded.");
-        } catch (err) {
-          console.error("Error generating PDF", err);
-        }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const element = document.getElementById("printableArea");
+    if (!element) {
+      console.error("Printable area not found");
+      return;
+    }
+
+    const waitForImagesToLoad = (rootEl, timeout = 5000) =>
+      new Promise((resolve) => {
+        const imgs = Array.from(rootEl.querySelectorAll("img"));
+        if (imgs.length === 0) return resolve();
+
+        let loaded = 0;
+        const onLoadOrError = () => {
+          loaded++;
+          if (loaded >= imgs.length) resolve();
+        };
+
+        imgs.forEach((img) => {
+          if (img.complete && img.naturalWidth !== 0) {
+            onLoadOrError();
+          } else {
+            try {
+              img.crossOrigin = "anonymous";
+            } catch (e) {}
+            img.addEventListener("load", onLoadOrError);
+            img.addEventListener("error", onLoadOrError);
+          }
+        });
+
+        setTimeout(resolve, timeout);
+      });
+
+    try {
+      await waitForImagesToLoad(element, 7000);
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const imgWidth = pdfWidth - 20;
+      const ratio = imgWidth / canvasWidth;
+      const imgHeight = canvasHeight * ratio;
+
+      let remainingHeight = imgHeight;
+      let position = 10;
+      const pageInnerHeight = pdfHeight - 20;
+
+      if (imgHeight <= pageInnerHeight) {
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
       } else {
-        console.error("Printable area not found");
+        let heightLeft = imgHeight;
+        let pageCount = 0;
+        while (heightLeft > 0) {
+          const y = position - pageCount * pageInnerHeight;
+          pdf.addImage(imgData, "PNG", 10, y, imgWidth, imgHeight);
+          heightLeft -= pageInnerHeight;
+          pageCount++;
+          if (heightLeft > 0) pdf.addPage();
+        }
       }
-    }, 1000);
+
+      pdf.save(`Invoice-${invoiceWithSeal.invoiceNo || Date.now()}.pdf`);
+      showAlert("Invoice PDF downloaded.");
+    } catch (err) {
+      console.error("Error generating PDF", err);
+      showAlert("Failed to generate PDF.");
+    }
   };
 
   const filteredInvoices = invoiceList.filter((inv) => {
@@ -435,7 +500,7 @@ const Invoice = ({ onBack, project }) => {
 
   return (
     <div id="invoiceScreen" className="invoice-page">
-      <MdOutlineKeyboardBackspace className="back-btn" onClick={onBack} />
+      <MdOutlineKeyboardBackspace className="in-back-btn" onClick={onBack} />
       <div className="project-header">
         <h2>{project?.company}</h2>
         <button className="add-project-button" onClick={handleAddInvoice}>
@@ -606,7 +671,10 @@ const Invoice = ({ onBack, project }) => {
                       />
                       <FiDownload
                         className="in-download-icon"
-                        onClick={() => setShowSealModal(true)}
+                        onClick={() => {
+                          setSelectedInvoice(inv);
+                          setShowSealModal(true);
+                        }}
                       />
                     </div>
                   </td>

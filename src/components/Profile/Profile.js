@@ -1,3 +1,4 @@
+// Profile.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { MdOutlineCancel } from "react-icons/md";
@@ -7,7 +8,15 @@ import UpdateProfile from "./UpdateProfileEmployee";
 
 const TABS = ["Personal Info", "Professional Info"];
 
-const Profile = ({ onClose }) => {
+/**
+ * Profile component
+ * Props:
+ *  - onClose: function to call when closing profile UI
+ *  - notificationId: (optional) id of a "profile missing" notification — if provided,
+ *                    Profile will auto-open the Update form when missing fields exist
+ *                    and will mark the notification read only after successful save.
+ */
+const Profile = ({ onClose, notificationId = null }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState("");
@@ -15,13 +24,81 @@ const Profile = ({ onClose }) => {
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     message: "",
+    missingFields: [],
   });
   const [activeTab, setActiveTab] = useState(0);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
-  const showAlert = (message) => setAlertModal({ isVisible: true, message });
-  const closeAlert = () => setAlertModal({ isVisible: false, message: "" });
+  const REQUIRED_FIELDS = {
+    personal: [
+      { key: "first_name", label: "First name" },
+      { key: "last_name", label: "Last name" },
+      { key: "phone_number", label: "Mobile" },
+      { key: "email", label: "Email" },
+      { key: "dob", label: "Date of birth" },
+      { key: "gender", label: "Gender" },
+      { key: "emergency_name", label: "Emergency Contact Name" },
+      { key: "emergency_number", label: "Emergency Contact Number" },
+    ],
+    government_docs: [
+      { key: "aadhaar_number", label: "Aadhaar Number" },
+      { key: "aadhaar_doc", label: "Aadhaar Copy" },
+      { key: "pan_number", label: "Pan Number" },
+      { key: "pan_doc", label: "Pan Copy" },
+    ],
+    education: [
+      { key: "tenth_institution", label: "SSLC(10th) Institution" },
+      { key: "tenth_year", label: "SSLC(10th) Year" },
+      { key: "tenth_board", label: "SSLC(10th) Board" },
+      { key: "tenth_score", label: "SSLC(10th) Score (%)" },
+      { key: "tenth_cert", label: "SSLC(10th) Certificate" },
+      { key: "twelfth_institution", label: "12th/Diploma Institution" },
+      { key: "twelfth_year", label: "12th/Diploma Year" },
+      { key: "twelfth_board", label: "12th/Diploma Board" },
+      { key: "twelfth_score", label: "12th/Diploma Score (%)" },
+      { key: "twelfth_cert", label: "12th/Diploma Certificate" },
+    ],
+    professional: [{ key: "resume", label: "Resume Upload" }],
+    bank_details: [
+      { key: "bank_name", label: "Bank Name" },
+      { key: "account_number", label: "Account Number" },
+      { key: "ifsc_code", label: "IFSC Code" },
+      { key: "branch_name", label: "Branch" },
+    ],
+    family_details: [{ key: "marital_status", label: "Marital Status" }],
+  };
+
+  const getMissingFields = (p = {}) => {
+    if (!p) return [...REQUIRED_FIELDS.personal.map((f) => f.label)];
+    const missing = [];
+
+    const all = [
+      ...REQUIRED_FIELDS.personal,
+      ...REQUIRED_FIELDS.government_docs,
+      ...REQUIRED_FIELDS.education,
+      ...REQUIRED_FIELDS.professional,
+      ...REQUIRED_FIELDS.bank_details,
+      ...REQUIRED_FIELDS.family_details,
+    ];
+    all.forEach((f) => {
+      const v = p[f.key];
+      if (
+        v === undefined ||
+        v === null ||
+        (typeof v === "string" && v.trim() === "")
+      ) {
+        missing.push(f.label);
+      }
+    });
+
+    return missing;
+  };
+
+  const showAlert = (message, missingFields = []) =>
+    setAlertModal({ isVisible: true, message, missingFields });
+  const closeAlert = () =>
+    setAlertModal({ isVisible: false, message: "", missingFields: [] });
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const BASE_URL = process.env.REACT_APP_BACKEND_URL;
@@ -38,25 +115,21 @@ const Profile = ({ onClose }) => {
 
   // ---------- Helpers ----------
   const normalizeInputUrl = (maybe) => {
-    // Accept string, object with .url/.path, arrays, etc.
     if (!maybe && maybe !== 0) return null;
 
     if (typeof maybe === "string") return maybe;
     if (Array.isArray(maybe) && maybe.length)
       return normalizeInputUrl(maybe[0]);
     if (typeof maybe === "object") {
-      // common shapes
       if (typeof maybe.url === "string" && maybe.url) return maybe.url;
       if (typeof maybe.path === "string" && maybe.path) return maybe.path;
       if (typeof maybe.file === "string" && maybe.file) return maybe.file;
-      // fallback to JSON string (won't be a valid fetch URL, but at least won't crash)
       try {
         return JSON.stringify(maybe);
       } catch {
         return String(maybe);
       }
     }
-    // fallback
     return String(maybe);
   };
 
@@ -65,7 +138,6 @@ const Profile = ({ onClose }) => {
     if (!u) return "document";
 
     try {
-      // if it's an absolute URL, use URL to parse pathname
       if (u.startsWith("http://") || u.startsWith("https://")) {
         try {
           const pathname = new URL(u).pathname || "";
@@ -74,32 +146,24 @@ const Profile = ({ onClose }) => {
           /* fallthrough */
         }
       }
-      // treat as path-like
       const last = u.split("/").pop() || "document";
-      return decodeURIComponent(last.replace(/[?#].*$/, "")); // remove queries/hashes
+      return decodeURIComponent(last.replace(/[?#].*$/, ""));
     } catch (e) {
       return "document";
     }
   };
 
   const buildFetchUrl = (maybeUrl) => {
-    // returns a URL string you can pass to axios.get
     const u = normalizeInputUrl(maybeUrl);
     if (!u) return null;
 
-    // If it already looks absolute, use it
     if (u.startsWith("http://") || u.startsWith("https://")) return u;
 
-    // if already starts with /docs, no need to add base again
     if (u.startsWith("/docs")) {
-      // handle when backend expects exact full path (you may choose to strip /docs)
-      return `${BASE_URL}${u}`; // e.g. BASE_URL + /docs/...
+      return `${BASE_URL}${u}`;
     }
 
-    // ensure it starts with '/'
     const path = u.startsWith("/") ? u : `/${u}`;
-
-    // final: prefix with /docs
     return `${BASE_URL}/docs${path}`;
   };
 
@@ -107,8 +171,6 @@ const Profile = ({ onClose }) => {
   const viewDoc = async (maybeUrl) => {
     const raw = normalizeInputUrl(maybeUrl);
     if (!raw) return showAlert("No document URL");
-
-    console.log("viewDoc called with:", maybeUrl);
 
     try {
       const fetchUrl = buildFetchUrl(maybeUrl);
@@ -127,7 +189,6 @@ const Profile = ({ onClose }) => {
       const blob = new Blob([resp.data], { type: contentType });
       const blobUrl = URL.createObjectURL(blob);
 
-      // open the blob for viewing
       window.open(blobUrl, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } catch (err) {
@@ -139,8 +200,6 @@ const Profile = ({ onClose }) => {
   const downloadDoc = async (maybeUrl) => {
     const raw = normalizeInputUrl(maybeUrl);
     if (!raw) return showAlert("No document URL");
-
-    console.log("downloadDoc called with:", maybeUrl);
 
     try {
       const fetchUrl = buildFetchUrl(maybeUrl);
@@ -167,7 +226,6 @@ const Profile = ({ onClose }) => {
       a.download = filename;
       document.body.appendChild(a);
 
-      // Some browsers prefer dispatchEvent for trusted click in some contexts:
       a.dispatchEvent(
         new MouseEvent("click", {
           bubbles: true,
@@ -193,6 +251,20 @@ const Profile = ({ onClose }) => {
       ? "/images/female-avatar.jpeg"
       : "/images/male-avatar.jpeg";
 
+  // mark a single notification read by ID
+  const markNotificationReadById = async (id) => {
+    if (!id) return;
+    try {
+      await axios.put(
+        `${BASE_URL}/api/notifications/${id}/read`,
+        {},
+        { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
+      );
+    } catch (err) {
+      console.error("Error marking profile notification read:", err);
+    }
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -201,6 +273,21 @@ const Profile = ({ onClose }) => {
         });
         const data = r.data.data;
         setProfile(data);
+
+        const missing = getMissingFields(data);
+        if (missing.length > 0) {
+          setAlertModal({
+            isVisible: true,
+            message: "Your profile is missing required fields:",
+            missingFields: missing,
+          });
+        }
+
+        // If opened from a notification and there are missing fields, auto-open Update form
+        if (notificationId && missing.length > 0) {
+          setShowUpdateModal(true);
+        }
+
         if (data.photo_url) {
           try {
             const blob = await fetchBlob(data.photo_url);
@@ -211,12 +298,14 @@ const Profile = ({ onClose }) => {
         } else {
           setAvatar(getDefaultAvatar(data.gender));
         }
-      } catch {
+      } catch (err) {
+        console.error("Failed to load profile:", err);
         showAlert("Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
+
     const fetchAssets = async () => {
       try {
         const r = await axios.get(
@@ -224,27 +313,39 @@ const Profile = ({ onClose }) => {
           { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
         );
         setAssignedAssets(r.data.data || []);
-      } catch {
+      } catch (err) {
+        console.error("Failed to load assets:", err);
         showAlert("Failed to load assets");
       }
     };
+
     if (employeeId) {
       fetchProfile();
       fetchAssets();
+    } else {
+      setLoading(false);
     }
-  }, [employeeId]);
+    // Note: intentionally only run when employeeId or notificationId changes
+  }, [employeeId, notificationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className="profile-popup">Loading...</div>;
   if (!profile) return <div className="profile-popup">No data.</div>;
 
-  const handleProfileSaved = (updatedProfile) => {
+  // When UpdateProfile calls onSaved, it should pass updatedProfile on success.
+  const handleProfileSaved = async (updatedProfile) => {
     if (updatedProfile) {
       setProfile(updatedProfile);
+      // mark the originating notification read ONLY after successful update
+      if (notificationId) {
+        await markNotificationReadById(notificationId);
+      }
     }
+
     setShowUpdateModal(false);
     setAlertModal({
       isVisible: true,
       message: "Profile updated successfully.",
+      missingFields: [],
     });
   };
 
@@ -254,7 +355,7 @@ const Profile = ({ onClose }) => {
         <div className="profile-header">
           <img src={avatar} alt="profile-photo" className="profile-photo" />
           <div className="profile-name">
-            <h3>{`${profile.first_name} ${profile.last_name}`}</h3>
+            <h3>{`${profile.first_name || ""} ${profile.last_name || ""}`}</h3>
             <p className="info-secondary">
               {profile.position} - {profile.department}
             </p>
@@ -294,7 +395,9 @@ const Profile = ({ onClose }) => {
               <div className="field-row">
                 <span className="field-label">DOB</span>
                 <span className="field-value">
-                  {new Date(profile.dob).toLocaleDateString()}
+                  {profile.dob
+                    ? new Date(profile.dob).toLocaleDateString()
+                    : ""}
                 </span>
               </div>
               <div className="field-row">
@@ -315,7 +418,9 @@ const Profile = ({ onClose }) => {
                   <div className="field-row">
                     <span className="field-label">Anniversary</span>
                     <span className="field-value">
-                      {new Date(profile.marriage_date).toLocaleDateString()}
+                      {profile.marriage_date
+                        ? new Date(profile.marriage_date).toLocaleDateString()
+                        : ""}
                     </span>
                   </div>
                 </>
@@ -386,7 +491,19 @@ const Profile = ({ onClose }) => {
           onClose={closeAlert}
           buttons={[{ label: "OK", onClick: closeAlert }]}
         >
-          <p>{alertModal.message}</p>
+          <div className="alert-modal-content">
+            <p>{alertModal.message}</p>
+
+            {alertModal.missingFields?.length > 0 && (
+              <div className="missing-fields">
+                {alertModal.missingFields.map((field) => (
+                  <span key={field} className="missing-bubble">
+                    {field}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </Modal>
       )}
 
