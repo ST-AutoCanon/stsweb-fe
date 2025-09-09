@@ -1,3 +1,4 @@
+// StepTwo.jsx
 import React from "react";
 import { MdSearch } from "react-icons/md";
 
@@ -15,9 +16,10 @@ const StepTwo = ({
   handleInputChange,
   handleKeyDown,
   editable,
-  handleStsOwnerChange, // NEW
-  handleChange, // ensure existing generic handler is available
+  handleStsOwnerChange,
+  handleChange,
   formData,
+  filterType, // <- new prop to control which filter is selected
 }) => {
   return (
     <div className="pj-step-two">
@@ -45,7 +47,7 @@ const StepTwo = ({
             type="text"
             name="sts_contact"
             value={formData.sts_contact || ""}
-            onChange={handleChange} // generic handler updates formData.sts_contact
+            onChange={handleChange}
             readOnly={!editable}
           />
         </div>
@@ -63,24 +65,25 @@ const StepTwo = ({
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div>
+            <div className="sp2-radio">
               <input
-                type="checkbox"
+                type="radio"
+                name="employee-filter"
                 value="dept"
-                checked={false}
+                checked={filterType === "dept"}
                 onChange={handleFilterChange}
-                readOnly={!editable}
-              />{" "}
-              Dept
+                disabled={!editable}
+              />
+              <label>Dept</label>
               <input
-                type="checkbox"
+                type="radio"
+                name="employee-filter"
                 value="all"
-                checked={true}
+                checked={filterType === "all"}
                 onChange={handleFilterChange}
-                readOnly={!editable}
-                style={{ marginLeft: "10px" }}
-              />{" "}
-              All
+                disabled={!editable}
+              />
+              <label>All</label>
             </div>
           </label>
 

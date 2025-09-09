@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// src/components/Reimbursement/Reimbursement.js
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { FaSearch } from "react-icons/fa";
 import {
@@ -46,19 +47,19 @@ const Reimbursement = () => {
   const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
   const employeeId = employeeData?.employeeId;
   const departmentId = employeeData?.department_id;
-  const [attachments, setAttachments] = useState([]);
+  const [attachments, setAttachments] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedClaim, setSelectedClaim] = useState(null);
-  const [selectedSubType, setSelectedSubType] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [updateErrorMessage, setUpdateErrorMessage] = useState("");
   const [submitErrorMessage, setSubmitErrorMessage] = useState("");
-  const [date, setDate] = useState("");
   const [projects, setProjects] = useState([]);
   const [statusFilter, setStatusFilter] = useState(
     role === "Admin" ? "approved" : "pending"
   );
+  const [selectedSubType, setSelectedSubType] = useState("");
+
   const [formData, setFormData] = useState({
     employeeId: employeeId,
     department_id: departmentId,
@@ -86,52 +87,37 @@ const Reimbursement = () => {
 
   const formatDisplayDate = (raw) => {
     if (!raw) return "N/A";
-
     const d = raw instanceof Date ? raw : new Date(raw);
     if (isNaN(d)) return raw;
-
     const day = String(d.getDate()).padStart(2, "0");
     const month = d.toLocaleString("en-GB", { month: "short" });
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
   };
 
-  // At the top of your component
+  // Confirm / Alert modals
   const [confirmModal, setConfirmModal] = useState({
     isVisible: false,
     message: "",
     onConfirm: null,
   });
-
-  const showConfirm = (message, onConfirm) => {
+  const showConfirm = (message, onConfirm) =>
     setConfirmModal({ isVisible: true, message, onConfirm });
-  };
-
-  const closeConfirm = () => {
+  const closeConfirm = () =>
     setConfirmModal({ isVisible: false, message: "", onConfirm: null });
-  };
 
-  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
-
-  // Helper functions for the alert modal
-  const showAlert = (message, title = "") => {
+  const showAlert = (message, title = "") =>
     setAlertModal({ isVisible: true, title, message });
-  };
-
-  const closeAlert = () => {
+  const closeAlert = () =>
     setAlertModal({ isVisible: false, title: "", message: "" });
-  };
 
-  useEffect(() => {
-    fetchReimbursements();
-  }, []);
-
-  const fetchReimbursements = async () => {
+  // Fetch reimbursements and projects ONCE
+  const fetchReimbursements = useCallback(async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${employeeId}`,
@@ -141,23 +127,22 @@ const Reimbursement = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${authToken}`,
           },
-          params: {
-            fromDate,
-            toDate,
-          },
         }
       );
 
-      const reimbursementsData = response.data;
+      const reimbursementsData = Array.isArray(response.data)
+        ? response.data
+        : response.data || [];
+      setReimbursements(reimbursementsData);
 
-      // Fetch attachments for each reimbursement
+      // Fetch attachments for each reimbursement (keeps previous attachments intact if error)
       const attachmentsData = {};
       await Promise.all(
         reimbursementsData.map(async (claim) => {
           try {
-            console.log(`Fetching attachments for claim ID: ${claim.id}`);
+            const claimId = claim.id;
             const attachmentResponse = await axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${claim.id}/attachments`,
+              `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${claimId}/attachments`,
               {
                 headers: {
                   "x-api-key": process.env.REACT_APP_API_KEY,
@@ -166,105 +151,233 @@ const Reimbursement = () => {
               }
             );
 
-            // Process attachments
-            attachmentsData[claim.id] = (
+            attachmentsData[claimId] = (
               attachmentResponse.data.attachments || []
             ).map((file) => {
-              const pathParts = file.file_path.split("/"); // Split path
-              const year = pathParts[pathParts.length - 4]; // Extract year
-              const month = pathParts[pathParts.length - 3]; // Extract month
-              const employeeId = pathParts[pathParts.length - 2]; // Extract employee ID
-
-              return {
-                ...file,
-                year,
-                month,
-                employeeId,
-              };
+              const pathParts = (file.file_path || "")
+                .split("/")
+                .filter(Boolean);
+              const year = pathParts[pathParts.length - 4] || "";
+              const month = pathParts[pathParts.length - 3] || "";
+              const empId =
+                pathParts[pathParts.length - 2] ||
+                claim.employee_id ||
+                claim.employeeId ||
+                "";
+              return { ...file, year, month, employeeId: empId };
             });
-          } catch (error) {
+          } catch (err) {
             console.error(
-              `Error fetching attachments for reimbursement ${claim.id}:`,
-              error
+              `Error fetching attachments for claim ${claim.id}`,
+              err
             );
             attachmentsData[claim.id] = [];
           }
         })
       );
 
-      setReimbursements(reimbursementsData);
-      setFilteredReimbursements(response.data);
       setAttachments(attachmentsData);
     } catch (error) {
-      console.error("Error fetching data:", error);
-      if (error.response) {
-        setErrorMessage(
-          error.response.data.message ||
-            "We ran into a problem fetching reimbursements."
-        );
-      } else if (error.request) {
-        setErrorMessage("No response from server. Please try again.");
-      } else {
-        setErrorMessage("An unexpected error occurred.");
-      }
-      showAlert(errorMessage || "Error fetching reimbursements.");
+      console.error("Error fetching reimbursements:", error);
+      setErrorMessage(
+        error?.response?.data?.message ||
+          "We ran into a problem fetching reimbursements."
+      );
+      showAlert(
+        error?.response?.data?.message || "Error fetching reimbursements."
+      );
     }
-  };
+  }, [employeeId, authToken]);
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
+        {
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+        }
+      );
+      setProjects(res.data || []);
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+    }
+  }, []);
 
   useEffect(() => {
     fetchReimbursements();
-
-    // Fetch projects for the dropdown
-    const fetchProjects = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
-          { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
-        );
-        setProjects(res.data);
-      } catch (err) {
-        console.error("Error fetching projects:", err);
-      }
-    };
     fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // ------------ Date handling/filtering logic ------------
+  const tryParseDate = (s) => {
+    if (!s && s !== 0) return null;
+    if (s instanceof Date && !isNaN(s)) return s;
+    if (typeof s === "number") {
+      const d = new Date(s);
+      return isNaN(d) ? null : d;
+    }
+    let str = String(s).trim();
+    if (!str) return null;
+    str = str.replace(/\s+to\s+/i, " - ");
+    str = str.replace(/\u2013|\u2014/g, " - ");
+    str = str.replace(/\//g, "-");
+    let d = new Date(str);
+    if (!isNaN(d)) return d;
+    if (str.includes("T")) {
+      const [dateOnly] = str.split("T");
+      d = new Date(dateOnly);
+      if (!isNaN(d)) return d;
+    }
+    const ddmmyyyy = str.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (ddmmyyyy) {
+      const [, dd, mm, yyyy] = ddmmyyyy;
+      d = new Date(`${yyyy}-${mm}-${dd}`);
+      if (!isNaN(d)) return d;
+    }
+    return null;
   };
+
+  const normalizeStartOfDay = (date) =>
+    new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+  const normalizeEndOfDay = (date) =>
+    new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+
+  const parseClaimRange = (claim) => {
+    let start = null;
+    let end = null;
+
+    if (
+      claim.date_range &&
+      typeof claim.date_range === "string" &&
+      (claim.date_range.includes(" - ") ||
+        claim.date_range.toLowerCase().includes(" to ") ||
+        claim.date_range.includes("–") ||
+        claim.date_range.includes("—"))
+    ) {
+      const unified = claim.date_range
+        .replace(/\s+to\s+/gi, " - ")
+        .replace(/\u2013|\u2014/g, " - ");
+      const parts = unified.split(" - ").map((p) => p.trim());
+      if (parts.length >= 2) {
+        const p0 = tryParseDate(parts[0]);
+        const p1 = tryParseDate(parts[1]);
+        start = p0 || null;
+        end = p1 || null;
+      }
+    }
+
+    if (!start && (claim.from_date || claim.fromDate)) {
+      start = tryParseDate(claim.from_date || claim.fromDate);
+    }
+    if (!end && (claim.to_date || claim.toDate)) {
+      end = tryParseDate(claim.to_date || claim.toDate);
+    }
+
+    if (!start && claim.date) {
+      start = tryParseDate(claim.date);
+      end = start;
+    }
+
+    if (!start && claim.created_at) {
+      const t = tryParseDate(claim.created_at);
+      start = t;
+      end = t;
+    }
+
+    if (start && !end) end = start;
+
+    if (start && end) {
+      start = normalizeStartOfDay(start);
+      end = normalizeEndOfDay(end);
+    }
+    return { start, end };
+  };
+
+  const applyFilters = useCallback(() => {
+    const fRaw = fromDate ? tryParseDate(fromDate) : null;
+    const tRaw = toDate ? tryParseDate(toDate) : null;
+    const fStart = fRaw ? normalizeStartOfDay(fRaw) : null;
+    const tEnd = tRaw ? normalizeEndOfDay(tRaw) : null;
+
+    const filtered = reimbursements.filter((claim) => {
+      if (
+        statusFilter &&
+        claim.status &&
+        claim.status.toLowerCase() !== statusFilter.toLowerCase()
+      ) {
+        return false;
+      }
+
+      if (!fStart && !tEnd) return true;
+
+      const { start, end } = parseClaimRange(claim);
+
+      if (!start || !end) {
+        return !fStart && !tEnd;
+      }
+
+      if (fStart && !tEnd) {
+        return end.getTime() >= fStart.getTime();
+      }
+      if (!fStart && tEnd) {
+        return start.getTime() <= tEnd.getTime();
+      }
+      if (fStart && tEnd) {
+        if (end.getTime() < fStart.getTime()) return false;
+        if (start.getTime() > tEnd.getTime()) return false;
+        return true;
+      }
+
+      return true;
+    });
+
+    setFilteredReimbursements(filtered);
+  }, [reimbursements, fromDate, toDate, statusFilter]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [reimbursements, fromDate, toDate, statusFilter, applyFilters]);
+
+  // --------------- Form handlers & helpers ---------------
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleClaimTypeChange = (e) => {
     const value = e.target.value;
     setFormData({ ...formData, claim_type: value });
-    setSelectedSubType(""); // Reset subtypes when changing the claim type
+    setSelectedFiles([]);
+    setSelectedClaim(null);
+    setSelectedSubType("");
   };
 
   const handleTransportSubTypeChange = (type) => {
     setFormData({ ...formData, transport_type: type });
     setSelectedSubType(type);
     if (type === "Outstation") {
-      // Optionally clear the no_of_days value if it’s not applicable:
       setFormData((prev) => ({ ...prev, no_of_days: "" }));
     }
   };
 
-  const filterClaims = reimbursements.filter(
-    (claim) => claim.status.toLowerCase() === statusFilter.toLowerCase()
-  );
-
-  const handleNoOfDaysChange = (event) => {
+  const handleNoOfDaysChange = (event) =>
     setFormData({ ...formData, no_of_days: event.target.value });
-  };
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedFiles(files.map((file) => file.name)); // Updates filenames for display
+    setSelectedFiles(files.map((file) => file.name));
     setFormData((prev) => ({ ...prev, attachments: files }));
   };
 
   const renderDateFields = () => {
-    // If Outstation, always show its dates and ignore no_of_days
-    if (selectedSubType === "Outstation") {
+    if (formData.transport_type === "Outstation") {
       return (
         <>
           <div className="rb-groups">
@@ -276,7 +389,6 @@ const Reimbursement = () => {
               name="fromDate"
               value={formData.fromDate}
               onChange={handleChange}
-              required
               max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
@@ -289,7 +401,6 @@ const Reimbursement = () => {
               name="toDate"
               value={formData.toDate}
               onChange={handleChange}
-              required
               max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
@@ -306,7 +417,6 @@ const Reimbursement = () => {
             name="date"
             value={formData.date}
             onChange={handleChange}
-            required
             max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
           />
         </div>
@@ -323,7 +433,6 @@ const Reimbursement = () => {
               name="fromDate"
               value={formData.fromDate}
               onChange={handleChange}
-              required
               max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
@@ -336,7 +445,6 @@ const Reimbursement = () => {
               name="toDate"
               value={formData.toDate}
               onChange={handleChange}
-              required
               max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
             />
           </div>
@@ -351,13 +459,17 @@ const Reimbursement = () => {
     setShowForm(true);
     const existingAttachments = attachments[claim.id] || [];
     setFormData({
-      employeeId: claim.employeeId || employeeId,
+      employeeId: claim.employeeId || claim.employee_id || employeeId,
       department_id: claim.department_id || departmentId,
       claim_type: claim.claim_type || "",
       transport_type: claim.transport_type || "",
-      fromDate: claim.from_date ? claim.from_date.substring(0, 10) : "",
-      toDate: claim.to_date ? claim.to_date.substring(0, 10) : "",
-      date: claim.date ? claim.date.substring(0, 10) : "",
+      fromDate: claim.from_date
+        ? claim.from_date.substring(0, 10)
+        : claim.fromDate || "",
+      toDate: claim.to_date
+        ? claim.to_date.substring(0, 10)
+        : claim.toDate || "",
+      date: claim.date ? claim.date.substring(0, 10) : claim.date || "",
       travel_from: claim.travel_from || "",
       travel_to: claim.travel_to || "",
       meals_objective: claim.meals_objective || "",
@@ -378,85 +490,57 @@ const Reimbursement = () => {
     setSelectedFiles(
       existingAttachments.map((file) => file.file_name || file.name)
     );
-    if (claim.claim_type === "Transportation") {
-      setSelectedSubType(claim.transport_type || "");
-    }
-    if (claim.no_of_days) {
-      setNoOfDaysType(claim.no_of_days);
-    }
+    setSelectedSubType(claim.transport_type || "");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitErrorMessage("");
-
     const wordCount = formData.purpose
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean).length;
-
+      ? formData.purpose.trim().split(/\s+/).filter(Boolean).length
+      : 0;
     if (wordCount < 10) {
       showAlert(
         `Purpose Details / Comments must be at least 10 words. You have ${wordCount}.`
       );
       return;
     }
-
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("employeeId", formData.employeeId);
-      formDataToSend.append("department_id", formData.department_id);
-      formDataToSend.append("claim_type", formData.claim_type);
-      formDataToSend.append("transport_type", formData.transport_type);
-      formDataToSend.append("comments", formData.comments);
-      formDataToSend.append("fromDate", formData.fromDate);
-      formDataToSend.append("toDate", formData.toDate);
-      formDataToSend.append("date", formData.date);
-      formDataToSend.append("travel_from", formData.travel_from);
-      formDataToSend.append("travel_to", formData.travel_to);
-      formDataToSend.append("meals_objective", formData.meals_objective);
-      formDataToSend.append("purpose", formData.purpose);
-      formDataToSend.append("da", formData.da);
-      formDataToSend.append("transport_amount", formData.transport_amount);
-      formDataToSend.append("purchasing_item", formData.purchasing_item);
-      formDataToSend.append("accommodation_fees", formData.accommodation_fees);
-      formDataToSend.append("no_of_days", formData.no_of_days);
-      formDataToSend.append("total_amount", formData.total_amount);
-      formDataToSend.append("meal_type", formData.meal_type);
-      formDataToSend.append("stationary", formData.stationary);
-      formDataToSend.append("service_provider", formData.service_provider);
-      formDataToSend.append("project", formData.project);
-      formDataToSend.append("role", role);
-
+      const fd = new FormData();
+      Object.keys(formData).forEach((k) => {
+        if (k === "attachments") return; // handled separately
+        const val = formData[k];
+        if (val !== null && val !== undefined) fd.append(k, val);
+      });
+      fd.append("role", role);
       if (formData.attachments && formData.attachments.length > 0) {
-        formData.attachments.forEach((file) => {
-          formDataToSend.append("attachments", file);
-        });
+        formData.attachments.forEach((file) => fd.append("attachments", file));
       }
-
       const config = {
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${authToken}`,
         },
       };
-
       let response;
       if (editingId) {
         response = await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${editingId}`,
-          formDataToSend,
+          fd,
           config
         );
       } else {
         response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/reimbursement`,
-          formDataToSend,
+          fd,
           config
         );
       }
-
-      showAlert("Reimbursement submitted successfully!");
+      showAlert(
+        response?.data?.message || "Reimbursement submitted successfully!"
+      );
+      // reset form
       setFormData({
         employeeId: employeeId,
         department_id: departmentId,
@@ -469,38 +553,28 @@ const Reimbursement = () => {
         travel_to: "",
         meals_objective: "",
         purpose: "",
-        transport_amount: "",
-        da: "",
         purchasing_item: "",
         accommodation_fees: "",
         no_of_days: "",
         total_amount: "",
         meal_type: "",
         stationary: "",
-        comments: "",
         service_provider: "",
         project: "",
         attachments: null,
       });
       setShowForm(false);
+      setEditingId(null);
+      setSelectedFiles([]);
       fetchReimbursements();
     } catch (error) {
       console.error("Error submitting reimbursement:", error);
-      if (error.response) {
-        setSubmitErrorMessage(
-          error.response.data.error ||
-            error.response.data.message ||
-            "This type of file cannot be uploaded."
-        );
-        showAlert(
-          error.response.data.error ||
-            error.response.data.message ||
-            "This type of file cannot be uploaded."
-        );
-      } else {
-        setSubmitErrorMessage("An unexpected error occurred.");
-        showAlert("An unexpected error occurred.");
-      }
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "An unexpected error occurred.";
+      setSubmitErrorMessage(msg);
+      showAlert(msg);
     }
   };
 
@@ -510,19 +584,15 @@ const Reimbursement = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/reimbursement/update/${reimbursementId}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updateData),
         }
       );
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Reimbursement update did not go through."
-        );
-      }
+      if (!response.ok)
+        throw new Error(data.message || "Reimbursement update failed.");
       console.log("Update Response:", data);
+      fetchReimbursements();
     } catch (error) {
       console.error("Error updating reimbursement:", error);
       setUpdateErrorMessage(error.message || "An unexpected error occurred.");
@@ -535,7 +605,6 @@ const Reimbursement = () => {
       console.error("Error: Reimbursement ID is missing.");
       return;
     }
-
     showConfirm(
       "Are you sure you want to delete this reimbursement claim?",
       async () => {
@@ -564,32 +633,15 @@ const Reimbursement = () => {
   };
 
   const handleOpenAttachments = async (files, claim) => {
-    console.log("Attachments:", files, "Claim:", claim);
-    const authToken = localStorage.getItem("token");
-
     try {
       const fetchedFiles = await Promise.all(
-        files.map(async (file) => {
+        (files || []).map(async (file) => {
           if (!file?.file_name) return null;
-
-          // 1) Pull "YYYY" and "MM" from the filename, which you prefix in multer:
-          //    e.g. "2025-07-26-162738...-original.pdf"
           const match = file.file_name.match(/^(\d{4})-(\d{2})/);
-          if (!match) {
-            console.warn("Could not parse year/month from", file.file_name);
-            return null;
-          }
+          if (!match) return null;
           const [, year, month] = match;
-
-          // 2) Use the claim object for employeeId
-          const empId = claim.employee_id;
-
-          const url =
-            `${process.env.REACT_APP_BACKEND_URL}` +
-            `/reimbursement/${year}/${month}/${empId}/${file.file_name}`;
-
-          console.log("Fetching attachment from", url);
-
+          const empId = claim.employee_id || claim.employeeId || "";
+          const url = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.file_name}`;
           const response = await axios.get(url, {
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
@@ -597,7 +649,6 @@ const Reimbursement = () => {
             },
             responseType: "blob",
           });
-
           return {
             name: file.file_name,
             url: URL.createObjectURL(
@@ -608,13 +659,11 @@ const Reimbursement = () => {
           };
         })
       );
-
-      const validFiles = fetchedFiles.filter((f) => f !== null);
-      if (validFiles.length === 0) {
+      const validFiles = fetchedFiles.filter(Boolean);
+      if (!validFiles.length) {
         showAlert("No valid attachments could be loaded.");
         return;
       }
-
       setSelectedFiles(validFiles);
       setSelectedClaim(claim);
       setIsModalOpen(true);
@@ -624,18 +673,25 @@ const Reimbursement = () => {
     }
   };
 
-  const totalAmount = filteredReimbursements.reduce(
-    (sum, claim) => sum + parseFloat(claim.total_amount || 0),
-    0
-  );
+  // Use filteredReimbursements (NOT reimbursements) for display and totals
+  const filterClaims = filteredReimbursements || [];
 
-  const approvedAmount = filteredReimbursements
-    .filter((claim) => claim.status === "approved")
-    .reduce((sum, claim) => sum + parseFloat(claim.total_amount || 0), 0);
-
-  const rejectedAmount = filteredReimbursements
-    .filter((claim) => claim.status === "rejected")
-    .reduce((sum, claim) => sum + parseFloat(claim.total_amount || 0), 0);
+  const totalAmount = (filteredReimbursements || []).reduce((sum, claim) => {
+    const val = parseFloat(claim.total_amount);
+    return sum + (isNaN(val) ? 0 : val);
+  }, 0);
+  const approvedAmount = (filteredReimbursements || [])
+    .filter((c) => (c.status || "").toLowerCase() === "approved")
+    .reduce((sum, claim) => {
+      const val = parseFloat(claim.total_amount);
+      return sum + (isNaN(val) ? 0 : val);
+    }, 0);
+  const rejectedAmount = (filteredReimbursements || [])
+    .filter((c) => (c.status || "").toLowerCase() === "rejected")
+    .reduce((sum, claim) => {
+      const val = parseFloat(claim.total_amount);
+      return sum + (isNaN(val) ? 0 : val);
+    }, 0);
 
   const renderClaimSpecificFields = () => {
     switch (formData.claim_type) {
@@ -647,17 +703,17 @@ const Reimbursement = () => {
                 <div
                   key={type}
                   className={`sub-tab ${
-                    selectedSubType === type ? "active" : ""
+                    formData.transport_type === type ? "active" : ""
                   }`}
-                  onClick={() => handleTransportSubTypeChange(type)} // ✅ Pass type directly
+                  onClick={() => handleTransportSubTypeChange(type)}
                 >
                   {type}
                 </div>
               ))}
             </div>
 
-            {(selectedSubType === "Intercity" ||
-              selectedSubType === "Fuel") && (
+            {(formData.transport_type === "Intercity" ||
+              formData.transport_type === "Fuel") && (
               <div className="rb-radio">
                 <label>Select no of days</label>
                 <div className="rb-radio-options">
@@ -668,7 +724,6 @@ const Reimbursement = () => {
                       value="single"
                       checked={formData.no_of_days === "single"}
                       onChange={handleNoOfDaysChange}
-                      required
                     />
                     Single
                   </label>
@@ -680,7 +735,6 @@ const Reimbursement = () => {
                       value="multiple"
                       checked={formData.no_of_days === "multiple"}
                       onChange={handleNoOfDaysChange}
-                      required
                     />
                     Multiple
                   </label>
@@ -688,7 +742,7 @@ const Reimbursement = () => {
               </div>
             )}
 
-            {selectedSubType && (
+            {formData.transport_type && (
               <div className="rb-main-form">
                 <div className="rb-form-grid">
                   {renderDateFields()}
@@ -702,7 +756,6 @@ const Reimbursement = () => {
                       name="travel_from"
                       value={formData.travel_from}
                       onChange={handleChange}
-                      required
                     />
                   </div>
                   <div className="rb-groups">
@@ -714,11 +767,10 @@ const Reimbursement = () => {
                       name="travel_to"
                       value={formData.travel_to}
                       onChange={handleChange}
-                      required
                     />
                   </div>
 
-                  {selectedSubType === "Outstation" && (
+                  {formData.transport_type === "Outstation" && (
                     <div className="rb-groups">
                       <label>Transport Amount</label>
                       <input
@@ -726,12 +778,11 @@ const Reimbursement = () => {
                         name="transport_amount"
                         value={formData.transport_amount}
                         onChange={handleChange}
-                        required
                       />
                     </div>
                   )}
 
-                  {selectedSubType === "Outstation" && (
+                  {formData.transport_type === "Outstation" && (
                     <div className="rb-groups">
                       <label>Accommodation Fees</label>
                       <input
@@ -739,12 +790,11 @@ const Reimbursement = () => {
                         name="accommodation_fees"
                         value={formData.accommodation_fees}
                         onChange={handleChange}
-                        required
                       />
                     </div>
                   )}
 
-                  {selectedSubType === "Outstation" && (
+                  {formData.transport_type === "Outstation" && (
                     <div className="rb-groups">
                       <label>DA</label>
                       <input
@@ -752,7 +802,6 @@ const Reimbursement = () => {
                         name="da"
                         value={formData.da}
                         onChange={handleChange}
-                        required
                       />
                     </div>
                   )}
@@ -766,10 +815,10 @@ const Reimbursement = () => {
                       name="total_amount"
                       value={formData.total_amount}
                       onChange={handleChange}
-                      required
                     />
                   </div>
                 </div>
+
                 <div className="purpose-attachment">
                   <div className="pa-groups">
                     <label>
@@ -777,18 +826,15 @@ const Reimbursement = () => {
                       <span className="asterisk">*</span>
                     </label>
                     <textarea
-                      type="text"
                       name="purpose"
                       value={formData.purpose}
                       onChange={handleChange}
-                      required
                     />
                   </div>
 
                   <div className="pa-groups">
                     <label>Attachment</label>
                     <div className="attachment-wrapper">
-                      {/* Display selected file names */}
                       <div className="file-links">
                         {selectedFiles.length > 0 ? (
                           selectedFiles.map((fileName, index) => (
@@ -801,7 +847,6 @@ const Reimbursement = () => {
                         )}
                       </div>
 
-                      {/* File upload input */}
                       <div className="attachment-upload">
                         <input
                           type="file"
@@ -838,7 +883,6 @@ const Reimbursement = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  required
                   max={new Date(Date.now() - 86400000).toLocaleDateString(
                     "en-CA"
                   )}
@@ -850,8 +894,8 @@ const Reimbursement = () => {
                   name="meal_type"
                   value={formData.meal_type}
                   onChange={handleChange}
-                  required
                 >
+                  <option value="">Select</option>
                   <option value="breakfast">Break Fast</option>
                   <option value="lunch">Lunch</option>
                   <option value="dinner">Dinner</option>
@@ -859,13 +903,13 @@ const Reimbursement = () => {
                 </select>
               </div>
               <div className="rb-groups">
-                <label>Meal's objective </label>
+                <label>Meal's objective</label>
                 <select
                   name="meals_objective"
                   value={formData.meals_objective}
                   onChange={handleChange}
-                  required
                 >
+                  <option value="">Select</option>
                   <option value="client_visit">Client Visit</option>
                   <option value="team_outing">Team Outing</option>
                   <option value="extended_work">Extended</option>
@@ -882,29 +926,25 @@ const Reimbursement = () => {
                   name="total_amount"
                   value={formData.total_amount}
                   onChange={handleChange}
-                  required
                 />
               </div>
             </div>
+
             <div className="purpose-attachment">
               <div className="pa-groups">
                 <label>
-                  Purpose Details / Comments
-                  <span className="asterisk">*</span>
+                  Purpose Details / Comments<span className="asterisk">*</span>
                 </label>
                 <textarea
-                  type="text"
                   name="purpose"
                   value={formData.purpose}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
               <div className="pa-groups">
                 <label>Attachment</label>
                 <div className="attachment-wrapper">
-                  {/* Display selected file names */}
                   <div className="file-links">
                     {selectedFiles.length > 0 ? (
                       selectedFiles.map((fileName, index) => (
@@ -917,7 +957,6 @@ const Reimbursement = () => {
                     )}
                   </div>
 
-                  {/* File upload input */}
                   <div className="attachment-upload">
                     <input
                       type="file"
@@ -949,7 +988,6 @@ const Reimbursement = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  required
                   max={new Date(Date.now() - 86400000).toLocaleDateString(
                     "en-CA"
                   )}
@@ -962,13 +1000,8 @@ const Reimbursement = () => {
                   name="service_provider"
                   value={formData.service_provider}
                   onChange={handleChange}
-                  required
                 />
               </div>
-              {/* <div className="rb-groups">
-              <label>Reason</label>
-              <input type="text" name="reason" value={formData.reason} onChange={handleChange} required />
-            </div> */}
               <div className="rb-groups">
                 <label>
                   Total Amount<span className="asterisk">*</span>
@@ -978,29 +1011,24 @@ const Reimbursement = () => {
                   name="total_amount"
                   value={formData.total_amount}
                   onChange={handleChange}
-                  required
                 />
               </div>
             </div>
             <div className="purpose-attachment">
               <div className="pa-groups">
                 <label>
-                  Purpose Details / Comments
-                  <span className="asterisk">*</span>
+                  Purpose Details / Comments<span className="asterisk">*</span>
                 </label>
                 <textarea
-                  type="text"
                   name="purpose"
                   value={formData.purpose}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
               <div className="pa-groups">
                 <label>Attachment</label>
                 <div className="attachment-wrapper">
-                  {/* Display selected file names */}
                   <div className="file-links">
                     {selectedFiles.length > 0 ? (
                       selectedFiles.map((fileName, index) => (
@@ -1013,7 +1041,6 @@ const Reimbursement = () => {
                     )}
                   </div>
 
-                  {/* File upload input */}
                   <div className="attachment-upload">
                     <input
                       type="file"
@@ -1045,7 +1072,6 @@ const Reimbursement = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  required
                   max={new Date(Date.now() - 86400000).toLocaleDateString(
                     "en-CA"
                   )}
@@ -1057,8 +1083,8 @@ const Reimbursement = () => {
                   name="stationary"
                   value={formData.stationary}
                   onChange={handleChange}
-                  required
                 >
+                  <option value="">Select</option>
                   <option value="office equipments">Office Equipments</option>
                   <option value="general stationary">General Stationary</option>
                 </select>
@@ -1070,46 +1096,37 @@ const Reimbursement = () => {
                   name="purchasing_item"
                   value={formData.purchasing_item}
                   onChange={handleChange}
-                  required
                 />
               </div>
-              {/* <div className="rb-groups">
-              <label>Reason</label>
-              <input type="text" name="reason" value={formData.reason} onChange={handleChange} required />
-            </div> */}
+
               <div className="rb-groups">
                 <label>
-                  Total Amount
-                  <span className="asterisk">*</span>
+                  Total Amount<span className="asterisk">*</span>
                 </label>
                 <input
                   type="number"
                   name="total_amount"
                   value={formData.total_amount}
                   onChange={handleChange}
-                  required
                 />
               </div>
             </div>
+
             <div className="purpose-attachment">
               <div className="pa-groups">
                 <label>
-                  Purpose Details / Comments
-                  <span className="asterisk">*</span>
+                  Purpose Details / Comments<span className="asterisk">*</span>
                 </label>
                 <textarea
-                  type="text"
                   name="purpose"
                   value={formData.purpose}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
               <div className="pa-groups">
                 <label>Attachment</label>
                 <div className="attachment-wrapper">
-                  {/* Display selected file names */}
                   <div className="file-links">
                     {selectedFiles.length > 0 ? (
                       selectedFiles.map((fileName, index) => (
@@ -1122,7 +1139,6 @@ const Reimbursement = () => {
                     )}
                   </div>
 
-                  {/* File upload input */}
                   <div className="attachment-upload">
                     <input
                       type="file"
@@ -1140,6 +1156,7 @@ const Reimbursement = () => {
             </div>
           </div>
         );
+
       case "Miscellaneous":
         return (
           <div className="rb-main-form">
@@ -1153,49 +1170,39 @@ const Reimbursement = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  required
                   max={new Date(Date.now() - 86400000).toLocaleDateString(
                     "en-CA"
                   )}
                 />
               </div>
-              {/* <div className="rb-groups">
-              <label>Expense Description</label>
-              <input type="text" name="misc_description" value={formData.misc_description} onChange={handleChange} required />
-            </div> */}
               <div className="rb-groups">
                 <label>
-                  Total Amount
-                  <span className="asterisk">*</span>
+                  Total Amount<span className="asterisk">*</span>
                 </label>
                 <input
                   type="number"
                   name="total_amount"
                   value={formData.total_amount}
                   onChange={handleChange}
-                  required
                 />
               </div>
             </div>
+
             <div className="purpose-attachment">
               <div className="pa-groups">
                 <label>
-                  Purpose Details / Comments
-                  <span className="asterisk">*</span>
+                  Purpose Details / Comments<span className="asterisk">*</span>
                 </label>
                 <textarea
-                  type="text"
                   name="purpose"
                   value={formData.purpose}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
               <div className="pa-groups">
                 <label>Attachment</label>
                 <div className="attachment-wrapper">
-                  {/* Display selected file names */}
                   <div className="file-links">
                     {selectedFiles.length > 0 ? (
                       selectedFiles.map((fileName, index) => (
@@ -1208,7 +1215,6 @@ const Reimbursement = () => {
                     )}
                   </div>
 
-                  {/* File upload input */}
                   <div className="attachment-upload">
                     <input
                       type="file"
@@ -1231,6 +1237,7 @@ const Reimbursement = () => {
     }
   };
 
+  // ------------ Render ------------
   return (
     <div className="reimbursement-container">
       <div className="rb-form-header">
@@ -1249,34 +1256,35 @@ const Reimbursement = () => {
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </select>
+
         <label>Date From</label>
         <input
           type="date"
           value={fromDate}
           onChange={(e) => setFromDate(e.target.value)}
-          required
         />
+
         <label>To</label>
         <input
           type="date"
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
-          required
         />
-        <button className="search-btn" onClick={fetchReimbursements}>
+
+        <button className="search-btn" onClick={applyFilters}>
           <FaSearch /> Search
         </button>
 
         <button
           className="apply-btn"
           onClick={() => {
-            setSubmitErrorMessage([]);
-            setUpdateErrorMessage([]);
+            setSubmitErrorMessage("");
+            setUpdateErrorMessage("");
             setSelectedFiles([]);
             setShowForm(true);
-            setEditingId(null); // Reset editing mode when applying a new claim
+            setEditingId(null);
             setFormData({
-              employeeId: employeeId,
+              employeeId,
               department_id: departmentId,
               claim_type: "",
               transport_type: "",
@@ -1312,7 +1320,7 @@ const Reimbursement = () => {
               <th>Sl No</th>
               <th>Claim Type</th>
               <th>Date</th>
-              <th>Purpose </th>
+              <th>Purpose</th>
               <th>Amount</th>
               <th>Attachment</th>
               <th>Status</th>
@@ -1334,6 +1342,10 @@ const Reimbursement = () => {
                         .join(" - ")
                     : claim.date
                     ? formatDisplayDate(claim.date)
+                    : claim.from_date && claim.to_date
+                    ? `${formatDisplayDate(
+                        claim.from_date
+                      )} - ${formatDisplayDate(claim.to_date)}`
                     : "N/A"}
                 </td>
                 <td>
@@ -1374,16 +1386,17 @@ const Reimbursement = () => {
                 </td>
                 <td>{claim.payment_status}</td>
                 <td className="actions-column">
-                  {/* In self view, employees cannot edit reimbursement details */}
-                  <span className="action-label"></span>
                   <MdOutlineEdit
                     className={`edit-icon ${
-                      claim.status.toLowerCase() !== "pending"
+                      claim.status && claim.status.toLowerCase() !== "pending"
                         ? "disabled-icon"
                         : ""
                     }`}
                     onClick={() => {
-                      if (claim.status.toLowerCase() === "pending") {
+                      if (
+                        claim.status &&
+                        claim.status.toLowerCase() === "pending"
+                      ) {
                         handleEdit(claim);
                         setShowForm(true);
                       }
@@ -1391,14 +1404,16 @@ const Reimbursement = () => {
                   />
                   <MdDeleteOutline
                     className={`delete-icon ${
-                      claim.status.toLowerCase() !== "pending"
+                      claim.status && claim.status.toLowerCase() !== "pending"
                         ? "disabled-icon"
                         : ""
                     }`}
                     onClick={() => {
-                      if (claim.status.toLowerCase() === "pending") {
+                      if (
+                        claim.status &&
+                        claim.status.toLowerCase() === "pending"
+                      )
                         deleteReimbursement(claim.id);
-                      }
                     }}
                   />
                 </td>
@@ -1432,17 +1447,15 @@ const Reimbursement = () => {
           </tfoot>
         </table>
 
-        {/* Cards for Mobile View */}
+        {/* Mobile cards */}
         <div className="rb-reimbursement-cards">
           {filterClaims.map((claim, index) => (
             <div className="rb-reimbursement-card" key={claim.id}>
-              {/* Status inside the card */}
               <div className="rb-card-header">
-                <span className={`rb-status ${claim.status.toLowerCase()}`}>
+                <span className={`rb-status ${claim.status?.toLowerCase()}`}>
                   {claim.status}
                 </span>
               </div>
-
               <div className="rb-card-body">
                 <p>
                   <strong>Sl No:</strong> {index + 1}
@@ -1460,13 +1473,11 @@ const Reimbursement = () => {
                 <p>
                   <strong>Amount:</strong> Rs {claim.total_amount}
                 </p>
-
                 <p>
                   <strong>Comments:</strong>{" "}
                   {claim.approver_comments || "No comments"}
                 </p>
               </div>
-
               <div className="rb-card-footer">
                 {attachments[claim.id]?.length > 0 ? (
                   <button
@@ -1480,8 +1491,7 @@ const Reimbursement = () => {
                 ) : (
                   <span className="rb-no-attachment">No Attachment</span>
                 )}
-
-                {claim.status.toLowerCase() === "pending" && (
+                {claim.status && claim.status.toLowerCase() === "pending" && (
                   <div className="rb-card-actions">
                     <MdOutlineEdit
                       className="rb-edit-icon"
@@ -1502,6 +1512,7 @@ const Reimbursement = () => {
         </div>
       </div>
 
+      {/* Form modal */}
       {showForm && (
         <div className="rb-modal">
           <div className="rb-modal-content">
@@ -1556,7 +1567,9 @@ const Reimbursement = () => {
                   ))}
                 </div>
               </div>
+
               {renderClaimSpecificFields()}
+
               <div className="reimbursement-form-button">
                 <button
                   type="button"
@@ -1574,7 +1587,7 @@ const Reimbursement = () => {
         </div>
       )}
 
-      {/* Modal for Attachments */}
+      {/* Attachments modal */}
       {isModalOpen && (
         <div className="att-modal-overlay">
           <div className="att-modal-content">
@@ -1591,8 +1604,8 @@ const Reimbursement = () => {
                 : "Bills"}
             </h4>
             {selectedFiles.length > 0 ? (
-              selectedFiles.map((file, index) => (
-                <div className="att-files" key={index}>
+              selectedFiles.map((file, idx) => (
+                <div className="att-files" key={idx}>
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
                     {file.name}
                   </a>
@@ -1610,6 +1623,7 @@ const Reimbursement = () => {
           </div>
         </div>
       )}
+
       <Modal
         isVisible={confirmModal.isVisible}
         onClose={closeConfirm}
@@ -1621,7 +1635,6 @@ const Reimbursement = () => {
         <p>{confirmModal.message}</p>
       </Modal>
 
-      {/* Alert Modal */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

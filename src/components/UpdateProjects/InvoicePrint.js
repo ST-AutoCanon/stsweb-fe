@@ -163,9 +163,8 @@ const InvoicePrint = React.forwardRef(({ invoiceData }, ref) => {
             );
           })}
 
-          {/* Calculate the number of fixed rows to display */}
           {(() => {
-            const fixedRows = 8; // Total rows you want
+            const fixedRows = 5;
             const emptyRowCount = fixedRows - parsedLineItems.length;
             return emptyRowCount > 0
               ? Array.from({ length: emptyRowCount }).map((_, index) => (
@@ -318,7 +317,6 @@ const InvoicePrint = React.forwardRef(({ invoiceData }, ref) => {
               <img src="/images/seal.png" alt="SEAL" />
             </div>
           ) : (
-            // Optionally, show a placeholder if needed
             <div className="no-seal"></div>
           )}
           <strong>
