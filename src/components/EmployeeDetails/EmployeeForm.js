@@ -145,12 +145,36 @@ export default function EmployeeForm({
   const handleChange = (name, value) =>
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-  const validateStep = () => {
-    if (formRef.current && !formRef.current.checkValidity()) {
-      formRef.current.reportValidity();
-      return false;
+  const disableRequiredTemporarily = (fn) => {
+    const form = formRef.current;
+    if (!form) return fn();
+
+    const requiredEls = Array.from(form.querySelectorAll("[required]"));
+    requiredEls.forEach((el) => {
+      el.dataset._wasRequired = "1";
+      el.removeAttribute("required");
+    });
+
+    try {
+      return fn();
+    } finally {
+      requiredEls.forEach((el) => {
+        if (el.dataset && el.dataset._wasRequired) {
+          el.setAttribute("required", "");
+          delete el.dataset._wasRequired;
+        }
+      });
     }
-    return true;
+  };
+
+  const validateStep = () => {
+    return disableRequiredTemporarily(() => {
+      if (formRef.current && !formRef.current.checkValidity()) {
+        formRef.current.reportValidity();
+        return false;
+      }
+      return true;
+    });
   };
 
   const next = () => {
@@ -160,6 +184,20 @@ export default function EmployeeForm({
   };
   const back = () => setCurrentStep((i) => Math.max(i - 1, 0));
 
+  const goToStep = (idx) => {
+    if (idx === currentStep) return;
+
+    if (idx < currentStep) {
+      setError("");
+      setCurrentStep(idx);
+      return;
+    }
+
+    setError("");
+    if (!validateStep()) return;
+    setCurrentStep(idx);
+  };
+
   const handleSubmit = async () => {
     if (!validateStep()) return;
     setLoading(true);
@@ -168,7 +206,6 @@ export default function EmployeeForm({
     try {
       const fd = new FormData();
 
-      // helpers
       const isFile = (v) => v instanceof File;
       const hasFileIn = (val) => {
         if (!val) return false;
@@ -176,7 +213,6 @@ export default function EmployeeForm({
         return isFile(val);
       };
 
-      // appendUrlArray: always appends a JSON string array of URLs when there are only URLs (no File)
       function appendUrlArray(fd, key, maybeArr) {
         if (!maybeArr) return;
         if (Array.isArray(maybeArr)) {
@@ -191,9 +227,7 @@ export default function EmployeeForm({
             JSON.parse(s);
             fd.append(key, s);
             return;
-          } catch {
-            // fall through to comma separated
-          }
+          } catch {}
         }
         if (s.includes(",")) {
           const parts = s
@@ -206,9 +240,6 @@ export default function EmployeeForm({
         fd.append(key, JSON.stringify([s]));
       }
 
-      // -----------------------
-      // 1) append simple (non-file) fields
-      // -----------------------
       const skipKeys = new Set([
         "experience",
         "other_docs",
@@ -228,14 +259,9 @@ export default function EmployeeForm({
 
       Object.entries(formData).forEach(([key, val]) => {
         if (skipKeys.has(key)) return;
-        // Note: include url fields if user prefilled them (we handle them below more carefully)
         if (val !== undefined && val !== null) fd.append(key, val);
       });
 
-      // -----------------------
-      // 2) append multi-file arrays (actual file uploads)
-      // names here match the file input names your server code expects
-      // -----------------------
       [
         "other_docs",
         "tenth_cert",
@@ -250,7 +276,6 @@ export default function EmployeeForm({
         }
       });
 
-      // family gov doc file inputs
       [
         "father_gov_doc",
         "mother_gov_doc",
@@ -270,22 +295,16 @@ export default function EmployeeForm({
         }
       });
 
-      // resume (single file)
       if (isFile(formData.resume)) {
         fd.append("resume", formData.resume, formData.resume.name);
       }
 
-      // -----------------------
-      // 3) experience array: append scalar fields + files (or urls fallback)
-      // server.editFullEmployee expects experience items with doc_urls for existing URLs
-      // -----------------------
       (formData.experience || []).forEach((exp, idx) => {
         fd.append(`experience[${idx}][company]`, exp.company ?? "");
         fd.append(`experience[${idx}][role]`, exp.role ?? "");
         fd.append(`experience[${idx}][start_date]`, exp.start_date ?? "");
         fd.append(`experience[${idx}][end_date]`, exp.end_date ?? "");
 
-        // If this exp has File(s), append them under experience[IDX][doc]
         if (Array.isArray(exp.doc) && exp.doc.some(isFile)) {
           for (const f of exp.doc) {
             if (isFile(f)) fd.append(`experience[${idx}][doc]`, f, f.name);
@@ -293,7 +312,6 @@ export default function EmployeeForm({
         } else if (isFile(exp.doc)) {
           fd.append(`experience[${idx}][doc]`, exp.doc, exp.doc.name);
         } else {
-          // no files -> if URLs exist, send doc_urls JSON array
           if (Array.isArray(exp.doc)) {
             const urlOnly = exp.doc.filter((x) => typeof x === "string");
             if (urlOnly.length)
@@ -307,7 +325,6 @@ export default function EmployeeForm({
               JSON.stringify([exp.doc.trim()])
             );
           } else if (Array.isArray(exp.files)) {
-            // older naming variants: exp.files
             const urlOnly = exp.files.filter((x) => typeof x === "string");
             if (urlOnly.length)
               fd.append(
@@ -318,10 +335,6 @@ export default function EmployeeForm({
         }
       });
 
-      // -----------------------
-      // 4) additional_certs: append scalars + files (or url fallback)
-      // server.editFullEmployee expects additional_certs[*].file_urls for existing URLs
-      // -----------------------
       (formData.additional_certs || []).forEach((cert, idx) => {
         fd.append(`additional_certs[${idx}][name]`, cert.name ?? "");
         fd.append(`additional_certs[${idx}][year]`, cert.year ?? "");
@@ -342,7 +355,6 @@ export default function EmployeeForm({
             cert.file.name
           );
         } else {
-          // fallback to url array keys if no files
           if (
             Array.isArray(cert.files) &&
             cert.files.some((x) => typeof x === "string")
@@ -373,7 +385,6 @@ export default function EmployeeForm({
             typeof cert.file_urls === "string" &&
             cert.file_urls.trim()
           ) {
-            // maybe comma separated or JSON
             appendUrlArray(
               fd,
               `additional_certs[${idx}][file_urls]`,
@@ -383,10 +394,6 @@ export default function EmployeeForm({
         }
       });
 
-      // -----------------------
-      // 5) fallback: append existing URL arrays for fields that had no new files
-      // send keys the server expects: tenth_cert_url, twelfth_cert_url, ug_cert_url, pg_cert_url, other_docs_urls, resume_url, family *_gov_doc_url
-      // -----------------------
       if (!hasFileIn(formData.tenth_cert))
         appendUrlArray(fd, "tenth_cert_url", formData.tenth_cert);
       if (!hasFileIn(formData.twelfth_cert))
@@ -396,7 +403,6 @@ export default function EmployeeForm({
       if (!hasFileIn(formData.pg_cert))
         appendUrlArray(fd, "pg_cert_url", formData.pg_cert);
 
-      // other_docs: file uploads are 'other_docs'. if none uploaded, send other_docs_urls
       if (!hasFileIn(formData.other_docs))
         appendUrlArray(
           fd,
@@ -404,16 +410,12 @@ export default function EmployeeForm({
           formData.other_docs || formData.other_docs_urls
         );
 
-      // resume
       if (!isFile(formData.resume) && formData.resume) {
-        // formData.resume might be a string or array-of-strings
         appendUrlArray(fd, "resume_url", formData.resume);
       } else if (!formData.resume && formData.resume_url) {
-        // if backend returned resume_url earlier and front didn't set resume
         appendUrlArray(fd, "resume_url", formData.resume_url);
       }
 
-      // family gov doc urls fallback (only if no new files were provided)
       const familyPairs = [
         ["father_gov_doc", "father_gov_doc_url"],
         ["mother_gov_doc", "mother_gov_doc_url"],
@@ -423,18 +425,13 @@ export default function EmployeeForm({
         ["child3_gov_doc", "child3_gov_doc_url"],
       ];
       for (const [fileField, urlField] of familyPairs) {
-        // prefer either the `*_gov_doc` or existing `*_gov_doc_url` keys from formData
         const maybeFiles = formData[fileField];
         const maybeUrls = formData[urlField] || formData[fileField + "_url"];
-        // if no file present, append the url array
         if (!hasFileIn(maybeFiles)) {
           appendUrlArray(fd, urlField, maybeUrls || maybeFiles);
         }
       }
 
-      // -----------------------
-      // 6) final debug log of FormData entries (useful to inspect duplicates)
-      // -----------------------
       for (let [key, val] of fd.entries()) {
         if (val instanceof File) {
           console.log(
@@ -445,10 +442,8 @@ export default function EmployeeForm({
         }
       }
 
-      // 7) send to server
       await onSubmit(fd);
 
-      // 8) create supervisor assignment if required (existing logic)
       if (
         initialData.employee_id &&
         initialData.supervisor_id !== formData.supervisor_id
@@ -510,12 +505,29 @@ export default function EmployeeForm({
   return (
     <div className="employee-form">
       <div className="steps-indicator">
-        {STEPS.map((lbl, i) => (
-          <div key={lbl} className={i === currentStep ? "active" : ""}>
-            {lbl}
-          </div>
-        ))}
+        {STEPS.map((lbl, i) => {
+          const isActive = i === currentStep;
+          return (
+            <div
+              key={lbl}
+              role="button"
+              tabIndex={0}
+              aria-current={isActive ? "step" : undefined}
+              className={isActive ? "active " : ""}
+              onClick={() => goToStep(i)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  goToStep(i);
+                }
+              }}
+            >
+              {lbl}
+            </div>
+          );
+        })}
       </div>
+
       <form ref={formRef} noValidate className="ed-form">
         {stepsComponents.map((Comp, idx) => (
           <fieldset

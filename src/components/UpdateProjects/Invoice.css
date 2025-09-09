@@ -169,17 +169,13 @@
   z-index: 1000;
 }
 
-.back-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  font-size: 28px;
+.in-back-btn {
+  font-size: 38px;
   color: #00468c; /* or #333 depending on theme */
   cursor: pointer;
-  z-index: 10001; /* Keep it above headers and tables */
 }
 
-.back-btn:hover {
+.in-back-btn:hover {
   color: #002b5c; /* Darker on hover */
 }
 

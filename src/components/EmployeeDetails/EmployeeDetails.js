@@ -776,7 +776,11 @@ export default function EmployeeDetails() {
                       <strong>{emp.employee_id}</strong>
                     </td>
                     <td>{emp.name}</td>
-                    <td>{format(new Date(emp.joining_date), "dd MMM yyyy")}</td>
+                    <td>
+                      {emp.joining_date
+                        ? format(new Date(emp.joining_date), "dd MMM yyyy")
+                        : "—"}
+                    </td>
                     <td
                       className={
                         emp.status === "Active"

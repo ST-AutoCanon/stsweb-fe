@@ -1,4 +1,3 @@
-// ./EmployeeFormEmployee.jsx
 import React, { useRef, useState } from "react";
 import StepPersonal from "../EmployeeDetails/steps/StepPersonal";
 import StepGovernmentDocs from "../EmployeeDetails/steps/StepGovernmentDocs";
@@ -72,6 +71,19 @@ export default function EmployeeFormEmployee({
   };
   const back = () => setCurrentStep((i) => Math.max(i - 1, 0));
 
+  const goToStep = (targetIndex) => {
+    setError("");
+    if (targetIndex === currentStep) return;
+    // allow going backwards without validation
+    if (targetIndex < currentStep) {
+      setCurrentStep(targetIndex);
+      return;
+    }
+    // going forward: validate current step first (same as Next)
+    if (!validateStep()) return;
+    setCurrentStep(targetIndex);
+  };
+
   const handleSubmit = async () => {
     if (!validateStep()) return;
     setLoading(true);
@@ -80,7 +92,6 @@ export default function EmployeeFormEmployee({
     try {
       const fd = new FormData();
 
-      // Append non-array fields
       Object.entries(formData).forEach(([key, val]) => {
         if (
           [
@@ -103,7 +114,6 @@ export default function EmployeeFormEmployee({
         if (val != null && val !== undefined) fd.append(key, val);
       });
 
-      // multiple file arrays
       [
         "other_docs",
         "tenth_cert",
@@ -119,7 +129,6 @@ export default function EmployeeFormEmployee({
         }
       });
 
-      // experience array (with docs)
       (formData.experience || []).forEach((exp, idx) => {
         fd.append(`experience[${idx}][company]`, exp.company || "");
         fd.append(`experience[${idx}][role]`, exp.role || "");
@@ -135,7 +144,6 @@ export default function EmployeeFormEmployee({
         }
       });
 
-      // additional_certs array (with files)
       (formData.additional_certs || []).forEach((cert, idx) => {
         fd.append(`additional_certs[${idx}][name]`, cert.name || "");
         fd.append(`additional_certs[${idx}][year]`, cert.year || "");
@@ -157,7 +165,6 @@ export default function EmployeeFormEmployee({
         }
       });
 
-      // parent/children gov docs arrays
       [
         "father_gov_doc",
         "mother_gov_doc",
@@ -174,14 +181,11 @@ export default function EmployeeFormEmployee({
         }
       });
 
-      // resume (single file)
       if (formData.resume instanceof File)
         fd.append("resume", formData.resume, formData.resume.name);
 
-      // send to onSubmit (expected to perform the network request)
       await onSubmit(fd);
 
-      // supervisor historic assign (only if supervisor changed and initial had employee_id)
       const initialEmpId = initialData.employee_id;
       if (
         initialEmpId &&
@@ -246,11 +250,27 @@ export default function EmployeeFormEmployee({
   return (
     <div className="employee-form">
       <div className="steps-indicator">
-        {STEPS.map((lbl, i) => (
-          <div key={lbl} className={i === currentStep ? "active" : ""}>
-            {lbl}
-          </div>
-        ))}
+        {STEPS.map((lbl, i) => {
+          const isActive = i === currentStep;
+          return (
+            <div
+              key={lbl}
+              role="button"
+              tabIndex={0}
+              aria-current={isActive ? "step" : undefined}
+              className={isActive ? "active " : ""}
+              onClick={() => goToStep(i)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  goToStep(i);
+                }
+              }}
+            >
+              {lbl}
+            </div>
+          );
+        })}
       </div>
 
       <form ref={formRef} noValidate className="ed-form">

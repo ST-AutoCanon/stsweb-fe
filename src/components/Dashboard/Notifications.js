@@ -1,10 +1,10 @@
-// src/components/Topbar/Notifications.js
 import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { ContentContext } from "./Context";
 import NoteDashboard from "../Notes/NoteDashboard";
 import "./Notifications.css";
 import Admin from "../LeaveQueries/Admin";
+import Profile from "../Profile/Profile";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -12,7 +12,6 @@ const meId = JSON.parse(
   localStorage.getItem("dashboardData") || "{}"
 ).employeeId;
 
-// IMPORTANT: import Admin (main Leave Queries/Admin view)
 export default function Notifications({ visible, onClose, onRead }) {
   const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
@@ -30,16 +29,6 @@ export default function Notifications({ visible, onClose, onRead }) {
       .catch((err) => console.error("Error fetching notifications", err));
   }, [visible]);
 
-  useEffect(() => {
-    function handleClick(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        onClose();
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
-
   const markRead = (id) => {
     return axios
       .put(
@@ -56,25 +45,17 @@ export default function Notifications({ visible, onClose, onRead }) {
 
   const handleClickNotification = async (note) => {
     try {
-      // mark notification as read first
-      await markRead(note.id);
-
-      // close dropdown if parent provided onClose
-      if (typeof onClose === "function") onClose();
-
-      // If notification relates to a policy -> open Admin + open PolicyModal for that policy
       if (note.policy_id) {
-        // Render the Admin view as the active content and pass openPolicyId prop
         setActiveContent(
           <Admin
             key={`admin-policy-${note.policy_id}`}
             openPolicyId={note.policy_id}
           />
         );
+        if (onClose) onClose();
         return;
       }
 
-      // Meeting-related: keep existing NoteDashboard behavior
       if (note.meeting_id) {
         setActiveContent(
           <NoteDashboard
@@ -82,14 +63,45 @@ export default function Notifications({ visible, onClose, onRead }) {
             highlightedId={note.meeting_id}
           />
         );
+        if (onClose) onClose();
         return;
       }
 
-      // fallback: do nothing for other notification types (or extend as needed)
+      const msg = (note.message || "").toLowerCase();
+      const isProfileMissing =
+        msg.includes("profile") &&
+        (msg.includes("incomplete") ||
+          msg.includes("missing") ||
+          msg.includes("update"));
+
+      if (isProfileMissing) {
+        setActiveContent(
+          <Profile
+            key={`profile-notif-${note.id}`}
+            onClose={() => setActiveContent(null)}
+            notificationId={note.id}
+          />
+        );
+        if (typeof onClose === "function") onClose();
+        return;
+      }
+
+      await markRead(note.id);
+      if (typeof onClose === "function") onClose();
     } catch (err) {
       console.error("Error handling notification click:", err);
     }
   };
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        if (typeof onClose === "function") onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [onClose]);
 
   if (!visible) return null;
 
@@ -99,35 +111,58 @@ export default function Notifications({ visible, onClose, onRead }) {
       {notifications.length === 0 ? (
         <p className="empty">No new notifications</p>
       ) : (
-        notifications.map((note) => (
-          <div
-            key={note.id}
-            className="notification-item"
-            onClick={() => handleClickNotification(note)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ")
-                handleClickNotification(note);
-            }}
-            aria-label={`Notification: ${note.message}`}
-          >
-            <p className="n_message">{note.message}</p>
-            <small className="n_time">
-              {new Date(note.triggered_at).toLocaleString()}
-            </small>
-            <button
-              className="mark-read"
-              onClick={(e) => {
-                e.stopPropagation();
-                markRead(note.id);
+        notifications.map((note) => {
+          const msg = (note.message || "").toLowerCase();
+          const isProfileMissing =
+            msg.includes("profile") &&
+            (msg.includes("incomplete") ||
+              msg.includes("missing") ||
+              msg.includes("update"));
+
+          return (
+            <div
+              key={note.id}
+              className="notification-item"
+              onClick={() => handleClickNotification(note)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  handleClickNotification(note);
               }}
-              aria-label="Mark as read"
+              aria-label={`Notification: ${note.message}`}
             >
-              ✓
-            </button>
-          </div>
-        ))
+              <div className="notification-main">
+                <p className="n_message">{note.message}</p>
+                <small className="n_time">
+                  {new Date(note.triggered_at).toLocaleString()}
+                </small>
+              </div>
+
+              {isProfileMissing ? (
+                <button
+                  className="mark-read disabled"
+                  aria-disabled="true"
+                  title="This notification is cleared after you update your profile"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  ✓
+                </button>
+              ) : (
+                <button
+                  className="mark-read"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    markRead(note.id);
+                  }}
+                  aria-label="Mark as read"
+                >
+                  ✓
+                </button>
+              )}
+            </div>
+          );
+        })
       )}
     </div>
   );

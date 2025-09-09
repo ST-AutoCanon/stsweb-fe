@@ -46,7 +46,8 @@ export default function Admin({ openPolicyId = null }) {
   const [leaveQueries, setLeaveQueries] = useState([]);
   const [policies, setPolicies] = useState([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("pending");
+  // Use capitalized status values to match DB conventions ("Pending", "Approved", "Rejected")
+  const [statusFilter, setStatusFilter] = useState("Pending");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [statusUpdates, setStatusUpdates] = useState({});
@@ -83,15 +84,9 @@ export default function Admin({ openPolicyId = null }) {
     error: "",
   });
 
-  /**
-   * showAlert
-   * - ensures compensation popup is forcibly closed first (so alert appears above it)
-   * - small delay (120ms) to allow modal to disappear before showing alert
-   */
   const showAlert = (message, title = "") => {
     // force-close popup immediately (parent state)
     setLopModal((m) => ({ ...m, isVisible: false }));
-    // wait a bit to ensure popup unmount/animation completes (keeps UI clean)
     setTimeout(() => {
       setAlertModal({ isVisible: true, title, message });
     }, 120);
@@ -159,8 +154,6 @@ export default function Admin({ openPolicyId = null }) {
     setShowPolicyAlertsModal(alerts.length > 0);
   }, [policies]);
 
-  // useEffect;
-
   useEffect(() => {
     // initial load + when filters change
     console.log(
@@ -181,16 +174,17 @@ export default function Admin({ openPolicyId = null }) {
 
   const fetchLeaveQueries = async () => {
     try {
-      const params = new URLSearchParams({
-        search,
-        status: statusFilter,
-        from_date: fromDate,
-        to_date: toDate,
-      }).toString();
-      const url = `${API_BASE}/admin/leave?${params}`;
+      // Only include status param if set (prevents sending empty param)
+      const paramsObj = {};
+      if (search) paramsObj.search = search;
+      if (statusFilter) paramsObj.status = statusFilter;
+      if (fromDate) paramsObj.from_date = fromDate;
+      if (toDate) paramsObj.to_date = toDate;
+
+      const params = new URLSearchParams(paramsObj).toString();
+      const url = `${API_BASE}/admin/leave${params ? `?${params}` : ""}`;
       console.log("[fetchLeaveQueries] GET", url);
       const res = await fetch(url, { headers });
-      // safe parse
       let json = null;
       try {
         json = await res.json();
@@ -203,10 +197,10 @@ export default function Admin({ openPolicyId = null }) {
       }
       console.log("[fetchLeaveQueries] response:", res.status, json);
       if (json.success) {
-        setLeaveQueries(json.data);
+        setLeaveQueries(json.data || []);
         setStatusUpdates({});
       } else {
-        showAlert("Failed to fetch leave queries");
+        showAlert(json.message || "Failed to fetch leave queries");
       }
     } catch (err) {
       console.error("[fetchLeaveQueries] Error:", err);
@@ -214,9 +208,7 @@ export default function Admin({ openPolicyId = null }) {
     }
   };
 
-  // inside Admin component definitions (near showAlert, fetchPolicies)
   const handleIgnorePolicyAlerts = async () => {
-    // actorId from local storage (same pattern as your backend expects)
     let actorId = null;
     try {
       const raw = localStorage.getItem("dashboardData");
@@ -229,8 +221,7 @@ export default function Admin({ openPolicyId = null }) {
     }
 
     try {
-      setShowPolicyAlertsModal(false); // hide modal immediately for snappiness
-      // call backend to auto-extend recent policies
+      setShowPolicyAlertsModal(false);
       const url = `${API_BASE}/api/leave-policies/auto-extend`;
       const body = { extensionDays: 90, actorId };
       const resp = await fetch(url, {
@@ -244,7 +235,6 @@ export default function Admin({ openPolicyId = null }) {
         showAlert(json.message || "Failed to auto-extend policies.");
         return;
       }
-      // Refresh policies + queries so UI reflects newly-created entries
       await fetchPolicies();
       await fetchLeaveQueries();
       showAlert(json.message || "Policy auto-extension processed.");
@@ -254,7 +244,6 @@ export default function Admin({ openPolicyId = null }) {
     }
   };
 
-  // helper: load balance for one employee
   const loadLeaveBalance = async (employeeId) => {
     if (leaveBalances[employeeId]) {
       console.log(
@@ -288,7 +277,6 @@ export default function Admin({ openPolicyId = null }) {
     }
   };
 
-  // handle delete policy identical to your existing code
   const handleDeletePolicy = async (id) => {
     if (!window.confirm("Delete this policy?")) return;
     try {
@@ -306,14 +294,10 @@ export default function Admin({ openPolicyId = null }) {
 
   /**
    * doUpdate - sends normalized payload and logs request/response for debugging.
-   * This expects preserved_leave_days to already be present on payload (computed upstream).
-   *
-   * NOTE: this function does NOT show success alerts. Callers should call showAlert(...)
-   * after they decide to show a global alert. doUpdate will show alerts for server errors.
    */
   const doUpdate = async (leaveId, payload = {}, query = null) => {
     try {
-      // --- Normalize payload keys safely ---
+      // Normalize numeric fields
       let compensatedRaw;
       if (payload.hasOwnProperty("compensated_days"))
         compensatedRaw = payload.compensated_days;
@@ -350,7 +334,6 @@ export default function Admin({ openPolicyId = null }) {
         preservedRaw = payload.preservedLeaveDays;
       else if (payload.hasOwnProperty("preserved"))
         preservedRaw = payload.preserved;
-      // normalize preserved to number|null
       const preserved =
         preservedRaw === null || preservedRaw === undefined
           ? null
@@ -366,7 +349,7 @@ export default function Admin({ openPolicyId = null }) {
       else if (payload.hasOwnProperty("comment")) comments = payload.comment;
       else comments = null;
 
-      // actorId fallback from localStorage (optional)
+      // actorId fallback from localStorage
       let actorId = null;
       try {
         const raw = localStorage.getItem("dashboardData");
@@ -380,7 +363,16 @@ export default function Admin({ openPolicyId = null }) {
         actorId = null;
       }
 
-      // Build robust payload with synonyms to satisfy different backend expectations
+      // handle is_defaulted flag (accept both snake and camel and strings)
+      const isDefaulted =
+        payload.is_defaulted === true ||
+        payload.isDefaulted === true ||
+        payload.is_defaulted === "true" ||
+        payload.isDefaulted === "true"
+          ? true
+          : false;
+
+      // Build robust payload with synonyms
       const fullPayload = {
         status,
         comments,
@@ -420,14 +412,22 @@ export default function Admin({ openPolicyId = null }) {
             null),
 
         actorId,
+
+        // new flag for server to mark defaulted cases (both forms)
+        is_defaulted: isDefaulted,
+        isDefaulted: isDefaulted,
       };
+
+      // build headers and include x-employee-id header when available
+      const headersForReq = { ...headers };
+      if (actorId) headersForReq["x-employee-id"] = actorId;
 
       const url = `${API_BASE}/admin/leave/${leaveId}`;
       console.log("[doUpdate] Sending PUT", url, "payload:", fullPayload);
 
       const res = await fetch(url, {
         method: "PUT",
-        headers,
+        headers: headersForReq,
         body: JSON.stringify(fullPayload),
       });
 
@@ -453,7 +453,6 @@ export default function Admin({ openPolicyId = null }) {
         text
       );
 
-      // If status not ok, show server message if available
       if (!res.ok) {
         const serverMsg =
           (json && (json.message || (json.error && json.error.message))) ||
@@ -464,11 +463,8 @@ export default function Admin({ openPolicyId = null }) {
         return { ok: false, status: res.status, body: json || text };
       }
 
-      // success handling
       if (json && json.success) {
-        // do NOT show success alert here — callers will call showAlert(...)
         setUpdatedQueries((s) => new Set(s).add(leaveId));
-        // fetch the latest list after update
         await fetchLeaveQueries();
         return { ok: true, status: res.status, body: json };
       } else {
@@ -490,9 +486,6 @@ export default function Admin({ openPolicyId = null }) {
 
   /**
    * Helper: findActivePolicyForRequestDate
-   * - returns a policy object if any policy covers the leave's start_date (inclusive),
-   *   otherwise returns null.
-   * - when no policy is found we treat policy as "not active / not present" for this request.
    */
   const findActivePolicyForRequestDate = (request) => {
     if (!request) return null;
@@ -510,7 +503,6 @@ export default function Admin({ openPolicyId = null }) {
           e.setHours(0, 0, 0, 0);
           if (s <= req && req <= e) return p;
         } catch (e) {
-          // ignore malformed policy dates
           continue;
         }
       }
@@ -534,35 +526,25 @@ export default function Admin({ openPolicyId = null }) {
       const days = calculateDays(query.start_date, query.end_date);
       const balances = await loadLeaveBalance(query.employee_id);
       const bal = balances.find((r) => r.type === query.leave_type);
-      // ensure numeric remaining
       const remaining =
         bal && bal.remaining !== undefined ? Number(bal.remaining) || 0 : 0;
 
       console.log("[handleUpdate] days, remaining:", { days, remaining });
 
       const deficit = Math.max(0, days - remaining);
-      // --- Helpers (replace the old ones inside handleUpdate) ---
       const EPS = 1e-6;
 
-      // --- NEW: check for active policy for this request ---
-      // If there's no active policy covering the request date (or no policies at all),
-      // do not open the compensation popup. Instead perform a simple approval update
-      // and show the normal success message.
       const activePolicyForRequest = findActivePolicyForRequestDate(query);
 
       if (!activePolicyForRequest) {
         // No active policy: perform a simple approve WITHOUT opening the compensation popup.
-        // IMPORTANT: The backend validates that compensated + deducted + loss_of_pay === total_days
-        // so we must send a split that sums to the requested days.
-        //
         // Default behaviour here: treat the full requested days as Loss-of-Pay (LoP).
-        // If you prefer "deduct from remaining" as the default, change the payload accordingly.
-
+        // Set is_defaulted = true so backend knows this was a system/default approval path.
         const simplePayload = {
           ...(upd || {}),
           status: "Approved",
 
-          // set default split -> all LoP
+          // default splits
           compensated_days: 0,
           compensatedDays: 0,
           compensated: 0,
@@ -575,14 +557,16 @@ export default function Admin({ openPolicyId = null }) {
           lopDays: Number(days),
           loss_of_pay: Number(days),
 
-          // preserved fields: set to remaining if any, else null
           preserved_leave_days: remaining > 0 ? Number(remaining) : null,
           preservedLeaveDays: remaining > 0 ? Number(remaining) : null,
           preserved: remaining > 0 ? Number(remaining) : null,
 
-          // explicitly include total days so server can validate
           total_days: Number(days),
           totalDays: Number(days),
+
+          // mark this action as defaulted (server will set is_defaulted column)
+          is_defaulted: true,
+          isDefaulted: true,
         };
 
         console.log(
@@ -604,40 +588,37 @@ export default function Admin({ openPolicyId = null }) {
         return;
       }
 
-      // If we reach here, there IS an active policy for the request -> show compensation popup as before
-
+      // If there IS an active policy -> show compensation popup as before
       const approveDeficit = async () => {
-        // Approve as full LoP for all days — preserve the remaining (no change to balance)
-        const preserved_leave_days = Number(remaining) || 0; // no deduction
+        const preserved_leave_days = Number(remaining) || 0;
         const lopDaysVal = Number(days) || 0;
 
         const payload = {
           ...(upd || {}),
           status: "Approved",
 
-          // compensated synonyms
           compensated_days: 0,
           compensatedDays: 0,
           compensated: 0,
 
-          // deducted synonyms
           deducted_days: 0,
           deductedDays: 0,
           deducted: 0,
 
-          // LoP synonyms (set to full days)
           loss_of_pay_days: lopDaysVal,
           lopDays: lopDaysVal,
           loss_of_pay: lopDaysVal,
 
-          // preserved
           preserved_leave_days,
           preservedLeaveDays: preserved_leave_days,
           preserved: preserved_leave_days,
 
-          // totals
           total_days: Number(days),
           totalDays: Number(days),
+
+          // manual admin approval under active policy
+          is_defaulted: false,
+          isDefaulted: false,
         };
 
         console.log("[approveDeficit] payload:", payload);
@@ -646,7 +627,6 @@ export default function Admin({ openPolicyId = null }) {
 
         if (result && result.ok) {
           const msg = (result.body && result.body.message) || "Leave updated";
-          // showAlert will close popup and then display alert
           showAlert(msg);
         } else {
           const serverMsg =
@@ -686,6 +666,10 @@ export default function Admin({ openPolicyId = null }) {
 
           total_days: Number(days),
           totalDays: Number(days),
+
+          // manual admin action under active policy
+          is_defaulted: false,
+          isDefaulted: false,
         };
 
         console.log("[setAllCompensated] payload:", payload);
@@ -708,7 +692,6 @@ export default function Admin({ openPolicyId = null }) {
       };
 
       const setAllDeducted = async () => {
-        // Deduct up to remaining; leftover becomes LoP
         const daysNum = Number(days) || 0;
         const remainingNum = Number(remaining) || 0;
         const deducted_clamped = Math.min(daysNum, remainingNum);
@@ -740,6 +723,10 @@ export default function Admin({ openPolicyId = null }) {
 
           total_days: Number(days),
           totalDays: Number(days),
+
+          // manual admin action under active policy
+          is_defaulted: false,
+          isDefaulted: false,
         };
 
         console.log("[setAllDeducted] payload:", payload);
@@ -779,7 +766,6 @@ export default function Admin({ openPolicyId = null }) {
         const d = Number(deductedDays) || 0;
         const l = Number(lopDays) || 0;
 
-        // float-tolerance validation: ensure sum equals requested days
         if (Math.abs(c + d + l - days) > EPS) {
           const msg = `Split values must add up to total requested days (${days}). Received: compensated=${c}, deducted=${d}, loss_of_pay=${l}.`;
           setLopModal((m) => ({ ...m, error: msg }));
@@ -792,7 +778,6 @@ export default function Admin({ openPolicyId = null }) {
           return { ok: false, message: "validation_failed", body: msg };
         }
 
-        // clamp deducted to remaining just in case
         const deducted_clamped = Math.min(Number(remaining) || 0, d);
         if (deducted_clamped + EPS < d) {
           const msg = `Deducted days (${d}) exceed remaining (${remaining}). Please adjust.`;
@@ -836,6 +821,10 @@ export default function Admin({ openPolicyId = null }) {
 
           total_days: Number(days),
           totalDays: Number(days),
+
+          // manual admin action under active policy
+          is_defaulted: false,
+          isDefaulted: false,
         };
 
         console.log("[applyFlexibleSplit] payload:", payload);
@@ -853,7 +842,6 @@ export default function Admin({ openPolicyId = null }) {
           result.status >= 200 &&
           result.status < 300
         ) {
-          // defensive fallback: treat 2xx as success if doUpdate wrapper failed to mark ok
           console.warn(
             "[applyFlexibleSplit] fallback: treating 2xx as success",
             result
@@ -873,7 +861,7 @@ export default function Admin({ openPolicyId = null }) {
         return result;
       };
 
-      // OPEN THE POPUP: set defaults so sum === days by default
+      // OPEN THE POPUP
       setLopModal({
         isVisible: true,
         leaveId,
@@ -882,7 +870,6 @@ export default function Admin({ openPolicyId = null }) {
         remaining: Number(remaining),
         message: `Employee requested ${days} day(s); remaining balance = ${remaining}. Deficit = ${deficit}. Choose how to allocate the ${days} requested days:`,
         compensatedDays: 0,
-        // default deducted to min(remaining, days)
         deductedDays: Math.min(Number(remaining), Number(days)),
         lopDays: Math.max(
           0,
@@ -897,7 +884,7 @@ export default function Admin({ openPolicyId = null }) {
       return;
     }
 
-    // Not Approved (or no split required) — send simple status update (reject/approve without splits)
+    // Not Approved (or simple non-split action) — send simple status update (reject/approve without splits)
     console.log("[handleUpdate] sending simple update", {
       leaveId,
       payload: upd,
@@ -1028,9 +1015,10 @@ export default function Admin({ openPolicyId = null }) {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
+            <option value="">All</option>
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
-            <option value="pending">Pending</option>
+            <option value="Pending">Pending</option>
           </select>
         </div>
         <div className="search-bar">
@@ -1084,6 +1072,7 @@ export default function Admin({ openPolicyId = null }) {
                 .sort((a, b) => b.leave_id - a.leave_id)
                 .map((query) => {
                   const update = statusUpdates[query.leave_id] || {};
+                  // prefer the update.status if present, otherwise use the server value
                   const currentStatus = update.status || query.status || "";
                   const statusClass =
                     currentStatus === "Approved"
@@ -1092,7 +1081,8 @@ export default function Admin({ openPolicyId = null }) {
                       ? "status-rejected"
                       : "";
 
-                  const isAlreadyUpdated = query.status !== "pending";
+                  const isAlreadyUpdated =
+                    query.status !== "pending" && query.status !== "Pending";
                   const isUpdating =
                     statusUpdates[query.leave_id]?.status &&
                     statusUpdates[query.leave_id]?.status !== query.status;
@@ -1125,7 +1115,7 @@ export default function Admin({ openPolicyId = null }) {
                           className={`status-dropdown ${statusClass}`}
                           disabled={isAlreadyUpdated}
                         >
-                          <option value="pending">Pending</option>
+                          <option value="Pending">Pending</option>
                           <option value="Approved">Approved</option>
                           <option value="Rejected">Rejected</option>
                         </select>
