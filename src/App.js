@@ -1,4 +1,5 @@
-import React from "react";
+// import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./components/Home/Home";
@@ -74,6 +75,130 @@ import GeneratePayslip from "./components/generate_payslip/generate_payslip.js";
 
 // import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
+  
+  // Helper function to convert base64 to Uint8Array
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+  useEffect(() => {
+  let isMounted = true; // Prevent duplicate calls in Strict Mode
+  let subscriptionInterval;
+
+  function scheduleTestTrigger(secondsFromNow) {
+    const now = new Date();
+    const triggerTime = new Date(now.getTime() + secondsFromNow * 1000);
+
+    const timeUntilTrigger = triggerTime.getTime() - now.getTime();
+
+    setTimeout(() => {
+      checkSubscription(); // Call backend immediately
+      console.log(`Test trigger executed at: ${new Date().toLocaleTimeString()}`);
+      // Repeat every 24 hours
+      setInterval(checkSubscription, 24 * 60 * 60 * 1000);
+    }, timeUntilTrigger);
+  }
+
+  async function initPush() {
+    if (!isMounted) return; 
+    console.log('Executing initPush');
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.log('Notification permission not granted');
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.register('/service-worker.js');
+      console.log('Service Worker registered:', registration);
+
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        console.log('Existing subscription found:', existingSubscription.toJSON());
+        const res = await fetch('https://sts-test.site/api/check-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: existingSubscription.endpoint }),
+        });
+        const { exists } = await res.json();
+        if (exists) {
+          console.log('Subscription still valid on server');
+          return;
+        }
+        console.log('Subscription not found on server, resubscribing');
+      }
+
+      const vapidResponse = await fetch('https://sts-test.site/api/vapidPublicKey');
+      if (!vapidResponse.ok) {
+        throw new Error(`Failed to get VAPID key: ${vapidResponse.status}`);
+      }
+      const { publicKey } = await vapidResponse.json();
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+
+      console.log('Push subscription object:', subscription.toJSON());
+      console.log('Sending payload to /subscribe:', JSON.stringify(subscription.toJSON()));
+
+      const res = await fetch('https://sts-test.site/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription.toJSON()),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Subscription failed: ${errorText}`);
+      }
+
+      console.log('Push subscription successful');
+    } catch (err) {
+      console.error('Push init error:', err);
+    }
+  }
+
+  async function checkSubscription() {
+    if (!isMounted) return;
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        const res = await fetch('https://sts-test.site/api/check-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: subscription.endpoint }),
+        });
+        const { exists } = await res.json();
+        if (!exists) {
+          console.log('Subscription not found on server, reinitializing');
+          await initPush();
+        }
+      }
+    } catch (err) {
+      console.error('Subscription check error:', err);
+    }
+  }
+
+  initPush();
+  subscriptionInterval = setInterval(checkSubscription, 1 * 60 * 1000); // Check every 5 minutes
+
+  // ✅ Test: Trigger backend call 30 seconds after load
+  scheduleTestTrigger(30);
+
+  return () => {
+    isMounted = false;
+    clearInterval(subscriptionInterval);
+  };
+}, []);
+
   return (
     <Router>
       <div className="App">
