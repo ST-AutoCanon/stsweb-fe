@@ -31,7 +31,7 @@ const Assets = () => {
   const [configuration, setConfiguration] = useState("");
   const [valuationDate, setValuationDate] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
-  const [document, setDocument] = useState(null);
+const [assetDocument, setAssetDocument] = useState(null);
   const API_KEY = process.env.REACT_APP_API_KEY;
   const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
@@ -209,31 +209,42 @@ const Assets = () => {
 
   const [selectedAssetId, setSelectedAssetId] = useState(null);
 
-  useEffect(() => {
+ useEffect(() => {
     if (assetId) {
-      fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
-        {
-          method: "GET",
-          headers,
-        }
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch assignments");
-          }
-          return response.json();
-        })
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`, {
+        headers,
+      })
+        .then((res) => res.json())
         .then((data) => {
-          if (data.length > 0 && data[0].assignments) {
-            setAssignments(data[0].assignments);
+          if (data.length > 0 && Array.isArray(data[0].assignments)) {
+            const formattedAssignments = data[0].assignments.length
+              ? data[0].assignments.reverse().map((a) => ({
+                  assignedTo: a.name || "",
+                  startDate: a.startDate || "",
+                  returnDate: a.returnDate || "",
+                  assigningStatus: a.status || "Assigned",
+                  comments: a.comments || "",
+                  employeeId: a.employeeId || "",
+                }))
+              : [
+                  {
+                    assignedTo: "",
+                    startDate: "",
+                    returnDate: "",
+                    assigningStatus: "Pending",
+                    comments: "",
+                    employeeId: "",
+                  },
+                ];
+            setAssignments(formattedAssignments);
           } else {
             setAssignments([]);
           }
         })
-        .catch((error) =>
-          console.error("Error fetching assignment data:", error)
-        );
+        .catch((error) => {
+          console.error("Error fetching assignments:", error);
+          showAlert("Failed to fetch assignments.");
+        });
     }
   }, [assetId]);
 
@@ -285,9 +296,8 @@ const Assets = () => {
   };
 
   const handleFileChange = (e) => {
-    setDocument(e.target.files[0]);
-  };
-
+  setAssetDocument(e.target.files[0]); // Changed from setDocument
+};
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
@@ -343,7 +353,7 @@ const Assets = () => {
     setConfiguration("");
     setValuationDate("");
     setAssignedTo("");
-    setDocument(null);
+    setAssetDocument(null);
     setSelectedCategory("");
     setSelectedSubCategory("");
     setStatus("In Use");
@@ -456,208 +466,213 @@ const Assets = () => {
   const [fieldErrors, setFieldErrors] = useState({});
 
   const handleAssign = async () => {
-    try {
-      const rows = assignmentRowsByAsset[selectedAssetId];
+  try {
+    const rows = assignmentRowsByAsset[selectedAssetId];
+    if (!rows || rows.length === 0 || !rows[0].assignedTo) {
+      console.error("❌ First row is empty or missing required data");
+      return;
+    }
 
-      if (!rows || rows.length === 0 || !rows[0].assignedTo) {
-        console.error("❌ First row is empty or missing required data");
+    const firstAssignment = {
+      assetId: selectedAsset?.asset_id,
+      assignedTo: rows[0].assignedTo,
+      employeeId: rows[0].employeeId,
+      startDate: rows[0].startDate,
+      returnDate: rows[0].returnDate,
+      status: rows[0].assigningStatus,
+      comments: rows[0].comments || "",
+    };
+
+    const requiredFields = ["assetId", "assignedTo", "startDate", "status"];
+    for (const field of requiredFields) {
+      if (!firstAssignment[field]) {
+        console.error(`❌ Missing value for "${field}"`);
+        showAlert(`Missing value for "${field}"`); // Changed from openPopup
         return;
       }
+    }
 
-      const firstAssignment = {
-        assetId: selectedAsset?.asset_id,
-        assignedTo: rows[0].assignedTo,
-        employeeId: rows[0].employeeId, // ✅ must be included
+    if (!firstAssignment.returnDate) {
+      firstAssignment.returnDate = null;
+    }
 
-        startDate: rows[0].startDate,
-        returnDate: rows[0].returnDate,
-        status: rows[0].assigningStatus,
-        comments: rows[0].comments || "",
-      };
+    console.log("📤 Sending First Assignment:", firstAssignment);
 
-      // ✅ Check for missing values
-      // ✅ Check for required fields (excluding optional returnDate)
-      const requiredFields = ["assetId", "assignedTo", "startDate", "status"];
-      for (const field of requiredFields) {
-        if (!firstAssignment[field]) {
-          console.error(`❌ Missing value for "${field}"`);
-          openPopup(`Missing value for "${field}"`);
+    const response = await axios.post(
+      `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
+      firstAssignment,
+      { headers }
+    );
 
-          return;
-        }
+    console.log("✅ Assigned successfully", response.data);
+    showAlert("Asset Assigned successfully ");
+    closeAssignPopup();
+    fetchAssets();
+  } catch (error) {
+    console.error("❌ Error assigning asset:", error.response?.data || error.message);
+    showAlert(error.response?.data?.error || "Assignment failed");
+  }
+};
+
+ const handleDownloadDocument = async (documentPath) => {
+  if (!documentPath) {
+    showAlert("No document available.");
+    return;
+  }
+
+  // Check if running in a browser environment
+  if (typeof window === "undefined" || !window.document) {
+    console.error("Cannot download: DOM is not available.");
+    showAlert("Download is not supported in this environment.");
+    return;
+  }
+
+  const fileName = documentPath.split("/").pop().trim();
+  const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`;
+  try {
+    console.log("Downloading document from:", fileUrl);
+
+    const response = await axios.get(fileUrl, {
+      headers,
+      responseType: "blob",
+    });
+
+    if (response.data.type === "text/html") {
+      console.error("Server returned an HTML error page (likely 404).");
+      showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
+      return;
+    }
+
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+    const link = window.document.createElement("a"); // Use window.document explicitly
+    link.href = url;
+    link.download = fileName;
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading document:", {
+      message: error.message,
+      status: error.response?.status,
+      url: fileUrl,
+    });
+    showAlert("Failed to download file. Please verify the file was uploaded correctly.");
+  }
+};
+
+ const handleViewDocument = async (documentPath) => {
+  if (!documentPath) {
+    showAlert("No document available.");
+    return;
+  }
+
+  const fileName = documentPath.split("/").pop().trim(); // Extract file name
+  const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`; // Moved outside try
+  try {
+    console.log("Fetching document from:", fileUrl);
+    console.log("Original documentPath:", documentPath);
+
+    const response = await axios.get(fileUrl, {
+      headers,
+      responseType: "blob",
+    });
+
+    if (response.data.type === "text/html") {
+      console.error("Server returned an HTML error page (likely 404).");
+      showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
+      return;
+    }
+
+    const extension = fileName.split(".").pop().toLowerCase();
+    let mimeType = "application/octet-stream";
+
+    if (extension === "pdf") mimeType = "application/pdf";
+    else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+    else if (extension === "png") mimeType = "image/png";
+
+    const fileBlob = new Blob([response.data], { type: mimeType });
+    const fileURL = window.URL.createObjectURL(fileBlob);
+    window.open(fileURL, "_blank");
+
+    setTimeout(() => window.URL.revokeObjectURL(fileURL), 1000);
+  } catch (error) {
+    console.error("Error opening document:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: fileUrl, // Now accessible
+    });
+    showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
+  }
+};
+
+ const handleSave = async () => {
+  if (!assetName || !configuration || !valuationDate) {
+    showAlert("Please fill all required fields.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("asset_name", assetName);
+  formData.append("configuration", configuration);
+  formData.append("valuation_date", valuationDate);
+  formData.append("category", selectedCategory);
+  formData.append("sub_category", selectedSubCategory);
+  formData.append("status", status);
+
+  let assignedToArray = [];
+  if (assignedTo && typeof assignedTo === "object" && assignedTo.name && assignedTo.employeeId) {
+    assignedToArray.push({
+      name: assignedTo.name,
+      employeeId: assignedTo.employeeId,
+      startDate: valuationDate || null,
+      returnDate: null,
+      comments: "",
+      status: "Assigned",
+    });
+  } else {
+    assignedToArray.push({ name: "STS" });
+  }
+
+  formData.append("assigned_to", JSON.stringify(assignedToArray));
+
+  if (assetDocument) { // Changed from document
+    console.log("Uploading file:", assetDocument.name, assetDocument.size);
+    formData.append("document", assetDocument); // Changed from document
+  } else {
+    console.log("No document selected for upload");
+  }
+
+  console.log("Sending FormData...");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+
+  try {
+    const response = await axios.post(
+      `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
+      formData,
+      {
+        headers: { ...headers, "Content-Type": "multipart/form-data" },
       }
+    );
 
-      // Set returnDate to null if not provided
-      if (!firstAssignment.returnDate) {
-        firstAssignment.returnDate = null;
-      }
-
-      console.log("📤 Sending First Assignment:", firstAssignment);
-
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
-        firstAssignment,
-        {
-          headers,
-        }
-      );
-
-      console.log("✅ Assigned successfully", response.data);
-      showAlert("Asset Assigned successfully ");
-      closeAssignPopup();
-      fetchAssets();
-    } catch (error) {
-      console.error(
-        "❌ Error assigning asset:",
-        error.response?.data || error.message
-      );
-      showAlert(error.response?.data?.error || "Assignment failed");
-    }
-  };
-
-  const handleDownloadDocument = async (documentPath) => {
-    if (!documentPath) {
-      showAlert("No document available.");
-      return;
-    }
-
-    try {
-      const fileName = documentPath.split("/").pop();
-
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`,
-        {
-          headers,
-          responseType: "blob",
-        }
-      );
-
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-
-      // ✅ Make sure 'document' is NOT redeclared or overwritten anywhere above
-      const link = window.document.createElement("a");
-      link.href = url;
-      link.download = fileName;
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading document:", error);
-      showAlert("Failed to download file. See console.");
-    }
-  };
-
-  const handleViewDocument = async (documentPath) => {
-    if (!documentPath) {
-      showAlert("No document available.");
-      return;
-    }
-
-    try {
-      const fileUrl = `${
-        process.env.REACT_APP_BACKEND_URL
-      }/${documentPath.replace(/^\/?uploads\//, "uploads/")}`;
-
-      const response = await axios.get(fileUrl, {
-        headers,
-        responseType: "blob", // Get file as Blob
-      });
-
-      // Get file extension to determine MIME type
-      const extension = documentPath.split(".").pop().toLowerCase();
-      let mimeType = "application/octet-stream"; // default fallback
-
-      if (extension === "pdf") mimeType = "application/pdf";
-      else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
-      else if (extension === "png") mimeType = "image/png";
-
-      // Create Blob with correct type
-      const fileBlob = new Blob([response.data], { type: mimeType });
-      const fileURL = window.URL.createObjectURL(fileBlob);
-      window.open(fileURL, "_blank");
-    } catch (error) {
-      console.error(
-        "Error opening document:",
-        error.response?.data || error.message
-      );
-      showAlert("Failed to open document.");
-    }
-  };
-
-  const handleSave = async () => {
-    if (!assetName || !configuration || !valuationDate) {
-      showAlert("Please fill all required fields.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("asset_name", assetName);
-    formData.append("configuration", configuration);
-    formData.append("valuation_date", valuationDate);
-    formData.append("category", selectedCategory);
-    formData.append("sub_category", selectedSubCategory);
-    formData.append("status", status);
-
-    // Initialize assignedToArray based on whether assignedTo is provided
-    let assignedToArray = [];
-
-    if (
-      assignedTo &&
-      typeof assignedTo === "object" &&
-      assignedTo.name &&
-      assignedTo.employeeId
-    ) {
-      // If assignedTo is provided, use it
-      assignedToArray.push({
-        name: assignedTo.name,
-        employeeId: assignedTo.employeeId,
-        startDate: valuationDate || null, // Use valuation_date as startDate if available
-        returnDate: null,
-        comments: "",
-        status: "Assigned",
-      });
-    } else {
-      // Otherwise, use default "STS"
-      assignedToArray.push({ name: "STS" });
-    }
-
-    formData.append("assigned_to", JSON.stringify(assignedToArray));
-
-    if (document) {
-      formData.append("document", document);
-    }
-
-    // Debugging
-    console.log("Sending FormData...");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
-        formData,
-        {
-          headers,
-        }
-      );
-
-      console.log("Server Response:", response.data);
-      showAlert("Asset saved successfully!");
-      resetFormforaddasset();
-      togglePopup();
-      fetchAssets();
-    } catch (error) {
-      console.error("Error saving asset:", error);
-      showAlert(
-        `Failed to save asset: ${
-          error.response?.data?.message || error.message || "Unknown error"
-        }`
-      );
-    }
-  };
+    console.log("Server Response:", response.data);
+    showAlert("Asset saved successfully!");
+    resetFormforaddasset();
+    togglePopup();
+    fetchAssets();
+  } catch (error) {
+    console.error("Error saving asset:", error.response?.data || error.message);
+    showAlert(
+      `Failed to save asset: ${
+        error.response?.data?.message || error.message || "Unknown error"
+      }`
+    );
+  }
+};
   useEffect(() => {
     fetchAssignedAssets();
   }, []);
@@ -685,44 +700,45 @@ const Assets = () => {
   };
 
   useEffect(() => {
-    if (selectedAsset) {
-      fetchAssignedData(selectedAsset.asset_id);
-    }
-  }, [selectedAsset]);
-  const fetchAssignedData = async (assetId) => {
-    try {
-      if (!assetId) {
-        console.error("❌ Asset ID is undefined or missing.");
-        return; // Stop execution if assetId is undefined
-      }
-
-      const API_KEY =
-        "eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3";
-      console.log(`📡 Fetching data for Asset ID: ${assetId}`);
-
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
-        {
-          headers,
+  if (assetId) {
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`, {
+      headers,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.length > 0 && Array.isArray(data[0].assignments)) {
+          const formattedAssignments = data[0].assignments.length
+            ? data[0].assignments.reverse().map((a) => ({
+                assignedTo: a.name || "",
+                startDate: a.startDate || "",
+                returnDate: a.returnDate || "",
+                assigningStatus: a.status || "Assigned",
+                comments: a.comments || "",
+                employeeId: a.employeeId || "",
+              }))
+            : [
+                {
+                  assignedTo: "",
+                  startDate: "",
+                  returnDate: "",
+                  assigningStatus: "Pending",
+                  comments: "",
+                  employeeId: "",
+                },
+              ];
+          setAssignments(formattedAssignments);
+        } else {
+          setAssignments([]);
         }
-      );
+      })
+      .catch((error) => {
+        console.error("Error fetching assignments:", error);
+        showAlert("Failed to fetch assignments.");
+      });
+  }
+}, [assetId]);
 
-      if (response.data.length === 0) {
-        console.warn("⚠ No assignments found for this asset.");
-        setAssignedAssets([]); // Clear previous data
-        return;
-      }
-
-      console.log("✅ Assigned Asset Data:", response.data);
-      setAssignedAssets(response.data[0]?.assignments || []);
-    } catch (error) {
-      console.error(
-        "❌ Error fetching assignment data:",
-        error.response?.data || error
-      );
-    }
-  };
-  const [showForm, setShowForm] = useState(false);
+const [showForm, setShowForm] = useState(false);
 
   const [formData, setFormData] = useState({
     assetId: "",
@@ -880,36 +896,43 @@ const Assets = () => {
   };
 
   useEffect(() => {
-    if (assetId) {
-      fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.length > 0 && Array.isArray(data[0].assignments)) {
-            const formattedAssignments = parsed.length
-              ? parsed.reverse().map((a) => ({
-                  assignedTo: a.name || "",
-                  startDate: a.startDate || "",
-                  returnDate: a.returnDate || "",
-                  assigningStatus: a.status || "Assigned", // Use assigningStatus for the form
-                  comments: a.comments || "",
-                }))
-              : [
-                  {
-                    assignedTo: "",
-                    startDate: "",
-                    returnDate: "",
-                    assigningStatus: "Pending",
-                    comments: "",
-                  },
-                ];
-
-            setAssignments(formattedAssignments);
-          }
-        });
-    }
-  }, [assetId]);
+  if (assetId) {
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`, {
+      headers,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.length > 0 && Array.isArray(data[0].assignments)) {
+          const formattedAssignments = data[0].assignments.length
+            ? data[0].assignments.reverse().map((a) => ({
+                assignedTo: a.name || "",
+                startDate: a.startDate || "",
+                returnDate: a.returnDate || "",
+                assigningStatus: a.status || "Assigned",
+                comments: a.comments || "",
+                employeeId: a.employeeId || "",
+              }))
+            : [
+                {
+                  assignedTo: "",
+                  startDate: "",
+                  returnDate: "",
+                  assigningStatus: "Pending",
+                  comments: "",
+                  employeeId: "",
+                },
+              ];
+          setAssignments(formattedAssignments);
+        } else {
+          setAssignments([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching assignments:", error);
+        showAlert("Failed to fetch assignments.");
+      });
+  }
+}, [assetId]);
 
   const handleBlur2 = () => {
     setTimeout(() => {

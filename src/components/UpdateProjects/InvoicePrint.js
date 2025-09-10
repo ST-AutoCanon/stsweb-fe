@@ -164,7 +164,7 @@ const InvoicePrint = React.forwardRef(({ invoiceData }, ref) => {
           })}
 
           {(() => {
-            const fixedRows = 5;
+            const fixedRows = 4;
             const emptyRowCount = fixedRows - parsedLineItems.length;
             return emptyRowCount > 0
               ? Array.from({ length: emptyRowCount }).map((_, index) => (
