@@ -63,7 +63,7 @@
   background-color: transparent;
 } */
 
-.search-icon {
+.v- search-icon {
   color: #666;
   font-size: 14px;
 }
@@ -713,10 +713,7 @@
   background-color: transparent;
 }
 
-.search-icon {
-  color: #666;
-  font-size: 14px;
-}
+
 
 .vendor-popup-overlay {
   position: fixed;
