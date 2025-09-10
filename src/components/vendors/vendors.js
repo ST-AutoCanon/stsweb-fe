@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./vendors.css";
@@ -140,10 +141,8 @@ const Vendors = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Update form data immediately
     setFormData({ ...formData, [name]: value });
 
-    // Only validate Years of Experience during typing
     if (name === "years_of_experience") {
       if (/[^0-9]/.test(value)) {
         setError("Years of Experience must contain only numbers");
@@ -155,9 +154,7 @@ const Vendors = () => {
     }
   };
 
-  // New function to validate mobile and email on blur
   const validateField = (name, value, index) => {
-    // Mobile number validation
     if (
       name === "contact1_mobile" ||
       name === "contact2_mobile" ||
@@ -180,7 +177,6 @@ const Vendors = () => {
       }
     }
 
-    // Email validation
     if (
       name === "contact1_email" ||
       name === "contact2_email" ||
@@ -206,7 +202,10 @@ const Vendors = () => {
 
   const handleFileChange = (e) => {
     const { name, files: fileList } = e.target;
-    setFiles({ ...files, [name]: fileList[0] });
+    setFiles((prevFiles) => ({
+      ...prevFiles,
+      [name]: fileList[0] || prevFiles[name],
+    }));
   };
 
   const fetchVendors = async () => {
@@ -268,11 +267,11 @@ const Vendors = () => {
       years_of_experience: vendor.years_of_experience || "",
     });
     setFiles({
-      gst_certificate: null,
-      pan_card: null,
-      cancelled_cheque: null,
-      msme_certificate: null,
-      incorporation_certificate: null,
+      gst_certificate: vendor.gst_certificate || null,
+      pan_card: vendor.pan_card || null,
+      cancelled_cheque: vendor.cancelled_cheque || null,
+      msme_certificate: vendor.msme_certificate || null,
+      incorporation_certificate: vendor.incorporation_certificate || null,
     });
     setShowForm(true);
     setError("");
@@ -349,13 +348,41 @@ const Vendors = () => {
       return;
     }
 
+    // Validate required documents
+    const currentVendor = vendors.find(
+      (vendor) => vendor.vendor_id === editingVendorId
+    );
+    const requiredDocs = [
+      { key: "gst_certificate", label: "GST Certificate" },
+      { key: "pan_card", label: "PAN Card" },
+      { key: "cancelled_cheque", label: "Cancelled Cheque" },
+    ];
+    const missingDocs = requiredDocs.filter(
+      (doc) =>
+        !files[doc.key] &&
+        (!isEditing || !currentVendor || !currentVendor[doc.key])
+    ).map((doc) => doc.label);
+    if (missingDocs.length > 0) {
+      showAlert(
+        `Please upload the following required documents: ${missingDocs.join(
+          ", "
+        )}`
+      );
+      return;
+    }
+
     const data = new FormData();
     for (const key in formData) {
       data.append(key, formData[key]);
     }
+    // Append files or existing paths
     for (const key in files) {
-      if (files[key]) {
-        data.append(key, files[key]);
+      if (files[key] instanceof File) {
+        data.append(key, files[key]); // New file uploaded
+      } else if (files[key]) {
+        data.append(key, files[key]); // Existing path from files state
+      } else if (isEditing && currentVendor && currentVendor[key]) {
+        data.append(key, currentVendor[key]); // Preserve original path from vendor data
       }
     }
 
@@ -534,6 +561,36 @@ const Vendors = () => {
     vendor.company_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const renderFileInput = (label, name, required = false) => (
+    <div className="contact-field">
+      <label htmlFor={name}>
+        {label}
+        {!isEditing && required && <span className="vendor-required-asterisk">*</span>}
+      </label>
+      {isEditing && files[name] && !(files[name] instanceof File) ? (
+        <div className="existing-file">
+          <span>{files[name].split(/[/\\]/).pop()}</span>
+          <button
+            type="button"
+            onClick={() => setFiles((prev) => ({ ...prev, [name]: null }))}
+            className="remove-file-btn"
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <input
+          id={name}
+          type="file"
+          name={name}
+          accept=".pdf,.jpg,.png,.jpeg"
+          onChange={handleFileChange}
+          required={!isEditing && required}
+        />
+      )}
+    </div>
+  );
+
   return (
     <div className="vendors-container">
       <div className="header-container">
@@ -543,7 +600,7 @@ const Vendors = () => {
             placeholder="Search by Company Name..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="search-input"
+            className="vendor-search-input"
           />
           <i className="fas fa-search search-icon"></i>
         </div>
@@ -1018,80 +1075,21 @@ const Vendors = () => {
               <fieldset>
                 <legend>Documents Required (Attach Copies)</legend>
                 <div className="contact-row three-columns">
-                  <div className="contact-field">
-                    <label htmlFor="gst_certificate">
-                      GST Certificate:
-                      {!isEditing && (
-                        <span className="vendor-required-asterisk">*</span>
-                      )}
-                    </label>
-                    <input
-                      id="gst_certificate"
-                      type="file"
-                      name="gst_certificate"
-                      accept=".pdf,.jpg,.png,.jpeg"
-                      onChange={handleFileChange}
-                      required={!isEditing}
-                    />
-                  </div>
-                  <div className="contact-field">
-                    <label htmlFor="pan_card">
-                      PAN Card:
-                      {!isEditing && (
-                        <span className="vendor-required-asterisk">*</span>
-                      )}
-                    </label>
-                    <input
-                      id="pan_card"
-                      type="file"
-                      name="pan_card"
-                      accept=".pdf,.jpg,.png,.jpeg"
-                      onChange={handleFileChange}
-                      required={!isEditing}
-                    />
-                  </div>
-                  <div className="contact-field">
-                    <label htmlFor="cancelled_cheque">
-                      Cancelled Cheque:
-                      {!isEditing && (
-                        <span className="vendor-required-asterisk">*</span>
-                      )}
-                    </label>
-                    <input
-                      id="cancelled_cheque"
-                      type="file"
-                      name="cancelled_cheque"
-                      accept=".pdf,.jpg,.png,.jpeg"
-                      onChange={handleFileChange}
-                      required={!isEditing}
-                    />
-                  </div>
+                  {renderFileInput("GST Certificate", "gst_certificate", true)}
+                  {renderFileInput("PAN Card", "pan_card", true)}
+                  {renderFileInput("Cancelled Cheque", "cancelled_cheque", true)}
                 </div>
                 <div className="contact-row two-columns">
-                  <div className="contact-field msme-field">
-                    <label htmlFor="msme_certificate">
-                      MSME Certificate (if applicable):
-                    </label>
-                    <input
-                      id="msme_certificate"
-                      type="file"
-                      name="msme_certificate"
-                      accept=".pdf,.jpg,.png,.jpeg"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                  <div className="contact-field">
-                    <label htmlFor="incorporation_certificate">
-                      Company Incorporation Certificate:
-                    </label>
-                    <input
-                      id="incorporation_certificate"
-                      type="file"
-                      name="incorporation_certificate"
-                      accept=".pdf,.jpg,.png,.jpeg"
-                      onChange={handleFileChange}
-                    />
-                  </div>
+                  {renderFileInput(
+                    "MSME Certificate (if applicable)",
+                    "msme_certificate",
+                    false
+                  )}
+                  {renderFileInput(
+                    "Company Incorporation Certificate",
+                    "incorporation_certificate",
+                    false
+                  )}
                 </div>
               </fieldset>
 

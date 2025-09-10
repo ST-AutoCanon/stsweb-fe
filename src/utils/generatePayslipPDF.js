@@ -9,15 +9,27 @@ const convertNumberToWords = (num) => {
   const tens = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
   const thousands = ["", "Thousand", "Lakh", "Crore"];
 
-  if (num === 0) return "Zero";
+  // Handle invalid inputs
+  if (num === undefined || num === null || isNaN(num) || num < 0) {
+    console.warn("Invalid number provided to convertNumberToWords:", num);
+    return "Zero only";
+  }
+
+  if (num === 0) return "Zero only";
 
   let words = "";
 
   const getWords = (n, index) => {
     if (n > 0) {
-      if (n < 10) words += ones[n] + " ";
-      else if (n < 20) words += teens[n - 11] + " ";
-      else words += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
+      if (n < 10) {
+        words += ones[n] + " ";
+      } else if (n === 10) {
+        words += tens[1] + " "; // Handle "Ten" explicitly
+      } else if (n < 20) {
+        words += teens[n - 11] + " ";
+      } else {
+        words += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
+      }
       words += thousands[index] + " ";
     }
   };
@@ -29,7 +41,8 @@ const convertNumberToWords = (num) => {
 
   if (num % 100 > 0) getWords(num % 100, 0);
 
-  return words.trim() + " only";
+  const result = words.trim();
+  return result ? result + " only" : "Zero only";
 };
 
 function generatePayslipPDF(payrollData, selectedDate, bankDetails, attendance, employeeDetails, download = false) {
@@ -41,9 +54,17 @@ function generatePayslipPDF(payrollData, selectedDate, bankDetails, attendance, 
   }
 
   // Format net salary and ensure it's a valid number
-  const netSalary = parseFloat(payrollData.net_salary) || 0;
-  const formattedNetSalary = netSalary.toFixed(0);
-  const netSalaryWords = convertNumberToWords(parseInt(formattedNetSalary));
+  // Format net salary and ensure it's a valid number
+const netSalary = parseFloat(payrollData.net_salary) || 0;
+const formattedNetSalary = netSalary.toFixed(0);
+console.log("netSalary:", netSalary, "formattedNetSalary:", formattedNetSalary); // Debug log
+if (isNaN(netSalary) || netSalary < 0) {
+  console.error("Invalid net salary:", payrollData.net_salary);
+  alert("Invalid net salary provided. Please check the input data.");
+  return null;
+}
+const netSalaryWords = convertNumberToWords(parseInt(formattedNetSalary));
+console.log("netSalaryWords:", netSalaryWords); // Debug log
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth(); // 210mm for A4

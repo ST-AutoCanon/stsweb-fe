@@ -1,4 +1,4 @@
-// Profile.jsx
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { MdOutlineCancel } from "react-icons/md";
@@ -61,68 +61,73 @@ const Profile = ({ onClose, notificationId = null }) => {
     family_details: [{ key: "marital_status", label: "Marital Status" }],
   };
 
-  const getMissingFields = (p = {}) => {
-    if (!p) return [...REQUIRED_FIELDS.personal.map((f) => f.label)];
-    const missing = [];
-
-    const all = [
-      ...REQUIRED_FIELDS.personal,
-      ...REQUIRED_FIELDS.government_docs,
-      ...REQUIRED_FIELDS.education,
-      ...REQUIRED_FIELDS.professional,
-      ...REQUIRED_FIELDS.bank_details,
-      ...REQUIRED_FIELDS.family_details,
-    ];
-    all.forEach((f) => {
-      const v = p[f.key];
-      if (
-        v === undefined ||
-        v === null ||
-        (typeof v === "string" && v.trim() === "")
-      ) {
-        missing.push(f.label);
-      }
-    });
-
-    return missing;
-  };
-
-  const showAlert = (message, missingFields = []) =>
-    setAlertModal({ isVisible: true, message, missingFields });
-  const closeAlert = () =>
-    setAlertModal({ isVisible: false, message: "", missingFields: [] });
-
+  // ---------- Helpers ----------
   const API_KEY = process.env.REACT_APP_API_KEY;
   const BASE_URL = process.env.REACT_APP_BACKEND_URL;
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employeeId || null;
 
-  const fetchBlob = async (url) => {
-    const res = await axios.get(`${BASE_URL}/docs${url}`, {
-      headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
-      responseType: "blob",
-    });
-    return new Blob([res.data], { type: res.headers["content-type"] });
-  };
-
-  // ---------- Helpers ----------
+  /**
+   * normalizeInputUrl:
+   * - returns `null` for empty arrays
+   * - recurses into first element for non-empty arrays
+   * - returns string url/path/file when available
+   * - avoids JSON.stringify for arrays/objects so empty arrays don't become "[]"
+   */
   const normalizeInputUrl = (maybe) => {
-    if (!maybe && maybe !== 0) return null;
+    if (maybe === undefined || maybe === null) return null;
 
-    if (typeof maybe === "string") return maybe;
-    if (Array.isArray(maybe) && maybe.length)
+    if (typeof maybe === "string") {
+      return maybe;
+    }
+
+    if (Array.isArray(maybe)) {
+      // empty array -> no url
+      if (maybe.length === 0) return null;
+      // non-empty -> normalize first element
       return normalizeInputUrl(maybe[0]);
+    }
+
     if (typeof maybe === "object") {
+      // common shapes
       if (typeof maybe.url === "string" && maybe.url) return maybe.url;
       if (typeof maybe.path === "string" && maybe.path) return maybe.path;
       if (typeof maybe.file === "string" && maybe.file) return maybe.file;
-      try {
-        return JSON.stringify(maybe);
-      } catch {
-        return String(maybe);
+      // If object has keys and is not one of above, we can't treat it as a usable url.
+      // Return null to avoid treating plain objects as valid documents.
+      if (Object.keys(maybe).length === 0) return null;
+      // As a last resort, try to extract string-like properties:
+      for (const k of ["link", "href", "download"]) {
+        if (typeof maybe[k] === "string" && maybe[k]) return maybe[k];
       }
+      return null;
     }
-    return String(maybe);
+
+    // fallback for numbers/booleans etc - stringify them
+    try {
+      return String(maybe);
+    } catch {
+      return null;
+    }
+  };
+
+  // robust isMissing: treat undefined, null, empty string, empty array, empty object as missing
+  const isMissing = (val) => {
+    if (val === undefined || val === null) return true;
+    if (typeof val === "string" && val.trim() === "") return true;
+    if (Array.isArray(val) && val.length === 0) return true;
+    if (typeof val === "object" && !Array.isArray(val)) {
+      if (Object.keys(val).length === 0) return true;
+    }
+    return false;
+  };
+
+  // helper boolean: does this value look like a usable URL or file reference?
+  const hasValue = (maybe) => {
+    const norm = normalizeInputUrl(maybe);
+    if (norm === null || norm === undefined) return false;
+    if (typeof norm === "string" && norm.trim() === "") return false;
+    return true;
   };
 
   const getSafeFilename = (maybeUrl) => {
@@ -157,6 +162,38 @@ const Profile = ({ onClose, notificationId = null }) => {
 
     const path = u.startsWith("/") ? u : `/${u}`;
     return `${BASE_URL}/docs${path}`;
+  };
+
+  const fetchBlob = async (url) => {
+    const res = await axios.get(`${BASE_URL}/docs${url}`, {
+      headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
+      responseType: "blob",
+    });
+    return new Blob([res.data], { type: res.headers["content-type"] });
+  };
+
+  // ---------- missing fields detection ----------
+  const getMissingFields = (p = {}) => {
+    if (!p) return [...REQUIRED_FIELDS.personal.map((f) => f.label)];
+    const missing = [];
+
+    const all = [
+      ...REQUIRED_FIELDS.personal,
+      ...REQUIRED_FIELDS.government_docs,
+      ...REQUIRED_FIELDS.education,
+      ...REQUIRED_FIELDS.professional,
+      ...REQUIRED_FIELDS.bank_details,
+      ...REQUIRED_FIELDS.family_details,
+    ];
+
+    all.forEach((f) => {
+      const v = p[f.key];
+      if (isMissing(v)) {
+        missing.push(f.label);
+      }
+    });
+
+    return missing;
   };
 
   // ---------- view & download ----------
@@ -257,6 +294,11 @@ const Profile = ({ onClose, notificationId = null }) => {
     }
   };
 
+  const showAlert = (message, missingFields = []) =>
+    setAlertModal({ isVisible: true, message, missingFields });
+  const closeAlert = () =>
+    setAlertModal({ isVisible: false, message: "", missingFields: [] });
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -280,7 +322,8 @@ const Profile = ({ onClose, notificationId = null }) => {
           setShowUpdateModal(true);
         }
 
-        if (data.photo_url) {
+        // use hasValue so empty arrays won't be treated as present
+        if (hasValue(data.photo_url)) {
           try {
             const blob = await fetchBlob(data.photo_url);
             setAvatar(URL.createObjectURL(blob));
@@ -302,7 +345,9 @@ const Profile = ({ onClose, notificationId = null }) => {
       try {
         const r = await axios.get(
           `${BASE_URL}/api/assets/assigned-assets/${employeeId}`,
-          { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
+          {
+            headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
+          }
         );
         setAssignedAssets(r.data.data || []);
       } catch (err) {
@@ -440,7 +485,9 @@ const Profile = ({ onClose, notificationId = null }) => {
             <div className="sub-block">
               <div className="field-row">
                 <span className="field-label">Assigned Supervisor</span>
-                <span className="field-value">{profile.supervisor_name}</span>
+                <span className="field-value">
+                  {profile.supervisor_name || "not yet assigned"}
+                </span>
               </div>
               <div className="field-row assets-row">
                 <span className="field-label">Assigned Assets</span>
@@ -464,14 +511,18 @@ const Profile = ({ onClose, notificationId = null }) => {
                 <div className="field-row docs-row" key={label}>
                   <span className="field-label">{label}</span>
 
-                  {url ? (
+                  {hasValue(url) ? (
                     <span className="doc-actions">
                       <button onClick={() => viewDoc(url)}>View</button>
                       <button onClick={() => downloadDoc(url)}>Download</button>
                     </span>
                   ) : label === "Insurance" ? (
-                    <span className="field-value">Not available</span>
-                  ) : null}
+                    <span className="field-value">Not Available</span>
+                  ) : label === "Aadhaar" || label === "PAN" ? (
+                    <span className="field-value">Not Uploaded</span>
+                  ) : (
+                    <span className="field-value">—</span>
+                  )}
                 </div>
               ))}
             </div>
