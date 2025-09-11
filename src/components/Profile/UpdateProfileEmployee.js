@@ -18,6 +18,9 @@ export default function UpdateProfileEmployee({
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId =
     propEmployeeId || dashboardData.employeeId || profile?.employee_id || null;
+  const [alert, setAlert] = useState({ isVisible: false, message: "" });
+  const showAlert = (msg) => setAlert({ isVisible: true, message: msg });
+  const closeAlert = () => setAlert({ isVisible: false, message: "" });
 
   useEffect(() => {
     if (!isVisible) return;
@@ -27,10 +30,6 @@ export default function UpdateProfileEmployee({
   }, [isVisible]);
 
   if (!isVisible) return null;
-
-  const [alert, setAlert] = useState({ isVisible: false, message: "" });
-  const showAlert = (msg) => setAlert({ isVisible: true, message: msg });
-  const closeAlert = () => setAlert({ isVisible: false, message: "" });
 
   const handleSubmit = async (formData) => {
     try {
@@ -42,8 +41,9 @@ export default function UpdateProfileEmployee({
       });
       const updated = res.data?.data || null;
       console.log("About to call onSaved", updated);
-      onSaved && onSaved(updated);
-      console.log("Called onSaved");
+      // Make sure we wait for parent to finish (it marks notification read)
+      if (onSaved) await onSaved(updated);
+      console.log("Called onSaved (awaited)");
 
       return updated;
     } catch (err) {
