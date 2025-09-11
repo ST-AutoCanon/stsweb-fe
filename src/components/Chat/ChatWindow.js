@@ -245,10 +245,9 @@ export default function ChatWindow({ room, onBack }) {
     }
   }, [room]);
 
-  if (!room) return <div className="chat-window empty">Select a chat</div>;
-
   // Group by date…
   const grouped = React.useMemo(() => {
+    if (!room) return []; // safe fallback
     const groups = [];
     let lastLabel = null;
     msgs.forEach((m) => {
@@ -261,7 +260,9 @@ export default function ChatWindow({ room, onBack }) {
       }
     });
     return groups;
-  }, [msgs]);
+  }, [msgs, room]);
+
+  if (!room) return <div className="chat-window empty">Select a chat</div>;
 
   return (
     <div className="chat-window">

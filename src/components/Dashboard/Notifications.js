@@ -29,6 +29,20 @@ export default function Notifications({ visible, onClose, onRead }) {
       .catch((err) => console.error("Error fetching notifications", err));
   }, [visible]);
 
+  useEffect(() => {
+    const onExternalMarkRead = (e) => {
+      const id = e?.detail?.id;
+      if (!id) return;
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      // optional: you could also call onRead() here if parent needs to know
+      if (typeof onRead === "function") onRead();
+    };
+
+    window.addEventListener("notification-read", onExternalMarkRead);
+    return () =>
+      window.removeEventListener("notification-read", onExternalMarkRead);
+  }, [onRead]);
+
   const markRead = (id) => {
     return axios
       .put(

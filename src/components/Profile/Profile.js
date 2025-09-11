@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { MdOutlineCancel } from "react-icons/md";
@@ -280,7 +279,6 @@ const Profile = ({ onClose, notificationId = null }) => {
       ? "/images/female-avatar.jpeg"
       : "/images/male-avatar.jpeg";
 
-  // mark a single notification read by ID
   const markNotificationReadById = async (id) => {
     if (!id) return;
     try {
@@ -289,6 +287,16 @@ const Profile = ({ onClose, notificationId = null }) => {
         {},
         { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
       );
+
+      // inform other parts of the app (Notifications dropdown) that this id was read
+      try {
+        window.dispatchEvent(
+          new CustomEvent("notification-read", { detail: { id } })
+        );
+      } catch (e) {
+        // non-fatal
+        console.warn("notification-read event dispatch failed", e);
+      }
     } catch (err) {
       console.error("Error marking profile notification read:", err);
     }
@@ -368,11 +376,21 @@ const Profile = ({ onClose, notificationId = null }) => {
   if (!profile) return <div className="profile-popup">No data.</div>;
 
   const handleProfileSaved = async (updatedProfile) => {
-    if (updatedProfile) {
+    // update local profile only if server returned an object
+    if (updatedProfile && typeof updatedProfile === "object") {
       setProfile(updatedProfile);
-      // mark the originating notification read ONLY after successful update
-      if (notificationId) {
+    }
+
+    // mark the originating notification read AFTER successful update attempt,
+    // even if the server didn't return the full updated object.
+    if (notificationId) {
+      try {
         await markNotificationReadById(notificationId);
+      } catch (err) {
+        console.error(
+          "Failed to mark notification read after saving profile:",
+          err
+        );
       }
     }
 

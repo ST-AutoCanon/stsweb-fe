@@ -436,6 +436,7 @@ export default function StepProfessionalEmployee({
           accept=".pdf"
           existingUrl={data.resume_url}
           onChange={onChange}
+          required
         />
 
         <FileInput

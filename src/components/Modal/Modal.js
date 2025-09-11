@@ -10,14 +10,13 @@ const Modal = ({
   children,
   buttons,
 }) => {
-  if (!isVisible) return null;
-
   const handleClose = () => {
     if (onClose) onClose();
   };
 
   // Close modal when pressing the ESC key
   useEffect(() => {
+    if (!isVisible) return; // ✅ only run when visible
     const handleEsc = (event) => {
       if (event.key === "Escape") {
         handleClose();
@@ -25,7 +24,9 @@ const Modal = ({
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null; // ✅ after hooks
 
   return (
     <div

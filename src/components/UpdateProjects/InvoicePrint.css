@@ -47,13 +47,13 @@
 }
 
 .invoice-logo-section img {
-  width: 256px;
+  width: 250px;
 }
 
 .invoice-details p {
   display: flex;
   gap: 0.5rem;
-  margin: 8% 0;
+  margin: 2% 0;
   align-items: center;
 }
 
