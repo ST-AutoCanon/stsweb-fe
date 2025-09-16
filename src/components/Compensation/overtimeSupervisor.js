@@ -87,7 +87,7 @@ const OvertimeSupervisor = () => {
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/overtime-summary/${meId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/overtime-summary/${meId}`,
         { headers }
       );
       console.log("Employee List API Response:", JSON.stringify(response.data, null, 2));
@@ -122,7 +122,7 @@ const OvertimeSupervisor = () => {
     const { startDate, endDate } = getDateRange(selectedMonth);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
         { headers }
       );
       console.log("Overtime Data API Response:", JSON.stringify(response.data, null, 2));
@@ -211,7 +211,7 @@ const OvertimeSupervisor = () => {
 
       console.log("Sending status update payload:", JSON.stringify(payload, null, 2));
       const response = await axios.post(
-        `http://localhost:5000/api/compensation/overtime-bulk`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/overtime-bulk`,
         payload,
         {
           headers: {

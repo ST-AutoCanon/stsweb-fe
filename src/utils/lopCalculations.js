@@ -8,16 +8,16 @@ const fetchLOPData = async (employeeId) => {
   try {
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
     const [currentMonthResponse, deferredResponse, nextMonthResponse] = await Promise.all([
-      axios.get('http://localhost:5000/api/lop/current-month-lop', { headers }),
-      axios.get('http://localhost:5000/api/lop/deferred-lop', { headers }),
-      axios.get('http://localhost:5000/api/lop/next-month-lop', { headers })
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/current-month-lop`, { headers }),
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}`, { headers }),
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}`, { headers })
     ]);
 
-    console.log(`Raw LOP API responses for ${employeeId}:`, {
-      currentMonth: currentMonthResponse.data.data,
-      deferred: deferredResponse.data.data,
-      nextMonth: nextMonthResponse.data.data
-    });
+    // console.log(`Raw LOP API responses for ${employeeId}:`, {
+    //   currentMonth: currentMonthResponse.data.data,
+    //   deferred: deferredResponse.data.data,
+    //   nextMonth: nextMonthResponse.data.data
+    // });
 
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -42,12 +42,12 @@ const fetchLOPData = async (employeeId) => {
       lop.employee_id.toUpperCase() === employeeId.toUpperCase()
     );
 
-    console.log(`Filtered LOP data for ${employeeId}:`, {
-      currentMonthLOP,
-      yearlyLOP,
-      deferredLOP,
-      nextMonthLOP
-    });
+    // console.log(`Filtered LOP data for ${employeeId}:`, {
+    //   currentMonthLOP,
+    //   yearlyLOP,
+    //   deferredLOP,
+    //   nextMonthLOP
+    // });
 
     return { currentMonthLOP, yearlyLOP, deferredLOP, nextMonthLOP };
   } catch (error) {
@@ -62,7 +62,7 @@ export const calculateLOPEffect = async (employeeId) => {
     
     // Fetch employee CTC
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-    const employeeResponse = await axios.get(`http://localhost:5000/api/compensation/assigned`, { headers });
+    const employeeResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`, { headers });
     const employee = employeeResponse.data.data.find(emp => emp.employee_id.toUpperCase() === employeeId.toUpperCase());
     
     if (!employee || !employee.ctc) {
@@ -79,7 +79,7 @@ export const calculateLOPEffect = async (employeeId) => {
     const workingDays = 22; // Adjust as per your logic
     const lopPerDay = monthlyCTC / workingDays;
 
-    console.log(`CTC for ${employeeId}:`, { monthlyCTC, lopPerDay, ctc: employee.ctc });
+    // console.log(`CTC for ${employeeId}:`, { monthlyCTC, lopPerDay, ctc: employee.ctc });
 
     // Current month LOP
     const currentMonth = currentMonthLOP.length > 0 ? {
@@ -111,7 +111,7 @@ export const calculateLOPEffect = async (employeeId) => {
     };
 
     const result = { currentMonth, deferred, nextMonth, yearly };
-    console.log(`Calculated LOP for ${employeeId}:`, JSON.stringify(result, null, 2));
+    // console.log(`Calculated LOP for ${employeeId}:`, JSON.stringify(result, null, 2));
     return result;
   } catch (error) {
     console.error(`Error in calculateLOPEffect for ${employeeId}:`, error);

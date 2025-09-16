@@ -128,7 +128,7 @@
   margin-right: 5px;
 }
 
-.status-pending {
+/* .status-pending {
   color: #ffc107;
   font-weight: bold;
 }
@@ -140,8 +140,8 @@
 
 .status-rejected {
   color: #dc3545;
-  font-weight: bold;
-}
+  font-weight: bold; 
+}*/
 
 .employee-popup-overlay {
   position: fixed;
