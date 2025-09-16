@@ -119,26 +119,46 @@ const calculationDefaults = {
 };
 
 // Mapping of calculated fields to formData fields
+// const salaryFieldToFormDataMap = {
+//   basicSalary: { amount: 'basicSalaryAmount', percentage: 'basicSalary', type: 'basicSalaryType', enable: 'isBasicSalary', default: calculationDefaults.basicSalary },
+//   hra: { amount: 'houseRentAllowanceAmount', percentage: 'houseRentAllowance', type: 'houseRentAllowanceType', enable: 'isHouseRentAllowance', default: calculationDefaults.hra },
+//   lta: { amount: 'ltaAllowanceAmount', percentage: 'ltaAllowance', type: 'ltaAllowanceType', enable: 'isLtaAllowance', default: calculationDefaults.lta },
+//   otherAllowance: { amount: 'otherAllowanceAmount', percentage: 'otherAllowance', type: 'otherAllowanceType', enable: 'isOtherAllowance', default: calculationDefaults.otherAllowance },
+//   variablePay: { amount: 'variablePayAmount', percentage: 'variablePay', type: 'variablePayType', enable: 'isVariablePay', default: calculationDefaults.variablePay },
+//   statutoryBonus: { amount: 'statutoryBonusAmount', percentage: 'statutoryBonusPercentage', type: 'statutoryBonusType', enable: 'isStatutoryBonus', default: calculationDefaults.statutoryBonus },
+//   incentives: { amount: 'incentivesAmount', percentage: 'incentives', type: 'incentivesType', enable: 'isIncentives', default: calculationDefaults.incentives },
+//   professionalTax: { amount: 'professionalTaxAmount', percentage: 'professionalTax', type: 'professionalTaxType', enable: 'isProfessionalTax', default: calculationDefaults.professionalTax },
+//   pfEmployee: { amount: 'pfEmployeeAmount', percentage: 'pfEmployeePercentage', type: 'pfEmployeeType', enable: 'isPFEmployee', default: calculationDefaults.pfEmployee },
+//   pfEmployer: { amount: 'pfEmployerAmount', percentage: 'pfEmployerPercentage', type: 'pfEmployerType', enable: 'isPFEmployer', default: calculationDefaults.pfEmployer },
+//   pfCalculationBase: { field: 'pfCalculationBase', default: '' },
+//   esicEmployee: { amount: 'esicEmployeeAmount', percentage: 'esicEmployeePercentage', type: 'esicEmployeeType', enable: 'isESICEmployee', default: calculationDefaults.esicEmployee },
+//   insuranceEmployee: { amount: 'insuranceEmployeeAmount', percentage: 'insuranceEmployeePercentage', type: 'insuranceEmployeeType', enable: 'isInsuranceEmployee', default: calculationDefaults.insuranceEmployee },
+//   gratuity: { amount: 'gratuityAmount', percentage: 'gratuityPercentage', type: 'gratuityType', enable: 'isGratuityApplicable', default: calculationDefaults.gratuity },
+//   medicalCalculationBase: { field: 'medicalCalculationBase', default: '' },
+//   tds: { enable: 'isTDSApplicable', default: calculationDefaults.tds },
+//   advanceRecovery: { default: calculationDefaults.advanceRecovery },
+// };
 const salaryFieldToFormDataMap = {
   basicSalary: { amount: 'basicSalaryAmount', percentage: 'basicSalary', type: 'basicSalaryType', enable: 'isBasicSalary', default: calculationDefaults.basicSalary },
   hra: { amount: 'houseRentAllowanceAmount', percentage: 'houseRentAllowance', type: 'houseRentAllowanceType', enable: 'isHouseRentAllowance', default: calculationDefaults.hra },
-  lta: { amount: 'ltaAllowanceAmount', percentage: 'ltaAllowance', type: 'ltaAllowanceType', enable: 'isLtaAllowance', default: calculationDefaults.lta },
-  otherAllowance: { amount: 'otherAllowanceAmount', percentage: 'otherAllowance', type: 'otherAllowanceType', enable: 'isOtherAllowance', default: calculationDefaults.otherAllowance },
+  ltaAllowance: { amount: 'ltaAllowanceAmount', percentage: 'ltaAllowance', type: 'ltaAllowanceType', enable: 'isLtaAllowance', default: calculationDefaults.lta },
+  otherAllowances: { amount: 'otherAllowanceAmount', percentage: 'otherAllowance', type: 'otherAllowanceType', enable: 'isOtherAllowance', default: calculationDefaults.otherAllowance },
   variablePay: { amount: 'variablePayAmount', percentage: 'variablePay', type: 'variablePayType', enable: 'isVariablePay', default: calculationDefaults.variablePay },
   statutoryBonus: { amount: 'statutoryBonusAmount', percentage: 'statutoryBonusPercentage', type: 'statutoryBonusType', enable: 'isStatutoryBonus', default: calculationDefaults.statutoryBonus },
+  bonusPay: { amount: 'statutoryBonusAmount', percentage: 'statutoryBonusPercentage', type: 'statutoryBonusType', enable: 'isStatutoryBonus', default: calculationDefaults.statutoryBonus },
   incentives: { amount: 'incentivesAmount', percentage: 'incentives', type: 'incentivesType', enable: 'isIncentives', default: calculationDefaults.incentives },
   professionalTax: { amount: 'professionalTaxAmount', percentage: 'professionalTax', type: 'professionalTaxType', enable: 'isProfessionalTax', default: calculationDefaults.professionalTax },
-  pfEmployee: { amount: 'pfEmployeeAmount', percentage: 'pfEmployeePercentage', type: 'pfEmployeeType', enable: 'isPFEmployee', default: calculationDefaults.pfEmployee },
-  pfEmployer: { amount: 'pfEmployerAmount', percentage: 'pfEmployerPercentage', type: 'pfEmployerType', enable: 'isPFEmployer', default: calculationDefaults.pfEmployer },
+  employeePF: { amount: 'pfEmployeeAmount', percentage: 'pfEmployeePercentage', type: 'pfEmployeeType', enable: 'isPFEmployee', default: calculationDefaults.pfEmployee },
+  employerPF: { amount: 'pfEmployerAmount', percentage: 'pfEmployerPercentage', type: 'pfEmployerType', enable: 'isPFEmployer', default: calculationDefaults.pfEmployer },
   pfCalculationBase: { field: 'pfCalculationBase', default: '' },
-  esicEmployee: { amount: 'esicEmployeeAmount', percentage: 'esicEmployeePercentage', type: 'esicEmployeeType', enable: 'isESICEmployee', default: calculationDefaults.esicEmployee },
-  insuranceEmployee: { amount: 'insuranceEmployeeAmount', percentage: 'insuranceEmployeePercentage', type: 'insuranceEmployeeType', enable: 'isInsuranceEmployee', default: calculationDefaults.insuranceEmployee },
+  esic: { amount: 'esicEmployeeAmount', percentage: 'esicEmployeePercentage', type: 'esicEmployeeType', enable: 'isESICEmployee', default: calculationDefaults.esicEmployee },
+  insurance: { amount: 'insuranceEmployeeAmount', percentage: 'insuranceEmployeePercentage', type: 'insuranceEmployeeType', enable: 'isInsuranceEmployee', default: calculationDefaults.insuranceEmployee },
   gratuity: { amount: 'gratuityAmount', percentage: 'gratuityPercentage', type: 'gratuityType', enable: 'isGratuityApplicable', default: calculationDefaults.gratuity },
   medicalCalculationBase: { field: 'medicalCalculationBase', default: '' },
   tds: { enable: 'isTDSApplicable', default: calculationDefaults.tds },
   advanceRecovery: { default: calculationDefaults.advanceRecovery },
+  overtimePay: { amount: 'overtimePayAmount', type: 'overtimePayType', enable: 'isOvertimePay', units: 'overtimePayUnits', default: { amount: '0', type: 'hourly' } },
 };
-
 const CreateCompensation = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -180,6 +200,7 @@ const CreateCompensation = () => {
     const newData = { ...prev, [field]: value === 'yes' };
     const updatedErrors = { ...errors };
     if (value !== 'yes') {
+      // Reset fields when disabling
       if (field === 'isPFApplicable') {
         newData.pfPercentage = '';
         newData.pfAmount = '';
@@ -236,7 +257,7 @@ const CreateCompensation = () => {
         newData.basicSalary = '';
         newData.basicSalaryAmount = '';
         newData.basicSalaryType = 'percentage';
-        updatedErrors.basicSalary = ''; // Clear error
+        updatedErrors.basicSalary = '';
       }
       if (field === 'isHouseRentAllowance') {
         newData.houseRentAllowance = '';
@@ -271,13 +292,36 @@ const CreateCompensation = () => {
         newData.defaultWorkingHours = '';
       }
       if (field === 'isDefaultWorkingDays') {
-        newData.defaultWorkingDays = '';
+        newData.defaultWorkingDays = defaultFormData.defaultWorkingDays;
       }
       if (field === 'isTDSApplicable') {
         newData.tdsSlabs = [];
       }
-    } else if (field === 'isTDSApplicable' && value === 'yes' && prev.tdsSlabs.length === 0) {
-      newData.tdsSlabs = [{ from: '', to: '', percentage: '' }];
+    } else {
+      // Set default values when enabling
+      if (field === 'isLtaAllowance') {
+        newData.ltaAllowanceType = 'percentage';
+        newData.ltaAllowance = newData.ltaAllowance || '0';
+      }
+      if (field === 'isPFEmployee') {
+        newData.pfEmployeeType = 'percentage';
+        newData.pfEmployeePercentage = newData.pfEmployeePercentage || '0';
+      }
+      if (field === 'isPFEmployer') {
+        newData.pfEmployerType = 'percentage';
+        newData.pfEmployerPercentage = newData.pfEmployerPercentage || '0';
+      }
+      if (field === 'isESICEmployee') {
+        newData.esicEmployeeType = 'percentage';
+        newData.esicEmployeePercentage = newData.esicEmployeePercentage || '0';
+      }
+      if (field === 'isOtherAllowance') {
+        newData.otherAllowanceType = 'percentage';
+        newData.otherAllowance = newData.otherAllowance || '0';
+      }
+      if (field === 'isTDSApplicable' && newData.tdsSlabs.length === 0) {
+        newData.tdsSlabs = [{ from: '', to: '', percentage: '' }];
+      }
     }
     setErrors(updatedErrors);
     return newData;
@@ -285,6 +329,18 @@ const CreateCompensation = () => {
 };
   const handleInputChange = (field, value) => {
   const newFormData = { ...formData, [field]: value };
+  if (field.endsWith('Type')) {
+    const baseField = field.replace('Type', '');
+    const percentageField = salaryFieldToFormDataMap[baseField]?.percentage || `${baseField}Percentage`;
+    const amountField = salaryFieldToFormDataMap[baseField]?.amount || `${baseField}Amount`;
+    if (value === 'percentage') {
+      newFormData[percentageField] = newFormData[percentageField] || '0';
+      newFormData[amountField] = '';
+    } else if (value === 'amount') {
+      newFormData[amountField] = newFormData[amountField] || '0';
+      newFormData[percentageField] = '';
+    }
+  }
   setFormData(newFormData);
   const fieldConfig = categories
     .flatMap((category) => category.fields)
@@ -781,8 +837,26 @@ const validateField = (name, value, fieldConfig, formData) => {
   };
 
   const formatFieldName = (key) => {
-    return key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+  const fieldNames = {
+    basicSalary: 'Basic Salary',
+    hra: 'Hra',
+    ltaAllowance: 'Lta Allowance',
+    overtimePay: 'Overtime Pay',
+    bonusPay: 'Statutory Bonus', // Changed from 'Bonus Pay'
+    employeePF: 'Employee P F',
+    employerPF: 'Employer P F',
+    esic: 'Esic',
+    gratuity: 'Gratuity',
+    professionalTax: 'Professional Tax',
+    otherAllowances: 'Other Allowances',
+    tds: 'Tds',
+    advanceRecovery: 'Advance Recovery',
+    insurance: 'Insurance',
+    grossSalary: 'Gross Salary',
+    netSalary: 'Net Salary'
   };
+  return fieldNames[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+};
 
   const isDefaultValue = (key, value) => {
     const defaultValue = defaultFormData[key];
@@ -793,73 +867,120 @@ const validateField = (name, value, fieldConfig, formData) => {
   };
 
   const shouldDisplayField = (key, value, formData) => {
-    if (isDefaultValue(key, value)) {
-      return false;
-    }
+  // Exclude internal text fields
+  const excludedFields = [
+    'pfEmployeeText',
+    'pfEmployerText',
+    'esicEmployeeText',
+    'insuranceEmployeeText'
+  ];
+  if (excludedFields.includes(key)) {
+    return false;
+  }
 
-    const typeDependentFields = {
-      // pfPercentage: { typeField: 'pfType', showWhen: 'percentage', enableField: 'isPFApplicable' },
-      // pfAmount: { typeField: 'pfType', showWhen: 'amount', enableField: 'isPFApplicable' },
-      pfEmployeePercentage: { typeField: 'pfEmployeeType', showWhen: 'percentage', enableField: 'isPFEmployee' },
-      pfEmployeeAmount: { typeField: 'pfEmployeeType', showWhen: 'amount', enableField: 'isPFEmployee' },
-      pfEmployerPercentage: { typeField: 'pfEmployerType', showWhen: 'percentage', enableField: 'isPFEmployer' },
-      pfEmployerAmount: { typeField: 'pfEmployerType', showWhen: 'amount', enableField: 'isPFEmployer' },
-      esicEmployeePercentage: { typeField: 'esicEmployeeType', showWhen: 'percentage', enableField: 'isESICEmployee' },
-      esicEmployeeAmount: { typeField: 'esicEmployeeType', showWhen: 'amount', enableField: 'isESICEmployee' },
-      insuranceEmployeePercentage: { typeField: 'insuranceEmployeeType', showWhen: 'percentage', enableField: 'isInsuranceEmployee' },
-      insuranceEmployeeAmount: { typeField: 'insuranceEmployeeType', showWhen: 'amount', enableField: 'isInsuranceEmployee' },
-      gratuityPercentage: { typeField: 'gratuityType', showWhen: 'percentage', enableField: 'isGratuityApplicable' },
-      gratuityAmount: { typeField: 'gratuityType', showWhen: 'amount', enableField: 'isGratuityApplicable' },
-      professionalTax: { typeField: 'professionalTaxType', showWhen: 'percentage', enableField: 'isProfessionalTax' },
-      professionalTaxAmount: { typeField: 'professionalTaxType', showWhen: 'amount', enableField: 'isProfessionalTax' },
-      variablePay: { typeField: 'variablePayType', showWhen: 'percentage', enableField: 'isVariablePay' },
-      variablePayAmount: { typeField: 'variablePayType', showWhen: 'amount', enableField: 'isVariablePay' },
-      statutoryBonusPercentage: { typeField: 'statutoryBonusType', showWhen: 'percentage', enableField: 'isStatutoryBonus' },
-      statutoryBonusAmount: { typeField: 'statutoryBonusType', showWhen: 'amount', enableField: 'isStatutoryBonus' },
-      basicSalary: { typeField: 'basicSalaryType', showWhen: 'percentage', enableField: 'isBasicSalary' },
-      basicSalaryAmount: { typeField: 'basicSalaryType', showWhen: 'amount', enableField: 'isBasicSalary' },
-      houseRentAllowance: { typeField: 'houseRentAllowanceType', showWhen: 'percentage', enableField: 'isHouseRentAllowance' },
-      houseRentAllowanceAmount: { typeField: 'houseRentAllowanceType', showWhen: 'amount', enableField: 'isHouseRentAllowance' },
-      ltaAllowance: { typeField: 'ltaAllowanceType', showWhen: 'percentage', enableField: 'isLtaAllowance' },
-      ltaAllowanceAmount: { typeField: 'ltaAllowanceType', showWhen: 'amount', enableField: 'isLtaAllowance' },
-      otherAllowance: { typeField: 'otherAllowanceType', showWhen: 'percentage', enableField: 'isOtherAllowance' },
-      otherAllowanceAmount: { typeField: 'otherAllowanceType', showWhen: 'amount', enableField: 'isOtherAllowance' },
-      incentives: { typeField: 'incentivesType', showWhen: 'percentage', enableField: 'isIncentives' },
-      incentivesAmount: { typeField: 'incentivesType', showWhen: 'amount', enableField: 'isIncentives' },
-    };
-
-    if (typeDependentFields[key]) {
-      const { typeField, showWhen, enableField } = typeDependentFields[key];
-      return formData[enableField] && formData[typeField] === showWhen && value !== '';
-    }
-
-    return (
-      typeof value === 'boolean' ||
-      (typeof value === 'string' && value !== '') ||
-      (typeof value === 'object' && value !== null && !isDefaultValue(key, value))
-    );
+  if (isDefaultValue(key, value)) {
+    return false;
+  }
+  const typeDependentFields = {
+    pfEmployeePercentage: { typeField: 'pfEmployeeType', showWhen: 'percentage', enableField: 'isPFEmployee' },
+    pfEmployeeAmount: { typeField: 'pfEmployeeType', showWhen: 'amount', enableField: 'isPFEmployee' },
+    pfEmployerPercentage: { typeField: 'pfEmployerType', showWhen: 'percentage', enableField: 'isPFEmployer' },
+    pfEmployerAmount: { typeField: 'pfEmployerType', showWhen: 'amount', enableField: 'isPFEmployer' },
+    esicEmployeePercentage: { typeField: 'esicEmployeeType', showWhen: 'percentage', enableField: 'isESICEmployee' },
+    esicEmployeeAmount: { typeField: 'esicEmployeeType', showWhen: 'amount', enableField: 'isESICEmployee' },
+    insuranceEmployeePercentage: { typeField: 'insuranceEmployeeType', showWhen: 'percentage', enableField: 'isInsuranceEmployee' },
+    insuranceEmployeeAmount: { typeField: 'insuranceEmployeeType', showWhen: 'amount', enableField: 'isInsuranceEmployee' },
+    gratuityPercentage: { typeField: 'gratuityType', showWhen: 'percentage', enableField: 'isGratuityApplicable' },
+    gratuityAmount: { typeField: 'gratuityType', showWhen: 'amount', enableField: 'isGratuityApplicable' },
+    professionalTax: { typeField: 'professionalTaxType', showWhen: 'percentage', enableField: 'isProfessionalTax' },
+    professionalTaxAmount: { typeField: 'professionalTaxType', showWhen: 'amount', enableField: 'isProfessionalTax' },
+    variablePay: { typeField: 'variablePayType', showWhen: 'percentage', enableField: 'isVariablePay' },
+    variablePayAmount: { typeField: 'variablePayType', showWhen: 'amount', enableField: 'isVariablePay' },
+    statutoryBonusPercentage: { typeField: 'statutoryBonusType', showWhen: 'percentage', enableField: 'isStatutoryBonus' },
+    statutoryBonusAmount: { typeField: 'statutoryBonusType', showWhen: 'amount', enableField: 'isStatutoryBonus' },
+    basicSalary: { typeField: 'basicSalaryType', showWhen: 'percentage', enableField: 'isBasicSalary' },
+    basicSalaryAmount: { typeField: 'basicSalaryType', showWhen: 'amount', enableField: 'isBasicSalary' },
+    houseRentAllowance: { typeField: 'houseRentAllowanceType', showWhen: 'percentage', enableField: 'isHouseRentAllowance' },
+    houseRentAllowanceAmount: { typeField: 'houseRentAllowanceType', showWhen: 'amount', enableField: 'isHouseRentAllowance' },
+    ltaAllowance: { typeField: 'ltaAllowanceType', showWhen: 'percentage', enableField: 'isLtaAllowance' },
+    ltaAllowanceAmount: { typeField: 'ltaAllowanceType', showWhen: 'amount', enableField: 'isLtaAllowance' },
+    otherAllowance: { typeField: 'otherAllowanceType', showWhen: 'percentage', enableField: 'isOtherAllowance' },
+    otherAllowanceAmount: { typeField: 'otherAllowanceType', showWhen: 'amount', enableField: 'isOtherAllowance' },
+    incentives: { typeField: 'incentivesType', showWhen: 'percentage', enableField: 'isIncentives' },
+    incentivesAmount: { typeField: 'incentivesType', showWhen: 'amount', enableField: 'isIncentives' },
   };
+  if (typeDependentFields[key]) {
+    const { typeField, showWhen, enableField } = typeDependentFields[key];
+    return formData[enableField] && formData[typeField] === showWhen && value !== '';
+  }
+  return (
+    typeof value === 'boolean' ||
+    (typeof value === 'string' && value !== '') ||
+    (typeof value === 'object' && value !== null && !isDefaultValue(key, value))
+  );
+};
 
   const getPlanValue = (calcField, formData) => {
-    const mapping = salaryFieldToFormDataMap[calcField];
-    if (!mapping) return '-';
-    const { enable, amount, percentage, type, default: defaultConfig } = mapping;
+  const mapping = salaryFieldToFormDataMap[calcField];
+  if (!mapping) return '-';
 
-    if (enable && formData[enable]) {
-      const typeValue = formData[type] || defaultConfig?.type || 'percentage';
-      const valueField = typeValue === 'percentage' ? percentage : amount;
-      const value = formData[valueField];
-      if (value && !isDefaultValue(valueField, value)) {
-        return `${value}${typeValue === 'percentage' ? '%' : ''}`;
-      }
+  const { enable, amount, percentage, type, units, default: defaultConfig } = mapping;
+
+  // Special handling for overtimePay
+  // Special handling for overtimePay
+if (calcField === 'overtimePay') {
+  const typeValue = formData[type] || defaultConfig?.type || 'hourly';
+  const amountValue = formData[amount] || '0';
+  const unitsValue = formData[units] || '0';
+  const unitLabel = typeValue === 'hourly' ? 'hour' : typeValue === 'daily' ? 'day' : 'unit';
+  if (amountValue && amountValue !== '0') {
+    return `₹${parseFloat(amountValue).toLocaleString('en-IN')} / ${unitLabel}${unitsValue !== '0' ? ` (${unitsValue} ${unitLabel}${parseInt(unitsValue) !== 1 ? 's' : ''})` : ''}`;
+  }
+  return defaultConfig ? `${defaultConfig.amount}/${typeValue} (default)` : '-';
+}
+
+  // Use text fields set by calculateSalaryDetails if available
+  if (calcField === 'employeePF' && formData.pfEmployeeText) {
+    return formData.pfEmployeeText !== 'Not Applicable' ? formData.pfEmployeeText : '0%';
+  }
+  if (calcField === 'employerPF' && formData.pfEmployerText) {
+    return formData.pfEmployerText !== 'Not Applicable' ? formData.pfEmployerText : '0%';
+  }
+  if (calcField === 'esic' && formData.esicEmployeeText) {
+    return formData.esicEmployeeText !== 'Not Applicable' ? formData.esicEmployeeText : '0%';
+  }
+
+  // General handling for other fields
+  if (enable && formData[enable]) {
+    const typeValue = formData[type] || defaultConfig?.type || 'percentage';
+    const valueField = typeValue === 'percentage' ? percentage : amount;
+    const value = formData[valueField];
+    if (value && !isDefaultValue(valueField, value)) {
+      return typeValue === 'percentage'
+        ? `${parseFloat(value)}%`
+        : `₹${parseFloat(value).toLocaleString('en-IN')}`;
     }
-    if (defaultConfig) {
-      const { percentage, amount, type } = defaultConfig;
-      const defaultValue = type === 'percentage' ? percentage : amount;
-      return defaultValue === 'fill' ? 'Fill remaining (default)' : `${defaultValue}${type === 'percentage' ? '%' : ''} (default)`;
+    // Fallback to amount if percentage is not set
+    if (typeValue === 'percentage' && !value && formData[amount]) {
+      return `₹${parseFloat(formData[amount]).toLocaleString('en-IN')}`;
     }
-    return '-';
-  };
+    // Fallback to percentage if amount is not set
+    if (typeValue === 'amount' && !value && formData[percentage]) {
+      return `${parseFloat(formData[percentage])}%`;
+    }
+  }
+
+  // Fallback to default configuration
+  if (defaultConfig) {
+    const { percentage, amount, type } = defaultConfig;
+    const defaultValue = type === 'percentage' ? percentage : amount;
+    return defaultValue === 'fill'
+      ? 'Fill remaining (default)'
+      : `${defaultValue}${type === 'percentage' ? '%' : ''} (default)`;
+  }
+
+  return '-';
+};
 
   const handleStepChange = (step) => {
     const newStep = Math.max(1, Math.min(step, categories.length));
@@ -867,24 +988,67 @@ const validateField = (name, value, fieldConfig, formData) => {
   };
 
   const handleCalculate = () => {
-    if (!ctcInput || isNaN(parseFloat(ctcInput)) || parseFloat(ctcInput) <= 0) {
-      showAlert('Please enter a valid CTC amount');
-      return;
-    }
-    const calculatedDetails = calculateSalaryDetails(
-      parseFloat(ctcInput),
-      formData,
-      'preview-employee',
-      [],
-      [],
-      []
-    );
-    if (!calculatedDetails) {
-      showAlert('Failed to calculate salary details');
-      return;
-    }
-    setSalaryDetails(calculatedDetails);
-  };
+  if (!ctcInput || isNaN(parseFloat(ctcInput)) || parseFloat(ctcInput) <= 0) {
+    showAlert('Please enter a valid CTC amount');
+    return;
+  }
+  if (formData.isOvertimePay && (!formData.overtimePayAmount || !formData.overtimePayUnits)) {
+    showAlert('Please provide both Overtime Pay Amount and Units when Overtime Pay is enabled');
+    return;
+  }
+  if (formData.isBasicSalary && !formData.basicSalary && !formData.basicSalaryAmount) {
+    showAlert('Please provide a value for Basic Salary when it is enabled');
+    return;
+  }
+  if (formData.isLtaAllowance && !formData.ltaAllowance && !formData.ltaAllowanceAmount) {
+    showAlert('Please provide a value for LTA Allowance when it is enabled');
+    return;
+  }
+  if (formData.isOtherAllowance && !formData.otherAllowance && !formData.otherAllowanceAmount) {
+    showAlert('Please provide a value for Other Allowance when it is enabled');
+    return;
+  }
+  if (formData.isPFEmployee && !formData.pfEmployeePercentage && !formData.pfEmployeeAmount) {
+    showAlert('Please provide a value for Employee PF when it is enabled');
+    return;
+  }
+  if (formData.isPFEmployer && !formData.pfEmployerPercentage && !formData.pfEmployerAmount) {
+    showAlert('Please provide a value for Employer PF when it is enabled');
+    return;
+  }
+  if (formData.isStatutoryBonus && !formData.statutoryBonusPercentage && !formData.statutoryBonusAmount) {
+    showAlert('Please provide a value for Statutory Bonus when it is enabled');
+    return;
+  }
+  // Create a copy of formData to pass to calculateSalaryDetails
+  const planDataCopy = { ...formData };
+  const calculatedDetails = calculateSalaryDetails(
+    parseFloat(ctcInput),
+    planDataCopy,
+    'preview-employee',
+    [],
+    [],
+    []
+  );
+  if (!calculatedDetails) {
+    showAlert('Failed to calculate salary details');
+    return;
+  }
+  // Project overtime pay for preview if units are provided
+  if (formData.isOvertimePay && formData.overtimePayAmount && formData.overtimePayUnits) {
+    const projectedOvertime = parseFloat(formData.overtimePayAmount) * parseFloat(formData.overtimePayUnits);
+    calculatedDetails.overtimePay = Math.round(projectedOvertime);
+  }
+  // Update formData with text fields from calculateSalaryDetails
+  setFormData((prev) => ({
+    ...prev,
+    pfEmployeeText: planDataCopy.pfEmployeeText || '0%',
+    pfEmployerText: planDataCopy.pfEmployerText || '0%',
+    esicEmployeeText: planDataCopy.esicEmployeeText || '0%',
+    insuranceEmployeeText: planDataCopy.insuranceEmployeeText || '0%'
+  }));
+  setSalaryDetails(calculatedDetails);
+};
 
   // const renderCategoryField = ({ label, field, percentageField, amountField, typeField, required = false }) => (
   //   <div key={field} className="compensation-form-group">
@@ -1776,15 +1940,16 @@ const renderCategoryField = ({
                           <th>Plan Value</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {Object.entries(salaryDetails).map(([key, value]) => (
-                          <tr key={key}>
-                            <td>{formatFieldName(key)}</td>
-                            <td>{value}</td>
-                            <td>{getPlanValue(key, formData)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
+                     <tbody>
+  {salaryDetails &&
+    Object.entries(salaryDetails).map(([key, value]) => (
+      <tr key={key}>
+        <td>{formatFieldName(key)}</td>
+        <td>{typeof value === 'number' ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : value}</td>
+        <td>{getPlanValue(key, formData)}</td>
+      </tr>
+    ))}
+</tbody>
                     </table>
                   </div>
                 )}
