@@ -30,6 +30,8 @@ import OvertimeDetails from "../Compensation/OvertimeDetails";
 import { ContentContext } from "./Context";
 import SalaryBreakupMain from "../Compensation/SalaryBreakupMain";
 import OvertimeSummary from "../Compensation/overtimeSupervisor";
+import WeeklyTaskPlanner from "../WeeklyTaskPlanner/WeeklyTaskPlanner";
+import SupervisorPlanViewer from "../SupervisorPlanViewer/SupervisorPlanViewer";
 const Sidebar = () => {
   const { setActiveContent } = useContext(ContentContext);
   const [menuItems, setMenuItems] = useState([]);
@@ -160,6 +162,15 @@ const Sidebar = () => {
             setActiveContent(<p>Please select a compensation option.</p>);
         }
         break;
+          case "/WeeklyTaskPlanner":
+          
+  setActiveContent(<WeeklyTaskPlanner/>);
+  break;
+   case "/SupervisorPlanViewer":
+          
+  setActiveContent(<SupervisorPlanViewer/>);
+  break;
+
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }
