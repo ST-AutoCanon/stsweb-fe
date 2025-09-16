@@ -161,7 +161,7 @@ const SupervisorPlanViewer = () => {
 
       try {
         const empResponse = await axios.get(
-          `http://localhost:5000/api/supervisor/employees/${supervisorId}`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/employees/${supervisorId}`,
           {
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
@@ -178,7 +178,7 @@ const SupervisorPlanViewer = () => {
             try {
               console.log(`Fetching plans for employee: ${emp.id}`);
               const plansResponse = await axios.get(
-                `http://localhost:5000/api/plans/${emp.id}`,
+                `${process.env.REACT_APP_BACKEND_URL}/api/plans/${emp.id}`,
                 {
                   headers: {
                     "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
@@ -198,7 +198,7 @@ const SupervisorPlanViewer = () => {
 
               console.log(`Fetching projects for employee: ${emp.id}`);
               const projectsResponse = await axios.get(
-                `http://localhost:5000/projects/employeeProjects`,
+                `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`,
                 {
                   params: { employeeId: emp.id },
                   headers: {
@@ -302,7 +302,7 @@ const SupervisorPlanViewer = () => {
       console.log("Sending updated messages to backend for planId:", planId, "messages:", updatedMessages);
 
       const response = await axios.put(
-        `http://localhost:5000/api/plans/${planId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/plans/${planId}`,
         { messages: updatedMessages },
         {
           headers: {
@@ -413,7 +413,7 @@ const SupervisorPlanViewer = () => {
     try {
       console.log("Sending approval for planId:", planIdStr, "with messages:", updatedMessages);
       const response = await axios.put(
-        `http://localhost:5000/api/plans/${planIdStr}/approve`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/plans/${planIdStr}/approve`,
         { message: updatedMessages },
         {
           headers: {
