@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./OvertimeDetails.css";
@@ -130,6 +131,7 @@ const OvertimeDetails = () => {
         }
         return {
           id: item.punch_id,
+          employee_id: item.employee_id, // Preserve original employee_id
           date: new Date(item.work_date).toISOString().split("T")[0],
           name: employeeInfo.employee_name || item.employee_id,
           hours: Math.min(hours, 24),
@@ -185,6 +187,7 @@ const OvertimeDetails = () => {
         }
         return {
           id: item.punch_id,
+          employee_id: item.employee_id, // Preserve original employee_id
           date: new Date(item.work_date).toISOString().split("T")[0],
           name: employeeInfo.employee_name || item.employee_id,
           hours: Math.min(hours, 24),
@@ -268,7 +271,7 @@ const OvertimeDetails = () => {
             .map((row) => ({
               punch_id: row.id,
               work_date: row.date,
-              employee_id: row.name,
+              employee_id: row.employee_id, // Use original employee_id
               extra_hours: row.hours,
               rate: parseFloat(row.rate) || 0,
               project: row.project || "",
@@ -283,7 +286,7 @@ const OvertimeDetails = () => {
             .map((row) => ({
               punch_id: row.id,
               work_date: row.date,
-              employee_id: row.name,
+              employee_id: row.employee_id, // Use original employee_id
               extra_hours: row.hours,
               rate: parseFloat(row.rate) || 0,
               project: row.project || "",
@@ -311,7 +314,7 @@ const OvertimeDetails = () => {
           data: [{
             punch_id: row.id,
             work_date: row.date,
-            employee_id: row.name,
+            employee_id: row.employee_id, // Use original employee_id
             extra_hours: row.hours,
             rate: parseFloat(row.rate) || 0,
             project: row.project || "",
@@ -360,6 +363,7 @@ const OvertimeDetails = () => {
         await fetchData(startDate, endDate);
       }
     } catch (error) {
+      console.error("Error updating overtime status:", error);
       showAlert(
         error.response?.data?.error || error.response?.data?.message || error.message || "Network error",
         "Error"
@@ -540,7 +544,7 @@ const OvertimeDetails = () => {
         <div className="otd-modal-overlay">
           <div className="otd-modal-content">
             <h3 className="otd-modal-title">{alertModal.title}</h3>
-            <p className="otd-modal-message">{alertModal.message}</p>
+            <p className="otd-modal-error">{alertModal.message}</p>
             <button onClick={closeAlert} className="otd-modal-button">
               Close
             </button>

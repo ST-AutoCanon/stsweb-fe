@@ -220,14 +220,20 @@ const AssignCompensation = () => {
       });
 
       console.log("API response:", response.data);
-      if (!Array.isArray(response.data)) {
-        throw new Error("Expected an array of employees, received: " + JSON.stringify(response.data));
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to fetch employees for department");
+      }
+
+      const employees = Array.isArray(response.data.data) ? response.data.data : [];
+      if (employees.length === 0) {
+        showAlert("No employees found in this department.");
+        return;
       }
 
       setSelectedDepartments([department, ...selectedDepartments]);
       setEmployeesByDepartment((prev) => ({
         ...prev,
-        [department.id]: response.data,
+        [department.id]: employees,
       }));
       setSelectedDepartment("");
     } catch (error) {
@@ -282,109 +288,109 @@ const AssignCompensation = () => {
   };
 
   // Handle save button click
- // Handle save button click
-const handleSave = async () => {
-  if (!selectedCompensation) {
-    showAlert("Please select a compensation plan.");
-    return;
-  }
-
-  const compensation = compensationList.find((comp) => String(comp.id) === selectedCompensation);
-  if (!compensation || isNaN(parseInt(selectedCompensation))) {
-    showAlert("Invalid compensation plan selected. Please select a valid plan.");
-    return;
-  }
-
-  if (selectedEmployees.length === 0 && selectedDepartments.length === 0) {
-    showAlert("Please select at least one employee or department.");
-    return;
-  }
-
-  try {
-    setIsLoading(true);
-
-    // Collect all employee IDs
-    const allEmployees = [
-      ...selectedEmployees,
-      ...Object.values(employeesByDepartment).flat(),
-    ];
-    const uniqueEmployees = Array.from(
-      new Map(allEmployees.map((emp) => [emp.employee_id, emp])).values()
-    );
-    const employeeIds = uniqueEmployees.map((emp) => emp.employee_id);
-    console.log("Employee IDs to check:", employeeIds);
-
-    // Fetch existing assignments
-    const checkUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`;
-    console.log("Check URL:", checkUrl);
-    const checkResponse = await axios.get(checkUrl, {
-      headers: { "x-api-key": API_KEY, "x-employee-id": meId },
-    });
-    console.log("Assignment check response:", checkResponse.data);
-
-    if (!checkResponse.data.success) {
-      throw new Error(checkResponse.data.error || "Failed to fetch assigned compensations");
-    }
-
-    // Check for existing assignments
-    const assignedData = checkResponse.data.data || [];
-    const employeesWithAssignments = uniqueEmployees
-      .filter((emp) => assignedData.some((assignment) => assignment.employee_id === emp.employee_id))
-      .map((emp) => {
-        const assignment = assignedData.find((a) => a.employee_id === emp.employee_id);
-        return {
-          name: emp.full_name,
-          plan: assignment.compensation_plan_name || "Unknown Plan",
-        };
-      });
-
-    if (employeesWithAssignments.length > 0) {
-      const message = employeesWithAssignments
-        .map((emp) => `Employee ${emp.name} already has a compensation plan (${emp.plan}) assigned and cannot be assigned again.`)
-        .join("\n");
-      showAlert(message, "Cannot Assign Compensation");
+  const handleSave = async () => {
+    if (!selectedCompensation) {
+      showAlert("Please select a compensation plan.");
       return;
     }
 
-    // Prepare payload for assignment
-    const payload = {
-      compensationPlanName: compensation.compensation_plan_name,
-      employeeId: selectedEmployees.map((emp) => emp.employee_id),
-      departmentIds: selectedDepartments.map((dept) => dept.id),
-      assignedBy: meId,
-      assignedDate: new Date().toISOString(),
-    };
-    console.log("Assignment payload:", payload);
-
-    // Assign compensation
-    const assignUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assign`;
-    console.log("Assign URL:", assignUrl);
-    const assignResponse = await axios.post(assignUrl, payload, {
-      headers: { "x-api-key": API_KEY, "x-employee-id": meId },
-    });
-    console.log("Assign response:", assignResponse.data);
-
-    if (assignResponse.data.success) {
-      showAlert("Compensation assigned successfully!", "Success");
-      setSelectedEmployees([]);
-      setSelectedDepartments([]);
-      setSelectedCompensation("");
-      setSelectedEmployee("");
-      setSelectedDepartment("");
-      setEmployeesByDepartment({});
-    } else {
-      throw new Error(assignResponse.data.error || "Assignment unsuccessful");
+    const compensation = compensationList.find((comp) => String(comp.id) === selectedCompensation);
+    if (!compensation || isNaN(parseInt(selectedCompensation))) {
+      showAlert("Invalid compensation plan selected. Please select a valid plan.");
+      return;
     }
-  } catch (error) {
-    console.error("Error assigning compensation:", error.response?.data || error.message);
-    showAlert(
-      `Failed to assign compensation: ${error.response?.data?.error || error.message || "Network error"}`,
-      "Error"
-    );
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    if (selectedEmployees.length === 0 && selectedDepartments.length === 0) {
+      showAlert("Please select at least one employee or department.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Collect all employee IDs
+      const allEmployees = [
+        ...selectedEmployees,
+        ...Object.values(employeesByDepartment).flat(),
+      ];
+      const uniqueEmployees = Array.from(
+        new Map(allEmployees.map((emp) => [emp.employee_id, emp])).values()
+      );
+      const employeeIds = uniqueEmployees.map((emp) => emp.employee_id);
+      console.log("Employee IDs to check:", employeeIds);
+
+      // Fetch existing assignments
+      const checkUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`;
+      console.log("Check URL:", checkUrl);
+      const checkResponse = await axios.get(checkUrl, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+      });
+      console.log("Assignment check response:", checkResponse.data);
+
+      if (!checkResponse.data.success) {
+        throw new Error(checkResponse.data.error || "Failed to fetch assigned compensations");
+      }
+
+      // Check for existing assignments
+      const assignedData = checkResponse.data.data || [];
+      const employeesWithAssignments = uniqueEmployees
+        .filter((emp) => assignedData.some((assignment) => assignment.employee_id === emp.employee_id))
+        .map((emp) => {
+          const assignment = assignedData.find((a) => a.employee_id === emp.employee_id);
+          return {
+            name: emp.full_name,
+            plan: assignment.compensation_plan_name || "Unknown Plan",
+          };
+        });
+
+      if (employeesWithAssignments.length > 0) {
+        const message = employeesWithAssignments
+          .map((emp) => `Employee ${emp.name} already has a compensation plan (${emp.plan}) assigned and cannot be assigned again.`)
+          .join("\n");
+        showAlert(message, "Cannot Assign Compensation");
+        return;
+      }
+
+      // Prepare payload for assignment
+      const payload = {
+        compensationId: parseInt(selectedCompensation),
+        compensationPlanName: compensation.compensation_plan_name,
+        employeeId: selectedEmployees.map((emp) => emp.employee_id),
+        departmentIds: selectedDepartments.map((dept) => dept.id),
+        assignedBy: meId,
+        assignedDate: new Date().toISOString(),
+      };
+      console.log("Assignment payload:", payload);
+
+      // Assign compensation
+      const assignUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assign`;
+      console.log("Assign URL:", assignUrl);
+      const assignResponse = await axios.post(assignUrl, payload, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+      });
+      console.log("Assign response:", assignResponse.data);
+
+      if (assignResponse.data.success) {
+        showAlert("Compensation assigned successfully!", "Success");
+        setSelectedEmployees([]);
+        setSelectedDepartments([]);
+        setSelectedCompensation("");
+        setSelectedEmployee("");
+        setSelectedDepartment("");
+        setEmployeesByDepartment({});
+      } else {
+        throw new Error(assignResponse.data.error || "Assignment unsuccessful");
+      }
+    } catch (error) {
+      console.error("Error assigning compensation:", error.response?.data || error.message);
+      showAlert(
+        `Failed to assign compensation: ${error.response?.data?.error || error.message || "Network error"}`,
+        "Error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="ac-container">
@@ -593,9 +599,9 @@ const handleSave = async () => {
                           ✕
                         </span>
                         {employeesByDepartment[dept.id]?.length > 0 ? (
-                          <ul className="ac-employee-list">
+                          <ul className="ac-selected-employees-list">
                             {employeesByDepartment[dept.id].map((emp) => (
-                              <li key={emp.employee_id} className="ac-employee-item">
+                              <li key={emp.employee_id} className="ac-selected-employee-item">
                                 {emp.full_name}
                                 <span
                                   className="ac-remove-icon"
