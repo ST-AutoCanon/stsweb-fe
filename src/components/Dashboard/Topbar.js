@@ -118,7 +118,7 @@ const Topbar = () => {
 
   const fetchNotificationCount = () => {
     axios
-      .get(`${BACKEND_URL}/api/notifications`, {
+      .get(`${BACKEND_URL}/notifications`, {
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       })
       .then((res) => {

@@ -33,15 +33,15 @@ export function SocketProvider({ children }) {
       return;
     }
 
-    // 3) create socket and connect
-    const sock = io(BACKEND_URL, {
+     // 3) create socket and connect
+    const sock = io(process.env.REACT_APP_BACKEND_URL.replace('/api', ''), {
+      path: "/api/socket.io",
       query: { userId },
-      // let the client pick polling vs websocket automatically
-      // transports: ['websocket'],  ← removed to allow fallback
+      transports: ["websocket"],
       reconnectionAttempts: 5,
       timeout: 20000,
     });
-
+    
     // optional: log connection status
     sock.on("connect", () => {
       console.log(`Socket connected as ${sock.id} (userId=${userId})`);

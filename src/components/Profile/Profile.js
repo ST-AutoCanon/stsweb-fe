@@ -283,7 +283,7 @@ const Profile = ({ onClose, notificationId = null }) => {
     if (!id) return;
     try {
       await axios.put(
-        `${BASE_URL}/api/notifications/${id}/read`,
+        `${BASE_URL}/notifications/${id}/read`,
         {},
         { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
       );
@@ -352,7 +352,7 @@ const Profile = ({ onClose, notificationId = null }) => {
     const fetchAssets = async () => {
       try {
         const r = await axios.get(
-          `${BASE_URL}/api/assets/assigned-assets/${employeeId}`,
+          `${BASE_URL}/assets/assigned-assets/${employeeId}`,
           {
             headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
           }

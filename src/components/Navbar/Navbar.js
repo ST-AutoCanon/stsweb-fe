@@ -12,6 +12,7 @@ const Navbar = () => {
   const hiddenPages = [ "/dashboard", "/other"];
 
   // Check if the current path is in the hiddenPages array
+  // eslint-disable-next-line no-restricted-globals
   const isHidden = hiddenPages.includes(location.pathname);
 
 

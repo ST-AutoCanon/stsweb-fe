@@ -121,7 +121,7 @@ function App() {
       const existingSubscription = await registration.pushManager.getSubscription();
       if (existingSubscription) {
         console.log('Existing subscription found:', existingSubscription.toJSON());
-        const res = await fetch('https://sts-test.site/api/check-subscription', {
+        const res = await fetch('https://sukalpatechsolutions.com/api/check-subscription', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ endpoint: existingSubscription.endpoint }),
@@ -134,7 +134,7 @@ function App() {
         console.log('Subscription not found on server, resubscribing');
       }
 
-      const vapidResponse = await fetch('https://sts-test.site/api/vapidPublicKey');
+      const vapidResponse = await fetch('https://sukalpatechsolutions.com/api/vapidPublicKey');
       if (!vapidResponse.ok) {
         throw new Error(`Failed to get VAPID key: ${vapidResponse.status}`);
       }
@@ -148,7 +148,7 @@ function App() {
       console.log('Push subscription object:', subscription.toJSON());
       console.log('Sending payload to /subscribe:', JSON.stringify(subscription.toJSON()));
 
-      const res = await fetch('https://sts-test.site/api/subscribe', {
+      const res = await fetch('https://sukalpatechsolutions.com/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription.toJSON()),
@@ -171,7 +171,7 @@ function App() {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
-        const res = await fetch('https://sts-test.site/api/check-subscription', {
+        const res = await fetch('https://sukalpatechsolutions.com/api/check-subscription', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ endpoint: subscription.endpoint }),

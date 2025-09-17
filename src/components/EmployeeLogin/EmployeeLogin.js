@@ -53,6 +53,7 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
     ? "employee-card-hover bg-office-hq"
     : "employee-card-hover bg-default";
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     console.log(`Avatar setup for ${firstName} ${lastName}:`, {
       photoUrl,

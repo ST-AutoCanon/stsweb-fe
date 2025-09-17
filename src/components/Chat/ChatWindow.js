@@ -209,7 +209,9 @@ export default function ChatWindow({ room, onBack }) {
   const onFileUploaded = (url) => {
     doSend({ roomId: room.id, content: "", type: "file", fileUrl: url });
   };
-  const onEmojiClick = (_, emojiObj) => setTxt((p) => p + emojiObj.emoji);
+  // const onEmojiClick = (_, emojiObj) => setTxt((p) => p + emojiObj.emoji);
+    const onEmojiClick = (emojiData) => setTxt((p) => p + emojiData.emoji);
+
 
   const downloadFile = async (filename) => {
     const base = process.env.REACT_APP_BACKEND_URL.replace(/\/+$/, "");
