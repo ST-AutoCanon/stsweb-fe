@@ -32,6 +32,10 @@ import SalaryBreakupMain from "../Compensation/SalaryBreakupMain";
 import OvertimeSummary from "../Compensation/overtimeSupervisor";
 import WeeklyTaskPlanner from "../WeeklyTaskPlanner/WeeklyTaskPlanner";
 import SupervisorPlanViewer from "../SupervisorPlanViewer/SupervisorPlanViewer";
+import TaskManagementEmployee from "../TaskManagementEmployee/EmpTaskManagement";
+import TaskManagement from "../TaskManagement/TaskManagement";
+
+
 const Sidebar = () => {
   const { setActiveContent } = useContext(ContentContext);
   const [menuItems, setMenuItems] = useState([]);
@@ -162,20 +166,31 @@ const Sidebar = () => {
             setActiveContent(<p>Please select a compensation option.</p>);
         }
         break;
-          case "/WeeklyTaskPlanner":
+  //         case "/WeeklyTaskPlanner":
           
-  setActiveContent(<WeeklyTaskPlanner/>);
-  break;
-   case "/SupervisorPlanViewer":
+   
+
+  // setActiveContent(<WeeklyTaskPlanner/>);
+  // break;
+  //  case "/SupervisorPlanViewer":
           
-  setActiveContent(<SupervisorPlanViewer/>);
+  // setActiveContent(<SupervisorPlanViewer/>);
+  // break;
+         case "/TaskManagement":
+  if (userRole === "Supervisor") {
+    setActiveContent(<TaskManagement />); // Supervisor view
+  } else {
+    setActiveContent(<TaskManagementEmployee />); // Employee view
+  }
   break;
 
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }
+    
   };
 
+  
   const toggleProfile = () => {
     setShowProfile(!showProfile);
   };

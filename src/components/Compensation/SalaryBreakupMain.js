@@ -94,8 +94,8 @@ const SalaryBreakupMain = () => {
   const tableRef = useRef(null);
   const rowsPerPage = 7;
 
-  const API_KEY =
-    "eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3";
+    const API_KEY = process.env.REACT_APP_API_KEY;
+
   const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}")
     .employeeId;
@@ -148,104 +148,246 @@ const SalaryBreakupMain = () => {
       error: "",
     });
   };
-const handleBonusSubmit = async () => {
-  const {
-    percentageCtc,
-    monthlySalaryCount,
-    fixedAmount,
-    selectedMonth,
-    selectedYear,
-    selectedOption,
-  } = bonusModal;
-  const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-  if (!selectedOption) {
-    setBonusModal({ ...bonusModal, error: "Please select one bonus option." });
-    return;
-  }
-  if (
-    selectedOption === "percentageCtc" &&
-    (!percentageCtc || parseFloat(percentageCtc) <= 0 || parseFloat(percentageCtc) > 100)
-  ) {
-    setBonusModal({ ...bonusModal, error: "Please enter a valid CTC percentage (0-100)." });
-    return;
-  }
-  if (
-    selectedOption === "monthlySalaryCount" &&
-    (!monthlySalaryCount || parseInt(monthlySalaryCount) < 1 || parseInt(monthlySalaryCount) > 10)
-  ) {
-    setBonusModal({
-      ...bonusModal,
-      error: "Please select a valid number of monthly salaries (1-10).",
-    });
-    return;
-  }
-  if (
-    selectedOption === "fixedAmount" &&
-    (!fixedAmount || parseFloat(fixedAmount) <= 0)
-  ) {
-    setBonusModal({
-      ...bonusModal,
-      error: "Please enter a valid fixed amount greater than 0.",
-    });
-    return;
-  }
-  if (!selectedMonth || !months.includes(selectedMonth)) {
-    setBonusModal({ ...bonusModal, error: "Please select a valid month." });
-    return;
-  }
-  if (!selectedYear || !/^\d{4}$/.test(selectedYear)) {
-    setBonusModal({ ...bonusModal, error: "Please enter a valid year." });
-    return;
-  }
-  const applicableMonth = `${selectedYear}-${selectedMonth.padStart(2, "0")}`;
-  const payload = {
-    percentageCtc: selectedOption === "percentageCtc" ? parseFloat(percentageCtc) : null,
-    percentageMonthlySalary: selectedOption === "monthlySalaryCount" ? parseFloat(monthlySalaryCount) * 100 : null,
-    fixedAmount: selectedOption === "fixedAmount" ? parseFloat(fixedAmount) : null,
-    applicableMonth,
-  };
-  try {
-    setIsLoading(true);
-    const url = `${BASE_URL}/api/compensation/add-bonus-bulk`;
-    const response = await axios.post(url, payload, {
-      headers: {
-        "x-api-key": API_KEY,
-        "x-employee-id": meId,
-      },
-    });
-    if (response.data.success) {
-      openMessageModal(
-        "Success",
-        `Bonus successfully added for ${selectedMonth} ${selectedYear}.`
-      );
-      const bonusResponse = await axios.get(
-        `${BASE_URL}/api/compensation/bonus-list`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            "x-employee-id": meId,
-          },
-        }
-      );
-      if (bonusResponse.data.success) {
-        setBonusRecords(bonusResponse.data.data || []);
-      }
-      setBonusModal({ ...bonusModal, isVisible: false });
-    } else {
+  const handleBonusSubmit = async () => {
+    const {
+      percentageCtc,
+      monthlySalaryCount,
+      fixedAmount,
+      selectedMonth,
+      selectedYear,
+      selectedOption,
+    } = bonusModal;
+    const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+
+    // Existing validations
+    if (!selectedOption) {
+      setBonusModal({ ...bonusModal, error: "Please select one bonus option." });
+      return;
+    }
+    if (
+      selectedOption === "percentageCtc" &&
+      (!percentageCtc || parseFloat(percentageCtc) <= 0 || parseFloat(percentageCtc) > 100)
+    ) {
+      setBonusModal({ ...bonusModal, error: "Please enter a valid CTC percentage (0-100)." });
+      return;
+    }
+    if (
+      selectedOption === "monthlySalaryCount" &&
+      (!monthlySalaryCount || parseInt(monthlySalaryCount) < 1 || parseInt(monthlySalaryCount) > 10)
+    ) {
       setBonusModal({
         ...bonusModal,
-        error: response.data.error || "Failed to add bonus",
+        error: "Please select a valid number of monthly salaries (1-10).",
       });
+      return;
     }
-  } catch (error) {
-    setBonusModal({
-      ...bonusModal,
-      error: error.response?.data?.error || error.message || "Network error",
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+    if (
+      selectedOption === "fixedAmount" &&
+      (!fixedAmount || parseFloat(fixedAmount) <= 0)
+    ) {
+      setBonusModal({
+        ...bonusModal,
+        error: "Please enter a valid fixed amount greater than 0.",
+      });
+      return;
+    }
+    if (!selectedMonth || !months.includes(selectedMonth)) {
+      setBonusModal({ ...bonusModal, error: "Please select a valid month." });
+      return;
+    }
+    if (!selectedYear || !/^\d{4}$/.test(selectedYear)) {
+      setBonusModal({ ...bonusModal, error: "Please enter a valid year." });
+      return;
+    }
+
+    const applicableMonth = `${selectedYear}-${selectedMonth.padStart(2, "0")}`;
+
+    // Check for existing bonus for the same month
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${BASE_URL}/api/compensation/bonus-list`, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+      });
+      if (response.data.success) {
+        const existingBonus = response.data.data.find(
+          (bonus) => bonus.applicable_month === applicableMonth
+        );
+        if (existingBonus) {
+          const bonusType =
+            existingBonus.percentage_ctc ? `${existingBonus.percentage_ctc}% CTC` :
+            existingBonus.percentage_monthly_salary ? `${existingBonus.percentage_monthly_salary / 100} months' salary` :
+            `₹${existingBonus.fixed_amount} fixed`;
+          setBonusModal({
+            ...bonusModal,
+            error: `A bonus of ${bonusType} already exists for ${applicableMonth}. Multiple bonuses for the same month are not allowed.`,
+          });
+          return;
+        }
+      } else {
+        setBonusModal({
+          ...bonusModal,
+          error: "Failed to verify existing bonuses.",
+        });
+        return;
+      }
+    } catch (error) {
+      setBonusModal({
+        ...bonusModal,
+        error: error.response?.data?.error || "Network error while checking existing bonuses.",
+      });
+      return;
+    } finally {
+      setIsLoading(false);
+    }
+
+    // Proceed with bonus submission
+    const payload = {
+      percentageCtc: selectedOption === "percentageCtc" ? parseFloat(percentageCtc) : null,
+      percentageMonthlySalary: selectedOption === "monthlySalaryCount" ? parseFloat(monthlySalaryCount) * 100 : null,
+      fixedAmount: selectedOption === "fixedAmount" ? parseFloat(fixedAmount) : null,
+      applicableMonth,
+    };
+
+    try {
+      setIsLoading(true);
+      const url = `${BASE_URL}/api/compensation/add-bonus-bulk`;
+      const response = await axios.post(url, payload, {
+        headers: {
+          "x-api-key": API_KEY,
+          "x-employee-id": meId,
+        },
+      });
+      if (response.data.success) {
+        openMessageModal(
+          "Success",
+          `Bonus successfully added for ${selectedMonth} ${selectedYear}.`
+        );
+        const bonusResponse = await axios.get(
+          `${BASE_URL}/api/compensation/bonus-list`,
+          {
+            headers: {
+              "x-api-key": API_KEY,
+              "x-employee-id": meId,
+            },
+          }
+        );
+        if (bonusResponse.data.success) {
+          setBonusRecords(bonusResponse.data.data || []);
+        }
+        setBonusModal({ ...bonusModal, isVisible: false });
+      } else {
+        setBonusModal({
+          ...bonusModal,
+          error: response.data.error || "Failed to add bonus",
+        });
+      }
+    } catch (error) {
+      setBonusModal({
+        ...bonusModal,
+        error: error.response?.data?.error || error.message || "Network error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+// const handleBonusSubmit = async () => {
+//   const {
+//     percentageCtc,
+//     monthlySalaryCount,
+//     fixedAmount,
+//     selectedMonth,
+//     selectedYear,
+//     selectedOption,
+//   } = bonusModal;
+//   const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+//   if (!selectedOption) {
+//     setBonusModal({ ...bonusModal, error: "Please select one bonus option." });
+//     return;
+//   }
+//   if (
+//     selectedOption === "percentageCtc" &&
+//     (!percentageCtc || parseFloat(percentageCtc) <= 0 || parseFloat(percentageCtc) > 100)
+//   ) {
+//     setBonusModal({ ...bonusModal, error: "Please enter a valid CTC percentage (0-100)." });
+//     return;
+//   }
+//   if (
+//     selectedOption === "monthlySalaryCount" &&
+//     (!monthlySalaryCount || parseInt(monthlySalaryCount) < 1 || parseInt(monthlySalaryCount) > 10)
+//   ) {
+//     setBonusModal({
+//       ...bonusModal,
+//       error: "Please select a valid number of monthly salaries (1-10).",
+//     });
+//     return;
+//   }
+//   if (
+//     selectedOption === "fixedAmount" &&
+//     (!fixedAmount || parseFloat(fixedAmount) <= 0)
+//   ) {
+//     setBonusModal({
+//       ...bonusModal,
+//       error: "Please enter a valid fixed amount greater than 0.",
+//     });
+//     return;
+//   }
+//   if (!selectedMonth || !months.includes(selectedMonth)) {
+//     setBonusModal({ ...bonusModal, error: "Please select a valid month." });
+//     return;
+//   }
+//   if (!selectedYear || !/^\d{4}$/.test(selectedYear)) {
+//     setBonusModal({ ...bonusModal, error: "Please enter a valid year." });
+//     return;
+//   }
+//   const applicableMonth = `${selectedYear}-${selectedMonth.padStart(2, "0")}`;
+//   const payload = {
+//     percentageCtc: selectedOption === "percentageCtc" ? parseFloat(percentageCtc) : null,
+//     percentageMonthlySalary: selectedOption === "monthlySalaryCount" ? parseFloat(monthlySalaryCount) * 100 : null,
+//     fixedAmount: selectedOption === "fixedAmount" ? parseFloat(fixedAmount) : null,
+//     applicableMonth,
+//   };
+//   try {
+//     setIsLoading(true);
+//     const url = `${BASE_URL}/api/compensation/add-bonus-bulk`;
+//     const response = await axios.post(url, payload, {
+//       headers: {
+//         "x-api-key": API_KEY,
+//         "x-employee-id": meId,
+//       },
+//     });
+//     if (response.data.success) {
+//       openMessageModal(
+//         "Success",
+//         `Bonus successfully added for ${selectedMonth} ${selectedYear}.`
+//       );
+//       const bonusResponse = await axios.get(
+//         `${BASE_URL}/api/compensation/bonus-list`,
+//         {
+//           headers: {
+//             "x-api-key": API_KEY,
+//             "x-employee-id": meId,
+//           },
+//         }
+//       );
+//       if (bonusResponse.data.success) {
+//         setBonusRecords(bonusResponse.data.data || []);
+//       }
+//       setBonusModal({ ...bonusModal, isVisible: false });
+//     } else {
+//       setBonusModal({
+//         ...bonusModal,
+//         error: response.data.error || "Failed to add bonus",
+//       });
+//     }
+//   } catch (error) {
+//     setBonusModal({
+//       ...bonusModal,
+//       error: error.response?.data?.error || error.message || "Network error",
+//     });
+//   } finally {
+//     setIsLoading(false);
+//   }
+// };
 const handleAssignSubmit = async () => {
   const { selectedCompensation, employeeId, fullName } = assignModal;
   if (!selectedCompensation) {
@@ -335,36 +477,52 @@ const handleAssignSubmit = async () => {
   }
 };
 
+const handleAdvanceSubmit = async () => {
+    const { employeeId, advanceAmount, recoveryMonths, applicableMonth, threeMonthsSalary } = advanceModal;
 
-  const handleAdvanceSubmit = async () => { // 🔹 Add handler
-    if (!advanceModal.employeeId) {
+    // Validation checks
+    if (!employeeId) {
       setAdvanceModal({ ...advanceModal, error: "Employee ID missing." });
       return;
     }
-    if (!advanceModal.advanceAmount || parseFloat(advanceModal.advanceAmount) <= 0) {
+    if (!advanceAmount || parseFloat(advanceAmount) <= 0) {
       setAdvanceModal({ ...advanceModal, error: "Enter a valid advance amount." });
       return;
     }
-    if (parseFloat(advanceModal.advanceAmount) > advanceModal.threeMonthsSalary) {
+    if (parseFloat(advanceAmount) > threeMonthsSalary) {
       setAdvanceModal({ ...advanceModal, error: "Advance cannot exceed three months' salary." });
       return;
     }
-    if (!advanceModal.recoveryMonths || parseInt(advanceModal.recoveryMonths) <= 0) {
+    if (!recoveryMonths || parseInt(recoveryMonths) <= 0) {
       setAdvanceModal({ ...advanceModal, error: "Enter valid recovery months." });
       return;
     }
-    if (!advanceModal.applicableMonth) {
+    if (!applicableMonth) {
       setAdvanceModal({ ...advanceModal, error: "Select applicable month." });
+      return;
+    }
+
+    // Check for existing advance for the same employee and month
+    const existingAdvance = advances.find(
+      (advance) =>
+        advance.employee_id === employeeId &&
+        advance.applicable_months === applicableMonth
+    );
+    if (existingAdvance) {
+      setAdvanceModal({
+        ...advanceModal,
+        error: `An advance of ₹${existingAdvance.advance_amount} already exists for ${employeeId} in ${applicableMonth}. Multiple advances for the same month are not allowed.`,
+      });
       return;
     }
 
     setIsLoading(true);
     try {
       const payload = {
-        employeeId: advanceModal.employeeId,
-        advanceAmount: advanceModal.advanceAmount,
-        recoveryMonths: advanceModal.recoveryMonths,
-        applicableMonth: advanceModal.applicableMonth, // Modal converts to YYYY-MM-DD
+        employeeId,
+        advanceAmount,
+        recoveryMonths,
+        applicableMonth,
       };
 
       const response = await axios.post(`${BASE_URL}/api/compensation/advance`, payload, {
@@ -383,9 +541,8 @@ const handleAssignSubmit = async () => {
           threeMonthsSalary: 0,
         });
         openMessageModal("Success", "Advance added successfully!", false);
-        // Optional: Refetch advances
-        // const advancesRes = await axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers });
-        // setAdvances(advancesRes.data.data || []);
+        const advancesRes = await axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers: { "x-api-key": API_KEY, "x-employee-id": meId } });
+        setAdvances(advancesRes.data.data || []);
       } else {
         setAdvanceModal({
           ...advanceModal,
@@ -401,6 +558,73 @@ const handleAssignSubmit = async () => {
       setIsLoading(false);
     }
   };
+
+
+  // const handleAdvanceSubmit = async () => { // 🔹 Add handler
+  //   if (!advanceModal.employeeId) {
+  //     setAdvanceModal({ ...advanceModal, error: "Employee ID missing." });
+  //     return;
+  //   }
+  //   if (!advanceModal.advanceAmount || parseFloat(advanceModal.advanceAmount) <= 0) {
+  //     setAdvanceModal({ ...advanceModal, error: "Enter a valid advance amount." });
+  //     return;
+  //   }
+  //   if (parseFloat(advanceModal.advanceAmount) > advanceModal.threeMonthsSalary) {
+  //     setAdvanceModal({ ...advanceModal, error: "Advance cannot exceed three months' salary." });
+  //     return;
+  //   }
+  //   if (!advanceModal.recoveryMonths || parseInt(advanceModal.recoveryMonths) <= 0) {
+  //     setAdvanceModal({ ...advanceModal, error: "Enter valid recovery months." });
+  //     return;
+  //   }
+  //   if (!advanceModal.applicableMonth) {
+  //     setAdvanceModal({ ...advanceModal, error: "Select applicable month." });
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+  //   try {
+  //     const payload = {
+  //       employeeId: advanceModal.employeeId,
+  //       advanceAmount: advanceModal.advanceAmount,
+  //       recoveryMonths: advanceModal.recoveryMonths,
+  //       applicableMonth: advanceModal.applicableMonth, // Modal converts to YYYY-MM-DD
+  //     };
+
+  //     const response = await axios.post(`${BASE_URL}/api/compensation/advance`, payload, {
+  //       headers: { "x-api-key": API_KEY, "x-employee-id": meId, "Content-Type": "application/json" },
+  //     });
+
+  //     if (response.data.success || response.data.message === "Advance added successfully") {
+  //       setAdvanceModal({
+  //         isVisible: false,
+  //         employeeId: null,
+  //         fullName: "",
+  //         advanceAmount: "",
+  //         recoveryMonths: "",
+  //         applicableMonth: "",
+  //         error: "",
+  //         threeMonthsSalary: 0,
+  //       });
+  //       openMessageModal("Success", "Advance added successfully!", false);
+  //       // Optional: Refetch advances
+  //       // const advancesRes = await axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers });
+  //       // setAdvances(advancesRes.data.data || []);
+  //     } else {
+  //       setAdvanceModal({
+  //         ...advanceModal,
+  //         error: response.data.message || "Failed to add advance.",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     setAdvanceModal({
+  //       ...advanceModal,
+  //       error: error.response?.data?.message || "Network error.",
+  //     });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   // 🔧 Helper function for conversion (add this before the function)
 const convertToMonthYear = (monthYearStr) => {
@@ -441,90 +665,212 @@ const convertToMonthYear = (monthYearStr) => {
   return result;
 };
 
+// const handleIncentiveSubmit = async () => {
+//   if (!incentivesModal.employeeId) {
+//     setIncentivesModal({ ...incentivesModal, error: "Employee ID missing." });
+//     return;
+//   }
+//   if (!incentivesModal.incentiveType) {
+//     setIncentivesModal({ ...incentivesModal, error: "Select incentive type." });
+//     return;
+//   }
+//   if (incentivesModal.incentiveType === "ctc" && !incentivesModal.ctcPercentage) {
+//     setIncentivesModal({ ...incentivesModal, error: "Enter CTC percentage." });
+//     return;
+//   }
+//   if (incentivesModal.incentiveType === "sales" && !incentivesModal.salesAmount) {
+//     setIncentivesModal({ ...incentivesModal, error: "Enter Sales amount." });
+//     return;
+//   }
+//   if (!incentivesModal.applicableMonth) {
+//     setIncentivesModal({ ...incentivesModal, error: "Select applicable month." });
+//     return;
+//   }
+
+//   // 🔧 Convert here (synchronous, before payload)
+//   const convertedApplicableMonth = convertToMonthYear(incentivesModal.applicableMonth);
+//   if (!convertedApplicableMonth) {
+//     setIncentivesModal({ ...incentivesModal, error: "Invalid month selected. Check console." });
+//     return;
+//   }
+
+//   setIsLoading(true);
+//   try {
+//     const payload = {
+//       employeeId: incentivesModal.employeeId,
+//       incentiveType: incentivesModal.incentiveType,
+//       ctcPercentage: incentivesModal.incentiveType === "ctc" ? incentivesModal.ctcPercentage : null,
+//       salesAmount: incentivesModal.incentiveType === "sales" ? incentivesModal.salesAmount : null,
+//       applicableMonth: convertedApplicableMonth,  // 🔧 Use converted YYYY-MM
+//     };
+
+//     console.log("🔍 Payload to backend:", payload);  // 🔧 Debug
+
+//     const response = await axios.post(`${BASE_URL}/api/incentives`, payload, {
+//       headers: { "x-api-key": API_KEY, "x-employee-id": meId, "Content-Type": "application/json" },
+//     });
+
+//     if (response.data.success || response.data.message === "Incentive added successfully") {
+//       const targetEmployeeId = incentivesModal.employeeId;
+      
+//       // Reset modal
+//       setIncentivesModal({
+//         isVisible: false,
+//         employeeId: null,
+//         fullName: "",
+//         incentiveType: "ctc",
+//         ctcPercentage: "",
+//         salesAmount: "",
+//         applicableMonth: "",
+//         error: "",
+//       });
+//       openMessageModal("Success", "Incentive added successfully!", false);
+      
+//       // Refetch
+//       try {
+//         const updatedIncentive = await calculateIncentives(targetEmployeeId);
+//         setEmployeeIncentiveData(prev => ({ ...prev, [targetEmployeeId]: updatedIncentive }));
+//         console.log(`🔄 Updated incentive for ${targetEmployeeId}:`, updatedIncentive);
+//       } catch (err) {
+//         console.warn("⚠️ Refetch incentive failed:", err);
+//       }
+//     } else {
+//       setIncentivesModal({
+//         ...incentivesModal,
+//         error: response.data.message || "Failed to add incentive.",
+//       });
+//     }
+//   } catch (error) {
+//     setIncentivesModal({
+//       ...incentivesModal,
+//       error: error.response?.data?.message || "Network error.",
+//     });
+//   } finally {
+//     setIsLoading(false);
+//   }
+// };
 const handleIncentiveSubmit = async () => {
-  if (!incentivesModal.employeeId) {
-    setIncentivesModal({ ...incentivesModal, error: "Employee ID missing." });
-    return;
-  }
-  if (!incentivesModal.incentiveType) {
-    setIncentivesModal({ ...incentivesModal, error: "Select incentive type." });
-    return;
-  }
-  if (incentivesModal.incentiveType === "ctc" && !incentivesModal.ctcPercentage) {
-    setIncentivesModal({ ...incentivesModal, error: "Enter CTC percentage." });
-    return;
-  }
-  if (incentivesModal.incentiveType === "sales" && !incentivesModal.salesAmount) {
-    setIncentivesModal({ ...incentivesModal, error: "Enter Sales amount." });
-    return;
-  }
-  if (!incentivesModal.applicableMonth) {
-    setIncentivesModal({ ...incentivesModal, error: "Select applicable month." });
-    return;
-  }
+    const { employeeId, incentiveType, ctcPercentage, salesAmount, applicableMonth } = incentivesModal;
 
-  // 🔧 Convert here (synchronous, before payload)
-  const convertedApplicableMonth = convertToMonthYear(incentivesModal.applicableMonth);
-  if (!convertedApplicableMonth) {
-    setIncentivesModal({ ...incentivesModal, error: "Invalid month selected. Check console." });
-    return;
-  }
+    // Existing validations
+    if (!employeeId) {
+      setIncentivesModal({ ...incentivesModal, error: "Employee ID missing." });
+      return;
+    }
+    if (!incentiveType) {
+      setIncentivesModal({ ...incentivesModal, error: "Select incentive type." });
+      return;
+    }
+    if (incentiveType === "ctc" && (!ctcPercentage || parseFloat(ctcPercentage) <= 0)) {
+      setIncentivesModal({ ...incentivesModal, error: "Enter a valid CTC percentage." });
+      return;
+    }
+    if (incentiveType === "sales" && (!salesAmount || parseFloat(salesAmount) <= 0)) {
+      setIncentivesModal({ ...incentivesModal, error: "Enter a valid sales amount." });
+      return;
+    }
+    if (!applicableMonth) {
+      setIncentivesModal({ ...incentivesModal, error: "Select applicable month." });
+      return;
+    }
 
-  setIsLoading(true);
-  try {
-    const payload = {
-      employeeId: incentivesModal.employeeId,
-      incentiveType: incentivesModal.incentiveType,
-      ctcPercentage: incentivesModal.incentiveType === "ctc" ? incentivesModal.ctcPercentage : null,
-      salesAmount: incentivesModal.incentiveType === "sales" ? incentivesModal.salesAmount : null,
-      applicableMonth: convertedApplicableMonth,  // 🔧 Use converted YYYY-MM
-    };
+    const convertedApplicableMonth = convertToMonthYear(applicableMonth);
+    if (!convertedApplicableMonth) {
+      setIncentivesModal({ ...incentivesModal, error: "Invalid month selected. Check console." });
+      return;
+    }
 
-    console.log("🔍 Payload to backend:", payload);  // 🔧 Debug
-
-    const response = await axios.post(`${BASE_URL}/api/incentives`, payload, {
-      headers: { "x-api-key": API_KEY, "x-employee-id": meId, "Content-Type": "application/json" },
-    });
-
-    if (response.data.success || response.data.message === "Incentive added successfully") {
-      const targetEmployeeId = incentivesModal.employeeId;
-      
-      // Reset modal
-      setIncentivesModal({
-        isVisible: false,
-        employeeId: null,
-        fullName: "",
-        incentiveType: "ctc",
-        ctcPercentage: "",
-        salesAmount: "",
-        applicableMonth: "",
-        error: "",
+    // Fetch latest incentives to check for duplicates
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${BASE_URL}/api/incentives`, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
-      openMessageModal("Success", "Incentive added successfully!", false);
-      
-      // Refetch
-      try {
-        const updatedIncentive = await calculateIncentives(targetEmployeeId);
-        setEmployeeIncentiveData(prev => ({ ...prev, [targetEmployeeId]: updatedIncentive }));
-        console.log(`🔄 Updated incentive for ${targetEmployeeId}:`, updatedIncentive);
-      } catch (err) {
-        console.warn("⚠️ Refetch incentive failed:", err);
+      if (response.data.success) {
+        const existingIncentive = response.data.data.find(
+          (incentive) =>
+            incentive.employee_id === employeeId &&
+            incentive.applicable_month === convertedApplicableMonth
+        );
+        if (existingIncentive) {
+          const amount = existingIncentive.incentive_type === "ctc"
+            ? `${existingIncentive.ctc_percentage}% CTC`
+            : `₹${existingIncentive.sales_amount} Sales`;
+          setIncentivesModal({
+            ...incentivesModal,
+            error: `An incentive of ${amount} already exists for ${employeeId} in ${convertedApplicableMonth}. Multiple incentives for the same month are not allowed.`,
+          });
+          return;
+        }
+      } else {
+        setIncentivesModal({
+          ...incentivesModal,
+          error: "Failed to verify existing incentives.",
+        });
+        return;
       }
-    } else {
+    } catch (error) {
       setIncentivesModal({
         ...incentivesModal,
-        error: response.data.message || "Failed to add incentive.",
+        error: error.response?.data?.message || "Network error while checking existing incentives.",
       });
+      return;
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    setIncentivesModal({
-      ...incentivesModal,
-      error: error.response?.data?.message || "Network error.",
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    setIsLoading(true);
+    try {
+      const payload = {
+        employeeId,
+        incentiveType,
+        ctcPercentage: incentiveType === "ctc" ? ctcPercentage : null,
+        salesAmount: incentiveType === "sales" ? salesAmount : null,
+        applicableMonth: convertedApplicableMonth,
+      };
+
+      console.log("🔍 Payload to backend:", payload);
+
+      const response = await axios.post(`${BASE_URL}/api/incentives`, payload, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId, "Content-Type": "application/json" },
+      });
+
+      if (response.data.success || response.data.message === "Incentive added successfully") {
+        const targetEmployeeId = employeeId;
+        setIncentivesModal({
+          isVisible: false,
+          employeeId: null,
+          fullName: "",
+          incentiveType: "ctc",
+          ctcPercentage: "",
+          salesAmount: "",
+          applicableMonth: "",
+          error: "",
+        });
+        openMessageModal("Success", "Incentive added successfully!", false);
+        try {
+          const updatedIncentive = await calculateIncentives(targetEmployeeId);
+          setEmployeeIncentiveData(prev => ({ ...prev, [targetEmployeeId]: updatedIncentive }));
+          console.log(`🔄 Updated incentive for ${targetEmployeeId}:`, updatedIncentive);
+        } catch (err) {
+          console.warn("⚠️ Refetch incentive failed:", err);
+        }
+      } else {
+        setIncentivesModal({
+          ...incentivesModal,
+          error: response.data.message || "Failed to add incentive.",
+        });
+      }
+    } catch (error) {
+      setIncentivesModal({
+        ...incentivesModal,
+        error: error.response?.data?.message || "Network error.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   const openNoPlanModal = () => {
     setViewMode("noPlanDetails");
@@ -615,161 +961,170 @@ const handleIncentiveSubmit = async () => {
   };
 
   useEffect(() => {
-    const fetchSalaryBreakupData = async () => {
-      if (!API_KEY || !meId) {
-        openMessageModal(
-          "Error",
-          "Authentication credentials are missing.",
-          true
-        );
-        setIsLoading(false);
-        return;
-      }
+  const fetchSalaryBreakupData = async () => {
+    console.log("Environment Variables:", {
+      API_KEY: process.env.REACT_APP_API_KEY,
+      BASE_URL: process.env.REACT_APP_BACKEND_URL,
+      meId,
+    });
 
-      try {
-        setIsLoading(true);
-        const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
+    if (!process.env.REACT_APP_API_KEY || !meId) {
+      console.error("Missing credentials: API_KEY or meId");
+      openMessageModal(
+        "Error",
+        "Authentication credentials are missing. Please check environment variables or login status.",
+        true
+      );
+      setIsLoading(false);
+      return;
+    }
 
-        const [
-          allEmployeesRes,
-          compensationsRes,
-          employeesRes,
-          advancesRes,
-          overtimeRes,
-          bonusRes,
-        ] = await Promise.all([
-          axios.get(`${BASE_URL}/api/employees/names`, { headers }),
-          axios.get(`${BASE_URL}/api/compensations/list`, { headers }),
-          axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }),
-          axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers }),
-          axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, {
-            headers,
-          }),
-          axios.get(`${BASE_URL}/api/compensation/bonus-list`, { headers }),
-        ]);
+    const API_KEY = process.env.REACT_APP_API_KEY;
+    const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
-        console.log("Raw /api/compensation/assigned response:", employeesRes.data.data);
+    try {
+      setIsLoading(true);
+      const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
+      console.log("Fetching data with headers:", headers);
 
-        setAllEmployees(allEmployeesRes.data.data || []);
-        const compensationMap = new Map();
-        (compensationsRes.data.data || []).forEach((comp) => {
-          compensationMap.set(comp.compensation_plan_name, comp.plan_data);
-        });
+      const [
+        allEmployeesRes,
+        compensationsRes,
+        employeesRes,
+        advancesRes,
+        overtimeRes,
+        bonusRes,
+      ] = await Promise.all([
+        axios.get(`${BASE_URL}/api/employees/names`, { headers }).catch(err => {
+          console.error("Error fetching employees/names:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensations/list`, { headers }).catch(err => {
+          console.error("Error fetching compensations/list:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }).catch(err => {
+          console.error("Error fetching compensation/assigned:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers }).catch(err => {
+          console.error("Error fetching compensation/advance-details:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }).catch(err => {
+          console.error("Error fetching compensation/overtime-status-summary:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/bonus-list`, { headers }).catch(err => {
+          console.error("Error fetching compensation/bonus-list:", err);
+          throw err;
+        }),
+      ]);
 
-        const enrichedEmployeesMap = new Map();
-        (employeesRes.data.data || []).forEach((emp) => {
-          if (!enrichedEmployeesMap.has(emp.employee_id)) {
-            enrichedEmployeesMap.set(emp.employee_id, {
-              ...emp,
-              plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
-            });
-          } else {
-            console.warn(`Duplicate employee_id found: ${emp.employee_id}`);
+      console.log("API Responses:", {
+        allEmployees: allEmployeesRes.data,
+        compensations: compensationsRes.data,
+        employees: employeesRes.data,
+        advances: advancesRes.data,
+        overtime: overtimeRes.data,
+        bonus: bonusRes.data,
+      });
+
+      setAllEmployees(allEmployeesRes.data.data || []);
+      const compensationMap = new Map();
+      (compensationsRes.data.data || []).forEach((comp) => {
+        compensationMap.set(comp.compensation_plan_name, comp.plan_data);
+      });
+
+      const enrichedEmployeesMap = new Map();
+      (employeesRes.data.data || []).forEach((emp) => {
+        if (!enrichedEmployeesMap.has(emp.employee_id)) {
+          enrichedEmployeesMap.set(emp.employee_id, {
+            ...emp,
+            plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
+          });
+        } else {
+          console.warn(`Duplicate employee_id found: ${emp.employee_id}`);
+        }
+      });
+      const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
+      setEmployees(enrichedEmployees);
+      setAdvances(advancesRes.data.data || []);
+      setOvertimeRecords(overtimeRes.data.data || []);
+      setBonusRecords(bonusRes.data.data || []);
+
+      const lopDataPromises = enrichedEmployees.map((emp) =>
+        calculateLOPEffect(emp.employee_id)
+          .then((result) => ({
+            employeeId: emp.employee_id,
+            lopData: result,
+          }))
+          .catch((err) => {
+            console.warn(`LOP fetch failed for ${emp.employee_id}:`, err);
+            return {
+              employeeId: emp.employee_id,
+              lopData: {
+                currentMonth: { days: 0, value: "0.00", currency: "INR" },
+                deferred: { days: 0, value: "0.00", currency: "INR" },
+                nextMonth: { days: 0, value: "0.00", currency: "INR" },
+                yearly: { days: 0, value: "0.00", currency: "INR" },
+              },
+            };
+          })
+      );
+
+      const lopDataResults = await Promise.all(lopDataPromises);
+      const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
+        acc[employeeId] = lopData;
+        return acc;
+      }, {});
+      setEmployeeLopData(lopDataMap);
+
+      const incentiveDataPromises = enrichedEmployees.map((emp) =>
+        calculateIncentives(emp.employee_id)
+          .then((result) => ({
+            employeeId: emp.employee_id,
+            incentiveData: result,
+          }))
+          .catch((err) => {
+            console.warn(`Incentive fetch failed for ${emp.employee_id}:`, err);
+            return {
+              employeeId: emp.employee_id,
+              incentiveData: {
+                ctcIncentive: { value: "0.00", currency: "INR" },
+                salesIncentive: { value: "0.00", currency: "INR" },
+                totalIncentive: { value: "0.00", currency: "INR" },
+              },
+            };
+          })
+      );
+
+      const incentiveDataResults = await Promise.all(incentiveDataPromises);
+      const incentiveDataMap = incentiveDataResults.reduce(
+        (acc, { employeeId, incentiveData }) => {
+          if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
+            acc[employeeId] = incentiveData;
           }
-        });
-        const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
-        console.log('enrichedEmployees (deduplicated):', enrichedEmployees);
-
-        setEmployees(enrichedEmployees);
-        setAdvances(advancesRes.data.data || []);
-        setOvertimeRecords(overtimeRes.data.data || []);
-        setBonusRecords(bonusRes.data.data || []);
-
-        const lopDataPromises = enrichedEmployees.map((emp) => {
-          console.log("Fetching LOP for employee:", emp.employee_id);
-          return calculateLOPEffect(emp.employee_id)
-            .then((result) => {
-              console.log("✅ LOP fetched for:", emp.employee_id, result);
-              return { employeeId: emp.employee_id, lopData: result };
-            })
-            .catch((err) => {
-              console.warn("⚠️ LOP fetch failed for:", emp.employee_id, err);
-              return {
-                employeeId: emp.employee_id,
-                lopData: {
-                  currentMonth: { days: 0, value: "0.00", currency: "INR" },
-                  deferred: { days: 0, value: "0.00", currency: "INR" },
-                  nextMonth: { days: 0, value: "0.00", currency: "INR" },
-                  yearly: { days: 0, value: "0.00", currency: "INR" },
-                },
-              };
-            });
-        });
-
-        console.log("this is LOP - promises created");
-        const lopDataResults = await Promise.all(lopDataPromises);
-        console.log("=== DEBUG: All LOP Results ===", lopDataResults);
-
-        const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
-          acc[employeeId] = lopData;
-          console.log("Mapped LOP for", employeeId, lopData);
           return acc;
-        }, {});
-        console.log("=== DEBUG: Final LOP Data Map ===", lopDataMap);
-        setEmployeeLopData(lopDataMap);
+        },
+        {}
+      );
+      setEmployeeIncentiveData(incentiveDataMap);
 
-        const incentiveDataPromises = enrichedEmployees.map((emp) => {
-          console.log("Fetching Incentive for employee:", emp.employee_id);
-          return calculateIncentives(emp.employee_id)
-            .then((result) => {
-              console.log("✅ Incentive fetched for:", emp.employee_id, result);
-              return { employeeId: emp.employee_id, incentiveData: result };
-            })
-            .catch((err) => {
-              console.warn("⚠️ Incentive fetch failed for:", emp.employee_id, err);
-              return {
-                employeeId: emp.employee_id,
-                incentiveData: {
-                  ctcIncentive: { value: "0.00", currency: "INR" },
-                  salesIncentive: { value: "0.00", currency: "INR" },
-                  totalIncentive: { value: "0.00", currency: "INR" },
-                },
-              };
-            });
-        });
+    } catch (error) {
+      console.error("Fetch error:", error);
+      openMessageModal(
+        "Error",
+        `Failed to fetch data: ${error.message || "Network error"}`,
+        true
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        console.log("this is Incentive - promises created");
-        const incentiveDataResults = await Promise.all(incentiveDataPromises);
-        console.log("=== DEBUG: All Incentive Results ===", incentiveDataResults);
-
-        const incentiveDataMap = incentiveDataResults.reduce(
-          (acc, { employeeId, incentiveData }) => {
-            if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
-              acc[employeeId] = incentiveData;
-              console.log(
-                "Mapped Incentive for",
-                employeeId,
-                incentiveData.totalIncentive?.value
-              );
-            } else {
-              console.log(
-                "Skipped Mapping Incentive for",
-                employeeId,
-                "due to zero or existing non-zero value"
-              );
-            }
-            return acc;
-          },
-          {}
-        );
-
-        console.log("=== DEBUG: Final Incentive Data Map ===", incentiveDataMap);
-        setEmployeeIncentiveData(incentiveDataMap);
-
-      } catch (error) {
-        openMessageModal(
-          "Error",
-          `Failed to fetch data: ${error.message || "Network error"}`,
-          true
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSalaryBreakupData();
-  }, [API_KEY, meId]);
-
+  fetchSalaryBreakupData();
+}, []);
   const totals = employees.length
     ? calculateTotals(employees, overtimeRecords, bonusRecords, advances)
     : {
