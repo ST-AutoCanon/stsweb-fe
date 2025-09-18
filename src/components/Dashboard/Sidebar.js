@@ -93,6 +93,24 @@ const Sidebar = () => {
       case "/dashboard":
         setActiveContent(userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />);
         break;
+
+         case "/Task":
+  setActiveContent(<TaskManagementEmployee />);
+  break;
+
+case "/TaskManagementEmployee":
+  setActiveContent(<TaskManagementEmployee />);
+  break;
+
+case "/TaskManagement":
+  if (userRole === "Supervisor") {
+    setActiveContent(<TaskManagement />); // Supervisor view
+  } else {
+    setActiveContent(<TaskManagementEmployee />); // fallback for Employee
+  }
+  break;
+
+
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);
         break;
@@ -130,6 +148,7 @@ const Sidebar = () => {
           setActiveContent(<Reimbursement />);
         }
         break;
+        
       case "/employeeQueries":
         setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
         break;
@@ -176,13 +195,8 @@ const Sidebar = () => {
           
   // setActiveContent(<SupervisorPlanViewer/>);
   // break;
-         case "/TaskManagement":
-  if (userRole === "Supervisor") {
-    setActiveContent(<TaskManagement />); // Supervisor view
-  } else {
-    setActiveContent(<TaskManagementEmployee />); // Employee view
-  }
-  break;
+   
+   
 
       default:
         setActiveContent(<p>Content not found for this path.</p>);

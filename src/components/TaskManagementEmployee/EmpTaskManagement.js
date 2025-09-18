@@ -142,11 +142,15 @@ const EmpTaskManagement = () => {
         }));
         setTasks(tasksWithPhotos);
       } catch (err) {
-        let errorMessage = "Failed to fetch tasks";
-        if (err.response) errorMessage = `Server Error ${err.response.status}: ${err.response.data?.message || "Unknown"}`;
-        else if (err.request) errorMessage = "Network error: Unable to connect to the server.";
-        else errorMessage = `Request setup error: ${err.message}`;
-        setError(errorMessage);
+        if (err.response && err.response.status === 404) {
+          setTasks([]); // Set tasks to empty array for 404
+        } else {
+          let errorMessage = "Failed to fetch tasks";
+          if (err.response) errorMessage = `Server Error ${err.response.status}: ${err.response.data?.message || "Unknown"}`;
+          else if (err.request) errorMessage = "Network error: Unable to connect to the server.";
+          else errorMessage = `Request setup error: ${err.message}`;
+          setError(errorMessage);
+        }
       } finally {
         setLoadingTasks(false);
       }
@@ -302,12 +306,12 @@ const EmpTaskManagement = () => {
         setError(null);
         setEditingProgress(false);
         if (tempProgress !== selectedTask.progress) await sendProgressMessage(tempProgress);
-        alert("Task updated successfully"); // Show only success alert
+        alert("Task updated successfully");
       } else {
         throw new Error(response.data.message || "Unexpected server response");
       }
     } catch (err) {
-      setError(null); // Clear any previous error
+      setError(null);
       setEditingProgress(false);
       setTasks((prev) =>
         prev.map((t) =>
@@ -438,7 +442,7 @@ const EmpTaskManagement = () => {
           {error && <div className="emp-task-error-message">{error}</div>}
           {loadingTasks && <div className="emp-task-loading-message">Loading tasks...</div>}
           {!loadingTasks && tasks.length === 0 && !error && (
-            <div className="emp-task-no-tasks">No tasks available</div>
+            <div className="emp-task-no-tasks">No tasks assigned yet</div>
           )}
           <div className="emp-task-board">
             {columns.map((col) => {
@@ -775,7 +779,7 @@ const EmpTaskManagement = () => {
           </div>
         </>
       ) : (
-        <WeeklyTaskPlanner employeeId={employeeId} currentDate={currentDate} /> 
+        <WeeklyTaskPlanner employeeId={employeeId} currentDate={currentDate} />
       )}
     </div>
   );
