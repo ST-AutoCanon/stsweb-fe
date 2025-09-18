@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 
-const idleTimeout = 5 * 60 * 1000;
+const idleTimeout = 15 * 60 * 1000;
 
 const ProtectedLayout = () => {
   const navigate = useNavigate();
