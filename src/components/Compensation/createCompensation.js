@@ -118,26 +118,7 @@ const calculationDefaults = {
   advanceRecovery: { amount: '0', type: 'amount' },
 };
 
-// Mapping of calculated fields to formData fields
-// const salaryFieldToFormDataMap = {
-//   basicSalary: { amount: 'basicSalaryAmount', percentage: 'basicSalary', type: 'basicSalaryType', enable: 'isBasicSalary', default: calculationDefaults.basicSalary },
-//   hra: { amount: 'houseRentAllowanceAmount', percentage: 'houseRentAllowance', type: 'houseRentAllowanceType', enable: 'isHouseRentAllowance', default: calculationDefaults.hra },
-//   lta: { amount: 'ltaAllowanceAmount', percentage: 'ltaAllowance', type: 'ltaAllowanceType', enable: 'isLtaAllowance', default: calculationDefaults.lta },
-//   otherAllowance: { amount: 'otherAllowanceAmount', percentage: 'otherAllowance', type: 'otherAllowanceType', enable: 'isOtherAllowance', default: calculationDefaults.otherAllowance },
-//   variablePay: { amount: 'variablePayAmount', percentage: 'variablePay', type: 'variablePayType', enable: 'isVariablePay', default: calculationDefaults.variablePay },
-//   statutoryBonus: { amount: 'statutoryBonusAmount', percentage: 'statutoryBonusPercentage', type: 'statutoryBonusType', enable: 'isStatutoryBonus', default: calculationDefaults.statutoryBonus },
-//   incentives: { amount: 'incentivesAmount', percentage: 'incentives', type: 'incentivesType', enable: 'isIncentives', default: calculationDefaults.incentives },
-//   professionalTax: { amount: 'professionalTaxAmount', percentage: 'professionalTax', type: 'professionalTaxType', enable: 'isProfessionalTax', default: calculationDefaults.professionalTax },
-//   pfEmployee: { amount: 'pfEmployeeAmount', percentage: 'pfEmployeePercentage', type: 'pfEmployeeType', enable: 'isPFEmployee', default: calculationDefaults.pfEmployee },
-//   pfEmployer: { amount: 'pfEmployerAmount', percentage: 'pfEmployerPercentage', type: 'pfEmployerType', enable: 'isPFEmployer', default: calculationDefaults.pfEmployer },
-//   pfCalculationBase: { field: 'pfCalculationBase', default: '' },
-//   esicEmployee: { amount: 'esicEmployeeAmount', percentage: 'esicEmployeePercentage', type: 'esicEmployeeType', enable: 'isESICEmployee', default: calculationDefaults.esicEmployee },
-//   insuranceEmployee: { amount: 'insuranceEmployeeAmount', percentage: 'insuranceEmployeePercentage', type: 'insuranceEmployeeType', enable: 'isInsuranceEmployee', default: calculationDefaults.insuranceEmployee },
-//   gratuity: { amount: 'gratuityAmount', percentage: 'gratuityPercentage', type: 'gratuityType', enable: 'isGratuityApplicable', default: calculationDefaults.gratuity },
-//   medicalCalculationBase: { field: 'medicalCalculationBase', default: '' },
-//   tds: { enable: 'isTDSApplicable', default: calculationDefaults.tds },
-//   advanceRecovery: { default: calculationDefaults.advanceRecovery },
-// };
+
 const salaryFieldToFormDataMap = {
   basicSalary: { amount: 'basicSalaryAmount', percentage: 'basicSalary', type: 'basicSalaryType', enable: 'isBasicSalary', default: calculationDefaults.basicSalary },
   hra: { amount: 'houseRentAllowanceAmount', percentage: 'houseRentAllowance', type: 'houseRentAllowanceType', enable: 'isHouseRentAllowance', default: calculationDefaults.hra },
@@ -677,20 +658,6 @@ const [errors, setErrors] = useState({});
     }
   };
 
-//   const validateField = (name, value, fieldConfig, formData) => {
-//   const { validation } = fieldConfig;
-//   if (!validation || !formData[validation.appliesWhen.field] || formData[validation.appliesWhen.field] !== validation.appliesWhen.value) {
-//     return ''; // Validation does not apply
-//   }
-//   const numValue = parseFloat(value);
-//   if (isNaN(numValue)) {
-//     return 'Please enter a valid number.';
-//   }
-//   if (numValue < validation.min || numValue > validation.max) {
-//     return validation.message;
-//   }
-//   return '';
-// };
 
 const validateField = (name, value, fieldConfig, formData) => {
   const { validation } = fieldConfig;
@@ -840,22 +807,29 @@ const validateField = (name, value, fieldConfig, formData) => {
   const fieldNames = {
     basicSalary: 'Basic Salary',
     hra: 'Hra',
-    ltaAllowance: 'Lta Allowance',
+    ltaAllowance: 'LTA Allowance',
     overtimePay: 'Overtime Pay',
-    bonusPay: 'Statutory Bonus', // Changed from 'Bonus Pay'
-    employeePF: 'Employee P F',
-    employerPF: 'Employer P F',
-    esic: 'Esic',
+    bonusPay: 'Statutory Bonus',
+    employeePF: 'Employee PF',
+    employerPF: 'Employer PF',
+    esic: 'ESIC Employee',
     gratuity: 'Gratuity',
     professionalTax: 'Professional Tax',
     otherAllowances: 'Other Allowances',
-    tds: 'Tds',
+    tds: 'TDS',
     advanceRecovery: 'Advance Recovery',
     insurance: 'Insurance',
     grossSalary: 'Gross Salary',
-    netSalary: 'Net Salary'
+    netSalary: 'Net Salary',
+    isESICEmployee: 'Is Esic Employee', // Add specific mapping for isESICEmployee
+    isMedicalApplicable: 'Is Medical Applicable',
+    esicEmployeePercentage: 'Esic Employee Percentage',
+    recordBonusPay: null,
+    recordBonusPayYearly: null,
+    // Add other fields as needed
   };
-  return fieldNames[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+
+  return fieldNames[key] || key.replace(/([A-Z][a-z]+)/g, ' $1').replace(/^./, (str) => str.toUpperCase()).trim();
 };
 
   const isDefaultValue = (key, value) => {
@@ -866,21 +840,154 @@ const validateField = (name, value, fieldConfig, formData) => {
     return value === defaultValue;
   };
 
-  const shouldDisplayField = (key, value, formData) => {
-  // Exclude internal text fields
+//   const shouldDisplayField = (key, value, formData) => {
+//   // Exclude internal text fields
+//   const excludedFields = [
+//     'pfEmployeeText',
+//     'pfEmployerText',
+//     'esicEmployeeText',
+//     'insuranceEmployeeText',
+//     'recordBonusPay', // Explicitly exclude Record Bonus Pay
+//     'recordBonusPayYearly', // Explicitly exclude Record Bonus Pay Yearly
+//   ];
+//   if (excludedFields.includes(key)) {
+//     return false;
+//   }
+
+//   if (isDefaultValue(key, value)) {
+//     return false;
+//   }
+//   const typeDependentFields = {
+//     pfEmployeePercentage: { typeField: 'pfEmployeeType', showWhen: 'percentage', enableField: 'isPFEmployee' },
+//     pfEmployeeAmount: { typeField: 'pfEmployeeType', showWhen: 'amount', enableField: 'isPFEmployee' },
+//     pfEmployerPercentage: { typeField: 'pfEmployerType', showWhen: 'percentage', enableField: 'isPFEmployer' },
+//     pfEmployerAmount: { typeField: 'pfEmployerType', showWhen: 'amount', enableField: 'isPFEmployer' },
+//     esicEmployeePercentage: { typeField: 'esicEmployeeType', showWhen: 'percentage', enableField: 'isESICEmployee' },
+//     esicEmployeeAmount: { typeField: 'esicEmployeeType', showWhen: 'amount', enableField: 'isESICEmployee' },
+//     insuranceEmployeePercentage: { typeField: 'insuranceEmployeeType', showWhen: 'percentage', enableField: 'isInsuranceEmployee' },
+//     insuranceEmployeeAmount: { typeField: 'insuranceEmployeeType', showWhen: 'amount', enableField: 'isInsuranceEmployee' },
+//     gratuityPercentage: { typeField: 'gratuityType', showWhen: 'percentage', enableField: 'isGratuityApplicable' },
+//     gratuityAmount: { typeField: 'gratuityType', showWhen: 'amount', enableField: 'isGratuityApplicable' },
+//     professionalTax: { typeField: 'professionalTaxType', showWhen: 'percentage', enableField: 'isProfessionalTax' },
+//     professionalTaxAmount: { typeField: 'professionalTaxType', showWhen: 'amount', enableField: 'isProfessionalTax' },
+//     variablePay: { typeField: 'variablePayType', showWhen: 'percentage', enableField: 'isVariablePay' },
+//     variablePayAmount: { typeField: 'variablePayType', showWhen: 'amount', enableField: 'isVariablePay' },
+//     statutoryBonusPercentage: { typeField: 'statutoryBonusType', showWhen: 'percentage', enableField: 'isStatutoryBonus' },
+//     statutoryBonusAmount: { typeField: 'statutoryBonusType', showWhen: 'amount', enableField: 'isStatutoryBonus' },
+//     basicSalary: { typeField: 'basicSalaryType', showWhen: 'percentage', enableField: 'isBasicSalary' },
+//     basicSalaryAmount: { typeField: 'basicSalaryType', showWhen: 'amount', enableField: 'isBasicSalary' },
+//     houseRentAllowance: { typeField: 'houseRentAllowanceType', showWhen: 'percentage', enableField: 'isHouseRentAllowance' },
+//     houseRentAllowanceAmount: { typeField: 'houseRentAllowanceType', showWhen: 'amount', enableField: 'isHouseRentAllowance' },
+//     ltaAllowance: { typeField: 'ltaAllowanceType', showWhen: 'percentage', enableField: 'isLtaAllowance' },
+//     ltaAllowanceAmount: { typeField: 'ltaAllowanceType', showWhen: 'amount', enableField: 'isLtaAllowance' },
+//     otherAllowance: { typeField: 'otherAllowanceType', showWhen: 'percentage', enableField: 'isOtherAllowance' },
+//     otherAllowanceAmount: { typeField: 'otherAllowanceType', showWhen: 'amount', enableField: 'isOtherAllowance' },
+//     incentives: { typeField: 'incentivesType', showWhen: 'percentage', enableField: 'isIncentives' },
+//     incentivesAmount: { typeField: 'incentivesType', showWhen: 'amount', enableField: 'isIncentives' },
+//   };
+//   if (typeDependentFields[key]) {
+//     const { typeField, showWhen, enableField } = typeDependentFields[key];
+//     return formData[enableField] && formData[typeField] === showWhen && value !== '';
+//   }
+//   return (
+//     typeof value === 'boolean' ||
+//     (typeof value === 'string' && value !== '') ||
+//     (typeof value === 'object' && value !== null && !isDefaultValue(key, value))
+//   );
+// };
+
+const shouldDisplayField = (key, value, formData) => {
+  // Exclude specific fields
   const excludedFields = [
     'pfEmployeeText',
     'pfEmployerText',
     'esicEmployeeText',
-    'insuranceEmployeeText'
+    'insuranceEmployeeText',
+    'recordBonusPay',
+    'recordBonusPayYearly',
+    'bonusPay' // Exclude bonusPay to avoid duplicate Statutory Bonus
   ];
   if (excludedFields.includes(key)) {
     return false;
   }
 
+  // Skip default/empty values
   if (isDefaultValue(key, value)) {
     return false;
   }
+
+  // Map fields to their enable fields
+  const fieldEnableMap = {
+    // formData fields
+    overtimePayAmount: 'isOvertimePay',
+    overtimePayUnits: 'isOvertimePay',
+    isDefaultWorkingDays: true,
+    defaultWorkingDays: 'isDefaultWorkingDays',
+    basicSalary: 'isBasicSalary',
+    basicSalaryAmount: 'isBasicSalary',
+    houseRentAllowance: 'isHouseRentAllowance',
+    houseRentAllowanceAmount: 'isHouseRentAllowance',
+    ltaAllowance: 'isLtaAllowance',
+    ltaAllowanceAmount: 'isLtaAllowance',
+    otherAllowance: 'isOtherAllowance',
+    otherAllowanceAmount: 'isOtherAllowance',
+    variablePay: 'isVariablePay',
+    variablePayAmount: 'isVariablePay',
+    statutoryBonusPercentage: 'isStatutoryBonus',
+    statutoryBonusAmount: 'isStatutoryBonus',
+    incentives: 'isIncentives',
+    incentivesAmount: 'isIncentives',
+    professionalTax: 'isProfessionalTax',
+    professionalTaxAmount: 'isProfessionalTax',
+    pfEmployeePercentage: 'isPFEmployee',
+    pfEmployeeAmount: 'isPFEmployee',
+    pfEmployerPercentage: 'isPFEmployer',
+    pfEmployerAmount: 'isPFEmployer',
+    esicEmployeePercentage: 'isESICEmployee',
+    esicEmployeeAmount: 'isESICEmployee',
+    insuranceEmployeePercentage: 'isInsuranceEmployee',
+    insuranceEmployeeAmount: 'isInsuranceEmployee',
+    gratuityPercentage: 'isGratuityApplicable',
+    gratuityAmount: 'isGratuityApplicable',
+    // salaryDetails fields
+    basicSalary: 'isBasicSalary',
+    hra: 'isHouseRentAllowance',
+    ltaAllowance: 'isLtaAllowance',
+    otherAllowances: 'isOtherAllowance',
+    variablePay: 'isVariablePay',
+    statutoryBonus: 'isStatutoryBonus',
+    incentives: 'isIncentives',
+    professionalTax: 'isProfessionalTax',
+    employeePF: 'isPFEmployee',
+    employerPF: 'isPFEmployer',
+    esic: 'isESICEmployee',
+    insurance: 'isInsuranceEmployee',
+    gratuity: 'isGratuityApplicable',
+    overtimePay: 'isOvertimePay',
+    tds: 'isTDSApplicable',
+    grossSalary: true,
+    netSalary: true,
+    advanceRecovery: true
+  };
+
+  // Check if the field is enabled
+  const enableField = fieldEnableMap[key];
+  if (enableField) {
+    if (enableField === true) {
+      if (typeof value === 'object' && value !== null) {
+        return true;
+      }
+      return typeof value === 'number' ? value !== 0 : value !== '';
+    }
+    if (formData[enableField]) {
+      if (typeof value === 'object' && value !== null) {
+        return true;
+      }
+      return typeof value === 'number' ? value !== 0 : value !== '';
+    }
+  }
+
+  // Type-dependent fields
   const typeDependentFields = {
     pfEmployeePercentage: { typeField: 'pfEmployeeType', showWhen: 'percentage', enableField: 'isPFEmployee' },
     pfEmployeeAmount: { typeField: 'pfEmployeeType', showWhen: 'amount', enableField: 'isPFEmployee' },
@@ -907,18 +1014,17 @@ const validateField = (name, value, fieldConfig, formData) => {
     otherAllowance: { typeField: 'otherAllowanceType', showWhen: 'percentage', enableField: 'isOtherAllowance' },
     otherAllowanceAmount: { typeField: 'otherAllowanceType', showWhen: 'amount', enableField: 'isOtherAllowance' },
     incentives: { typeField: 'incentivesType', showWhen: 'percentage', enableField: 'isIncentives' },
-    incentivesAmount: { typeField: 'incentivesType', showWhen: 'amount', enableField: 'isIncentives' },
+    incentivesAmount: { typeField: 'incentivesType', showWhen: 'amount', enableField: 'isIncentives' }
   };
+
   if (typeDependentFields[key]) {
     const { typeField, showWhen, enableField } = typeDependentFields[key];
     return formData[enableField] && formData[typeField] === showWhen && value !== '';
   }
-  return (
-    typeof value === 'boolean' ||
-    (typeof value === 'string' && value !== '') ||
-    (typeof value === 'object' && value !== null && !isDefaultValue(key, value))
-  );
+
+  return false;
 };
+
 
   const getPlanValue = (calcField, formData) => {
   const mapping = salaryFieldToFormDataMap[calcField];
@@ -1050,64 +1156,6 @@ if (calcField === 'overtimePay') {
   setSalaryDetails(calculatedDetails);
 };
 
-  // const renderCategoryField = ({ label, field, percentageField, amountField, typeField, required = false }) => (
-  //   <div key={field} className="compensation-form-group">
-  //     <span className="compensation-label-text">
-  //       {label} {required && <span style={{ color: 'red' }}>*</span>}
-  //     </span>
-  //     <div className="compensation-checkbox-group">
-  //       <label className="compensation-checkbox-label">
-  //         <input
-  //           type="checkbox"
-  //           checked={formData[field]}
-  //           onChange={() => handleCheckboxChange(field, 'yes')}
-  //           className="compensation-checkbox"
-  //         />
-  //         <span>Yes</span>
-  //       </label>
-  //       <label className="compensation-checkbox-label">
-  //         <input
-  //           type="checkbox"
-  //           checked={!formData[field] && formData[field] !== undefined}
-  //           onChange={() => handleCheckboxChange(field, 'no')}
-  //           className="compensation-checkbox"
-  //         />
-  //         <span>No</span>
-  //       </label>
-  //     </div>
-  //     {formData[field] && percentageField && amountField && typeField && (
-  //       <div className="compensation-input-group">
-  //         <select
-  //           value={formData[typeField]}
-  //           onChange={(e) => handleInputChange(typeField, e.target.value)}
-  //           className="compensation-select"
-  //         >
-  //           <option value="percentage">Percentage</option>
-  //           <option value="amount">Fixed Amount</option>
-  //         </select>
-  //         {formData[typeField] === 'percentage' ? (
-  //           <input
-  //             type="number"
-  //             placeholder="Percentage"
-  //             value={formData[percentageField]}
-  //             onChange={(e) => handleInputChange(percentageField, e.target.value)}
-  //             className="compensation-percentage-input"
-  //             required={required}
-  //           />
-  //         ) : (
-  //           <input
-  //             type="number"
-  //             placeholder="Amount"
-  //             value={formData[amountField]}
-  //             onChange={(e) => handleInputChange(amountField, e.target.value)}
-  //             className="compensation-number-input"
-  //             required={required}
-  //           />
-  //         )}
-  //       </div>
-  //     )}
-  //   </div>
-  // );
 const renderCategoryField = ({
   label,
   field,
@@ -1121,7 +1169,7 @@ const renderCategoryField = ({
 }) => (
   <div key={field} className="compensation-form-group">
     <span className="compensation-label-text">
-      {label} {required && <span style={{ color: 'red' }}>*</span>}
+      {label}
     </span>
 
     {type === 'dropdown' ? (
@@ -1533,20 +1581,21 @@ const renderCategoryField = ({
 
 
   {
-    title: 'PF and Medical Contributions',
-    fields: [
-      {
-        label: 'PF Applicable',
-        field: 'isPFApplicable',
-      },
-      ...(formData.isPFApplicable
-        ? [
-            {
-              label: 'Calculation Based On',
-              field: 'pfCalculationBase',
-              component: (
-                <div className="compensation-field-row">
-                  <label className="compensation-label">Calculation Based On</label>
+  title: 'PF and Medical Contributions',
+  fields: [
+    {
+      label: 'PF Applicable',
+      field: 'isPFApplicable',
+    },
+    ...(formData.isPFApplicable
+      ? [
+          {
+            label: 'Calculation Based On',
+            field: 'pfCalculationBase',
+            component: (
+              <div className="compensation-form-group">
+                <span className="compensation-label-text">Calculation Based On</span>
+                <div className="compensation-input-group">
                   <select
                     value={formData.pfCalculationBase || ''}
                     onChange={(e) => handleInputChange('pfCalculationBase', e.target.value)}
@@ -1557,37 +1606,39 @@ const renderCategoryField = ({
                     <option value="gross">Gross Salary</option>
                   </select>
                 </div>
-              ),
-            },
-            {
-              label: 'PF of Employee',
-              field: 'isPFEmployee',
-              percentageField: 'pfEmployeePercentage',
-              amountField: 'pfEmployeeAmount',
-              typeField: 'pfEmployeeType',
-            },
-            {
-              label: 'PF of Employer',
-              field: 'isPFEmployer',
-              percentageField: 'pfEmployerPercentage',
-              amountField: 'pfEmployerAmount',
-              typeField: 'pfEmployerType',
-            },
-          ]
-        : []),
+              </div>
+            ),
+          },
+          {
+            label: 'PF of Employee',
+            field: 'isPFEmployee',
+            percentageField: 'pfEmployeePercentage',
+            amountField: 'pfEmployeeAmount',
+            typeField: 'pfEmployeeType',
+          },
+          {
+            label: 'PF of Employer',
+            field: 'isPFEmployer',
+            percentageField: 'pfEmployerPercentage',
+            amountField: 'pfEmployerAmount',
+            typeField: 'pfEmployerType',
+          },
+        ]
+      : []),
 
-      {
-        label: 'Medical Applicable',
-        field: 'isMedicalApplicable',
-      },
-      ...(formData.isMedicalApplicable
-        ? [
-            {
-              label: 'Calculation Based On',
-              field: 'medicalCalculationBase',
-              component: (
-                <div className="compensation-field-row">
-                  <label className="compensation-label">Calculation Based On</label>
+    {
+      label: 'Medical Applicable',
+      field: 'isMedicalApplicable',
+    },
+    ...(formData.isMedicalApplicable
+      ? [
+          {
+            label: 'Calculation Based On',
+            field: 'medicalCalculationBase',
+            component: (
+              <div className="compensation-form-group">
+                <span className="compensation-label-text">Calculation Based On</span>
+                <div className="compensation-input-group">
                   <select
                     value={formData.medicalCalculationBase || ''}
                     onChange={(e) =>
@@ -1600,26 +1651,27 @@ const renderCategoryField = ({
                     <option value="gross">Gross Salary</option>
                   </select>
                 </div>
-              ),
-            },
-            {
-              label: 'ESIC of Employee',
-              field: 'isESICEmployee',
-              percentageField: 'esicEmployeePercentage',
-              amountField: 'esicEmployeeAmount',
-              typeField: 'esicEmployeeType',
-            },
-            {
-              label: 'Insurance of Employee',
-              field: 'isInsuranceEmployee',
-              percentageField: 'insuranceEmployeePercentage',
-              amountField: 'insuranceEmployeeAmount',
-              typeField: 'insuranceEmployeeType',
-            },
-          ]
-        : []),
-    ],
-  },
+              </div>
+            ),
+          },
+          {
+            label: 'Esic of Employee',
+            field: 'isESICEmployee',
+            percentageField: 'esicEmployeePercentage',
+            amountField: 'esicEmployeeAmount',
+            typeField: 'esicEmployeeType',
+          },
+          {
+            label: 'Insurance of Employee',
+            field: 'isInsuranceEmployee',
+            percentageField: 'insuranceEmployeePercentage',
+            amountField: 'insuranceEmployeeAmount',
+            typeField: 'insuranceEmployeeType',
+          },
+        ]
+      : []),
+  ],
+},
     {
       title: 'Statutory Components',
       fields: [
@@ -1911,7 +1963,7 @@ const renderCategoryField = ({
                         <th>Value</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    {/* <tbody>
                       {Object.entries(formData)
                         .filter(([key, value]) => shouldDisplayField(key, value, formData))
                         .map(([key, value]) => (
@@ -1926,7 +1978,30 @@ const renderCategoryField = ({
                             </td>
                           </tr>
                         ))}
-                    </tbody>
+                    </tbody> */}
+
+                    <tbody>
+    {Object.entries(formData)
+      .filter(([key, value]) => shouldDisplayField(key, value, formData))
+      .map(([key, value]) => (
+        <tr key={key}>
+          <td>{formatFieldName(key)}</td>
+          <td>
+            {key === 'defaultWorkingDays' && typeof value === 'object' && value !== null ? (
+              <div>
+                {Object.entries(value).map(([day, status]) => (
+                  <div key={day}>{`${day}: ${status}`}</div>
+                ))}
+              </div>
+            ) : typeof value === 'boolean' ? (
+              value ? 'Yes' : 'No'
+            ) : (
+              value
+            )}
+          </td>
+        </tr>
+      ))}
+  </tbody>
                   </table>
                 </div>
                 {salaryDetails && (
@@ -1942,13 +2017,19 @@ const renderCategoryField = ({
                       </thead>
                      <tbody>
   {salaryDetails &&
-    Object.entries(salaryDetails).map(([key, value]) => (
-      <tr key={key}>
-        <td>{formatFieldName(key)}</td>
-        <td>{typeof value === 'number' ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : value}</td>
-        <td>{getPlanValue(key, formData)}</td>
-      </tr>
-    ))}
+    Object.entries(salaryDetails)
+      .filter(([key, value]) => shouldDisplayField(key, value, formData))
+      .map(([key, value]) => (
+        <tr key={key}>
+          <td>{formatFieldName(key)}</td>
+          <td>
+            {typeof value === 'number'
+              ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+              : value}
+          </td>
+          <td>{getPlanValue(key, formData)}</td>
+        </tr>
+      ))}
 </tbody>
                     </table>
                   </div>
