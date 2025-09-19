@@ -9,15 +9,15 @@ const fetchLOPData = async (employeeId) => {
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
     const [currentMonthResponse, deferredResponse, nextMonthResponse] = await Promise.all([
       axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/current-month-lop`, { headers }),
-      axios.get(`${process.env.REACT_APP_BACKEND_URL}`, { headers }),
-      axios.get(`${process.env.REACT_APP_BACKEND_URL}`, { headers })
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/deferred-lop`, { headers }).catch(() => ({ data: { data: [] } })),
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/next-month-lop`, { headers }).catch(() => ({ data: { data: [] } }))
     ]);
 
-    // console.log(`Raw LOP API responses for ${employeeId}:`, {
-    //   currentMonth: currentMonthResponse.data.data,
-    //   deferred: deferredResponse.data.data,
-    //   nextMonth: nextMonthResponse.data.data
-    // });
+    console.log(`Raw LOP API responses for ${employeeId}:`, {
+      currentMonth: currentMonthResponse.data.data,
+      deferred: deferredResponse.data.data,
+      nextMonth: nextMonthResponse.data.data
+    });
 
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1; // 1-12
@@ -42,12 +42,12 @@ const fetchLOPData = async (employeeId) => {
       lop.employee_id.toUpperCase() === employeeId.toUpperCase()
     );
 
-    // console.log(`Filtered LOP data for ${employeeId}:`, {
-    //   currentMonthLOP,
-    //   yearlyLOP,
-    //   deferredLOP,
-    //   nextMonthLOP
-    // });
+    console.log(`Filtered LOP data for ${employeeId}:`, {
+      currentMonthLOP,
+      yearlyLOP,
+      deferredLOP,
+      nextMonthLOP
+    });
 
     return { currentMonthLOP, yearlyLOP, deferredLOP, nextMonthLOP };
   } catch (error) {
