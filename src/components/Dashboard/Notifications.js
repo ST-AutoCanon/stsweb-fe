@@ -20,7 +20,7 @@ export default function Notifications({ visible, onClose, onRead }) {
   useEffect(() => {
     if (!visible) return;
     axios
-      .get(`${BACKEND_URL}/notifications`, {
+      .get(`${BACKEND_URL}/api/notifications`, {
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       })
       .then((res) => {
@@ -46,7 +46,7 @@ export default function Notifications({ visible, onClose, onRead }) {
   const markRead = (id) => {
     return axios
       .put(
-        `${BACKEND_URL}/notifications/${id}/read`,
+        `${BACKEND_URL}/api/notifications/${id}/read`,
         {},
         { headers: { "x-api-key": API_KEY, "x-employee-id": meId } }
       )
