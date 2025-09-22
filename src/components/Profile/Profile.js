@@ -283,7 +283,7 @@ const Profile = ({ onClose, notificationId = null }) => {
     if (!id) return;
     try {
       await axios.put(
-        `${BASE_URL}/notifications/${id}/read`,
+        `${BASE_URL}/api/notifications/${id}/read`,
         {},
         { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
       );
