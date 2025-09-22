@@ -48,7 +48,7 @@ const Dashboard = () => {
     async function fetchProfileNotifications() {
       try {
         const res = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/notifications`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/notifications`,
           { headers }
         );
         const notifications = res.data.notifications || [];
