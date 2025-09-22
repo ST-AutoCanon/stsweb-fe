@@ -840,61 +840,6 @@ const validateField = (name, value, fieldConfig, formData) => {
     return value === defaultValue;
   };
 
-//   const shouldDisplayField = (key, value, formData) => {
-//   // Exclude internal text fields
-//   const excludedFields = [
-//     'pfEmployeeText',
-//     'pfEmployerText',
-//     'esicEmployeeText',
-//     'insuranceEmployeeText',
-//     'recordBonusPay', // Explicitly exclude Record Bonus Pay
-//     'recordBonusPayYearly', // Explicitly exclude Record Bonus Pay Yearly
-//   ];
-//   if (excludedFields.includes(key)) {
-//     return false;
-//   }
-
-//   if (isDefaultValue(key, value)) {
-//     return false;
-//   }
-//   const typeDependentFields = {
-//     pfEmployeePercentage: { typeField: 'pfEmployeeType', showWhen: 'percentage', enableField: 'isPFEmployee' },
-//     pfEmployeeAmount: { typeField: 'pfEmployeeType', showWhen: 'amount', enableField: 'isPFEmployee' },
-//     pfEmployerPercentage: { typeField: 'pfEmployerType', showWhen: 'percentage', enableField: 'isPFEmployer' },
-//     pfEmployerAmount: { typeField: 'pfEmployerType', showWhen: 'amount', enableField: 'isPFEmployer' },
-//     esicEmployeePercentage: { typeField: 'esicEmployeeType', showWhen: 'percentage', enableField: 'isESICEmployee' },
-//     esicEmployeeAmount: { typeField: 'esicEmployeeType', showWhen: 'amount', enableField: 'isESICEmployee' },
-//     insuranceEmployeePercentage: { typeField: 'insuranceEmployeeType', showWhen: 'percentage', enableField: 'isInsuranceEmployee' },
-//     insuranceEmployeeAmount: { typeField: 'insuranceEmployeeType', showWhen: 'amount', enableField: 'isInsuranceEmployee' },
-//     gratuityPercentage: { typeField: 'gratuityType', showWhen: 'percentage', enableField: 'isGratuityApplicable' },
-//     gratuityAmount: { typeField: 'gratuityType', showWhen: 'amount', enableField: 'isGratuityApplicable' },
-//     professionalTax: { typeField: 'professionalTaxType', showWhen: 'percentage', enableField: 'isProfessionalTax' },
-//     professionalTaxAmount: { typeField: 'professionalTaxType', showWhen: 'amount', enableField: 'isProfessionalTax' },
-//     variablePay: { typeField: 'variablePayType', showWhen: 'percentage', enableField: 'isVariablePay' },
-//     variablePayAmount: { typeField: 'variablePayType', showWhen: 'amount', enableField: 'isVariablePay' },
-//     statutoryBonusPercentage: { typeField: 'statutoryBonusType', showWhen: 'percentage', enableField: 'isStatutoryBonus' },
-//     statutoryBonusAmount: { typeField: 'statutoryBonusType', showWhen: 'amount', enableField: 'isStatutoryBonus' },
-//     basicSalary: { typeField: 'basicSalaryType', showWhen: 'percentage', enableField: 'isBasicSalary' },
-//     basicSalaryAmount: { typeField: 'basicSalaryType', showWhen: 'amount', enableField: 'isBasicSalary' },
-//     houseRentAllowance: { typeField: 'houseRentAllowanceType', showWhen: 'percentage', enableField: 'isHouseRentAllowance' },
-//     houseRentAllowanceAmount: { typeField: 'houseRentAllowanceType', showWhen: 'amount', enableField: 'isHouseRentAllowance' },
-//     ltaAllowance: { typeField: 'ltaAllowanceType', showWhen: 'percentage', enableField: 'isLtaAllowance' },
-//     ltaAllowanceAmount: { typeField: 'ltaAllowanceType', showWhen: 'amount', enableField: 'isLtaAllowance' },
-//     otherAllowance: { typeField: 'otherAllowanceType', showWhen: 'percentage', enableField: 'isOtherAllowance' },
-//     otherAllowanceAmount: { typeField: 'otherAllowanceType', showWhen: 'amount', enableField: 'isOtherAllowance' },
-//     incentives: { typeField: 'incentivesType', showWhen: 'percentage', enableField: 'isIncentives' },
-//     incentivesAmount: { typeField: 'incentivesType', showWhen: 'amount', enableField: 'isIncentives' },
-//   };
-//   if (typeDependentFields[key]) {
-//     const { typeField, showWhen, enableField } = typeDependentFields[key];
-//     return formData[enableField] && formData[typeField] === showWhen && value !== '';
-//   }
-//   return (
-//     typeof value === 'boolean' ||
-//     (typeof value === 'string' && value !== '') ||
-//     (typeof value === 'object' && value !== null && !isDefaultValue(key, value))
-//   );
-// };
 
 const shouldDisplayField = (key, value, formData) => {
   // Exclude specific fields
@@ -1450,39 +1395,7 @@ const renderCategoryField = ({
         }
       ]
     },
-    // {
-    //   title: 'Allowances',
-    //   fields: [
-    //     {
-    //       label: 'Basic Salary',
-    //       field: 'isBasicSalary',
-    //       percentageField: 'basicSalary',
-    //       amountField: 'basicSalaryAmount',
-    //       typeField: 'basicSalaryType',
-    //     },
-    //     {
-    //       label: 'House Rent Allowance',
-    //       field: 'isHouseRentAllowance',
-    //       percentageField: 'houseRentAllowance',
-    //       amountField: 'houseRentAllowanceAmount',
-    //       typeField: 'houseRentAllowanceType',
-    //     },
-    //     {
-    //       label: 'LTA Allowance',
-    //       field: 'isLtaAllowance',
-    //       percentageField: 'ltaAllowance',
-    //       amountField: 'ltaAllowanceAmount',
-    //       typeField: 'ltaAllowanceType',
-    //     },
-    //     {
-    //       label: 'Other Allowance',
-    //       field: 'isOtherAllowance',
-    //       percentageField: 'otherAllowance',
-    //       amountField: 'otherAllowanceAmount',
-    //       typeField: 'otherAllowanceType',
-    //     },
-    //   ]
-    // },
+    
 {
   title: 'Allowances',
   fields: [
@@ -1980,28 +1893,169 @@ const renderCategoryField = ({
                         ))}
                     </tbody> */}
 
-                    <tbody>
-    {Object.entries(formData)
-      .filter(([key, value]) => shouldDisplayField(key, value, formData))
-      .map(([key, value]) => (
-        <tr key={key}>
-          <td>{formatFieldName(key)}</td>
-          <td>
-            {key === 'defaultWorkingDays' && typeof value === 'object' && value !== null ? (
-              <div>
-                {Object.entries(value).map(([day, status]) => (
-                  <div key={day}>{`${day}: ${status}`}</div>
-                ))}
+         <tbody>
+  {[
+    {
+      label: "Basic Salary",
+      values: {
+        Percentage: formData.basicSalary || formData.basicSalaryPercentage,
+        Amount: formData.basicSalaryAmount,
+        Type: formData.basicSalaryType,
+      },
+    },
+    {
+      label: "House Rent Allowance (HRA)",
+      values: {
+        Percentage: formData.hra || formData.houseRentAllowance,
+        Amount: formData.hraAmount,
+        Type: formData.houseRentAllowanceType,
+      },
+    },
+    {
+      label: "Leave Travel Allowance (LTA)",
+      values: {
+        Percentage: formData.lta || formData.ltaAllowance,
+        Amount: formData.ltaAmount,
+        Type: formData.ltaAllowanceType,
+      },
+    },
+    {
+      label: "Other Allowance",
+      values: {
+        Percentage: formData.otherAllowance || formData.otherAllowancePercentage,
+        Amount: formData.otherAllowanceAmount,
+        Type: formData.otherAllowanceType,
+      },
+    },
+    {
+      label: "Provident Fund (PF - Employee)",
+      values: {
+        Percentage: formData.pfEmployeePercentage || formData.pfPercentage,
+        Amount: formData.pfEmployeeAmount,
+        Type: formData.pfEmployeeType,
+      },
+    },
+    {
+      label: "Provident Fund (PF - Employer)",
+      values: {
+        Percentage: formData.pfEmployerPercentage,
+        Amount: formData.pfEmployerAmount,
+        Type: formData.pfEmployerType,
+      },
+    },
+    {
+      label: "Employee State Insurance (ESIC - Employee)",
+      values: {
+        Percentage: formData.esicEmployeePercentage || formData.esiPercentage,
+        Amount: formData.esicEmployeeAmount,
+        Type: formData.esicEmployeeType,
+      },
+    },
+    {
+      label: "Insurance (Employee)",
+      values: {
+        Percentage: formData.insuranceEmployeePercentage || formData.insurancePercentage,
+        Amount: formData.insuranceEmployeeAmount,
+        Type: formData.insuranceEmployeeType,
+      },
+    },
+    {
+      label: "TDS Slabs",
+      values: {
+        Slabs: formData.tdsSlabs || [],
+        Type: formData.tdsType,
+      },
+    },
+    {
+      label: "Professional Tax",
+      values: {
+        Percentage: formData.professionalTax || formData.professionalTaxPercentage,
+        Amount: formData.professionalTaxAmount,
+        Type: formData.professionalTaxType,
+      },
+    },
+    {
+      label: "Statutory Bonus",
+      values: {
+        Percentage: formData.statutoryBonusPercentage,
+        Amount: formData.statutoryBonusAmount,
+        Type: formData.statutoryBonusType,
+      },
+    },
+    {
+      label: "Incentives",
+      values: {
+        Percentage: formData.incentives || formData.incentivesPercentage,
+        Amount: formData.incentivesAmount,
+        Type: formData.incentivesType,
+      },
+    },
+    {
+      label: "Variable Pay / Bonus",
+      values: {
+        Percentage: formData.variablePay || formData.variablePayPercentage,
+        Amount: formData.variablePayAmount,
+        Type: formData.variablePayType,
+      },
+    },
+    {
+      label: "Gratuity",
+      values: {
+        Percentage: formData.gratuityPercentage,
+        Amount: formData.gratuityAmount,
+        Type: formData.gratuityType,
+      },
+    },
+    {
+      label: "Overtime Pay",
+      values: {
+        Type: formData.overtimePayType,
+        Rate: formData.overtimePayAmount,
+        Units: formData.overtimePayUnits,
+      },
+    },
+    {
+      label: "Default Working Days",
+      values: formData.defaultWorkingDays || {},
+    },
+  ].map((field, idx) => (
+    <tr key={idx}>
+      <td>{field.label}</td>
+      <td>
+        {Array.isArray(field.values.Slabs) ? (
+          field.values.Slabs.length > 0 ? (
+            field.values.Slabs.map((slab, i) => (
+              <div key={i}>
+                From: {slab.from}, To: {slab.to}, %: {slab.percentage}
               </div>
-            ) : typeof value === 'boolean' ? (
-              value ? 'Yes' : 'No'
-            ) : (
-              value
-            )}
-          </td>
-        </tr>
-      ))}
-  </tbody>
+            ))
+          ) : (
+            <span>-</span>
+          )
+        ) : field.label === "Default Working Days" ? (
+          Object.entries(field.values).map(([day, status]) => (
+            <div key={day}>{`${day}: ${status}`}</div>
+          ))
+        ) : (
+          Object.entries(field.values).map(([subKey, val]) => (
+            <div key={subKey}>
+              {subKey}:{" "}
+              {val !== undefined && val !== ""
+                ? isNaN(val)
+                  ? val
+                  : Number(val).toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                : "-"}
+            </div>
+          ))
+        )}
+      </td>
+    </tr>
+  ))}
+</tbody>
+
                   </table>
                 </div>
                 {salaryDetails && (
