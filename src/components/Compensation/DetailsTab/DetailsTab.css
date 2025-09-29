@@ -1,4 +1,4 @@
-/* Container */
+
 /* Container */
 .sb-details-tab {
   position: absolute;
@@ -14,18 +14,6 @@
   font-family: "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
 }
-
-/* Employee name */
-.sb-details-employee-name {
-  font-size: 1.2rem;
-  font-weight: 600;
-  text-align: center; /* Center align */
-  background: #79C42B; /* Highlight with green */
-  color: #ffffff; /* White text for contrast */
-  padding: 8px;
-  border-radius: 6px;
-}
-
 
 /* Header */
 .sb-details-tab-header {
@@ -68,7 +56,11 @@
 .sb-details-employee-name {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #001D4A;
+  text-align: center; /* Center align */
+  background: #79C42B; /* Highlight with green */
+  color: #ffffff; /* White text for contrast */
+  padding: 8px;
+  border-radius: 6px;
 }
 
 /* CTC Info */
@@ -145,6 +137,27 @@
 }
 .sb-details-align-right {
   text-align: right;
+}
+
+/* Section Headers */
+.sb-details-section-header {
+  background: #e6e9ef; /* slightly darker for section headers */
+  font-weight: 700;
+  color: #001D4A;
+}
+
+.sb-details-section-title {
+  padding: 12px;
+  font-size: 1rem;
+}
+
+/* Earnings and Deduction Rows */
+.sb-details-earnings-row {
+  background: #d4f8c1; /* light green for earnings */
+}
+
+.sb-details-deduction-row {
+  background: #f5d0d0; /* light red for deductions */
 }
 
 /* Totals */

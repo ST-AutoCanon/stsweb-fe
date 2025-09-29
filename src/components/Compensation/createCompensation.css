@@ -45,8 +45,8 @@
 .compensation-percentage-input + span {
   color: red;
   font-size: 12px;
-  margin-top: 5px;
-  display: block;
+  margin-left: 10px; /* Changed to margin-left for inline display */
+  display: inline-block; /* Changed to inline-block for row layout */
 }
 
 .header-container {
@@ -289,10 +289,11 @@
 
 .compensation-form-group {
   display: flex;
-  align-items: center; /* Change from flex-start to center for better vertical alignment */
-  gap: 10px; /* Reduce gap slightly to save space */
+  align-items: center; /* Center items vertically */
+  gap: 10px; /* Space between label and input group */
   padding: 10px 0;
-  flex-wrap: nowrap; /* Prevent wrapping unless absolutely necessary */
+  flex-wrap: nowrap; /* Prevent wrapping */
+  min-height: 60px; /* Stabilize layout */
 }
 
 .compensation-label-text {
@@ -300,14 +301,16 @@
   font-size: 14px;
   font-weight: 500;
   min-width: 100px;
+  line-height: 34px; /* Match input height for vertical alignment */
 }
 
 .compensation-checkbox-group {
-  margin-top:10px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: nowrap; /* Ensure radio buttons and inputs stay in one row */
+  min-height: 34px; /* Stabilize height */
 }
 
 .compensation-checkbox-label {
@@ -317,7 +320,6 @@
   font-size: 14px;
 }
 
-.compensation-percentage-input,
 .compensation-number-input {
   border: 1px solid #ced4da;
   border-radius: 4px;
@@ -325,6 +327,18 @@
   width: 120px;
   font-size: 14px;
   box-sizing: border-box;
+  height: 34px; /* Fixed height for consistency */
+  margin-top:40px;
+}
+
+.compensation-percentage-input{
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 6px 10px;
+  width: 120px;
+  font-size: 14px;
+  box-sizing: border-box;
+  height: 34px; /* Fixed height for consistency */
 }
 
 .compensation-highlighted-input {
@@ -336,6 +350,7 @@
   background-color: #fff9e6;
   outline: none;
   box-sizing: border-box;
+  height: 34px; /* Fixed height for consistency */
 }
 
 .compensation-highlighted-input:focus {
@@ -345,11 +360,13 @@
 
 .compensation-input-group {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  flex-direction: row; /* Keep input and remaining note in a single row */
+  gap: 10px; /* Space between elements */
+  align-items: center; /* Align items vertically */
   justify-content: flex-end;
   width: auto;
-  margin-top: 10px;
+  min-height: 34px; /* Match input height to prevent shifts */
+  flex-wrap: nowrap; /* Prevent wrapping */
 }
 
 .compensation-select {
@@ -361,12 +378,29 @@
   background-color: #fff;
   cursor: pointer;
   box-sizing: border-box;
+  height: 34px; /* Fixed height for consistency */
 }
 
 .compensation-select:focus {
   border-color: #7FBD2C;
   box-shadow: 0 0 5px #7FBD2C;
   outline: none;
+}
+
+.remaining-note {
+  font-size: 12px;
+  color: #333; /* Match table text color for consistency */
+  margin-left: 10px; /* Space to the right of the input */
+  line-height: 34px; /* Match input height for vertical alignment */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.compensation-input-group span {
+  font-size: 12px;
+  color: gray;
+  margin-left: 10px; /* Space to the right of the input */
+  line-height: 34px; /* Match input height for vertical alignment */
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .compensation-button-container {
@@ -516,12 +550,16 @@
   .compensation-form-group {
     flex-direction: column;
     align-items: flex-start;
+    min-height: auto; /* Remove min-height for mobile */
   }
 
   .compensation-input-group {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row; /* Keep row layout for mobile */
+    align-items: center;
     justify-content: flex-start;
+    width: 100%;
+    min-height: 34px; /* Match input height */
+    flex-wrap: nowrap; /* Prevent wrapping */
   }
 
   .compensation-add-slab-button,
@@ -535,11 +573,26 @@
   .compensation-input-group input,
   .compensation-select {
     width: 100%;
-    max-width: none;
+    max-width: 200px; /* Limit width on mobile */
+    height: 34px; /* Fixed height for consistency */
   }
 
   .compensation-label-text {
     min-width: 100%;
+    line-height: 1.5; /* Adjust for readability */
+    margin-bottom: 5px;
+  }
+
+  .remaining-note {
+    margin-left: 10px;
+    line-height: 34px; /* Match input height */
+    font-size: 12px;
+  }
+
+  .compensation-input-group span {
+    margin-left: 10px;
+    line-height: 34px; /* Match input height */
+    font-size: 12px;
   }
 }
 
