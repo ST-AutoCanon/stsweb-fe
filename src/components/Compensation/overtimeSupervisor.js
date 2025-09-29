@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./overtimeSupervisor.css";
@@ -10,8 +11,9 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const OvertimeSupervisor = () => {
   const [employees, setEmployees] = useState([]);
   const [overtimeRecords, setOvertimeRecords] = useState([]);
+  const [compensationData, setCompensationData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("current"); // Default to current month
+  const [selectedMonth, setSelectedMonth] = useState("current");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [alertModal, setAlertModal] = useState({
@@ -38,7 +40,6 @@ const OvertimeSupervisor = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  // Define month options (current, last, two months ago)
   const getMonthName = (offset) => {
     const date = new Date();
     const targetMonth = date.getMonth() - offset;
@@ -56,8 +57,8 @@ const OvertimeSupervisor = () => {
     let startDate, endDate;
 
     if (type === "current") {
-      startDate = new Date(currentYear, currentMonth, 1); // e.g., 2025-07-01
-      endDate = new Date(currentYear, currentMonth + 1, 0); // e.g., 2025-07-31
+      startDate = new Date(currentYear, currentMonth, 1);
+      endDate = new Date(currentYear, currentMonth + 1, 0);
     } else if (type === "last") {
       startDate = new Date(currentYear, currentMonth - 1, 1);
       endDate = new Date(currentYear, currentMonth, 0);
@@ -77,17 +78,16 @@ const OvertimeSupervisor = () => {
   useEffect(() => {
     console.log("Setting monthOptions");
     setMonthOptions([
-      { type: "current", offset: 0, label: getMonthName(0) }, // e.g., July 2025
-      { type: "last", offset: 1, label: getMonthName(1) }, // e.g., June 2025
-      { type: "twoMonthsAgo", offset: 2, label: getMonthName(2) }, // e.g., May 2025
+      { type: "current", offset: 0, label: getMonthName(0) },
+      { type: "last", offset: 1, label: getMonthName(1) },
+      { type: "twoMonthsAgo", offset: 2, label: getMonthName(2) },
     ]);
   }, []);
 
-  // Fetch employee list
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/overtime-summary/${meId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/overtime-summary/${meId}`,
         { headers }
       );
       console.log("Employee List API Response:", JSON.stringify(response.data, null, 2));
@@ -109,7 +109,40 @@ const OvertimeSupervisor = () => {
     }
   };
 
-  // Fetch overtime records for the selected month
+  const fetchCompensationData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
+        { headers }
+      );
+      console.log("Compensation Data API Response:", JSON.stringify(response.data, null, 2));
+      if (response.data.success) {
+        // Validate and parse plan_data for each compensation record
+        const validatedData = response.data.data.map(comp => {
+          let planData = {};
+          if (comp.plan_data) {
+            try {
+              planData = typeof comp.plan_data === 'string' ? JSON.parse(comp.plan_data) : comp.plan_data;
+            } catch (e) {
+              console.warn(`Invalid JSON in plan_data for employee_id ${comp.employee_id}:`, comp.plan_data);
+              planData = {};
+            }
+          }
+          return { ...comp, plan_data: planData };
+        });
+        setCompensationData(validatedData);
+        console.log("Compensation data set:", JSON.stringify(validatedData, null, 2));
+      } else {
+        setError("Failed to fetch compensation data: Invalid response");
+        showAlert("Failed to fetch compensation data");
+      }
+    } catch (error) {
+      console.error("Error fetching compensation data:", error);
+      setError(`Failed to fetch compensation data: ${error.message}`);
+      showAlert(`Failed to fetch compensation data: ${error.message}`);
+    }
+  };
+
   const fetchOvertimeData = async () => {
     const selectedMonthOption = monthOptions.find(
       (option) => option.type === selectedMonth
@@ -122,12 +155,15 @@ const OvertimeSupervisor = () => {
     const { startDate, endDate } = getDateRange(selectedMonth);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
         { headers }
       );
-      console.log("Overtime Data API Response:", JSON.stringify(response.data, null, 2));
+      console.log("Overtime Data API Response:", response.data);
+      if (typeof response.data === 'string') {
+        console.error("Received string instead of JSON:", response.data);
+        throw new Error("Invalid response format: Expected JSON object");
+      }
       if (response.data.success) {
-        // Filter records for employees under this supervisor with hours_worked > 8
         const employeeIds = employees.map(emp => emp.employee_id);
         console.log("Employee IDs under supervisor:", employeeIds);
         const filteredRecords = response.data.data
@@ -145,6 +181,15 @@ const OvertimeSupervisor = () => {
           })
           .map(item => {
             const hours = parseFloat(item.extra_hours) || 0;
+            const comp = compensationData.find(c => c.employee_id === item.employee_id);
+            let rate = parseFloat(item.rate) || 0; // Fallback rate
+            if (comp && comp.plan_data && comp.plan_data.overtimePayAmount) {
+              rate = parseFloat(comp.plan_data.overtimePayAmount) || 0;
+            } else if (comp) {
+              console.warn(`No overtimePayAmount for employee_id ${item.employee_id}`);
+            } else {
+              console.warn(`No compensation data for employee_id ${item.employee_id}, using fallback rate`);
+            }
             if (hours > 24) {
               console.warn(`Unusually high extra_hours for punch_id ${item.punch_id}: ${hours}`);
             }
@@ -154,13 +199,13 @@ const OvertimeSupervisor = () => {
               employee_id: item.employee_id || "Unknown",
               hours: Math.min(hours, 24),
               hours_worked: parseFloat(item.hours_worked) || 0,
+              rate,
               project: item.project || "",
               supervisor: item.supervisor || employees.find(emp => emp.employee_id === item.employee_id)?.supervisor_name || "Unknown",
               comments: item.comments || "",
               status: item.status || "Pending",
             };
           });
-        // Deduplicate records by punch_id
         const uniqueRecords = Array.from(
           new Map(filteredRecords.map(item => [item.id, item])).values()
         );
@@ -170,20 +215,35 @@ const OvertimeSupervisor = () => {
           console.warn("No overtime records returned for employees with hours_worked > 8 in this date range");
           setError("No overtime records found for employees with more than 8 hours worked in this period.");
         } else {
-          setError(""); // Clear error if records are found
+          setError("");
         }
       } else {
-        setError("Failed to fetch overtime data: Invalid response");
-        showAlert("Failed to fetch overtime data");
+        setError(`Failed to fetch overtime data: ${response.data.error || "Invalid response"}`);
+        showAlert(`Failed to fetch overtime data: ${response.data.error || "Invalid response"}`);
       }
     } catch (error) {
       console.error("Error fetching overtime data:", error);
-      setError(`Failed to fetch overtime data: ${error.message}`);
-      showAlert(`Failed to fetch overtime data: ${error.message}`);
+      const errorMessage = error.response?.data?.error || error.message || "Network error";
+      setError(`Failed to fetch overtime data: ${errorMessage}`);
+      showAlert(`Failed to fetch overtime data: ${errorMessage}`);
     }
   };
 
-  // Handle status change (Approve/Reject)
+  const handleInputChange = (id, field, value) => {
+    if (field !== "rate") return;
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < 0) {
+      showAlert("Rate must be a positive number", "Error");
+      return;
+    }
+    setOvertimeRecords((prevData) =>
+      prevData.map((row) =>
+        row.id === id ? { ...row, [field]: value } : row
+      )
+    );
+    console.log(`Updated ${field} for record ${id}: ${value}`);
+  };
+
   const handleStatusChange = async (punchId, status) => {
     try {
       setLoading(true);
@@ -211,7 +271,7 @@ const OvertimeSupervisor = () => {
 
       console.log("Sending status update payload:", JSON.stringify(payload, null, 2));
       const response = await axios.post(
-        `http://localhost:5000/api/compensation/overtime-bulk`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/overtime-bulk`,
         payload,
         {
           headers: {
@@ -241,13 +301,16 @@ const OvertimeSupervisor = () => {
     }
   };
 
-  // Fetch both employee list and overtime data
   useEffect(() => {
     if (meId) {
       setLoading(true);
-      fetchEmployees().then(() => fetchOvertimeData()).then(() => setLoading(false))
+      Promise.all([fetchEmployees(), fetchCompensationData()])
+        .then(() => fetchOvertimeData())
+        .then(() => setLoading(false))
         .catch((error) => {
           console.error("Error in fetching data:", error);
+          setError(`Failed to fetch data: ${error.message}`);
+          showAlert(`Failed to fetch data: ${error.message}`);
           setLoading(false);
         });
     } else {
@@ -264,7 +327,7 @@ const OvertimeSupervisor = () => {
 
   const handleMonthChange = (e) => {
     setSelectedMonth(e.target.value);
-    setError(""); // Clear error when changing month
+    setError("");
     console.log("Selected month:", e.target.value);
   };
 
@@ -274,7 +337,6 @@ const OvertimeSupervisor = () => {
     console.log("Selected employee:", JSON.stringify(employee, null, 2));
   };
 
-  // Filter overtime records based on search term (employee name)
   const filteredRecords = overtimeRecords.filter((record) => {
     const employee = employees.find(emp => emp.employee_id === record.employee_id);
     const matchesSearch = employee && employee.employee_name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -332,6 +394,7 @@ const OvertimeSupervisor = () => {
                 <th>Supervisor</th>
                 <th>Date</th>
                 <th>Overtime Hours</th>
+                <th>Rate</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -346,6 +409,17 @@ const OvertimeSupervisor = () => {
                     <td>{record.supervisor}</td>
                     <td>{record.date}</td>
                     <td>{record.hours} hours</td>
+                    <td>
+                      <input
+                        type="number"
+                        value={record.rate}
+                        onChange={(e) => handleInputChange(record.id, "rate", e.target.value)}
+                        className="rate-input"
+                        disabled={record.status === "Approved" || record.status === "Rejected" || loading}
+                        min="0"
+                        step="0.01"
+                      />
+                    </td>
                     <td className={`status-${record.status.toLowerCase()}`}>{record.status}</td>
                     <td>
                       <div className="action-buttons">

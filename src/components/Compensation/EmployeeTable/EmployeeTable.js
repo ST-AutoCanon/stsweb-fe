@@ -1,3 +1,5 @@
+
+
 import React from "react";
 import { FaSearch } from "react-icons/fa";
 import DetailsTab from "./../DetailsTab/DetailsTab";
@@ -13,6 +15,7 @@ const EmployeeTable = ({
   tableRef,
   handleViewSingleEmployee,
   openAdvanceModal,
+  openIncentiveModal,  // 🔹 Uncomment: Now passed from parent
   showDetailsTab,
   selectedEmployee,
   activeTab,
@@ -24,6 +27,7 @@ const EmployeeTable = ({
   overtimeRecords,
   bonusRecords,
   advances,
+  employeeIncentiveData,
 }) => {
   const filteredEmployees = employees.filter(
     (emp) =>
@@ -97,6 +101,12 @@ const EmployeeTable = ({
                     >
                       Add Advance
                     </button>
+                    <button
+                      className="sb-table-incentive-button"
+                      onClick={() => openIncentiveModal(emp.employee_id, emp.full_name)}  // 🔹 Uncommented: Connected to handler
+                    >
+                      Add Incentive
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -135,6 +145,7 @@ const EmployeeTable = ({
           overtimeRecords={overtimeRecords}
           bonusRecords={bonusRecords}
           advances={advances}
+          employeeIncentiveData={employeeIncentiveData}
         />
       )}
     </div>

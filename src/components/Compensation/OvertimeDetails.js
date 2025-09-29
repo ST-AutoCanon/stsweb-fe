@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./OvertimeDetails.css";
@@ -9,6 +11,39 @@ const OvertimeDetails = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [assignedCompensationData, setAssignedCompensationData] = useState([]);
+
+
+  const fetchAssignedCompensation = async () => {
+  try {
+    const response = await axios.get(
+      `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
+      {
+        headers: {
+          "x-api-key": API_KEY,
+          "x-employee-id": meId,
+        },
+      }
+    );
+
+    // Flatten assigned_data for easy lookup by employee_id
+    const compensationMap = {};
+    response.data.data.forEach((plan) => {
+      plan.assigned_data.forEach((emp) => {
+        compensationMap[emp.employee_id] = plan.plan_data?.overtimePayAmount || 0;
+      });
+    });
+
+    setAssignedCompensationData(compensationMap);
+  } catch (error) {
+    console.error("Error fetching assigned compensation:", error);
+  }
+};
+
+useEffect(() => {
+  fetchAssignedCompensation();
+}, []);
+
   const [aprilPendingPopup, setAprilPendingPopup] = useState({
     isVisible: false,
     pendingCount: 0,
@@ -130,6 +165,7 @@ const OvertimeDetails = () => {
         }
         return {
           id: item.punch_id,
+          employee_id: item.employee_id, // Preserve original employee_id
           date: new Date(item.work_date).toISOString().split("T")[0],
           name: employeeInfo.employee_name || item.employee_id,
           hours: Math.min(hours, 24),
@@ -185,6 +221,7 @@ const OvertimeDetails = () => {
         }
         return {
           id: item.punch_id,
+          employee_id: item.employee_id, // Preserve original employee_id
           date: new Date(item.work_date).toISOString().split("T")[0],
           name: employeeInfo.employee_name || item.employee_id,
           hours: Math.min(hours, 24),
@@ -210,23 +247,18 @@ const OvertimeDetails = () => {
     }
   };
 
-  const handleInputChange = (id, field, value, isAprilPopup = false) => {
-    if (field !== "comments") return; // Only allow comments to be edited
-    if (isAprilPopup) {
-      setAprilPendingPopup((prev) => ({
-        ...prev,
-        data: prev.data.map((row) =>
-          row.id === id ? { ...row, [field]: value } : row
-        ),
-      }));
-    } else {
-      setOvertimeData((prevData) =>
-        prevData.map((row) =>
-          row.id === id ? { ...row, [field]: value } : row
-        )
-      );
-    }
-  };
+ const handleInputChange = (id, field, value, isAprilPopup = false) => {
+  if (field !== "comments" && field !== "rate") return; // allow comments and rate edits
+  const updateFn = (prev) =>
+    prev.map((row) => (row.id === id ? { ...row, [field]: field === "rate" ? parseFloat(value) : value } : row));
+  
+  if (isAprilPopup) {
+    setAprilPendingPopup((prev) => ({ ...prev, data: updateFn(prev.data) }));
+  } else {
+    setOvertimeData(updateFn);
+  }
+};
+
 
   const handleCheckboxChange = (id) => {
     setSelectedRows((prevSelected) => {
@@ -268,8 +300,10 @@ const OvertimeDetails = () => {
             .map((row) => ({
               punch_id: row.id,
               work_date: row.date,
-              employee_id: row.name,
+              employee_id: row.employee_id, // Use original employee_id
               extra_hours: row.hours,
+                  rate: parseFloat(row.rate) || 0, // updated rate
+
               rate: parseFloat(row.rate) || 0,
               project: row.project || "",
               supervisor: row.supervisor || "",
@@ -283,7 +317,7 @@ const OvertimeDetails = () => {
             .map((row) => ({
               punch_id: row.id,
               work_date: row.date,
-              employee_id: row.name,
+              employee_id: row.employee_id, // Use original employee_id
               extra_hours: row.hours,
               rate: parseFloat(row.rate) || 0,
               project: row.project || "",
@@ -311,7 +345,7 @@ const OvertimeDetails = () => {
           data: [{
             punch_id: row.id,
             work_date: row.date,
-            employee_id: row.name,
+            employee_id: row.employee_id, // Use original employee_id
             extra_hours: row.hours,
             rate: parseFloat(row.rate) || 0,
             project: row.project || "",
@@ -360,6 +394,7 @@ const OvertimeDetails = () => {
         await fetchData(startDate, endDate);
       }
     } catch (error) {
+      console.error("Error updating overtime status:", error);
       showAlert(
         error.response?.data?.error || error.response?.data?.message || error.message || "Network error",
         "Error"
@@ -480,7 +515,18 @@ const OvertimeDetails = () => {
                     <td className="otd-table-cell otd-date-cell">{row.date}</td>
                     <td className="otd-table-cell">{row.name}</td>
                     <td className="otd-table-cell">{row.hours}</td>
-                    <td className="otd-table-cell">{row.rate.toFixed(2)}</td>
+<td className="otd-table-cell">
+  {row.status === "Pending" ? (
+    <input
+      type="number"
+      value={row.rate || assignedCompensationData[row.employee_id] || 0}
+      onChange={(e) => handleInputChange(row.id, "rate", e.target.value)}
+      className="otd-input"
+    />
+  ) : (
+    row.rate.toFixed(2)
+  )}
+</td>
                     <td className="otd-table-cell" title={row.project?.length > 20 || row.project?.includes(",") ? row.project : ""}>
                       <span className="otd-text-ellipsis">{row.project}</span>
                     </td>
@@ -508,6 +554,7 @@ const OvertimeDetails = () => {
                               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                             />
                           </svg>
+
                         </button>
                         <button
                           onClick={() => handleStatusChange(row.id, "Rejected")}
@@ -540,7 +587,7 @@ const OvertimeDetails = () => {
         <div className="otd-modal-overlay">
           <div className="otd-modal-content">
             <h3 className="otd-modal-title">{alertModal.title}</h3>
-            <p className="otd-modal-message">{alertModal.message}</p>
+            <p className="otd-modal-error">{alertModal.message}</p>
             <button onClick={closeAlert} className="otd-modal-button">
               Close
             </button>
