@@ -30,6 +30,12 @@ import OvertimeDetails from "../Compensation/OvertimeDetails";
 import { ContentContext } from "./Context";
 import SalaryBreakupMain from "../Compensation/SalaryBreakupMain";
 import OvertimeSummary from "../Compensation/overtimeSupervisor";
+import WeeklyTaskPlanner from "../WeeklyTaskPlanner/WeeklyTaskPlanner";
+import SupervisorPlanViewer from "../SupervisorPlanViewer/SupervisorPlanViewer";
+import TaskManagementEmployee from "../TaskManagementEmployee/EmpTaskManagement";
+import TaskManagement from "../TaskManagement/TaskManagement";
+
+
 const Sidebar = () => {
   const { setActiveContent } = useContext(ContentContext);
   const [menuItems, setMenuItems] = useState([]);
@@ -87,6 +93,24 @@ const Sidebar = () => {
       case "/dashboard":
         setActiveContent(userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />);
         break;
+
+         case "/Task":
+  setActiveContent(<TaskManagementEmployee />);
+  break;
+
+case "/TaskManagementEmployee":
+  setActiveContent(<TaskManagementEmployee />);
+  break;
+
+case "/TaskManagement":
+  if (userRole === "Supervisor") {
+    setActiveContent(<TaskManagement />); // Supervisor view
+  } else {
+    setActiveContent(<TaskManagementEmployee />); // fallback for Employee
+  }
+  break;
+
+
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);
         break;
@@ -124,6 +148,7 @@ const Sidebar = () => {
           setActiveContent(<Reimbursement />);
         }
         break;
+        
       case "/employeeQueries":
         setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
         break;
@@ -160,11 +185,26 @@ const Sidebar = () => {
             setActiveContent(<p>Please select a compensation option.</p>);
         }
         break;
+  //         case "/WeeklyTaskPlanner":
+          
+   
+
+  // setActiveContent(<WeeklyTaskPlanner/>);
+  // break;
+  //  case "/SupervisorPlanViewer":
+          
+  // setActiveContent(<SupervisorPlanViewer/>);
+  // break;
+   
+   
+
       default:
         setActiveContent(<p>Content not found for this path.</p>);
     }
+    
   };
 
+  
   const toggleProfile = () => {
     setShowProfile(!showProfile);
   };
