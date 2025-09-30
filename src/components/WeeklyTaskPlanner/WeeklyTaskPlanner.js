@@ -230,7 +230,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: task.star_rating,
         replacement_task: task.replacement_task,
       };
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}:5000/api/week_tasks/${taskId}`, updatedTask, {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, updatedTask, {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
       });
       setTasksData((prev) =>
@@ -443,7 +443,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: null,
         replacement_task: null,
       };
-      const response = await axios.post("${process.env.REACT_APP_BACKEND_URL}/api/week_tasks", newTask, {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`, newTask, {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
       });
 
@@ -567,7 +567,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             star_rating: null,
             replacement_task: null,
           };
-          const response = await axios.post("${process.env.REACT_APP_BACKEND_URL}/api/week_tasks", newTask, {
+          const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`, newTask, {
             headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
           });
 
