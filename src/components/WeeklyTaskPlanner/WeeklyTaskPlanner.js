@@ -1,206 +1,83 @@
-import React, { useState, useEffect, useMemo } from "react";
+
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
 import Modal from "../Modal/Modal";
 
-// Helper function to get ISO week number for a date
-const getISOWeekNumber = (date) => {
-  const tempDate = new Date(date);
-  tempDate.setHours(0, 0, 0, 0);
-  tempDate.setDate(tempDate.getDate() + 3 - ((tempDate.getDay() + 6) % 7));
-  const week1 = new Date(tempDate.getFullYear(), 0, 4);
-  const weekNumber = Math.round(((tempDate - week1) / 86400000 + 1) / 7);
-  return weekNumber;
-};
+const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
+  const [weekOffset, setWeekOffset] = useState(0); // Start at current week
+  const currentDate = new Date(2025, 8, 29); // September 29, 2025
+  const dayOfWeek = currentDate.getDay();
+  const offset = (dayOfWeek + 6) % 7; // Adjust to Monday as week start
+  const startDate = new Date(currentDate);
+  startDate.setDate(currentDate.getDate() - offset + weekOffset * 7);
 
-// Helper function to get the next four upcoming weeks (future weeks only)
-const getUpcomingWeeks = (currentDate, numWeeks = 4) => {
-  const currentWeek = getISOWeekNumber(currentDate);
-  const currentYear = currentDate.getFullYear();
-  const weeks = [];
-  let weekOffset = 0;
+  // Calculate end date of the week
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6);
 
-  const today = new Date(currentDate);
-  const currentDay = today.getDay();
-  if (currentDay !== 1) {
-    weekOffset = 1;
-  }
-
-  for (let i = weekOffset; i < weekOffset + numWeeks; i++) {
-    const weekNum = currentWeek + i;
-    const weekStart = new Date(currentYear, 0, 1 + (weekNum - 1) * 7);
-    const dow = weekStart.getDay();
-    const ISOweekStart = new Date(weekStart);
-    if (dow <= 4) ISOweekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
-    else ISOweekStart.setDate(weekStart.getDate() + 8 - weekStart.getDay());
-
-    if (ISOweekStart >= today) {
-      if (weekNum <= 53) {
-        weeks.push(`Week-${weekNum}`);
-      }
-    } else if (weeks.length < numWeeks) {
-      weekOffset++;
-    }
-  }
-
-  return weeks;
-};
-
-// Helper function to get week range for a given week
-const getWeekRange = (weekStr, year = 2025) => {
-  const weekNum = parseInt(weekStr.split("-")[1], 10);
-  const simple = new Date(year, 0, 1 + (weekNum - 1) * 7);
-  const dow = simple.getDay();
-  const ISOweekStart = new Date(simple);
-  if (dow <= 4) ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-  else ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-  const ISOweekEnd = new Date(ISOweekStart);
-  ISOweekEnd.setDate(ISOweekStart.getDate() + 6);
-  return {
-    start: ISOweekStart,
-    end: ISOweekEnd,
+  // Format dates for display
+  const formatDateRange = (start, end) => {
+    const startDay = start.getDate();
+    const startMonth = start.toLocaleString('default', { month: 'short' });
+    const endDay = end.getDate();
+    const endMonth = end.toLocaleString('default', { month: 'short' });
+    const year = start.getFullYear();
+    return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
   };
-};
+  const dateRange = formatDateRange(startDate, endDate);
 
-// Helper function to calculate task date ranges within weeks, including weekends
-const getTaskDates = (taskDays, startDates, endDates, previousDays = 0, weeks) => {
-  if (!startDates || !endDates || !weeks) {
-    return { dates: [], display: "Invalid date range" };
+  const getISOWeekNumber = (date) => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    return weekNo;
+  };
+  const weekId = getISOWeekNumber(startDate);
+  console.log("Week ID:", weekId, "Employee ID:", employeeId);
+
+  const weekDates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + i);
+    const dateStr = `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
+    weekDates.push(dateStr);
   }
 
-  const startDateArray = startDates.split(",").map((d) => new Date(d));
-  const endDateArray = endDates.split(",").map((d) => new Date(d));
-  const weekLabels = weeks.split(",");
-  const displayRanges = [];
-  let daysAllocated = 0;
-  let currentDate = new Date(startDateArray[0]);
-
-  if (startDateArray.some((d) => isNaN(d.getTime())) || endDateArray.some((d) => isNaN(d.getTime()))) {
-    return { dates: [], display: "Invalid date format" };
-  }
-
-  let daysToSkip = previousDays;
-  while (daysToSkip > 0) {
-    currentDate.setDate(currentDate.getDate() + 1);
-    daysToSkip--;
-  }
-
-  for (let i = 0; i < startDateArray.length && daysAllocated < taskDays; i++) {
-    const weekStart = new Date(startDateArray[i]);
-    const weekEnd = new Date(endDateArray[i]);
-    const weekLabel = weekLabels[i] ? `Week-${weekLabels[i]}` : `Week-${i + 1}`;
-
-    if (currentDate < weekStart) {
-      currentDate = new Date(weekStart);
-    }
-
-    let daysInWeek = 0;
-    let rangeStart = null;
-    let rangeEnd = new Date(currentDate);
-
-    while (daysAllocated < taskDays && currentDate <= weekEnd) {
-      if (!rangeStart) rangeStart = new Date(currentDate);
-      rangeEnd = new Date(currentDate);
-      daysAllocated++;
-      daysInWeek++;
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    if (daysInWeek > 0) {
-      displayRanges.push(`${weekLabel}: ${rangeStart.toLocaleDateString()} - ${rangeEnd.toLocaleDateString()}`);
-    }
-  }
-
-  if (daysAllocated < taskDays) {
-    console.warn(`Could not allocate all ${taskDays} days; only ${daysAllocated} days allocated.`);
-    displayRanges.push(`Warning: Only ${daysAllocated} of ${taskDays} days allocated`);
-  }
-
-  return { dates: displayRanges, display: displayRanges.join("; ") };
-};
-
-// Helper function to check if plan is approved
-const isPlanApproved = (messages) => {
-  if (!messages) return false;
-  const messageArray = typeof messages === "string" ? messages.split("; ") : Array.isArray(messages) ? messages : [messages];
-  return messageArray.some((msg) => msg.startsWith("[APPROVED]") || msg.startsWith("Plan approved by supervisor"));
-};
-
-// Helper function to get message array with sender and timestamp
-const getMessageArray = (messages, isSupervisor) => {
-  if (!messages) return [];
-  const messageArray = typeof messages === "string" ? messages.split("; ").filter((msg) => msg.trim() !== "") : Array.isArray(messages) ? messages.filter((msg) => msg.trim() !== "") : [messages];
-
-  return messageArray.map((msg) => {
-    const timestampMatch = msg.match(/on (\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}:\d{2} (AM|PM))/);
-    const isSupervisorMessage = msg.startsWith("[APPROVED]") || msg.startsWith("Plan approved by supervisor") || msg.startsWith("[SUPERVISOR]");
-
-    let timestamp = null;
-    let text = msg;
-
-    if (timestampMatch) {
-      timestamp = timestampMatch[1];
-      text = msg.replace(/on \d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}:\d{2} (AM|PM)/, "").trim();
-    }
-
-    if (isSupervisorMessage) {
-      text = text.replace(/^\[SUPERVISOR\] /, "").replace(/^\[APPROVED\] /, "");
-      if (!timestamp) {
-        timestamp = new Date().toLocaleString("en-IN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-          timeZone: "Asia/Kolkata",
-        }).replace(/,/, ", ");
-      }
-    }
-
-    return {
-      text: text.replace(/^\[APPROVED\] /, ""),
-      sender: isSupervisorMessage ? "supervisor" : "employee",
-      timestamp,
-    };
+  const [tasksData, setTasksData] = useState(
+    weekDates.map((date) => ({ date, tasks: [] }))
+  );
+  const [projects, setProjects] = useState({});
+  const [expandedDates, setExpandedDates] = useState({});
+  const [editingTask, setEditingTask] = useState(null);
+  const [editingSupStatus, setEditingSupStatus] = useState(null);
+  const [formData, setFormData] = useState({ taskName: "", status: "", comment: "" });
+  const [supFormData, setSupFormData] = useState({ supStatus: "", supComment: "" });
+  const [showAssignForm, setShowAssignForm] = useState(false);
+  const [assignTasks, setAssignTasks] = useState([]);
+  const [supReviewMode, setSupReviewMode] = useState(false);
+  const [strikeTaskId, setStrikeTaskId] = useState(null);
+  const [replacementData, setReplacementData] = useState({
+    projectId: "",
+    projectName: "",
+    taskName: "",
+    date: "",
+    isNewProject: false,
   });
-};
-
-// Retry helper function for API calls
-const withRetry = async (fn, retries = 3, delay = 1000) => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fn();
-    } catch (err) {
-      if (i === retries - 1) throw err;
-      await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
-    }
-  }
-};
-
-const WeeklyTaskPlanner = () => {
-  const [showForm, setShowForm] = useState(false);
-  const [selectedWeeks, setSelectedWeeks] = useState([]);
-  const [selectedProjects, setSelectedProjects] = useState([]);
-  const [taskName, setTaskName] = useState("");
-  const [taskDesc, setTaskDesc] = useState("");
-  const [taskDays, setTaskDays] = useState("");
-  const [tasks, setTasks] = useState([]);
-  const [showWeekDropdown, setShowWeekDropdown] = useState(false);
-  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
-  const [newMessage, setNewMessage] = useState("");
-  const [approvalMessage, setApprovalMessage] = useState("");
-  const [weekOptions, setWeekOptions] = useState([]);
-  const [alertModal, setAlertModal] = useState({ isVisible: false, title: "", message: "" });
+  const [noTasks, setNoTasks] = useState(false);
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+  // Changed: Replaced dropdownOpen boolean with an object to track each task's dropdown state
+  const [dropdownOpen, setDropdownOpen] = useState({});
 
-  const employeeData = useMemo(() => JSON.parse(localStorage.getItem("dashboardData") || "{}"), []);
-  const isSupervisor = employeeData?.role === "supervisor";
-
+  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -209,707 +86,1106 @@ const WeeklyTaskPlanner = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  useEffect(() => {
-    let isMounted = true;
+  // Changed: Added function to toggle dropdown for a specific task index
+  const toggleDropdown = (index) => {
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
 
-    const fetchData = async () => {
-      setError(null);
+  const withRetry = async (fn, retries = 3, delay = 1000) => {
+    for (let i = 0; i < retries; i++) {
       try {
-        const employeeId = employeeData?.employeeId || "STS079";
-        const projectsUrl = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`;
-        console.log("Fetching projects from:", projectsUrl);
-        const projectsRes = await withRetry(() =>
-          axios.get(projectsUrl, {
-            params: { employeeId },
-            headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-              "Content-Type": "application/json",
-            },
-          })
-        );
-        if (isMounted) {
-          setProjects(projectsRes.data.projects || []);
-        }
-
-        const plansUrl = `${process.env.REACT_APP_BACKEND_URL}/api/plans/${employeeId}`;
-        console.log("Fetching plans from:", plansUrl);
-        const plansRes = await withRetry(() =>
-          axios.get(plansUrl, {
-            headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-              "Content-Type": "application/json",
-            },
-          })
-        );
-        if (isMounted) {
-          const sortedPlans = plansRes.data.plans.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-          setPlans(sortedPlans || []);
-
-          const currentDate = new Date();
-          const upcomingWeeks = getUpcomingWeeks(currentDate, 4);
-          const submittedWeeks = new Set();
-          sortedPlans.forEach((plan) => {
-            if (plan.week) {
-              plan.week.split(",").forEach((week) => {
-                submittedWeeks.add(`Week-${week.trim()}`);
-              });
-            }
-          });
-          const availableWeeks = upcomingWeeks.filter((week) => !submittedWeeks.has(week));
-          setWeekOptions(availableWeeks);
-        }
+        return await fn();
       } catch (err) {
-        if (isMounted) {
-          console.error("Error fetching data:", err.response?.data || err.message);
-          if (err.response?.status === 404) {
-            setError("Endpoint not found. Please check the backend server.");
-          } else if (err.response?.status === 401) {
-            setError("Invalid API key. Please check your configuration.");
-          } else {
-            setError(`Network error: ${err.message}. Please try again later.`);
-          }
-        }
+        if (i === retries - 1) throw err;
+        await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
       }
-    };
+    }
+  };
 
+  const formatDateIST = (date) => {
+    const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
+    const istDate = new Date(date.getTime() + istOffset);
+    const year = istDate.getUTCFullYear();
+    const month = String(istDate.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(istDate.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const fetchData = async () => {
+    if (!employeeId) {
+      showAlert("Employee ID is required to fetch data.");
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setNoTasks(false);
+
+    try {
+      const projectsUrl = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`;
+      console.log("Fetching projects from:", projectsUrl);
+      const projectsRes = await withRetry(() =>
+        axios.get(projectsUrl, {
+          params: { employeeId },
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "Content-Type": "application/json",
+          },
+        })
+      );
+      const newProjects = {};
+      (projectsRes.data.projects || []).forEach((project) => {
+        newProjects[project.id] = project.project;
+      });
+      setProjects(newProjects);
+
+      const tasksUrl = `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/employee/${employeeId}`;
+      console.log("Fetching tasks from:", tasksUrl);
+      const tasksRes = await withRetry(() =>
+        axios.get(tasksUrl, {
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+        })
+      );
+      let tasks = Array.isArray(tasksRes.data) ? tasksRes.data : [];
+      if (tasks.length === 0) {
+        setNoTasks(true);
+        setTasksData(weekDates.map((date) => ({ date, tasks: [] })));
+        return;
+      }
+
+      const filteredTasks = tasks.filter((task) => task.week_id === weekId);
+      const groupedTasks = weekDates.map((date) => ({
+        date,
+        tasks: filteredTasks.filter((task) => {
+          const taskDate = new Date(task.task_date);
+          return `${taskDate.getDate()} ${taskDate.toLocaleString('default', { month: 'short' })}` === date;
+        }),
+      }));
+      setTasksData(groupedTasks);
+    } catch (err) {
+      console.error("Error fetching data:", err.message, err.response?.status);
+      if (err.response?.status === 404) {
+        showAlert("API endpoint not found. Please check if the backend server is running and the routes are correctly configured.");
+      } else if (err.response?.status === 401) {
+        showAlert("Invalid API key. Please check your configuration.");
+      } else {
+        showAlert(`Failed to fetch data: ${err.response?.status || ''} ${err.message}. Please check the backend server or network.`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (process.env.REACT_APP_BACKEND_URL) {
       fetchData();
     } else {
-      setError("Backend URL not configured. Please check your .env file.");
+      showAlert("Backend URL not configured. Please check your .env file.");
     }
+  }, [employeeId, weekId, weekOffset]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [employeeData]);
-
-  const toggleWeek = (week) => {
-    setSelectedWeeks((prev) => (prev.includes(week) ? prev.filter((w) => w !== week) : [...prev, week]));
+  const handlePreviousWeek = () => {
+    setWeekOffset((prev) => Math.max(prev - 1, -3));
   };
 
-  const toggleProject = (project) => {
-    setSelectedProjects((prev) =>
-      prev.some((p) => p.id === project.id) ? prev.filter((p) => p.id !== project.id) : [...prev, project]
-    );
+  const handleNextWeek = () => {
+    setWeekOffset((prev) => Math.min(prev + 1, 3));
+  };
+
+  const toggleExpand = (date) => {
+    setExpandedDates((prev) => ({ ...prev, [date]: !prev[date] }));
+  };
+
+  const handleEditClick = (task) => {
+    if (userRole !== "employee") return;
+    setEditingTask(task.task_id);
+    setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
+  };
+
+  const handleSupStatusEditClick = (task) => {
+    if (userRole !== "supervisor") return;
+    setEditingSupStatus(task.task_id);
+    setSupFormData({ supStatus: task.sup_status, supComment: task.sup_comment || "" });
+  };
+
+  const handleSave = async (taskId) => {
+    if (userRole !== "employee") return;
+    try {
+      const task = tasksData
+        .flatMap((day) => day.tasks)
+        .find((t) => t.task_id === taskId);
+      const updatedTask = {
+        project_id: task.project_id,
+        project_name: task.project_name,
+        task_name: formData.taskName,
+        emp_status: formData.status,
+        emp_comment: formData.comment,
+        sup_status: task.sup_status,
+        sup_comment: task.sup_comment,
+        sup_review_status: task.sup_review_status,
+        employee_id: task.employee_id,
+        star_rating: task.star_rating,
+        replacement_task: task.replacement_task,
+      };
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}:5000/api/week_tasks/${taskId}`, updatedTask, {
+        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+      });
+      setTasksData((prev) =>
+        prev.map((day) => ({
+          ...day,
+          tasks: day.tasks.map((t) =>
+            t.task_id === taskId
+              ? { ...t, task_name: formData.taskName, emp_status: formData.status, emp_comment: formData.comment }
+              : t
+          ),
+        }))
+      );
+      showAlert("Task updated successfully!");
+      setEditingTask(null);
+    } catch (err) {
+      showAlert(`Failed to update task: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleSupStatusSave = async (taskId) => {
+    if (userRole !== "supervisor") return;
+    try {
+      const task = tasksData
+        .flatMap((day) => day.tasks)
+        .find((t) => t.task_id === taskId);
+      const updatedTask = {
+        project_id: task.project_id,
+        project_name: task.project_name,
+        task_name: task.task_name,
+        emp_status: task.emp_status,
+        emp_comment: task.emp_comment,
+        sup_status: supFormData.supStatus,
+        sup_comment: supFormData.supComment,
+        sup_review_status: task.sup_review_status,
+        employee_id: task.employee_id,
+        star_rating: task.star_rating,
+        replacement_task: task.replacement_task,
+      };
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, updatedTask, {
+        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+      });
+      setTasksData((prev) =>
+        prev.map((day) => ({
+          ...day,
+          tasks: day.tasks.map((t) =>
+            t.task_id === taskId
+              ? { ...t, sup_status: supFormData.supStatus, sup_comment: supFormData.supComment }
+              : t
+          ),
+        }))
+      );
+      showAlert("Supervisor status updated successfully!");
+      setEditingSupStatus(null);
+    } catch (err) {
+      showAlert(`Failed to update supervisor status: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleEnterReview = () => {
+    if (userRole === "supervisor") {
+      setSupReviewMode(true);
+    }
+  };
+
+  const handleExitReview = () => {
+    setSupReviewMode(false);
+    setStrikeTaskId(null);
+    setEditingSupStatus(null);
+  };
+
+  const handleApprove = async (taskId) => {
+    if (userRole !== "supervisor") return;
+    try {
+      const task = tasksData
+        .flatMap((day) => day.tasks)
+        .find((t) => t.task_id === taskId);
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
+        ...task,
+        sup_review_status: "approved",
+        replacement_task: task.replacement_task,
+      }, {
+        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+      });
+      setTasksData((prev) =>
+        prev.map((day) => ({
+          ...day,
+          tasks: day.tasks.map((t) => (t.task_id === taskId ? { ...t, sup_review_status: "approved" } : t)),
+        }))
+      );
+      showAlert("Task approved successfully!");
+    } catch (err) {
+      showAlert(`Failed to approve task: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleSuspendReview = async (taskId) => {
+    if (userRole !== "supervisor") return;
+    try {
+      const task = tasksData
+        .flatMap((day) => day.tasks)
+        .find((t) => t.task_id === taskId);
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
+        ...task,
+        sup_review_status: "suspended_review",
+        replacement_task: task.replacement_task,
+      }, {
+        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+      });
+      setTasksData((prev) =>
+        prev.map((day) => ({
+          ...day,
+          tasks: day.tasks.map((t) => (t.task_id === taskId ? { ...t, sup_review_status: "suspended_review" } : t)),
+        }))
+      );
+      showAlert("Task suspended successfully!");
+    } catch (err) {
+      showAlert(`Failed to suspend task: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleStrike = async (taskId, dayDate) => {
+    if (userRole !== "supervisor") return;
+    try {
+      const task = tasksData
+        .flatMap((day) => day.tasks)
+        .find((t) => t.task_id === taskId);
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
+        ...task,
+        sup_review_status: "struck",
+        replacement_task: null,
+      }, {
+        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+      });
+      setTasksData((prev) =>
+        prev.map((day) => ({
+          ...day,
+          tasks: day.tasks.map((t) => (t.task_id === taskId ? { ...t, sup_review_status: "struck", replacement_task: null } : t)),
+        }))
+      );
+      setStrikeTaskId(taskId);
+      setReplacementData({ projectId: "", projectName: "", taskName: "", date: dayDate, isNewProject: false });
+    } catch (err) {
+      showAlert(`Failed to strike task: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleReplacementChange = (field, value) => {
+    if (field === "projectId") {
+      setReplacementData((prev) => ({
+        ...prev,
+        projectId: value,
+        projectName: projects[value] || (prev.isNewProject ? prev.projectName : ""),
+        isNewProject: !projects[value] && value !== "new",
+      }));
+    } else {
+      setReplacementData((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleAddReplacement = async () => {
+    if (userRole !== "supervisor") return;
+    if (!replacementData.projectId || !replacementData.taskName || (replacementData.isNewProject && !replacementData.projectName)) {
+      showAlert("Please provide project ID, project name (if new project), and task name.");
+      return;
+    }
+    try {
+      const dayIndex = tasksData.findIndex((d) => d.date === replacementData.date);
+      const taskIndex = tasksData[dayIndex].tasks.findIndex((t) => t.task_id === strikeTaskId);
+      const task = tasksData[dayIndex].tasks[taskIndex];
+
+      const updatedTask = {
+        project_id: task.project_id,
+        project_name: task.project_name,
+        task_name: task.task_name,
+        emp_status: task.emp_status,
+        emp_comment: task.emp_comment,
+        sup_status: task.sup_status,
+        sup_comment: task.sup_comment,
+        sup_review_status: "struck",
+        employee_id: task.employee_id,
+        star_rating: task.star_rating,
+        replacement_task: replacementData.taskName,
+      };
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${strikeTaskId}`, updatedTask, {
+        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+      });
+
+      const [day, monthName] = replacementData.date.split(" ");
+      const year = new Date().getFullYear();
+      const month = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
+      const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+      const newTask = {
+        week_id: weekId,
+        task_date: formattedDate,
+        project_id: replacementData.projectId,
+        project_name: replacementData.projectName,
+        task_name: replacementData.taskName,
+        emp_status: "not started",
+        emp_comment: "",
+        sup_status: "still need to work",
+        sup_comment: "",
+        sup_review_status: "approved",
+        employee_id: employeeId,
+        star_rating: null,
+        replacement_task: null,
+      };
+      const response = await axios.post("${process.env.REACT_APP_BACKEND_URL}/api/week_tasks", newTask, {
+        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+      });
+
+      setTasksData((prev) =>
+        prev.map((day, i) =>
+          i === dayIndex
+            ? {
+                ...day,
+                tasks: [
+                  ...day.tasks.slice(0, taskIndex + 1),
+                  { ...newTask, task_id: response.data.taskId },
+                  ...day.tasks.slice(taskIndex + 1),
+                ],
+              }
+            : day
+        )
+      );
+      setProjects((prev) => ({
+        ...prev,
+        [replacementData.projectId]: replacementData.projectName,
+      }));
+      setNoTasks(false);
+      showAlert("Replacement task added successfully!");
+      setStrikeTaskId(null);
+      setReplacementData({ projectId: "", projectName: "", taskName: "", date: "", isNewProject: false });
+    } catch (err) {
+      showAlert(`Failed to add replacement task: ${err.message}`);
+      console.error(err);
+    }
+  };
+
+  const handleAssignClick = () => {
+    setShowAssignForm(true);
+    setAssignTasks([]);
+    setDropdownOpen({}); // Reset dropdown states when opening the form
   };
 
   const handleAddTask = () => {
-    const minRequiredDays = selectedWeeks.length * 5;
-
-    if (!taskName || !taskDays) {
-      showAlert("Please fill in task name and number of days.");
-      return;
-    }
-
-    const parsedTaskDays = parseInt(taskDays, 10);
-    if (isNaN(parsedTaskDays) || parsedTaskDays <= 0) {
-      showAlert("Please enter a valid number of days (greater than 0).");
-      return;
-    }
-
-    const usedDays = tasks.reduce((sum, t) => sum + (t.days || 0), 0);
-    const availableDays = selectedWeeks.length * 7;
-    const remainingDays = availableDays - usedDays;
-
-    if (parsedTaskDays > remainingDays) {
-      showAlert(`Only ${remainingDays} day(s) remain for allocation in the selected ${selectedWeeks.length} week(s).`);
-      return;
-    }
-
-    const weekRanges = selectedWeeks.map((w) => ({
-      week: w,
-      ...getWeekRange(w),
-    }));
-    const sortedWeeks = [...weekRanges].sort((a, b) => a.start.getTime() - b.start.getTime());
-    const startDates = sortedWeeks.map((wr) => wr.start.toISOString().split("T")[0]).join(",");
-    const endDates = sortedWeeks.map((wr) => wr.end.toISOString().split("T")[0]).join(",");
-    const weekNumbers = sortedWeeks.map((wr) => wr.week.replace("Week-", "")).join(",");
-    const taskDates = getTaskDates(parsedTaskDays, startDates, endDates, usedDays, weekNumbers);
-
-    const newTask = {
-      name: taskName,
-      desc: taskDesc.split("\n").filter((line) => line.trim() !== ""),
-      days: parsedTaskDays,
-      dates: taskDates.display,
-    };
-
-    setTasks([...tasks, newTask]);
-    setTaskName("");
-    setTaskDesc("");
-    setTaskDays("");
+    setAssignTasks((prev) => [
+      ...prev,
+      {
+        dates: [],
+        projectId: "",
+        projectName: "",
+        taskName: "",
+        isNewProject: false,
+      },
+    ]);
   };
 
-  const handleAddMessage = async () => {
-    if (!newMessage.trim()) return;
-
-    const currentPlan = plans[currentPlanIndex];
-    const timestamp = new Date().toLocaleString("en-IN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-      timeZone: "Asia/Kolkata",
-    }).replace(/,/, ", ");
-    const formattedMessage = isSupervisor ? `[SUPERVISOR] ${newMessage.trim()} on ${timestamp}` : `${newMessage.trim()} on ${timestamp}`;
-
-    let updatedMessages = "";
-    if (typeof currentPlan.messages === "string") {
-      updatedMessages = currentPlan.messages + "; " + formattedMessage;
-    } else if (Array.isArray(currentPlan.messages)) {
-      updatedMessages = [...currentPlan.messages, formattedMessage].join("; ");
-    } else {
-      updatedMessages = formattedMessage;
-    }
-
-    try {
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/plans/${currentPlan.plan_id}`;
-      console.log("Updating plan messages at:", url);
-      await withRetry(() =>
-        axios.put(
-          url,
-          { messages: updatedMessages },
-          {
-            headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-              "Content-Type": "application/json",
-            },
-          }
-        )
-      );
-
-      setNewMessage("");
-
-      const employeeId = employeeData?.employeeId || "STS079";
-      const plansUrl = `${process.env.REACT_APP_BACKEND_URL}/api/plans/${employeeId}`;
-      console.log("Fetching updated plans from:", plansUrl);
-      const res = await withRetry(() =>
-        axios.get(plansUrl, {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-            "Content-Type": "application/json",
-          },
-        })
-      );
-      const sortedPlans = res.data.plans.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      setPlans(sortedPlans || []);
-    } catch (err) {
-      console.error("Error updating messages:", err.response?.data || err.message);
-      if (err.response?.status === 404) {
-        setError("Plan update endpoint not found. Please check the backend server.");
-      } else if (err.response?.status === 401) {
-        setError("Invalid API key. Please check your configuration.");
-      } else {
-        setError("Failed to update messages: " + (err.response?.data?.message || err.message));
-      }
-    }
+  const handleRemoveTask = (index) => {
+    setAssignTasks((prev) => prev.filter((_, i) => i !== index));
+    setDropdownOpen((prev) => {
+      const newState = { ...prev };
+      delete newState[index]; // Remove dropdown state for the removed task
+      return newState;
+    });
   };
 
-  const handleSubmit = async () => {
-    if (selectedWeeks.length === 0 || selectedProjects.length === 0 || tasks.length === 0) {
-      showAlert("Please select at least one week, one project, and add at least one task.");
-      return;
-    }
-
-    const minRequiredDays = selectedWeeks.length * 5;
-    const usedDays = tasks.reduce((sum, t) => sum + (t.days || 0), 0);
-    if (usedDays < minRequiredDays) {
-      showAlert(`Total task days (${usedDays}) must be at least ${minRequiredDays} days for ${selectedWeeks.length} week(s).`);
-      return;
-    }
-
-    const employeeId = employeeData?.employeeId || "STS079";
-    if (!employeeId) {
-      showAlert("Employee ID not found. Please login again.");
-      return;
-    }
-
-    const weekRanges = selectedWeeks.map((w) => ({
-      week: w,
-      ...getWeekRange(w),
-    }));
-
-    const sortedWeeks = [...weekRanges].sort((a, b) => a.start.getTime() - b.start.getTime());
-
-    const startDates = sortedWeeks.map((wr) => wr.start.toISOString().split("T")[0]).join(",");
-    const endDates = sortedWeeks.map((wr) => wr.end.toISOString().split("T")[0]).join(",");
-
-    const plan = {
-      emp_id: employeeId,
-      week: sortedWeeks.map((wr) => wr.week.replace("Week-", "")).join(","),
-      start_date: startDates,
-      end_date: endDates,
-      project_id: selectedProjects.map((p) => String(p.id)).join(","),
-      task_name: tasks.map((t) => t.name).join("; "),
-      task_desc: tasks.map((t) => t.desc.join("; ")).join(" | "),
-      task_days: tasks.map((t) => t.days.toString()).join(","),
-      messages: `Plan submitted for approval on ${new Date().toLocaleString("en-IN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-        timeZone: "Asia/Kolkata",
-      }).replace(/,/, ", ")}`,
-    };
-
-    try {
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/plans`;
-      console.log("Submitting plan to:", url);
-      const response = await withRetry(() =>
-        axios.post(url, plan, {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-            "Content-Type": "application/json",
-          },
-        })
-      );
-
-      setShowForm(false);
-      setTasks([]);
-      setSelectedWeeks([]);
-      setSelectedProjects([]);
-      setError(null);
-
-      const plansUrl = `${process.env.REACT_APP_BACKEND_URL}/api/plans/${employeeId}`;
-      console.log("Fetching updated plans from:", plansUrl);
-      const res = await withRetry(() =>
-        axios.get(plansUrl, {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-            "Content-Type": "application/json",
-          },
-        })
-      );
-      const sortedPlans = res.data.plans.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      setPlans(sortedPlans || []);
-      setCurrentPlanIndex(0);
-
-      const submittedWeeks = new Set();
-      sortedPlans.forEach((plan) => {
-        if (plan.week) {
-          plan.week.split(",").forEach((week) => {
-            submittedWeeks.add(`Week-${week.trim()}`);
-          });
+  const handleAssignChange = (index, field, value) => {
+    setAssignTasks((prev) =>
+      prev.map((t, i) => {
+        if (i !== index) return t;
+        if (field === "dates") {
+          const newDates = t.dates.includes(value)
+            ? t.dates.filter((d) => d !== value)
+            : [...t.dates, value];
+          return { ...t, dates: newDates };
         }
-      });
-      const currentDate = new Date();
-      const upcomingWeeks = getUpcomingWeeks(currentDate, 4);
-      const availableWeeks = upcomingWeeks.filter((week) => !submittedWeeks.has(week));
-      setWeekOptions(availableWeeks);
-
-      showAlert("Plan saved successfully! ID: " + response.data.plan_id, "Success");
-    } catch (err) {
-      console.error("Error saving plan:", err.response?.data || err.message);
-      if (err.response?.status === 404) {
-        setError("Plan submission endpoint not found. Please check the backend server.");
-      } else if (err.response?.status === 401) {
-        setError("Invalid API key. Please check your configuration.");
-      } else {
-        setError("Failed to save plan: " + (err.response?.data?.message || err.message));
-      }
-    }
+        return { ...t, [field]: value };
+      })
+    );
   };
 
-  const handleApprovePlan = async (planId) => {
-    if (!isSupervisor) {
-      showAlert("Only supervisors can approve plans.");
+  const handleProjectSelect = (index) => (e) => {
+    const id = e.target.value;
+    setAssignTasks((prev) =>
+      prev.map((t, i) =>
+        i === index
+          ? {
+              ...t,
+              projectId: id,
+              projectName: projects[id] || (t.isNewProject ? t.projectName : ""),
+              isNewProject: !projects[id] && id !== "new",
+            }
+          : t
+      )
+    );
+  };
+
+  const handleAssignSubmit = async () => {
+    const validTasks = assignTasks.filter(
+      (task) => task.projectId && task.taskName && task.dates.length > 0 && (task.isNewProject ? task.projectName : true)
+    );
+    if (validTasks.length === 0) {
+      showAlert("Please fill in at least one valid task with at least one date, project ID, project name (if new), and task name.");
       return;
     }
-
-    const timestamp = new Date().toLocaleString("en-IN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-      timeZone: "Asia/Kolkata",
-    }).replace(/,/, ", ");
-    const approvalMessageText = approvalMessage.trim()
-      ? `Plan approved by supervisor: ${approvalMessage.trim()} on ${timestamp}`
-      : `[APPROVED] on ${timestamp}`;
-
-    const currentPlan = plans[currentPlanIndex];
-    let updatedMessages = "";
-    if (typeof currentPlan.messages === "string") {
-      updatedMessages = currentPlan.messages + "; " + approvalMessageText;
-    } else if (Array.isArray(currentPlan.messages)) {
-      updatedMessages = [...currentPlan.messages, approvalMessageText].join("; ");
-    } else {
-      updatedMessages = approvalMessageText;
-    }
-
     try {
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/plans/${planId}/approve`;
-      console.log("Approving plan at:", url);
-      await withRetry(() =>
-        axios.put(
-          url,
-          { message: updatedMessages },
-          {
-            headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-              "Content-Type": "application/json",
-            },
-          }
-        )
-      );
+      for (const task of validTasks) {
+        for (const date of task.dates) {
+          const [day, month] = date.split(" ");
+          const monthIndex = new Date(Date.parse(`${month} 1, 2025`)).getMonth();
+          const taskDate = new Date(2025, monthIndex, parseInt(day));
+          taskDate.setHours(0, 0, 0, 0);
+          const taskDateStr = formatDateIST(taskDate);
+          console.log("Assigning task for date:", date, "Parsed Date:", taskDate, "Formatted Date:", taskDateStr);
 
-      setApprovalMessage("");
+          const newTask = {
+            week_id: weekId,
+            task_date: taskDateStr,
+            project_id: task.projectId,
+            project_name: task.projectName,
+            task_name: task.taskName,
+            emp_status: "not started",
+            emp_comment: "",
+            sup_status: "still need to work",
+            sup_comment: "",
+            sup_review_status: "pending",
+            employee_id: employeeId,
+            star_rating: null,
+            replacement_task: null,
+          };
+          const response = await axios.post("${process.env.REACT_APP_BACKEND_URL}/api/week_tasks", newTask, {
+            headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+          });
 
-      const employeeId = employeeData?.employeeId || "STS079";
-      const plansUrl = `${process.env.REACT_APP_BACKEND_URL}/api/plans/${employeeId}`;
-      console.log("Fetching updated plans from:", plansUrl);
-      const res = await withRetry(() =>
-        axios.get(plansUrl, {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "your-api-key-here",
-            "Content-Type": "application/json",
-          },
-        })
-      );
-      const sortedPlans = res.data.plans.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      setPlans(sortedPlans || []);
-      showAlert("Plan approved successfully!", "Success");
-    } catch (err) {
-      console.error("Error approving plan:", err.response?.data || err.message);
-      if (err.response?.status === 404) {
-        setError("Plan approval endpoint not found. Please check the backend server.");
-      } else if (err.response?.status === 401) {
-        setError("Invalid API key. Please check your configuration.");
-      } else {
-        setError("Failed to approve plan: " + (err.response?.data?.message || err.message));
+          setTasksData((prev) => {
+            const newData = [...prev];
+            const dayIndex = newData.findIndex((d) => d.date === date);
+            console.log("Day Index:", dayIndex, "Date:", date, "Task:", newTask);
+            if (dayIndex > -1) {
+              newData[dayIndex] = {
+                ...newData[dayIndex],
+                tasks: [...newData[dayIndex].tasks, { ...newTask, task_id: response.data.taskId }],
+              };
+            } else {
+              console.error("No matching day found for date:", date);
+            }
+            return newData;
+          });
+          setProjects((prev) => ({
+            ...prev,
+            [newTask.project_id]: newTask.project_name,
+          }));
+        }
       }
+      setNoTasks(false);
+      showAlert("Tasks assigned successfully!");
+      setShowAssignForm(false);
+      setAssignTasks([]);
+      setDropdownOpen({}); // Reset dropdown states after submission
+    } catch (err) {
+      showAlert(`Failed to assign tasks: ${err.message}`);
+      console.error(err);
     }
   };
 
-  const closeModal = () => {
-    setShowForm(false);
-    setTaskName("");
-    setTaskDesc("");
-    setTaskDays("");
-    setTasks([]);
-    setSelectedWeeks([]);
-    setSelectedProjects([]);
-    setShowWeekDropdown(false);
-    setShowProjectDropdown(false);
+  const handleAssignCancel = () => {
+    setShowAssignForm(false);
+    setAssignTasks([]);
+    setDropdownOpen({}); // Reset dropdown states when cancelling
   };
 
-  const minRequiredDays = selectedWeeks.length * 5;
-  const usedDays = tasks.reduce((sum, t) => sum + (t.days || 0), 0);
-  const isSubmitEnabled = selectedWeeks.length > 0 && selectedProjects.length > 0 && tasks.length > 0 && usedDays >= minRequiredDays;
+  const statusColors = {
+    completed: "#28a745",
+    "still need to work": "#ffc107",
+    "re-work": "#dc3545",
+    "not started": "#888",
+    working: "#007bff",
+  };
+
+  const statusLabels = {
+    completed: "Completed",
+    "still need to work": "Still Need to Work",
+    "re-work": "Re-work",
+    "not started": "Not Started",
+    working: "Working",
+  };
+
+  const reviewColors = {
+    approved: "#28a745",
+    struck: "#dc3545",
+    suspended_review: "#ffc107",
+  };
+
+  const reviewIcons = {
+    approved: "✓",
+    struck: "✗",
+    suspended_review: "⛔",
+  };
 
   return (
-    <div className="week-plan-planner-container">
-      <div className="week-plan-planner-header">
-        <h2>Weekly Planner</h2>
-        <button className="week-plan-add-plan-btn" onClick={() => setShowForm(true)}>
-          + Add Plan
-        </button>
-      </div>
-
-      {error && (
-        <div className="week-plan-error-message">{error}</div>
-      )}
-
-      {plans.length > 0 && (
-        <div className="week-plan-detailed-plan-view">
-          <h3>Saved Plans</h3>
-          <div className="week-plan-plan-navigation">
+    <div className="weekly-task-planner">
+      <div className="planner-header">
+        <h2>
+          Weekly Task Planner{" "}
+          <span className="week-id">
+            Week {weekId}: {dateRange}
+          </span>
+          <div className="week-navigation">
             <button
-              className="week-plan-nav-btn"
-              disabled={currentPlanIndex === plans.length - 1}
-              onClick={() => setCurrentPlanIndex((prev) => prev + 1)}
+              onClick={handlePreviousWeek}
+              className="nav-button-task"
+              disabled={weekOffset <= -3}
+              title={weekOffset <= -3 ? "Cannot view earlier than Week 36" : "Previous Week"}
             >
-              &lt; Previous (Older Plan)
+              <svg
+                className="nav-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
-            <span className="week-plan-plan-title">
-              Plan ID: {plans[currentPlanIndex].plan_id} (Week: {plans[currentPlanIndex].week})
-            </span>
+            <div className="nav-dots">
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+            </div>
             <button
-              className="week-plan-nav-btn"
-              disabled={currentPlanIndex === 0}
-              onClick={() => setCurrentPlanIndex((prev) => prev - 1)}
+              onClick={handleNextWeek}
+              className="nav-button-task"
+              disabled={weekOffset >= 3}
+              title={weekOffset >= 3 ? "Cannot view beyond Week 42" : "Next Week"}
             >
-              Next (Newer Plan) &gt;
+              <svg
+                className="nav-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
             </button>
           </div>
-          <div className="week-plan-plan-sections">
-            <div className="week-plan-left-section">
-              <h4>Plan Details</h4>
-              <p>
-                <b>Week:</b> {plans[currentPlanIndex].week}
-              </p>
-              <p>
-                <b>Start Dates:</b> {plans[currentPlanIndex].start_date}
-              </p>
-              <p>
-                <b>End Dates:</b> {plans[currentPlanIndex].end_date}
-              </p>
-              <p>
-                <b>Projects:</b>{" "}
-                {(() => {
-                  const projectIds = plans[currentPlanIndex].project_id.split(",");
-                  return projectIds
-                    .map((id) => {
-                      const project = projects.find((p) => p.id === id.trim());
-                      return project ? `${id} - ${project.project}` : id;
-                    })
-                    .join(", ");
-                })()}
-              </p>
-              <h4>Tasks</h4>
-              {(() => {
-                const currentPlan = plans[currentPlanIndex];
-                const taskNames = currentPlan.task_name.split("; ");
-                const taskDescs = currentPlan.task_desc.split(" | ").map((d) => d.split("; "));
-                let taskDays = [];
-                if (typeof currentPlan.task_days === "string") {
-                  taskDays = currentPlan.task_days.split(",").map(Number);
-                } else if (Array.isArray(currentPlan.task_days)) {
-                  taskDays = currentPlan.task_days.map(Number);
-                } else {
-                  taskDays = [Number(currentPlan.task_days) || 0];
-                }
-                let currentDayOffset = 0;
-                return taskNames.map((name, i) => {
-                  const taskDates = getTaskDates(
-                    taskDays[i],
-                    currentPlan.start_date,
-                    currentPlan.end_date,
-                    currentDayOffset,
-                    currentPlan.week
-                  );
-                  currentDayOffset += taskDays[i] || 0;
-                  return (
-                    <div key={i} className="week-plan-task-detail">
-                      <strong>
-                        {name} ({taskDays[i] || 0} days)
-                      </strong>
-                      <p>
-                        <b>Dates:</b> {taskDates.display || "Not scheduled"}
-                      </p>
-                      <ul>
-                        {taskDescs[i].map((point, idx) => (
-                          <li key={idx}>{point}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                });
-              })()}
+        </h2>
+        <div className="header-buttons">
+          <button className="assign-task-button" onClick={handleAssignClick}>
+            Assign New Tasks
+          </button>
+          {userRole === "supervisor" && !supReviewMode && (
+            <button className="review-button" onClick={handleEnterReview}>
+              Supervisor Review
+            </button>
+          )}
+          {userRole === "supervisor" && supReviewMode && (
+            <button className="exit-review-button" onClick={handleExitReview}>
+              Exit Review
+            </button>
+          )}
+        </div>
+      </div>
+
+      {loading && <div>Loading tasks...</div>}
+      {error && (
+        <div className="error-message">
+          {error}
+          <button onClick={() => fetchData()} style={{ marginLeft: "10px" }}>
+            Retry
+          </button>
+        </div>
+      )}
+      {!loading && !error && noTasks && (
+        <div className="no-tasks-message">
+          No tasks available for this employee in Week {weekId}: {dateRange}.{" "}
+          <button onClick={handleAssignClick}>Assign tasks to get started</button>
+        </div>
+      )}
+
+      {showAssignForm && (
+        <div className="assign-form-modal">
+          <div className="assign-form">
+            <div className="form-header">
+              <h3>Assign New Tasks</h3>
+              <button className="close-button" onClick={handleAssignCancel}>×</button>
             </div>
-            <div className="week-plan-right-section">
-              <div className="week-plan-message-header">
-                <h4>Messages / Conversation</h4>
-                <span
-                  className={`week-plan-approval-status ${
-                    isPlanApproved(plans[currentPlanIndex].messages) ? "week-plan-approved" : "week-plan-pending"
-                  }`}
-                >
-                  {isPlanApproved(plans[currentPlanIndex].messages) ? "Approved" : "Pending"}
-                </span>
+            {assignTasks.length === 0 && (
+              <div className="empty-state">
+                <button onClick={handleAddTask} className="add-first-task-button">
+                  Add Task
+                </button>
               </div>
-              <div className="week-plan-message-list">
-                {getMessageArray(plans[currentPlanIndex].messages, isSupervisor).map((msg, i) => (
-                  <div key={i} className={`week-plan-message ${msg.sender}`}>
-                    <div className="week-plan-message-text">{msg.text}</div>
+            )}
+            {assignTasks.length > 0 && (
+              <div className="tasks-form-container">
+                {assignTasks.map((task, index) => (
+                  <div key={index} className="task-form-row">
+                    <div className="form-row-header">
+                      <h4>Task {index + 1}</h4>
+                      <button
+                        onClick={() => handleRemoveTask(index)}
+                        className="remove-task-button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label>Dates</label>
+                        <div className="multi-select-dropdown">
+                          {/* Changed: Use toggleDropdown with task index */}
+                          <div
+                            className="dropdown-header-task"
+                            onClick={() => toggleDropdown(index)}
+                          >
+                            {task.dates.length > 0
+                              ? task.dates.join(", ")
+                              : "-- Select Dates --"}
+                            <span className="arrow">{dropdownOpen[index] ? "▲" : "▼"}</span>
+                          </div>
+                          {/* Changed: Check dropdownOpen for specific task index */}
+                          {dropdownOpen[index] && (
+                            <div className="dropdown-list">
+                              {weekDates.map((date) => (
+                                <label key={date} className="checkbox-label">
+                                  <input
+                                    type="checkbox"
+                                    checked={task.dates.includes(date)}
+                                    onChange={() => handleAssignChange(index, "dates", date)}
+                                  />
+                                  {date}
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Project</label>
+                        <select
+                          value={task.projectId}
+                          onChange={handleProjectSelect(index)}
+                        >
+                          <option value="">Select Project</option>
+                          {Object.entries(projects).map(([id, name]) => (
+                            <option key={id} value={id}>
+                              {id} - {name}
+                            </option>
+                          ))}
+                          <option value="new">New Project</option>
+                        </select>
+                      </div>
+                      {task.isNewProject && (
+                        <>
+                          <div className="form-group">
+                            <label>Project ID</label>
+                            <input
+                              type="text"
+                              value={task.projectId}
+                              onChange={(e) => handleAssignChange(index, "projectId", e.target.value)}
+                              placeholder="Enter new project ID"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Project Name</label>
+                            <input
+                              type="text"
+                              value={task.projectName}
+                              onChange={(e) => handleAssignChange(index, "projectName", e.target.value)}
+                              placeholder="Enter new project name"
+                            />
+                          </div>
+                        </>
+                      )}
+                      <div className="form-group">
+                        <label>Task Name</label>
+                        <input
+                          type="text"
+                          value={task.taskName}
+                          onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
+                          placeholder="Enter task name"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button onClick={handleAddTask} className="add-task-button">
+                  + Add Another Task
+                </button>
+              </div>
+            )}
+            <div className="form-actions">
+              <button onClick={handleAssignSubmit} className="save-button">
+                Save All Tasks
+              </button>
+              <button onClick={handleAssignCancel} className="cancel-button">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {userRole === "supervisor" && strikeTaskId && (
+        <div className="replacement-modal">
+          <div className="replacement-form">
+            <div className="form-header">
+              <h4>Replace Struck Task</h4>
+              <button className="close-button" onClick={() => setStrikeTaskId(null)}>×</button>
+            </div>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Project</label>
+                <select
+                  value={replacementData.projectId}
+                  onChange={(e) => handleReplacementChange("projectId", e.target.value)}
+                >
+                  <option value="">Select Project</option>
+                  {Object.entries(projects).map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {id} - {name}
+                    </option>
+                  ))}
+                  <option value="new">New Project</option>
+                </select>
+              </div>
+              {replacementData.isNewProject && (
+                <>
+                  <div className="form-group">
+                    <label>Project ID</label>
+                    <input
+                      type="text"
+                      value={replacementData.projectId}
+                      onChange={(e) => handleReplacementChange("projectId", e.target.value)}
+                      placeholder="Enter new project ID"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Project Name</label>
+                    <input
+                      type="text"
+                      value={replacementData.projectName}
+                      onChange={(e) => handleReplacementChange("projectName", e.target.value)}
+                      placeholder="Enter new project name"
+                    />
+                  </div>
+                </>
+              )}
+              <div className="form-group">
+                <label>Task Name</label>
+                <input
+                  type="text"
+                  value={replacementData.taskName}
+                  onChange={(e) => handleReplacementChange("taskName", e.target.value)}
+                  placeholder="Enter replacement task name"
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <button onClick={handleAddReplacement} className="save-button">
+                Add Replacement
+              </button>
+              <button onClick={() => setStrikeTaskId(null)} className="cancel-button">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && !noTasks && tasksData.map((day) => {
+        const isExpanded = expandedDates[day.date] || false;
+        const visibleTasks = isExpanded ? day.tasks : day.tasks.slice(0, 3);
+
+        return (
+          <div key={day.date} className="day-card">
+            <div className="day-left-column">
+              <span className="day-date">{day.date}</span>
+              <div className="projects-column">
+                {visibleTasks.map((task) => (
+                  <div key={task.task_id} className="circle-container">
+                    <div className="project-circle" title={task.project_name}>
+                      {task.project_id}
+                    </div>
+                    <div className="task-id-circle" title={`Task ID: ${task.task_id}`}>
+                      {task.task_id}
+                    </div>
                   </div>
                 ))}
               </div>
-              <div className="week-plan-message-input">
-                <input
-                  type="text"
-                  placeholder="Type your message here..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                />
-                <button className="week-plan-send-message-btn" onClick={handleAddMessage}>
-                  Send
-                </button>
-                {isSupervisor && !isPlanApproved(plans[currentPlanIndex].messages) && (
-                  <div className="week-plan-approval-input">
-                    <input
-                      type="text"
-                      placeholder="Add optional approval comment..."
-                      value={approvalMessage}
-                      onChange={(e) => setApprovalMessage(e.target.value)}
-                    />
-                    <button
-                      className="week-plan-approve-plan-btn"
-                      onClick={() => handleApprovePlan(plans[currentPlanIndex].plan_id)}
-                    >
-                      Approve Plan
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {showForm && (
-        <div className="week-plan-modal">
-          <div className="week-plan-modal-content">
-            <span className="week-plan-close-btn" onClick={closeModal}>
-              &times;
-            </span>
-            <h3>Create New Plan</h3>
-            <div className="week-plan-planner-form">
-              <div className="week-plan-form-container">
-                <div className="week-plan-row-section">
-                  <div className="week-plan-half-section">
-                    <label>Select Week(s):</label>
-                    <div className="week-plan-dropdown">
-                      <button
-                        className="week-plan-dropdown-btn"
-                        onClick={() => setShowWeekDropdown(!showWeekDropdown)}
-                      >
-                        {selectedWeeks.length > 0
-                          ? selectedWeeks
-                              .map((week) => {
-                                const { start, end } = getWeekRange(week);
-                                return `${week} (${start.toLocaleDateString()} - ${end.toLocaleDateString()})`;
-                              })
-                              .join(", ")
-                          : "Select one or more weeks"}
-                      </button>
-                      {showWeekDropdown && (
-                        <div className="week-plan-dropdown-content">
-                          {weekOptions.length > 0 ? (
-                            weekOptions.map((week, i) => {
-                              const { start, end } = getWeekRange(week);
-                              return (
-                                <label key={i}>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedWeeks.includes(week)}
-                                    onChange={() => toggleWeek(week)}
-                                  />
-                                  {week} ({start.toLocaleDateString()} - {end.toLocaleDateString()})
-                                </label>
-                              );
-                            })
-                          ) : (
-                            <p>No available weeks for planning.</p>
+            <div className="tasks-section">
+              <div className="tasks-header">
+                <div className="header-task">Tasks</div>
+                <div className="header-employee">Employee Update</div>
+                <div className="header-supervisor">Supervisor Feedback</div>
+              </div>
+              <div className="tasks-list">
+                {visibleTasks.map((task) => (
+                  <div key={task.task_id} className="task-row">
+                    <div className="task-name">
+                      {task.sup_review_status === "struck" ? (
+                        <>
+                          <span style={{ textDecoration: "line-through", color: "#a0a0a0" }}>
+                            {task.task_name}
+                          </span>
+                          {task.replacement_task && (
+                            <span style={{ color: "#007bff", marginLeft: "10px", display: "inline-flex", alignItems: "center" }}>
+                              <span
+                                className={`review-status-icon ${task.sup_review_status}`}
+                                style={{ color: reviewColors[task.sup_review_status], marginRight: "5px" }}
+                                title={
+                                  task.sup_review_status === "approved"
+                                    ? "Approved"
+                                    : task.sup_review_status === "struck"
+                                    ? "Struck"
+                                    : "Suspended"
+                                }
+                              >
+                                {reviewIcons[task.sup_review_status]}
+                              </span>
+                              {task.replacement_task}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {task.task_name}
+                          {task.sup_review_status !== "pending" && (
+                            <span
+                              className={`review-status-icon ${task.sup_review_status}`}
+                              style={{ color: reviewColors[task.sup_review_status] }}
+                              title={
+                                task.sup_review_status === "approved"
+                                  ? "Approved"
+                                  : task.sup_review_status === "struck"
+                                  ? "Struck"
+                                  : "Suspended"
+                              }
+                            >
+                              {reviewIcons[task.sup_review_status]}
+                            </span>
+                          )}
+                        </>
+                      )}
+                      {userRole === "supervisor" && supReviewMode && task.sup_review_status === "pending" && (
+                        <div className="review-action-icons">
+                          <svg
+                            className="action-icon approve"
+                            onClick={() => handleApprove(task.task_id)}
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="green"
+                            strokeWidth="2"
+                          >
+                            <path d="M20 6L9 17l-5-5" />
+                          </svg>
+                          <svg
+                            className="action-icon strike"
+                            onClick={() => handleStrike(task.task_id, day.date)}
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="red"
+                            strokeWidth="2"
+                          >
+                            <path d="M18 6L6 18" />
+                          </svg>
+                          <svg
+                            className="action-icon suspend"
+                            onClick={() => handleSuspendReview(task.task_id)}
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="orange"
+                            strokeWidth="2"
+                          >
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="update-section">
+                      {editingTask === task.task_id && userRole === "employee" && (
+                        <div className="edit-popup">
+                          <div className="checkbox-group">
+                            {["completed", "not started", "working"].map((status) => (
+                              <label key={status} className="checkbox-label">
+                                <input
+                                  type="radio"
+                                  name="emp-status"
+                                  value={status}
+                                  checked={formData.status === status}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, status: e.target.value })
+                                  }
+                                />
+                                {statusLabels[status] || status}
+                              </label>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Add comment"
+                            value={formData.comment}
+                            onChange={(e) =>
+                              setFormData({ ...formData, comment: e.target.value })
+                            }
+                            className="edit-comment-input"
+                          />
+                          <button
+                            onClick={() => handleSave(task.task_id)}
+                            className="edit-save-button"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      )}
+                      <div className="status-container">
+                        <span className="comment">{task.emp_comment || "N/A"}</span>
+                        <div className="status-dots">
+                          <span
+                            className="status-dot"
+                            style={{ backgroundColor: statusColors[task.emp_status] || "#888" }}
+                            title={statusLabels[task.emp_status] || task.emp_status}
+                          ></span>
+                          {userRole === "employee" && (
+                            <svg
+                              className="edit-icon"
+                              onClick={() => handleEditClick(task)}
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#007bff"
+                              strokeWidth="2"
+                            >
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
                           )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="week-plan-half-section">
-                    <label>Select Project(s):</label>
-                    <div className="week-plan-dropdown">
-                      <button
-                        className="week-plan-dropdown-btn"
-                        onClick={() => setShowProjectDropdown(!showProjectDropdown)}
-                      >
-                        {selectedProjects.length > 0
-                          ? selectedProjects.map((p) => `${p.id} - ${p.project}`).join(", ")
-                          : "Select one or more projects"}
-                      </button>
-                      {showProjectDropdown && (
-                        <div className="week-plan-dropdown-content">
-                          {projects.map((project) => (
-                            <label key={project.id}>
-                              <input
-                                type="checkbox"
-                                checked={selectedProjects.some((p) => p.id === project.id)}
-                                onChange={() => toggleProject(project)}
-                              />
-                              {project.id} - {project.project}
-                            </label>
-                          ))}
+                    <div className="supervisor-section">
+                      {userRole === "supervisor" && supReviewMode && editingSupStatus === task.task_id ? (
+                        <div className="edit-section">
+                          <div className="checkbox-group">
+                            {["completed", "still need to work", "re-work"].map((status) => (
+                              <label key={status} className="checkbox-label">
+                                <input
+                                  type="radio"
+                                  name="sup-status"
+                                  value={status}
+                                  checked={supFormData.supStatus === status}
+                                  onChange={(e) =>
+                                    setSupFormData({ ...supFormData, supStatus: e.target.value })
+                                  }
+                                />
+                                {statusLabels[status] || status}
+                              </label>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Add supervisor comment"
+                            value={supFormData.supComment}
+                            onChange={(e) =>
+                              setSupFormData({ ...supFormData, supComment: e.target.value })
+                            }
+                            className="edit-comment-input"
+                          />
+                          <button
+                            onClick={() => handleSupStatusSave(task.task_id)}
+                            className="edit-save-button"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="status-container">
+                          <span className="comment">{task.sup_comment || "N/A"}</span>
+                          <div className="status-dots">
+                            <span
+                              className="status-dot"
+                              style={{ backgroundColor: statusColors[task.sup_status] || "#888" }}
+                              title={statusLabels[task.sup_status] || task.sup_status}
+                            ></span>
+                            {userRole === "supervisor" && supReviewMode && (
+                              <svg
+                                className="edit-icon"
+                                onClick={() => handleSupStatusEditClick(task)}
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#007bff"
+                                strokeWidth="2"
+                              >
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-                <div className="week-plan-task-section">
-                  <div className="week-plan-task-field">
-                    <label>Task Name:</label>
-                    <input
-                      type="text"
-                      placeholder="Enter the task name"
-                      value={taskName}
-                      onChange={(e) => setTaskName(e.target.value)}
-                    />
-                  </div>
-                  <div className="week-plan-task-field">
-                    <label>Task Description (one point per line):</label>
-                    <textarea
-                      placeholder="Enter task description (one point per line)"
-                      value={taskDesc}
-                      onChange={(e) => setTaskDesc(e.target.value)}
-                    />
-                  </div>
-                  <div className="week-plan-task-field">
-                    <label>Number of Days:</label>
-                    <input
-                      type="number"
-                      placeholder="Enter number of days"
-                      value={taskDays}
-                      onChange={(e) => setTaskDays(e.target.value)}
-                      min="1"
-                    />
-                  </div>
-                  <div className="week-plan-button-group">
-                    <button className="week-plan-add-task-btn" onClick={handleAddTask}>
-                      + Add Task
-                    </button>
-                  </div>
-                </div>
-                {tasks.length > 0 && (
-                  <div className="week-plan-task-preview">
-                    <h4>Preview Tasks</h4>
-                    <p>Total Days Allocated: {usedDays} / Minimum {minRequiredDays} (for {selectedWeeks.length} week(s))</p>
-                    <ul>
-                      {tasks.map((task, i) => (
-                        <li key={i}>
-                          <strong>
-                            {task.name} ({task.days} days)
-                          </strong>
-                          <p>
-                            <b>Dates:</b> {task.dates || "Not scheduled"}
-                          </p>
-                          <ul>
-                            {task.desc.map((point, idx) => (
-                              <li key={idx}>{point}</li>
-                            ))}
-                          </ul>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <div className="week-plan-submit-section">
-                  <button
-                    className="week-plan-submit-btn"
-                    onClick={handleSubmit}
-                    disabled={!isSubmitEnabled}
-                  >
-                    Submit Plan
-                  </button>
-                </div>
+                ))}
               </div>
+              {day.tasks.length > 3 && (
+                <svg
+                  className="expand-icon-task"
+                  onClick={() => toggleExpand(day.date)}
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#28a745"
+                  strokeWidth="2"
+                >
+                  {isExpanded ? (
+                    <path d="M19 9l-7-7-7 7" />
+                  ) : (
+                    <path d="M5 15l7 7 7-7" />
+                  )}
+                </svg>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })}
 
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}
         buttons={[{ label: "OK", onClick: closeAlert }]}
       >
-        <h3>{alertModal.title}</h3>
         <p>{alertModal.message}</p>
       </Modal>
     </div>

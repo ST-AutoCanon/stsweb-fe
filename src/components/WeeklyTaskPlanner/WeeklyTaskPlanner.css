@@ -1,447 +1,980 @@
-.week-plan-planner-container {
+/* General container for the weekly planner */
+.weekly-task-planner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   padding: 20px;
   max-width: 1200px;
-  /* margin: 0 auto; */
   font-family: Arial, sans-serif;
   background-color: #f9fafb;
 }
 
-.week-plan-planner-header {
+/* Planner header */
+.planner-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 
-.week-plan-planner-header h2 {
-  font-size: 24px;
-  font-weight: 700;
+.planner-header h2 {
+  font-size: 20px;
+  font-weight: 600;
   color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.week-plan-add-plan-btn,
-.week-plan-nav-btn,
-.week-plan-send-message-btn,
-.week-plan-approve-plan-btn,
-.week-plan-submit-btn,
-.week-plan-add-task-btn {
-  padding: 10px 16px;
-  background-color: #28a745;
-  color: white;
+/* Week ID styling */
+.week-id {
+  font-size: 16px;
+  font-style: italic;
+  color: #4b5563;
+}
+
+/* Week navigation container */
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Increased gap for better spacing */
+  position: relative;
+}
+
+/* Navigation button */
+.nav-button-task {
+  background: #218838; /* Softer blue for modern look */
+  color: #fff;
   border: none;
+  padding: 10px; /* Square padding for icon buttons */
+  border-radius: 50%; /* Circular buttons */
+  cursor: pointer;
+  width: 30px; /* Fixed size for circular buttons */
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.nav-button:hover:not(:disabled) {
+  background: #218838; /* Darker blue on hover */
+  transform: translateY(-1px); /* Slight lift effect */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.nav-button:disabled {
+  background: #9ca3af; /* Light gray for disabled */
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Navigation icon */
+.nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Decorative dots between buttons */
+.nav-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: #6b7280; /* Gray dots for subtle decoration */
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+/* Header buttons */
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Assign task button */
+.assign-task-button {
+  background: #218838;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
   transition: background-color 0.2s ease;
 }
 
-.week-plan-add-plan-btn:hover,
-.week-plan-nav-btn:hover,
-.week-plan-send-message-btn:hover,
-.week-plan-approve-plan-btn:hover,
-.week-plan-submit-btn:hover,
-.week-plan-add-task-btn:hover {
-  background-color: #28a745;
+.assign-task-button:hover {
+  background: #218838;
 }
 
-.week-plan-nav-btn:disabled,
-.week-plan-submit-btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-  margin-top: 10px;
-}
-
-.week-plan-detailed-plan-view {
-  margin-top: 24px;
-}
-
-.week-plan-detailed-plan-view h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 16px;
-}
-
-.week-plan-plan-navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.week-plan-plan-title {
-  font-weight: bold;
-  font-size: 16px;
-  color: #111827;
-}
-
-.week-plan-plan-sections {
-  display: flex;
-  gap: 32px;
-}
-
-.week-plan-left-section,
-.week-plan-right-section {
-  flex: 1;
-  padding: 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background-color: #ffffff;
-}
-
-.week-plan-left-section h4,
-.week-plan-right-section h4 {
-  font-size: 18px;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 16px;
-}
-
-.week-plan-message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.week-plan-approval-status {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.week-plan-approval-status.week-plan-pending {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.week-plan-approval-status.week-plan-approved {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.week-plan-task-detail {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #f8fafc;
+/* Review button (visible only to supervisors) */
+.review-button {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
   border-radius: 6px;
-  border-left: 3px solid #28a745;
-}
-
-.week-plan-task-detail strong {
-  display: block;
-  margin-bottom: 6px;
-  color: #111827;
-  font-size: 15px;
-}
-
-.week-plan-task-detail p {
-  margin: 0 0 6px;
+  cursor: pointer;
   font-size: 14px;
-  color: #4b5563;
+  transition: background-color 0.2s ease;
 }
 
-.week-plan-task-detail ul {
-  margin: 0 0 0 20px;
-  padding: 0;
+.review-button:hover {
+  background: #218838;
 }
 
-.week-plan-task-detail li {
-  font-size: 14px;
-  color: #4b5563;
-  margin-bottom: 4px;
-}
-
-.week-plan-message-list {
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f8fafc;
-}
-
-.week-plan-message-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.week-plan-message-list::-webkit-scrollbar-track {
-  background: #f8fafc;
-}
-
-.week-plan-message-list::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-.week-plan-message {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.week-plan-message.supervisor {
-  align-items: flex-start;
-}
-
-.week-plan-message.employee {
-  align-items: flex-end;
-}
-
-.week-plan-message-text {
-  max-width: 70%;
-  padding: 10px 14px;
-  border-radius: 18px;
-  font-size: 16px;
-  line-height: 1.4;
-  word-wrap: break-word;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.week-plan-message.supervisor .week-plan-message-text {
-  background-color: #28a745;
-  color: #ffffff;
-}
-
-.week-plan-message.employee .week-plan-message-text {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #374151;
-}
-
-.week-plan-message-timestamp {
-  font-size: 10px;
-  color: #9ca3af;
-  margin-top: 4px;
-  font-weight: 400;
-}
-
-.week-plan-message.supervisor .week-plan-message-timestamp {
-  text-align: left;
-  color: #bfdbfe;
-}
-
-.week-plan-message.employee .week-plan-message-timestamp {
-  text-align: right;
-}
-
-.week-plan-message-input {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.week-plan-message-input input {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
+/* Exit review button (visible only to supervisors) */
+.exit-review-button {
+  background: #6b7280;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
   border-radius: 6px;
+  cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.2s;
 }
 
-.week-plan-message-input input::placeholder {
-  color: #9ca3af;
+.exit-review-button:hover {
+  background: #4b5563;
 }
 
-.week-plan-approval-input {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-
-.week-plan-approval-input input {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.week-plan-approval-input input::placeholder {
-  color: #9ca3af;
-}
-
-.week-plan-send-message-btn {
-  background-color: #28a745;
-  min-width: 80px;
-}
-
-.week-plan-send-message-btn:hover {
-  background-color: #218838;
-}
-
-.week-plan-approve-plan-btn {
-  background-color: #28a745;
-  min-width: 120px;
-}
-
-.week-plan-approve-plan-btn:hover {
-  background-color: #28a745;
-}
-
-.week-plan-modal {
+/* Assign task form modal */
+.assign-form-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 10px;
 }
 
-.week-plan-modal-content {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  width: 600px;
+.assign-form {
+  background: #ffffff;
+  padding: 0 0 15px 0;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
   max-height: 80vh;
   overflow-y: auto;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.week-plan-close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  cursor: pointer;
+/* Form header */
+.form-header {
+  background: #3067bb; /* Blue header like screenshot */
+  color: #fff;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.form-header h3,
+.form-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #fff;
   font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: #ccc;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 20px 10px;
   color: #6b7280;
 }
 
-.week-plan-close-btn:hover {
-  color: #111827;
-}
-
-.week-plan-error-message {
-  color: #dc3545;
-  margin: 10px 0;
-  padding: 12px;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 6px;
+.empty-state p {
+  margin-bottom: 10px;
   font-size: 14px;
 }
 
-.week-plan-row-section {
+.add-first-task-button {
+  background: #218838;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-first-task-button:hover {
+  background: #218838;
+}
+
+/* Tasks form container */
+.tasks-form-container {
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 0 15px;
 }
 
-.week-plan-half-section {
-  flex: 1;
-}
-
-.week-plan-dropdown {
-  position: relative;
-}
-
-.week-plan-dropdown-btn {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #d1d5db;
+/* Task form row */
+.task-form-row {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  background: white;
-  text-align: left;
-  font-size: 14px;
-}
-
-.week-plan-dropdown-content {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.week-plan-dropdown-content label {
-  display: block;
   padding: 10px;
-  font-size: 14px;
 }
 
-.week-plan-task-section {
-  margin-top: 20px;
-}
-
-.week-plan-task-field {
-  margin-bottom: 15px;
-}
-
-.week-plan-task-field label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 14px;
-  color: #111827;
-}
-
-.week-plan-task-field input,
-.week-plan-task-field textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.week-plan-task-field textarea {
-  height: 100px;
-}
-
-.week-plan-task-preview {
-  margin-top: 20px;
-}
-
-.week-plan-task-preview h4 {
-  font-size: 16px;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 12px;
-}
-
-.week-plan-task-preview p {
-  font-size: 14px;
-  color: #4b5563;
-}
-
-.week-plan-task-preview ul {
-  padding-left: 20px;
-}
-
-.week-plan-task-preview li {
-  font-size: 14px;
-  color: #4b5563;
+/* Form row header */
+.form-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
 }
 
-.week-plan-button-group {
+.form-row-header h4 {
+  font-size: 16px;
+  color: #111827;
+  margin: 0;
+}
+
+.remove-task-button {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.remove-task-button:hover {
+  background: #c82333;
+}
+
+/* Form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Form group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 6px;
+  font-size: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  background: #f0f0f0; /* Light gray like screenshot */
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #218838;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Checkbox group */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Checkbox label */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Checkbox input */
+.checkbox-label input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  transform: scale(0.9);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Hover effect for checkboxes */
+.checkbox-label input[type="checkbox"]:hover {
+  outline: 1px solid #218838;
+}
+
+/* Multi-select dropdown */
+.multi-select-dropdown {
+  position: relative;
+  width: 100%;
+  min-width: 220px;
+  max-width: 300px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* Dropdown header */
+.dropdown-header-task {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  background: #f0f0f0; /* Light gray like screenshot */
   display: flex;
   justify-content: space-between;
-  margin-top: 15px;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+  min-width: 220px;
+}
+
+/* Dropdown list */
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  min-width: 220px;
+  max-width: 300px;
+  max-height: 150px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  z-index: 10;
+  padding: 4px 0;
+  box-sizing: border-box;
+}
+
+/* Action buttons */
+.add-task-button {
+  background: #218838;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background-color 0.2s;
+  margin: 10px 0;
+}
+
+.add-task-button:hover {
+  background: #218838;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.save-button {
+  background: #28a745; /* Green like screenshot */
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-button:hover {
+  background: #218838;
+}
+
+.cancel-button {
+  background: #6b7280;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+  background: #4b5563;
+}
+
+/* Review icons in task name */
+.review-status-icon {
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.task-name.struck {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.review-action-icons {
+  display: flex;
+  gap: 5px;
+  margin-left: 10px;
+}
+
+.action-icon {
+  cursor: pointer;
+  transition: stroke 0.2s ease;
+}
+
+.action-icon:hover {
+  stroke: darken(stroke, 10%);
+}
+
+/* Replacement modal (visible only to supervisors) */
+.replacement-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  padding: 20px;
+}
+
+.replacement-form {
+  background: #ffffff;
+  padding: 0 0 20px 0;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.replacement-form .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 0 20px;
+}
+
+.replacement-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.replacement-form .form-group label {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.replacement-form .form-group input,
+.replacement-form .form-group select {
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #f0f0f0; /* Light gray like screenshot */
+}
+
+/* Day card styling */
+.day-card {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* Left column (date and projects) */
+.day-left-column {
+  background: #f8fafc;
+  border-right: 1px solid #e5e7eb;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+/* Date header */
+.day-date {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+}
+
+/* Projects column */
+.projects-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+/* Circle container for project and task ID circles */
+.circle-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Project circle */
+.project-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #218838;
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Task ID circle */
+.task-id-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #6b7280;
+  color: #fff;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Task ID in task name */
+.task-id {
+  font-size: 12px;
+  font-style: italic;
+  color: #4b5563;
+  margin-right: 6px;
+}
+
+/* Tasks section (right side) */
+.tasks-section {
+  flex: 1;
+  padding: 16px;
+  position: relative; /* Ensure popups can position within this */
+}
+
+/* Task header row */
+.tasks-header {
+  display: grid;
+  grid-template-columns: 1fr 200px 200px;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #4b5563;
+  padding: 8px 0;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Header labels */
+.header-task,
+.header-employee,
+.header-supervisor {
+  padding-left: 8px;
+}
+
+/* Tasks list container */
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Individual task row */
+.task-row {
+  display: grid;
+  grid-template-columns: 1fr 200px 200px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  transition: box-shadow 0.2s ease;
+}
+
+.task-row:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Task name */
+.task-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  /* max-width: 200px; */
+   /* Constrain width to prevent overflow */
+  transition: max-width 0.3s ease; /* Smooth transition for width */
+  cursor: pointer;
+}
+
+.task-row:hover .task-name {
+  max-width: none; /* Remove width constraint on hover */
+  white-space: normal; /* Allow text to wrap */
+  overflow: visible; /* Show full text */
+  text-overflow: clip; /* Remove ellipsis */
+}
+
+/* Employee and Supervisor update sections */
+.update-section,
+.supervisor-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative; /* Ensure popups position relative to this */
+}
+
+/* Status container (for dots and edit icon) */
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+/* Status dots wrapper */
+.status-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* Comment text */
+.comment {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+  transition: max-width 0.3s ease;
+  cursor: pointer;
+}
+
+.status-container:hover .comment {
+  max-width: none;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Status dot */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* Edit icon */
+.edit-icon {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.edit-icon:hover {
+  stroke: #218838;
+}
+
+/* Expand/Collapse icon */
+.expand-icon-task {
+  cursor: pointer;
+  display: block;
+  margin: 10px auto 0;
+}
+
+.expand-icon-task:hover {
+  stroke: #218838;
+}
+
+/* Edit section (when updating task) */
+.edit-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  background: #f1f5f9;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  z-index: 10;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: space-between;
+}
+
+/* Edit form inputs and select */
+.edit-task-input {
+  padding: 5px 6px;
+  font-size: 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  flex: 1 1 30%;
+  box-sizing: border-box;
+}
+
+.edit-status-select {
+  padding: 5px 6px;
+  font-size: 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  flex: 1 1 25%;
+  box-sizing: border-box;
+}
+
+.edit-comment-input {
+  padding: 5px 6px;
+  font-size: 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  flex: 1 1 35%;
+  box-sizing: border-box;
+}
+
+.edit-task-input:focus,
+.edit-status-select:focus,
+.edit-comment-input:focus {
+  outline: none;
+  border-color: #218838;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Save button */
+.edit-save-button {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.edit-save-button:hover {
+  background: #218838;
+}
+
+/* Edit popup */
+.edit-popup {
+  position: absolute;
+  top: 100%; /* Position below the edit icon */
+  right: 0; /* Align to the right of the status-container */
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 20; /* Higher than dropdown-list */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+  max-width: 250px; /* Prevent popup from being too wide */
+  transform: translateY(5px); /* Small offset for better alignment */
+}
+
+/* Ensure popups stay within bounds */
+.tasks-section {
+  overflow: visible; /* Allow popups to extend outside */
+}
+
+/* Alert modal */
+.alert-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1002;
+}
+
+.alert-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+}
+
+.alert-content p {
+  margin-bottom: 10px;
+  color: #111827;
+  font-size: 14px;
+}
+
+.alert-content button {
+  background: #218838;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.alert-content button:hover {
+  background: #218838;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  .day-left-column {
+    width: 100px;
+  }
+  .circle-container {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .edit-section {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .edit-task-input,
+  .edit-status-select,
+  .edit-comment-input {
+    flex: 1 1 100%;
+  }
+  .edit-save-button {
+    flex: 1 1 100%;
+  }
+  .multi-select-dropdown {
+    min-width: 180px;
+    max-width: 100%;
+  }
+  .dropdown-header-task {
+    min-width: 180px;
+  }
+  .dropdown-list {
+    min-width: 180px;
+    max-width: 100%;
+  }
+  .checkbox-label {
+    font-size: 11px;
+  }
+  .checkbox-label input[type="checkbox"] {
+    width: 10px;
+    height: 10px;
+  }
+  .edit-popup {
+    right: auto; /* Reset right alignment on mobile */
+    left: 0; /* Align to left on smaller screens */
+    max-width: 90%; /* Fit within parent */
+    transform: translateY(5px);
+  }
+  .week-navigation {
+    gap: 8px; /* Slightly smaller gap on mobile */
+  }
+  .nav-button {
+    width: 32px; /* Slightly smaller on mobile */
+    height: 32px;
+    padding: 8px;
+  }
+  .nav-icon {
+    width: 14px;
+    height: 14px;
+  }
+  .nav-dots {
+    gap: 4px;
+  }
+  .dot {
+    width: 5px;
+    height: 5px;
+  }
+  .task-name {
+    max-width: 150px; /* Smaller max-width on mobile to fit smaller screens */
+  }
 }
