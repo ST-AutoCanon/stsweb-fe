@@ -4,12 +4,14 @@ import axios from "axios";
 
 const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
   const [avatar, setAvatar] = useState("");
+  const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
+  const employeeId = dashboardData.employeeId || null;
 
   useEffect(() => {
     if (photoUrl) {
       axios
         .get(`${process.env.REACT_APP_BACKEND_URL}/docs${photoUrl}`, {
-          headers: { "x-api-key": apiKey },
+          headers: { "x-api-key": apiKey, "x-employee-id": employeeId },
           responseType: "blob",
         })
         .then((response) => {

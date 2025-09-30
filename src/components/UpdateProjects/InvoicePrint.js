@@ -64,7 +64,7 @@ const InvoicePrint = React.forwardRef(({ invoiceData }, ref) => {
 
       <div className="invoice-title-section">
         <div className="invoice-title-block">
-          {(invoiceType === "invoice"
+          {(invoiceType === "tax"
             ? "Tax Invoice"
             : invoiceType === "proforma"
             ? "Proforma Invoice"

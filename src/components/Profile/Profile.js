@@ -352,7 +352,7 @@ const Profile = ({ onClose, notificationId = null }) => {
     const fetchAssets = async () => {
       try {
         const r = await axios.get(
-          `${BASE_URL}/api/assets/assigned-assets/${employeeId}`,
+          `${BASE_URL}/assets/assigned-assets/${employeeId}`,
           {
             headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
           }

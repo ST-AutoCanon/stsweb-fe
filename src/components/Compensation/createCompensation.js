@@ -341,7 +341,9 @@ const remainingPercentage = useMemo(() => {
     <div key={field} className="compensation-form-group">
       <span className="compensation-label-text">
         {label}
-        {required && <span style={{ color: '#f44336' }}>*</span>}
+
+
+        {required && <span style={{ color: '#f44336' }}>*</span
       </span>
       {type === 'dropdown' ? (
         <div className="compensation-input-group">
@@ -471,6 +473,9 @@ const remainingPercentage = useMemo(() => {
     </div>
   );
 };
+
+
+
 //  const handleSubmit = async (e) => {
 //   e.preventDefault();
 //   setErrors({});
@@ -678,6 +683,7 @@ const remainingPercentage = useMemo(() => {
 //     showAlert(`Failed to ${isEditing ? 'update' : 'create'} compensation: ${errorMessage}`);
 //   }
 // };
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   setErrors({});
@@ -860,6 +866,7 @@ const handleSubmit = async (e) => {
         newData.statutoryBonusType = 'percentage';
         newData.statutoryBonusIncludeInCtc = false;
         updatedErrors.statutoryBonusPercentage = '';
+
       }
       if (field === 'isIncentives') {
         newData.incentives = '';
@@ -868,6 +875,16 @@ const handleSubmit = async (e) => {
         newData.incentivesIncludeInCtc = false;
         updatedErrors.incentives = '';
       }
+
+      }
+      if (field === 'isIncentives') {
+        newData.incentives = '';
+        newData.incentivesAmount = '';
+        newData.incentivesType = 'percentage';
+        newData.incentivesIncludeInCtc = false;
+        updatedErrors.incentives = '';
+      }
+
     } else {
       // Initialize fields when checked
       if (field === 'isBasicSalary') {
@@ -921,7 +938,7 @@ const handleSubmit = async (e) => {
         newData.variablePay = newData.variablePay || '0';
         newData.variablePayIncludeInCtc = true;
       }
-      if (field === 'isStatutoryBonus') {
+      if (field 
         newData.statutoryBonusType = 'percentage';
         newData.statutoryBonusPercentage = newData.statutoryBonusPercentage || '0';
         newData.statutoryBonusIncludeInCtc = true;
@@ -2173,6 +2190,7 @@ const handleInputChange = (field, value) => {
           const typeValue = typeField ? compensationData[typeField] : null;
           let displayValue = '';
 
+
           if (typeof value === 'boolean') {
             displayValue = value ? 'Yes' : 'No';
           } else if (typeof value === 'object' && value !== null) {
@@ -2209,6 +2227,44 @@ const handleInputChange = (field, value) => {
           } else {
             displayValue = '-';
           }
+
+          if (typeof value === 'boolean') {
+            displayValue = value ? 'Yes' : 'No';
+          } else if (typeof value === 'object' && value !== null) {
+            if (Array.isArray(value)) {
+              displayValue = value.length > 0 ? (
+                value.map((slab, i) => (
+                  <div key={i}>
+                    From: {slab.from}, To: {slab.to}, %: {slab.percentage}
+                  </div>
+                ))
+              ) : (
+                '-'
+              );
+            } else {
+              displayValue = Object.entries(value).map(([day, status]) => (
+                <div key={day}>{`${day}: ${status}`}</div>
+              ));
+            }
+          } else if (value !== '' && value !== undefined) {
+            if (isNaN(value)) {
+              displayValue = value;
+            } else {
+              displayValue = Number(value).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+              if (typeField && key.endsWith('Amount') && typeValue === 'amount') {
+                const calculatedPercentage = convertAmountToPercentage(value, totalCTC).toFixed(2);
+                displayValue += ` (${calculatedPercentage}%)`;
+              } else if (typeField && typeValue === 'percentage') {
+                displayValue += ' (Percentage)';
+              }
+            }
+          } else {
+            displayValue = '-';
+          }
+
 
           return (
             <tr key={key}>
