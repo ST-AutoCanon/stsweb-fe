@@ -1,1100 +1,814 @@
-/* .sup-plan-container {
-  position: relative;
+
+
+.supervisor-plan-wrapper {
   display: flex;
-  font-family: Arial, sans-serif;
   min-height: 100vh;
-  background-color: #f9fafb;
-}
-
-.sup-plan-hamburger {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 30px;
-  height: 25px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 1002;
-}
-
-.sup-plan-hamburger-line {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  overflow-x: hidden;
   width: 100%;
-  height: 3px;
-  background-color: #374151;
-  border-radius: 2px;
-  transition: all 0.3s ease;
+  max-width: 100%;
 }
 
-.sup-plan-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 250px;
-  background-color: #ffffff;
-  border-right: 1px solid #d1d5db;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 1001;
-  overflow-y: auto;
-}
-
-.sup-plan-sidebar.open {
-  transform: translateX(0);
-}
-
-.sup-plan-employee-list-task {
-  padding: 80px 24px 24px;
+/* Left panel - Employee list */
+.supervisor-plan-employee-list {
+  width: 200px;
+  max-width: 100%;
+  background-color: #fff;
+  padding: 20px;
+  border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  overflow-x: hidden;
 }
 
-.sup-plan-employee-list-task h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 16px;
-  letter-spacing: 0.02em;
+.supervisor-plan-employee-list h3 {
+  margin-bottom: 15px;
+  color: #333;
+  text-transform: uppercase;
+  font-size: 16px;
+  letter-spacing: 0.5px;
 }
 
-.sup-plan-employee-item {
-  padding: 12px 16px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  background-color: #f3f4f6;
-  color: #374151;
-  font-size: 15px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  line-height: 1.5;
-}
-
-.sup-plan-employee-item:hover {
-  background-color: #e5e7eb;
-  transform: translateX(4px);
-}
-
-.sup-plan-employee-item.active {
-  background-color: #dbeafe;
-  border: 1px solid #60a5fa;
-  color: #1e40af;
-  font-weight: 600;
-}
-
-.sup-plan-main {
-  flex: 1;
-  padding: 32px;
-  margin-left: 0;
-  transition: margin-left 0.3s ease;
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   overflow-y: auto;
-}
-
-.sup-plan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.sup-plan-back-btn {
-  padding: 8px 16px;
-  background-color: #6b7280;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s ease;
-}
-
-.sup-plan-back-btn:hover {
-  background-color: #4b5563;
-}
-
-.sup-plan-all-plans,
-.sup-plan-weekly-updates {
+  overflow-x: hidden;
+  max-height: calc(100vh - 80px); /* Adjust for header and padding */
+  width: 100%;
+  max-width: 100%;
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f9fafb;
+  scrollbar-color: #b1b8b2 #f0f0f0;
 }
 
-.sup-plan-all-plans::-webkit-scrollbar,
-.sup-plan-weekly-updates::-webkit-scrollbar {
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar {
   width: 8px;
 }
 
-.sup-plan-all-plans::-webkit-scrollbar-track,
-.sup-plan-weekly-updates::-webkit-scrollbar-track {
-  background: #f9fafb;
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
 }
 
-.sup-plan-all-plans::-webkit-scrollbar-thumb,
-.sup-plan-weekly-updates::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar-thumb {
+  background: #28a745;
   border-radius: 4px;
 }
 
-.sup-plan-all-plans h2,
-.sup-plan-weekly-updates h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 24px;
-  letter-spacing: 0.01em;
-}
-
-.sup-plan-plans-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.sup-plan-plan-card {
-  padding: 20px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #ffffff;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.sup-plan-plan-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.sup-plan-plan-card .sup-plan-plan-header {
+.supervisor-plan-employee-list li {
+  padding: 10px;
   margin-bottom: 8px;
-}
-
-.sup-plan-plan-card .sup-plan-plan-header span:first-child {
-  display: block;
-  font-weight: 600;
-  color: #111827;
-  font-size: 16px;
-}
-
-.sup-plan-plan-card p {
-  margin: 4px 0;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.sup-plan-plans-list {
-  margin-bottom: 24px;
-}
-
-.sup-plan-plans-list h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 12px;
-}
-
-.sup-plan-plan-item {
-  padding: 16px;
-  margin-bottom: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.sup-plan-plan-item:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.sup-plan-plan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.sup-plan-plan-header span:first-child {
-  font-weight: 600;
-  color: #111827;
-}
-
-.sup-plan-plan-status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.sup-plan-plan-status.approved {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-.sup-plan-plan-status.pending {
-  background-color: #ffebee;
-  color: #c62828;
-}
-
-.sup-plan-plan-item p {
-  margin: 0;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.sup-plan-details-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1003;
-}
-
-.sup-plan-details-popup-content {
-  background: #ffffff;
-  border-radius: 12px;
-  width: 700px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  position: relative;
-}
-
-.sup-plan-details-popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 12px;
-}
-
-.sup-plan-details-popup-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-.sup-plan-close-popup {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #6b7280;
-}
-
-.sup-plan-close-popup:hover {
-  color: #111827;
-}
-
-.sup-plan-week-content {
-  display: flex;
-  gap: 32px;
-}
-
-.sup-plan-all-updates {
-  flex: 1;
-  padding: 0;
-}
-
-.sup-plan-all-updates h4 {
-  font-size: 18px;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 16px;
-}
-
-.sup-plan-all-updates h5 {
-  font-size: 16px;
-  font-weight: 500;
-  color: #007bff;
-  margin: 12px 0 8px;
-}
-
-.sup-plan-all-updates ul {
-  list-style-type: disc;
-  padding-left: 24px;
-  margin: 12px 0;
-}
-
-.sup-plan-all-updates li {
-  font-size: 16px;
-  color: #4b5563;
-  margin-bottom: 8px;
-  line-height: 1.5;
-}
-
-.sup-plan-all-updates li strong {
-  font-weight: 600;
-  color: #111827;
-}
-
-.sup-plan-plan-details p {
-  margin: 8px 0;
-  font-size: 14px;
-  color: #4b5563;
-}
-
-.sup-plan-plan-details p strong {
-  color: #111827;
-}
-
-.sup-plan-task-detail {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #f8fafc;
   border-radius: 6px;
-  border-left: 3px solid #007bff;
+  transition: 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.sup-plan-task-detail strong {
-  display: block;
-  margin-bottom: 6px;
-  color: #111827;
-  font-size: 15px;
+.supervisor-plan-employee-list li:hover {
+  background-color: #f0f0f0;
 }
 
-.sup-plan-task-detail p {
-  margin: 0 0 6px;
-  font-size: 14px;
-  color: #4b5563;
+.supervisor-plan-employee-list li.supervisor-plan-active {
+  background-color: #28a745;
+  color: white;
 }
 
-.sup-plan-task-detail ul {
-  margin: 0 0 0 20px;
-  padding: 0;
-}
-
-.sup-plan-task-detail li {
-  font-size: 14px;
-  color: #4b5563;
-  margin-bottom: 4px;
-}
-
-.sup-plan-supervisor-section {
+/* Right panel - Task details */
+.supervisor-plan-task-details {
   flex: 1;
-  padding: 0;
-  border-left: 1px solid #e5e7eb;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
-.sup-plan-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.sup-plan-section-header h4 {
+.supervisor-plan-task-details h3 {
+  margin-bottom: 20px;
+  color: #333;
   font-size: 18px;
-  font-weight: 500;
-  color: #111827;
-  margin: 0;
-}
-
-.sup-plan-approval-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.status {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
   font-weight: 600;
 }
 
-.status.approved {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status.pending {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.sup-plan-approval-comment-input {
-  width: 200px;
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.sup-plan-approval-comment-input::placeholder {
-  color: #9ca3af;
-}
-
-.sup-plan-message-chat {
-  flex: 1;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f8fafc;
-}
-
-.sup-plan-message-chat::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sup-plan-message-chat::-webkit-scrollbar-track {
-  background: #f8fafc;
-}
-
-.sup-plan-message-chat::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-.sup-plan-message {
+/* Week Navigation */
+.supervisor-plan-week-navigation {
   display: flex;
-  margin-bottom: 12px;
-  align-items: flex-end;
-  animation: fadeIn 0.3s ease;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  position: sticky;
+  top: 0;
+  background-color: #f0f2f5;
+  z-index: 10;
+  padding: 10px 0;
+  width: 100%;
+  max-width: 100%;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.supervisor-plan-nav-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.sup-plan-message.employee {
-  justify-content: flex-start;
+.supervisor-plan-nav-button:hover {
+  background-color: #28a745;
 }
 
-.sup-plan-message.supervisor {
-  justify-content: flex-end;
+.supervisor-plan-nav-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
-.sup-plan-message-text {
-  max-width: 70%;
-  padding: 10px 14px;
-  border-radius: 18px;
-  font-size: 14px;
-  line-height: 1.4;
-  word-wrap: break-word;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+.supervisor-plan-week-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
 }
 
-.sup-plan-message.employee .sup-plan-message-text {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+/* Tasks Container */
+.supervisor-plan-tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 100px); /* Adjust for header and navigation */
+  width: 100%;
+  max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #b0b3b0 #f0f0f0;
 }
 
-.sup-plan-message.supervisor .sup-plan-message-text {
-  background-color: #007bff;
-  color: #ffffff;
+.supervisor-plan-tasks-container::-webkit-scrollbar {
+  width: 8px;
 }
 
-.sup-plan-message-timestamp {
-  font-size: 11px;
-  color: #9ca3af;
-  margin-left: 8px;
-  font-weight: 400;
+.supervisor-plan-tasks-container::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.supervisor-plan-tasks-container::-webkit-scrollbar-thumb {
+  background: #28a745;
+  border-radius: 4px;
+}
+
+/* Task Card */
+.supervisor-plan-task-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+  max-width: 100%;
+  
+}
+
+/* Task Header */
+.supervisor-plan-task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.supervisor-plan-task-title {
+  font-size: 16px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.supervisor-plan-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.supervisor-plan-task-date {
+  font-size: 13px;
+  color: #888;
   white-space: nowrap;
 }
 
-.sup-plan-message.employee .sup-plan-message-timestamp {
-  margin-left: 8px;
+/* Task Body */
+.supervisor-plan-task-body {
+  margin-bottom: 10px;
 }
 
-.sup-plan-message.supervisor .sup-plan-message-timestamp {
-  margin-right: 8px;
-  order: -1;
-  color: #bfdbfe;
-}
-
-.sup-plan-comment-input {
-  display: flex;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.sup-plan-comment-input input {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+.supervisor-plan-task-body p {
+  margin: 0;
   font-size: 14px;
+  word-break: break-word;
+  white-space: normal;
+  max-width: 100%;
 }
 
-.sup-plan-comment-input input::placeholder {
-  color: #9ca3af;
+/* Project ID Circle */
+.supervisor-plan-project-circle-wrapper {
+  position: relative;
 }
 
-.sup-plan-send-message-btn,
-.sup-plan-approve-plan-btn {
-  padding: 10px 16px;
-  background-color: #007bff;
+.supervisor-plan-project-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #28a745;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Status Dot */
+.supervisor-plan-status-dot-wrapper {
+  position: relative;
+}
+
+.supervisor-plan-status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* Tooltip for Project Circle and Status Dot */
+.supervisor-plan-tooltip {
+  visibility: hidden;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  padding: 5px 8px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.supervisor-plan-project-circle-wrapper:hover .supervisor-plan-tooltip,
+.supervisor-plan-status-dot-wrapper:hover .supervisor-plan-tooltip {
+  visibility: visible;
+}
+
+/* Star Rating */
+.supervisor-plan-star-rating {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.supervisor-plan-star {
+  font-size: 18px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.supervisor-plan-star.filled {
+  color: #ffc107;
+}
+
+/* Edit Section */
+.supervisor-plan-edit-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  /* width: 100%; */
+  max-width: 100%;
+}
+
+.supervisor-plan-edit-section label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.supervisor-plan-edit-section select,
+.supervisor-plan-edit-section input {
+  padding: 5px 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  /* width: 100%; */
+  max-width: 100%;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.supervisor-plan-edit-section .supervisor-plan-star-rating {
+  justify-content: flex-start;
+}
+
+.supervisor-plan-update-task-button {
+  padding: 5px 12px;
+  background-color: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  white-space: nowrap;
+  font-size: 13px;
+  align-self: end;
+  justify-self: end;
+  width: 100%;
+  max-width: 100px;
 }
 
-.sup-plan-send-message-btn:hover,
-.sup-plan-approve-plan-btn:hover {
-  background-color: #0056b3;
-}
-
-.sup-plan-approve-plan-btn {
+.supervisor-plan-update-task-button:hover {
   background-color: #28a745;
-  min-width: 120px;
 }
 
-.sup-plan-approve-plan-btn:hover {
-  background-color: #218838;
-}
-
-.sup-plan-error-message {
-  color: #dc3545;
-  margin-bottom: 16px;
-  padding: 12px;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 6px;
-  font-size: 14px;
-} */
-
-
-.sup-plan-container {
-  position: relative;
+.supervisor-plan-error-message {
+  color: red;
+  padding: 10px;
+}.supervisor-plan-wrapper {
   display: flex;
-  font-family: Arial, sans-serif;
   min-height: 100vh;
-  background-color: #f9fafb;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
-.sup-plan-main {
-  flex: 1;
-  padding: 32px;
-  overflow-y: auto;
-}
-
-.sup-plan-header {
+/* Left panel - Employee list */
+.supervisor-plan-employee-list {
+  width: 200px;
+  max-width: 100%;
+  background-color: #fff;
+  padding: 20px;
+  border-right: 1px solid #ddd;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
-.sup-plan-back-btn {
-  padding: 8px 16px;
-  background-color: #6b7280;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s ease;
+.supervisor-plan-employee-list h3 {
+  margin-bottom: 15px;
+  color: #333;
+  text-transform: uppercase;
+  font-size: 16px;
+  letter-spacing: 0.5px;
 }
 
-.sup-plan-back-btn:hover {
-  background-color: #4b5563;
-}
-
-.sup-plan-all-plans,
-.sup-plan-weekly-updates {
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 80px);
+  width: 100%;
+  max-width: 100%;
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f9fafb;
+  scrollbar-color: #b1b8b2 #f0f0f0;
 }
 
-.sup-plan-all-plans::-webkit-scrollbar,
-.sup-plan-weekly-updates::-webkit-scrollbar {
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar {
   width: 8px;
 }
 
-.sup-plan-all-plans::-webkit-scrollbar-track,
-.sup-plan-weekly-updates::-webkit-scrollbar-track {
-  background: #f9fafb;
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
 }
 
-.sup-plan-all-plans::-webkit-scrollbar-thumb,
-.sup-plan-weekly-updates::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar-thumb {
+  background: #28a745;
   border-radius: 4px;
 }
 
-.sup-plan-all-plans h2,
-.sup-plan-weekly-updates h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 24px;
-  letter-spacing: 0.01em;
-}
-
-.sup-plan-plans-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.sup-plan-plan-card {
-  padding: 20px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #ffffff;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.sup-plan-plan-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.sup-plan-plan-card .sup-plan-plan-header {
+.supervisor-plan-employee-list li {
+  padding: 10px;
   margin-bottom: 8px;
-}
-
-.sup-plan-plan-card .sup-plan-plan-header span:first-child {
-  display: block;
-  font-weight: 600;
-  color: #111827;
-  font-size: 16px;
-}
-
-.sup-plan-plan-card p {
-  margin: 4px 0;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.sup-plan-plans-list {
-  margin-bottom: 24px;
-}
-
-.sup-plan-plans-list h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 12px;
-}
-
-.sup-plan-plan-item {
-  padding: 16px;
-  margin-bottom: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.sup-plan-plan-item:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.sup-plan-plan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.sup-plan-plan-header span:first-child {
-  font-weight: 600;
-  color: #111827;
-}
-
-.sup-plan-plan-status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.sup-plan-plan-status.approved {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-.sup-plan-plan-status.pending {
-  background-color: #ffebee;
-  color: #c62828;
-}
-
-.sup-plan-plan-item p {
-  margin: 0;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.sup-plan-details-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1003;
-}
-
-.sup-plan-details-popup-content {
-  background: #ffffff;
-  border-radius: 12px;
-  width: 700px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  position: relative;
-}
-
-.sup-plan-details-popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 12px;
-}
-
-.sup-plan-details-popup-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-.sup-plan-close-popup {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #6b7280;
-}
-
-.sup-plan-close-popup:hover {
-  color: #111827;
-}
-
-.sup-plan-week-content {
-  display: flex;
-  gap: 32px;
-}
-
-.sup-plan-all-updates {
-  flex: 1;
-  padding: 0;
-}
-
-.sup-plan-all-updates h4 {
-  font-size: 18px;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 16px;
-}
-
-.sup-plan-all-updates h5 {
-  font-size: 16px;
-  font-weight: 500;
-  color: #007bff;
-  margin: 12px 0 8px;
-}
-
-.sup-plan-all-updates ul {
-  list-style-type: disc;
-  padding-left: 24px;
-  margin: 12px 0;
-}
-
-.sup-plan-all-updates li {
-  font-size: 16px;
-  color: #4b5563;
-  margin-bottom: 8px;
-  line-height: 1.5;
-}
-
-.sup-plan-all-updates li strong {
-  font-weight: 600;
-  color: #111827;
-}
-
-.sup-plan-plan-details p {
-  margin: 8px 0;
-  font-size: 14px;
-  color: #4b5563;
-}
-
-.sup-plan-plan-details p strong {
-  color: #111827;
-}
-
-.sup-plan-task-detail {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #f8fafc;
   border-radius: 6px;
-  border-left: 3px solid #28a745;
+  transition: 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.sup-plan-task-detail strong {
-  display: block;
-  margin-bottom: 6px;
-  color: #111827;
-  font-size: 15px;
+.supervisor-plan-employee-list li:hover {
+  background-color: #f0f0f0;
 }
 
-.sup-plan-task-detail p {
-  margin: 0 0 6px;
-  font-size: 14px;
-  color: #4b5563;
+.supervisor-plan-employee-list li.supervisor-plan-active {
+  background-color: #28a745;
+  color: white;
 }
 
-.sup-plan-task-detail ul {
-  margin: 0 0 0 20px;
-  padding: 0;
-}
-
-.sup-plan-task-detail li {
-  font-size: 14px;
-  color: #4b5563;
-  margin-bottom: 4px;
-}
-
-.sup-plan-supervisor-section {
+/* Right panel - Task details */
+.supervisor-plan-task-details {
   flex: 1;
-  padding: 0;
-  border-left: 1px solid #e5e7eb;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
-.sup-plan-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.sup-plan-section-header h4 {
+.supervisor-plan-task-details h3 {
+  margin-bottom: 20px;
+  color: #333;
   font-size: 18px;
-  font-weight: 500;
-  color: #111827;
-  margin: 0;
-}
-
-.sup-plan-approval-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.status {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
   font-weight: 600;
 }
 
-.status.approved {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status.pending {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.sup-plan-approval-comment-input {
-  width: 200px;
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.sup-plan-approval-comment-input::placeholder {
-  color: #9ca3af;
-}
-
-.sup-plan-message-chat {
-  flex: 1;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f8fafc;
-}
-
-.sup-plan-message-chat::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sup-plan-message-chat::-webkit-scrollbar-track {
-  background: #f8fafc;
-}
-
-.sup-plan-message-chat::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-.sup-plan-message {
+/* Week Navigation */
+.supervisor-plan-week-navigation {
   display: flex;
-  margin-bottom: 12px;
-  align-items: flex-end;
-  animation: fadeIn 0.3s ease;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  position: sticky;
+  top: 0;
+  background-color: #f0f2f5;
+  z-index: 10;
+  padding: 10px 0;
+  width: 100%;
+  max-width: 100%;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.sup-plan-message.employee {
-  justify-content: flex-start;
-}
-
-.sup-plan-message.supervisor {
-  justify-content: flex-end;
-}
-
-.sup-plan-message-text {
-  max-width: 70%;
-  padding: 10px 14px;
-  border-radius: 18px;
-  font-size: 14px;
-  line-height: 1.4;
-  word-wrap: break-word;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.sup-plan-message.employee .sup-plan-message-text {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #374151;
-}
-
-.sup-plan-message.supervisor .sup-plan-message-text {
+.supervisor-plan-nav-button {
   background-color: #28a745;
-  color: #ffffff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.sup-plan-message-timestamp {
-  font-size: 11px;
-  color: #9ca3af;
-  margin-left: 8px;
-  font-weight: 400;
+.supervisor-plan-nav-button:hover {
+  background-color: #218838;
+}
+
+.supervisor-plan-nav-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.supervisor-plan-week-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Tasks Container */
+.supervisor-plan-tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 100px);
+  width: 100%;
+  max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #b0b3b0 #f0f0f0;
+}
+
+.supervisor-plan-tasks-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.supervisor-plan-tasks-container::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.supervisor-plan-tasks-container::-webkit-scrollbar-thumb {
+  background: #28a745;
+  border-radius: 4px;
+}
+
+/* Task Card */
+.supervisor-plan-task-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+  max-width: 100%;
+}
+
+/* Task Header */
+.supervisor-plan-task-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.supervisor-plan-task-title {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  /* white-space: nowrap; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.supervisor-plan-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.supervisor-plan-task-date {
+  font-size: 12px;
+  color: #888;
   white-space: nowrap;
 }
 
-.sup-plan-message.employee .sup-plan-message-timestamp {
-  margin-left: 8px;
+/* Task Body */
+.supervisor-plan-task-body {
+  margin-bottom: 10px;
 }
 
-.sup-plan-message.supervisor .sup-plan-message-timestamp {
-  margin-right: 8px;
-  order: -1;
-  color: #bfdbfe;
+.supervisor-plan-task-body p {
+  margin: 0;
+  font-size: 13px;
+  word-break: break-word;
+  white-space: normal;
+  max-width: 100%;
 }
 
-.sup-plan-comment-input {
+/* Project ID Circle */
+.supervisor-plan-project-circle-wrapper {
+  position: relative;
+}
+
+.supervisor-plan-project-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #28a745;
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Status Dot */
+.supervisor-plan-status-dot-wrapper {
+  position: relative;
+}
+
+.supervisor-plan-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Tooltip for Project Circle and Status Dot */
+.supervisor-plan-tooltip {
+  visibility: hidden;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  padding: 5px 8px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.supervisor-plan-project-circle-wrapper:hover .supervisor-plan-tooltip,
+.supervisor-plan-status-dot-wrapper:hover .supervisor-plan-tooltip {
+  visibility: visible;
+}
+
+/* Star Rating */
+.supervisor-plan-star-rating {
   display: flex;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
+  gap: 3px;
+  margin-top: 4px;
 }
 
-.sup-plan-comment-input input {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+.supervisor-plan-star {
   font-size: 14px;
+  color: #ccc;
+  cursor: pointer;
 }
 
-.sup-plan-comment-input input::placeholder {
-  color: #9ca3af;
+.supervisor-plan-star.filled {
+  color: #ffc107;
 }
 
-.sup-plan-send-message-btn,
-.sup-plan-approve-plan-btn,
-.sup-plan-view-more-btn {
-  padding: 10px 16px;
+/* Edit Section */
+.supervisor-plan-edit-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  max-width: 100%;
+}
+
+.supervisor-plan-edit-section label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+
+.supervisor-plan-edit-section select,
+.supervisor-plan-edit-section input {
+  padding: 5px 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-width: 100%;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.supervisor-plan-edit-section .supervisor-plan-star-rating {
+  justify-content: flex-start;
+}
+
+.supervisor-plan-update-task-button {
+  padding: 5px 12px;
   background-color: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  white-space: nowrap;
+  font-size: 12px;
+  align-self: end;
+  justify-self: end;
+  max-width: 80px;
 }
 
-.sup-plan-send-message-btn:hover,
-.sup-plan-approve-plan-btn:hover,
-.sup-plan-view-more-btn:hover {
-  background-color: #28a745;
-}
-
-.sup-plan-approve-plan-btn {
-  background-color: #28a745;
-  min-width: 120px;
-}
-
-.sup-plan-approve-plan-btn:hover {
+.supervisor-plan-update-task-button:hover {
   background-color: #218838;
 }
 
-.sup-plan-view-more {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
+.supervisor-plan-error-message {
+  color: red;
+  padding: 10px;
 }
 
-.sup-plan-error-message {
-  color: #dc3545;
-  margin-bottom: 16px;
-  padding: 12px;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 6px;
+/* Modal Styling */
+.supervisor-plan-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+  max-width: 400px;
+  width: 90%;
+}
+
+.supervisor-plan-modal p {
+  margin: 0 0 15px;
   font-size: 14px;
+}
+
+.supervisor-plan-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.supervisor-plan-modal-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.supervisor-plan-modal-buttons button:first-child {
+  background-color: #28a745;
+  color: white;
+}
+
+.supervisor-plan-modal-buttons button:first-child:hover {
+  background-color: #218838;
+}
+
+.supervisor-plan-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+/* Left panel - Employee list */
+.supervisor-plan-employee-list {
+  width: 160px; /* Reduced from 200px */
+  max-width: 100%;
+  background-color: #fff;
+  padding: 15px; /* Reduced from 20px */
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.supervisor-plan-employee-list h3 {
+  margin-bottom: 10px; /* Reduced from 15px */
+  color: #333;
+  text-transform: uppercase;
+  font-size: 14px; /* Reduced from 16px */
+  letter-spacing: 0.5px;
+}
+
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 60px); /* Adjusted for smaller header */
+  width: 100%;
+  max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #b1b8b2 #f0f0f0;
+}
+
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar {
+  width: 6px; /* Reduced from 8px */
+}
+
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.supervisor-plan-employee-list ul.supervisor-plan-employee-scroll::-webkit-scrollbar-thumb {
+  background: #28a745;
+  border-radius: 4px;
+}
+
+.supervisor-plan-employee-list li {
+  padding: 8px; /* Reduced from 10px */
+  margin-bottom: 5px; /* Reduced from 8px */
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 13px; /* Reduced from default */
+}
+
+.supervisor-plan-employee-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.supervisor-plan-employee-list li.supervisor-plan-active {
+  background-color: #28a745;
+  color: white;
+}
+
+.supervisor-plan-status-icon {
+  font-size: 16px;
+  margin-right: 8px;
 }

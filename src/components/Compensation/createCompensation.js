@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import './createCompensation.css';
@@ -341,9 +340,6 @@ const remainingPercentage = useMemo(() => {
     <div key={field} className="compensation-form-group">
       <span className="compensation-label-text">
         {label}
-
-
-        {required && <span style={{ color: '#f44336' }}>*</span
       </span>
       {type === 'dropdown' ? (
         <div className="compensation-input-group">
@@ -474,226 +470,18 @@ const remainingPercentage = useMemo(() => {
   );
 };
 
-
-
-//  const handleSubmit = async (e) => {
-//   e.preventDefault();
-//   setErrors({});
-//   console.log('formData:', formData); // Debug
-
-//   // Validate Compensation Plan Name
-//   if (!formData.compensationPlanName.trim()) {
-//     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
-//     showAlert('Compensation Plan Name is required and cannot be empty');
-//     return;
-//   }
-
-//   // Validate Incentives
-//   if (formData.isIncentives && !formData.incentivesAmount.trim()) {
-//     setErrors({ incentivesAmount: 'Incentives amount is required when incentives are enabled' });
-//     showAlert('Incentives amount is required when incentives are enabled');
-//     return;
-//   }
-
-//   // Validate Default Working Hours
-//   if (formData.isDefaultWorkingHours && !formData.defaultWorkingHours.trim()) {
-//     setErrors({ defaultWorkingHours: 'Default Working Hours is required when enabled' });
-//     showAlert('Default Working Hours is required when enabled');
-//     return;
-//   }
-
-//   // Validate PF Employee Percentage (optional, only if provided)
-//   if (
-//     formData.isPFEmployee &&
-//     formData.pfEmployeeType === 'percentage' &&
-//     formData.pfEmployeePercentage &&
-//     parseFloat(formData.pfEmployeePercentage) > 12
-//   ) {
-//     setErrors({ pfEmployeePercentage: 'PF Employee percentage cannot exceed 12%' });
-//     showAlert('PF Employee percentage cannot exceed 12%');
-//     return;
-//   }
-
-//   // Validate PF Employer Percentage (optional, only if provided)
-//   if (
-//     formData.isPFEmployer &&
-//     formData.pfEmployerType === 'percentage' &&
-//     formData.pfEmployerPercentage &&
-//     parseFloat(formData.pfEmployerPercentage) > 12
-//   ) {
-//     setErrors({ pfEmployerPercentage: 'PF Employer percentage cannot exceed 12%' });
-//     showAlert('PF Employer percentage cannot exceed 12%');
-//     return;
-//   }
-
-//   // Validate Total Percentage
-//   if (remainingPercentage < 0) {
-//     setErrors({ totalPercentage: `Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%` });
-//     showAlert(`Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%`);
-//     return;
-//   }
-//   if (remainingPercentage > 0) {
-//     setErrors({ totalPercentage: `You still need to add ${remainingPercentage}% to reach 100%` });
-//     showAlert(`You still need to add ${remainingPercentage}% to reach 100% of CTC`);
-//     return;
-//   }
-
-//   // Prepare payload matching the previous working structure
-//   const data = {
-//     compensationPlanName: formData.compensationPlanName,
-//     formData: { ...formData },
-//   };
-
-//   try {
-//     let response;
-//     const headers = {
-//       'x-api-key': API_KEY,
-//       'x-employee-id': meId,
-//       'Content-Type': 'application/json',
-//     };
-
-//     console.log('Sending request to:', isEditing
-//       ? `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`
-//       : `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`);
-//     console.log('Payload:', data); // Debug
-
-//     if (isEditing) {
-//       data.id = editingCompensationId;
-//       response = await axios.put(
-//         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`,
-//         data,
-//         { headers }
-//       );
-//       showAlert('Compensation updated successfully!');
-//     } else {
-//       response = await axios.post(
-//         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`,
-//         data,
-//         { headers }
-//       );
-//       showAlert('Compensation created successfully!');
-//     }
-
-//     // Save working days if applicable
-//     if (formData.isDefaultWorkingDays) {
-//       const workingDaysResponse = await axios.post(
-//         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/working-days`,
-//         {
-//           compensation_plan_id: isEditing ? editingCompensationId : response.data.data.id,
-//           ...formData.defaultWorkingDays,
-//         },
-//         { headers }
-//       );
-//       if (!workingDaysResponse.data.success) {
-//         throw new Error('Failed to save working days');
-//       }
-//     }
-
-//     togglePopup();
-//     fetchCompensations();
-//   } catch (error) {
-//     console.error('Error saving compensation plan:', error);
-//     const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-//     console.log('Backend error details:', error.response?.data); // Debug
-//     setErrors({ general: errorMessage });
-//     showAlert(`Failed to ${isEditing ? 'update' : 'create'} compensation: ${errorMessage}`);
-//   }
-// };
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-//   setErrors({});
-//   console.log('formData:', formData); // Debug
-
-//   // Validate Compensation Plan Name
-//   if (!formData.compensationPlanName.trim()) {
-//     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
-//     showAlert('Compensation Plan Name is required and cannot be empty');
-//     return;
-//   }
-
-//   // Validate Incentives
-//   if (formData.isIncentives && !formData.incentivesAmount.trim()) {
-//     setErrors({ incentivesAmount: 'Incentives amount is required when incentives are enabled' });
-//     showAlert('Incentives amount is required when incentives are enabled');
-//     return;
-//   }
-
-//   // Validate Default Working Hours
-//   if (formData.isDefaultWorkingHours && !formData.defaultWorkingHours.trim()) {
-//     setErrors({ defaultWorkingHours: 'Default Working Hours is required when enabled' });
-//     showAlert('Default Working Hours is required when enabled');
-//     return;
-//   }
-
-//   // Validate Total Percentage
-//   if (remainingPercentage < 0) {
-//     setErrors({ totalPercentage: `Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%` });
-//     showAlert(`Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%`);
-//     return;
-//   }
-//   if (remainingPercentage > 0) {
-//     setErrors({ totalPercentage: `You still need to add ${remainingPercentage}% to reach 100%` });
-//     showAlert(`You still need to add ${remainingPercentage}% to reach 100%`);
-//     return;
-//   }
-
-//   // Prepare payload
-//   const data = {
-//     compensationPlanName: formData.compensationPlanName,
-//     formData: { ...formData },
-//   };
-
-//   try {
-//     let response;
-//     const headers = {
-//       'x-api-key': API_KEY,
-//       'x-employee-id': meId,
-//       'Content-Type': 'application/json',
-//     };
-
-//     console.log('Sending request to:', isEditing
-//       ? `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`
-//       : `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`);
-//     console.log('Payload:', data); // Debug
-
-//     if (isEditing) {
-//       data.id = editingCompensationId;
-//       response = await axios.put(
-//         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`,
-//         data,
-//         { headers }
-//       );
-//       showAlert('Compensation updated successfully!');
-//     } else {
-//       response = await axios.post(
-//         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`,
-//         data,
-//         { headers }
-//       );
-//       showAlert('Compensation created successfully!');
-//     }
-
-//     togglePopup();
-//     fetchCompensations();
-//   } catch (error) {
-//     console.error('Error saving compensation plan:', error);
-//     const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-//     console.log('Backend error details:', error.response?.data); // Debug
-//     setErrors({ general: errorMessage });
-//     showAlert(`Failed to ${isEditing ? 'update' : 'create'} compensation: ${errorMessage}`);
-//   }
-// };
-
 const handleSubmit = async (e) => {
   e.preventDefault();
   setErrors({});
   console.log('formData:', formData);
+
   // Validate Compensation Plan Name
   if (!formData.compensationPlanName.trim()) {
     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
     showAlert('Compensation Plan Name is required and cannot be empty');
     return;
   }
+
   // Validate Total Percentage
   const totalPercentage = 100 - remainingPercentage;
   if (remainingPercentage < -0.01) {
@@ -706,11 +494,17 @@ const handleSubmit = async (e) => {
     showAlert(`Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%`);
     return;
   }
-  // Prepare payload
+
+  // Prepare payload, including defaultWorkingDays if applicable
   const data = {
     compensationPlanName: formData.compensationPlanName,
-    formData: { ...formData },
+    formData: {
+      ...formData,
+      // Ensure defaultWorkingDays is included in formData
+      defaultWorkingDays: formData.isDefaultWorkingDays ? formData.defaultWorkingDays : null,
+    },
   };
+
   try {
     let response;
     const headers = {
@@ -722,6 +516,7 @@ const handleSubmit = async (e) => {
       ? `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`
       : `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`);
     console.log('Payload:', data);
+
     if (isEditing) {
       data.id = editingCompensationId;
       response = await axios.put(
@@ -738,20 +533,7 @@ const handleSubmit = async (e) => {
       );
       showAlert('Compensation created successfully!');
     }
-    // Save working days if applicable
-    if (formData.isDefaultWorkingDays) {
-      const workingDaysResponse = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/compensations/working-days`,
-        {
-          compensation_plan_id: isEditing ? editingCompensationId : response.data.data.id,
-          ...formData.defaultWorkingDays,
-        },
-        { headers }
-      );
-      if (!workingDaysResponse.data.success) {
-        throw new Error('Failed to save working days');
-      }
-    }
+
     togglePopup();
     fetchCompensations();
   } catch (error) {
@@ -866,7 +648,6 @@ const handleSubmit = async (e) => {
         newData.statutoryBonusType = 'percentage';
         newData.statutoryBonusIncludeInCtc = false;
         updatedErrors.statutoryBonusPercentage = '';
-
       }
       if (field === 'isIncentives') {
         newData.incentives = '';
@@ -875,16 +656,6 @@ const handleSubmit = async (e) => {
         newData.incentivesIncludeInCtc = false;
         updatedErrors.incentives = '';
       }
-
-      }
-      if (field === 'isIncentives') {
-        newData.incentives = '';
-        newData.incentivesAmount = '';
-        newData.incentivesType = 'percentage';
-        newData.incentivesIncludeInCtc = false;
-        updatedErrors.incentives = '';
-      }
-
     } else {
       // Initialize fields when checked
       if (field === 'isBasicSalary') {
@@ -938,7 +709,7 @@ const handleSubmit = async (e) => {
         newData.variablePay = newData.variablePay || '0';
         newData.variablePayIncludeInCtc = true;
       }
-      if (field 
+      if (field === 'isStatutoryBonus') {
         newData.statutoryBonusType = 'percentage';
         newData.statutoryBonusPercentage = newData.statutoryBonusPercentage || '0';
         newData.statutoryBonusIncludeInCtc = true;
@@ -1063,55 +834,22 @@ const handleInputChange = (field, value) => {
   };
 
   const fetchCompensations = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`, {
-        headers: { 'x-api-key': API_KEY, 'x-employee-id': meId },
-      });
-      if (response.data.success) {
-        const compensations = response.data.data || [];
-        const updatedCompensations = await Promise.all(
-          compensations.map(async (comp) => {
-            try {
-              const workingDaysResponse = await axios.get(
-                `${process.env.REACT_APP_BACKEND_URL}/api/compensations/working-days/${comp.id}`,
-                {
-                  headers: { 'x-api-key': API_KEY, 'x-employee-id': meId },
-                }
-              );
-              if (workingDaysResponse.data.success && workingDaysResponse.data.data.length > 0) {
-                const workingDays = workingDaysResponse.data.data[0];
-                return {
-                  ...comp,
-                  plan_data: {
-                    ...comp.plan_data,
-                    defaultWorkingDays: {
-                      Sunday: workingDays.sunday,
-                      Monday: workingDays.monday,
-                      Tuesday: workingDays.tuesday,
-                      Wednesday: workingDays.wednesday,
-                      Thursday: workingDays.thursday,
-                      Friday: workingDays.friday,
-                      Saturday: workingDays.saturday,
-                    },
-                  },
-                };
-              }
-              return comp;
-            } catch (error) {
-              console.error(`Error fetching working days for plan ${comp.id}:`, error);
-              return comp;
-            }
-          })
-        );
-        setCompensations(updatedCompensations);
-      } else {
-        throw new Error('Fetch unsuccessful: ' + (response.data.message || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Error fetching compensations:', error);
-      showAlert('Failed to fetch compensations: ' + (error.message || 'Network error'));
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`, {
+      headers: { 'x-api-key': API_KEY, 'x-employee-id': meId },
+    });
+    if (response.data.success) {
+      const compensations = response.data.data || [];
+      // No need to fetch working days separately; assume they are in plan_data
+      setCompensations(compensations);
+    } else {
+      throw new Error('Fetch unsuccessful: ' + (response.data.message || 'Unknown error'));
     }
-  };
+  } catch (error) {
+    console.error('Error fetching compensations:', error);
+    showAlert('Failed to fetch compensations: ' + (error.message || 'Network error'));
+  }
+};
 
   useEffect(() => {
     fetchCompensations();
@@ -2071,10 +1809,10 @@ const handleInputChange = (field, value) => {
         {
           label: 'Incentives',
           field: 'isIncentives',
-          percentageField: 'incentives',
-          amountField: 'incentivesAmount',
-          typeField: 'incentivesType',
-          required: true,
+          // percentageField: 'incentives',
+          // amountField: 'incentivesAmount',
+          // typeField: 'incentivesType',
+          // required: true,
         },
         {
           component: (
@@ -2190,7 +1928,6 @@ const handleInputChange = (field, value) => {
           const typeValue = typeField ? compensationData[typeField] : null;
           let displayValue = '';
 
-
           if (typeof value === 'boolean') {
             displayValue = value ? 'Yes' : 'No';
           } else if (typeof value === 'object' && value !== null) {
@@ -2227,44 +1964,6 @@ const handleInputChange = (field, value) => {
           } else {
             displayValue = '-';
           }
-
-          if (typeof value === 'boolean') {
-            displayValue = value ? 'Yes' : 'No';
-          } else if (typeof value === 'object' && value !== null) {
-            if (Array.isArray(value)) {
-              displayValue = value.length > 0 ? (
-                value.map((slab, i) => (
-                  <div key={i}>
-                    From: {slab.from}, To: {slab.to}, %: {slab.percentage}
-                  </div>
-                ))
-              ) : (
-                '-'
-              );
-            } else {
-              displayValue = Object.entries(value).map(([day, status]) => (
-                <div key={day}>{`${day}: ${status}`}</div>
-              ));
-            }
-          } else if (value !== '' && value !== undefined) {
-            if (isNaN(value)) {
-              displayValue = value;
-            } else {
-              displayValue = Number(value).toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              });
-              if (typeField && key.endsWith('Amount') && typeValue === 'amount') {
-                const calculatedPercentage = convertAmountToPercentage(value, totalCTC).toFixed(2);
-                displayValue += ` (${calculatedPercentage}%)`;
-              } else if (typeField && typeValue === 'percentage') {
-                displayValue += ' (Percentage)';
-              }
-            }
-          } else {
-            displayValue = '-';
-          }
-
 
           return (
             <tr key={key}>
