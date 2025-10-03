@@ -42,7 +42,6 @@
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.17.2",
     "postcss-loader": "^8.1.1",
-    "puppeteer": "^24.23.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.6",
     "react-calendar": "^5.1.0",
