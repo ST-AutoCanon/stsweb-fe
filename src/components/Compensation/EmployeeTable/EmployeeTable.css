@@ -36,12 +36,20 @@
   color: #666;
 }
 
+.sb-table-and-details-container {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
 .sb-table-wrapper {
+  flex: 1;
   overflow-x: auto;
+  min-width: 0;
 }
 
 .sb-table-compressed {
-  width: 60%;
+  flex: 0 0 calc(100% - 510px);
 }
 
 .sb-table {

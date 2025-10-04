@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
@@ -74,7 +75,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     title: "",
     message: "",
   });
-  // Changed: Replaced dropdownOpen boolean with an object to track each task's dropdown state
   const [dropdownOpen, setDropdownOpen] = useState({});
 
   // Helper functions for the alert modal
@@ -86,7 +86,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  // Changed: Added function to toggle dropdown for a specific task index
   const toggleDropdown = (index) => {
     setDropdownOpen((prev) => ({
       ...prev,
@@ -112,6 +111,23 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const month = String(istDate.getUTCMonth() + 1).padStart(2, "0");
     const day = String(istDate.getUTCDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  };
+
+  const isTaskEditable = (taskDate) => {
+    if (!taskDate) return false;
+    const taskDateObj = new Date(taskDate);
+    const currentDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+
+    // Reset time components to compare dates only
+    taskDateObj.setHours(0, 0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
+
+    // Calculate the earliest editable date (current date - 1 day)
+    const earliestEditableDate = new Date(currentDate);
+    earliestEditableDate.setDate(currentDate.getDate() - 1);
+
+    // Task is editable if its date is on or after the earliest editable date
+    return taskDateObj >= earliestEditableDate;
   };
 
   const fetchData = async () => {
@@ -201,29 +217,41 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const handleEditClick = (task) => {
     if (userRole !== "employee") return;
+    if (!isTaskEditable(task.task_date)) {
+      showAlert("Cannot edit: Task is from more than one day ago.");
+      return;
+    }
     setEditingTask(task.task_id);
     setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
   };
 
   const handleSupStatusEditClick = (task) => {
     if (userRole !== "supervisor") return;
+    if (!isTaskEditable(task.task_date)) {
+      showAlert("Cannot edit: Task is from more than one day ago.");
+      return;
+    }
     setEditingSupStatus(task.task_id);
-    setSupFormData({ supStatus: task.sup_status, supComment: task.sup_comment || "" });
+    setSupFormData({ supStatus: task.sup_status || "incomplete", supComment: task.sup_comment || "" });
   };
 
   const handleSave = async (taskId) => {
     if (userRole !== "employee") return;
+    const task = tasksData
+      .flatMap((day) => day.tasks)
+      .find((t) => t.task_id === taskId);
+    if (!isTaskEditable(task.task_date)) {
+      showAlert("Cannot edit: Task is from more than one day ago.");
+      return;
+    }
     try {
-      const task = tasksData
-        .flatMap((day) => day.tasks)
-        .find((t) => t.task_id === taskId);
       const updatedTask = {
         project_id: task.project_id,
         project_name: task.project_name,
         task_name: formData.taskName,
         emp_status: formData.status,
         emp_comment: formData.comment,
-        sup_status: task.sup_status,
+        sup_status: task.sup_status || "incomplete",
         sup_comment: task.sup_comment,
         sup_review_status: task.sup_review_status,
         employee_id: task.employee_id,
@@ -251,19 +279,28 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     }
   };
 
+  const handleCancelEdit = () => {
+    setEditingTask(null);
+    setFormData({ taskName: "", status: "", comment: "" });
+  };
+
   const handleSupStatusSave = async (taskId) => {
     if (userRole !== "supervisor") return;
+    const task = tasksData
+      .flatMap((day) => day.tasks)
+      .find((t) => t.task_id === taskId);
+    if (!isTaskEditable(task.task_date)) {
+      showAlert("Cannot edit: Task is from more than one day ago.");
+      return;
+    }
     try {
-      const task = tasksData
-        .flatMap((day) => day.tasks)
-        .find((t) => t.task_id === taskId);
       const updatedTask = {
         project_id: task.project_id,
         project_name: task.project_name,
         task_name: task.task_name,
         emp_status: task.emp_status,
         emp_comment: task.emp_comment,
-        sup_status: supFormData.supStatus,
+        sup_status: supFormData.supStatus || "incomplete",
         sup_comment: supFormData.supComment,
         sup_review_status: task.sup_review_status,
         employee_id: task.employee_id,
@@ -291,6 +328,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     }
   };
 
+  const handleSupStatusCancel = () => {
+    setEditingSupStatus(null);
+    setSupFormData({ supStatus: "", supComment: "" });
+  };
+
   const handleEnterReview = () => {
     if (userRole === "supervisor") {
       setSupReviewMode(true);
@@ -305,13 +347,18 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const handleApprove = async (taskId) => {
     if (userRole !== "supervisor") return;
+    const task = tasksData
+      .flatMap((day) => day.tasks)
+      .find((t) => t.task_id === taskId);
+    if (!isTaskEditable(task.task_date)) {
+      showAlert("Cannot edit: Task is from more than one day ago.");
+      return;
+    }
     try {
-      const task = tasksData
-        .flatMap((day) => day.tasks)
-        .find((t) => t.task_id === taskId);
       await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
         ...task,
         sup_review_status: "approved",
+        sup_status: task.sup_status || "incomplete",
         replacement_task: task.replacement_task,
       }, {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
@@ -331,13 +378,18 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const handleSuspendReview = async (taskId) => {
     if (userRole !== "supervisor") return;
+    const task = tasksData
+      .flatMap((day) => day.tasks)
+      .find((t) => t.task_id === taskId);
+    if (!isTaskEditable(task.task_date)) {
+      showAlert("Cannot edit: Task is from more than one day ago.");
+      return;
+    }
     try {
-      const task = tasksData
-        .flatMap((day) => day.tasks)
-        .find((t) => t.task_id === taskId);
       await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
         ...task,
         sup_review_status: "suspended_review",
+        sup_status: task.sup_status || "incomplete",
         replacement_task: task.replacement_task,
       }, {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
@@ -357,13 +409,18 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const handleStrike = async (taskId, dayDate) => {
     if (userRole !== "supervisor") return;
+    const task = tasksData
+      .flatMap((day) => day.tasks)
+      .find((t) => t.task_id === taskId);
+    if (!isTaskEditable(task.task_date)) {
+      showAlert("Cannot edit: Task is from more than one day ago.");
+      return;
+    }
     try {
-      const task = tasksData
-        .flatMap((day) => day.tasks)
-        .find((t) => t.task_id === taskId);
       await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
         ...task,
         sup_review_status: "struck",
+        sup_status: task.sup_status || "incomplete",
         replacement_task: null,
       }, {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
@@ -397,7 +454,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const handleAddReplacement = async () => {
     if (userRole !== "supervisor") return;
-    if (!replacementData.projectId || !replacementData.taskName || (replacementData.isNewProject && !replacementData.projectName)) {
+    if (!replacementData.projectId || !replacementData.taskName || (replacementData.isNewProject ? !replacementData.projectName : false)) {
       showAlert("Please provide project ID, project name (if new project), and task name.");
       return;
     }
@@ -406,13 +463,18 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const taskIndex = tasksData[dayIndex].tasks.findIndex((t) => t.task_id === strikeTaskId);
       const task = tasksData[dayIndex].tasks[taskIndex];
 
+      if (!isTaskEditable(task.task_date)) {
+        showAlert("Cannot edit: Task is from more than one day ago.");
+        return;
+      }
+
       const updatedTask = {
         project_id: task.project_id,
         project_name: task.project_name,
         task_name: task.task_name,
         emp_status: task.emp_status,
         emp_comment: task.emp_comment,
-        sup_status: task.sup_status,
+        sup_status: task.sup_status || "incomplete",
         sup_comment: task.sup_comment,
         sup_review_status: "struck",
         employee_id: task.employee_id,
@@ -436,7 +498,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         task_name: replacementData.taskName,
         emp_status: "not started",
         emp_comment: "",
-        sup_status: "still need to work",
+        sup_status: "incomplete",
         sup_comment: "",
         sup_review_status: "approved",
         employee_id: employeeId,
@@ -478,7 +540,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const handleAssignClick = () => {
     setShowAssignForm(true);
     setAssignTasks([]);
-    setDropdownOpen({}); // Reset dropdown states when opening the form
+    setDropdownOpen({});
   };
 
   const handleAddTask = () => {
@@ -498,7 +560,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     setAssignTasks((prev) => prev.filter((_, i) => i !== index));
     setDropdownOpen((prev) => {
       const newState = { ...prev };
-      delete newState[index]; // Remove dropdown state for the removed task
+      delete newState[index];
       return newState;
     });
   };
@@ -560,7 +622,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             task_name: task.taskName,
             emp_status: "not started",
             emp_comment: "",
-            sup_status: "still need to work",
+            sup_status: "incomplete",
             sup_comment: "",
             sup_review_status: "pending",
             employee_id: employeeId,
@@ -595,7 +657,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert("Tasks assigned successfully!");
       setShowAssignForm(false);
       setAssignTasks([]);
-      setDropdownOpen({}); // Reset dropdown states after submission
+      setDropdownOpen({});
     } catch (err) {
       showAlert(`Failed to assign tasks: ${err.message}`);
       console.error(err);
@@ -605,21 +667,23 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const handleAssignCancel = () => {
     setShowAssignForm(false);
     setAssignTasks([]);
-    setDropdownOpen({}); // Reset dropdown states when cancelling
+    setDropdownOpen({});
   };
 
   const statusColors = {
     completed: "#28a745",
-    "still need to work": "#ffc107",
+    "add on": "#17a2b8",
     "re-work": "#dc3545",
+    incomplete: "#ffc107",
     "not started": "#888",
     working: "#007bff",
   };
 
   const statusLabels = {
     completed: "Completed",
-    "still need to work": "Still Need to Work",
+    "add on": "Add On",
     "re-work": "Re-work",
+    incomplete: "Incomplete",
     "not started": "Not Started",
     working: "Working",
   };
@@ -716,14 +780,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       )}
       {!loading && !error && noTasks && (
         <div className="no-tasks-message">
-          No tasks available for this employee in Week {weekId}: {dateRange}.{" "}
-          <button onClick={handleAssignClick}>Assign tasks to get started</button>
+          No tasks available in this Week {weekId}: {dateRange}.{" "}
         </div>
       )}
 
       {showAssignForm && (
         <div className="assign-form-modal">
-          <div className="assign-form">
+          <div className="assign-form-empdriven">
             <div className="form-header">
               <h3>Assign New Tasks</h3>
               <button className="close-button" onClick={handleAssignCancel}>×</button>
@@ -752,7 +815,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                       <div className="form-group">
                         <label>Dates</label>
                         <div className="multi-select-dropdown">
-                          {/* Changed: Use toggleDropdown with task index */}
                           <div
                             className="dropdown-header-task"
                             onClick={() => toggleDropdown(index)}
@@ -762,7 +824,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               : "-- Select Dates --"}
                             <span className="arrow">{dropdownOpen[index] ? "▲" : "▼"}</span>
                           </div>
-                          {/* Changed: Check dropdownOpen for specific task index */}
                           {dropdownOpen[index] && (
                             <div className="dropdown-list">
                               {weekDates.map((date) => (
@@ -940,19 +1001,42 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                 <div className="header-supervisor">Supervisor Feedback</div>
               </div>
               <div className="tasks-list">
-                {visibleTasks.map((task) => (
-                  <div key={task.task_id} className="task-row">
-                    <div className="task-name">
-                      {task.sup_review_status === "struck" ? (
-                        <>
-                          <span style={{ textDecoration: "line-through", color: "#a0a0a0" }}>
+                {visibleTasks.map((task) => {
+                  const editable = isTaskEditable(task.task_date);
+                  return (
+                    <div key={task.task_id} className="task-row">
+                      <div className="task-name">
+                        {task.sup_review_status === "struck" ? (
+                          <>
+                            <span style={{ textDecoration: "line-through", color: "#a0a0a0" }}>
+                              {task.task_name}
+                            </span>
+                            {task.replacement_task && (
+                              <span style={{ color: "#007bff", marginLeft: "10px", display: "inline-flex", alignItems: "center" }}>
+                                <span
+                                  className={`review-status-icon ${task.sup_review_status}`}
+                                  style={{ color: reviewColors[task.sup_review_status], marginRight: "5px" }}
+                                  title={
+                                    task.sup_review_status === "approved"
+                                      ? "Approved"
+                                      : task.sup_review_status === "struck"
+                                      ? "Struck"
+                                      : "Suspended"
+                                  }
+                                >
+                                  {reviewIcons[task.sup_review_status]}
+                                </span>
+                                {task.replacement_task}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
                             {task.task_name}
-                          </span>
-                          {task.replacement_task && (
-                            <span style={{ color: "#007bff", marginLeft: "10px", display: "inline-flex", alignItems: "center" }}>
+                            {task.sup_review_status !== "pending" && (
                               <span
                                 className={`review-status-icon ${task.sup_review_status}`}
-                                style={{ color: reviewColors[task.sup_review_status], marginRight: "5px" }}
+                                style={{ color: reviewColors[task.sup_review_status] }}
                                 title={
                                   task.sup_review_status === "approved"
                                     ? "Approved"
@@ -963,189 +1047,122 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               >
                                 {reviewIcons[task.sup_review_status]}
                               </span>
-                              {task.replacement_task}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {task.task_name}
-                          {task.sup_review_status !== "pending" && (
-                            <span
-                              className={`review-status-icon ${task.sup_review_status}`}
-                              style={{ color: reviewColors[task.sup_review_status] }}
-                              title={
-                                task.sup_review_status === "approved"
-                                  ? "Approved"
-                                  : task.sup_review_status === "struck"
-                                  ? "Struck"
-                                  : "Suspended"
-                              }
-                            >
-                              {reviewIcons[task.sup_review_status]}
-                            </span>
-                          )}
-                        </>
-                      )}
-                      {userRole === "supervisor" && supReviewMode && task.sup_review_status === "pending" && (
-                        <div className="review-action-icons">
-                          <svg
-                            className="action-icon approve"
-                            onClick={() => handleApprove(task.task_id)}
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="green"
-                            strokeWidth="2"
-                          >
-                            <path d="M20 6L9 17l-5-5" />
-                          </svg>
-                          <svg
-                            className="action-icon strike"
-                            onClick={() => handleStrike(task.task_id, day.date)}
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="red"
-                            strokeWidth="2"
-                          >
-                            <path d="M18 6L6 18" />
-                          </svg>
-                          <svg
-                            className="action-icon suspend"
-                            onClick={() => handleSuspendReview(task.task_id)}
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="orange"
-                            strokeWidth="2"
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="15" y1="9" x2="9" y2="15" />
-                            <line x1="9" y1="9" x2="15" y2="15" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <div className="update-section">
-                      {editingTask === task.task_id && userRole === "employee" && (
-                        <div className="edit-popup">
-                          <div className="checkbox-group">
-                            {["completed", "not started", "working"].map((status) => (
-                              <label key={status} className="checkbox-label">
-                                <input
-                                  type="radio"
-                                  name="emp-status"
-                                  value={status}
-                                  checked={formData.status === status}
-                                  onChange={(e) =>
-                                    setFormData({ ...formData, status: e.target.value })
-                                  }
-                                />
-                                {statusLabels[status] || status}
-                              </label>
-                            ))}
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Add comment"
-                            value={formData.comment}
-                            onChange={(e) =>
-                              setFormData({ ...formData, comment: e.target.value })
-                            }
-                            className="edit-comment-input"
-                          />
-                          <button
-                            onClick={() => handleSave(task.task_id)}
-                            className="edit-save-button"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      )}
-                      <div className="status-container">
-                        <span className="comment">{task.emp_comment || "N/A"}</span>
-                        <div className="status-dots">
-                          <span
-                            className="status-dot"
-                            style={{ backgroundColor: statusColors[task.emp_status] || "#888" }}
-                            title={statusLabels[task.emp_status] || task.emp_status}
-                          ></span>
-                          {userRole === "employee" && (
+                            )}
+                          </>
+                        )}
+                        {userRole === "supervisor" && supReviewMode && task.sup_review_status === "pending" && (
+                          <div className="review-action-icons" style={{ opacity: editable ? 2 : 0.2 }}>
                             <svg
-                              className="edit-icon"
-                              onClick={() => handleEditClick(task)}
+                              className="action-icon approve"
+                              onClick={() => handleApprove(task.task_id)}
                               width="16"
                               height="16"
                               viewBox="0 0 24 24"
                               fill="none"
-                              stroke="#007bff"
+                              stroke="green"
                               strokeWidth="2"
+                              style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
                             >
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              <path d="M20 6L9 17l-5-5" />
                             </svg>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="supervisor-section">
-                      {userRole === "supervisor" && supReviewMode && editingSupStatus === task.task_id ? (
-                        <div className="edit-section">
-                          <div className="checkbox-group">
-                            {["completed", "still need to work", "re-work"].map((status) => (
-                              <label key={status} className="checkbox-label">
-                                <input
-                                  type="radio"
-                                  name="sup-status"
-                                  value={status}
-                                  checked={supFormData.supStatus === status}
-                                  onChange={(e) =>
-                                    setSupFormData({ ...supFormData, supStatus: e.target.value })
-                                  }
-                                />
-                                {statusLabels[status] || status}
-                              </label>
-                            ))}
+                            <svg
+                              className="action-icon strike"
+                              onClick={() => handleStrike(task.task_id, day.date)}
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="red"
+                              strokeWidth="2"
+                              style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                            >
+                              <path d="M18 6L6 18" />
+                            </svg>
+                            <svg
+                              className="action-icon suspend"
+                              onClick={() => handleSuspendReview(task.task_id)}
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="orange"
+                              strokeWidth="2"
+                              style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                            >
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="15" y1="9" x2="9" y2="15" />
+                              <line x1="9" y1="9" x2="15" y2="15" />
+                            </svg>
                           </div>
-                          <input
-                            type="text"
-                            placeholder="Add supervisor comment"
-                            value={supFormData.supComment}
-                            onChange={(e) =>
-                              setSupFormData({ ...supFormData, supComment: e.target.value })
-                            }
-                            className="edit-comment-input"
-                          />
-                          <button
-                            onClick={() => handleSupStatusSave(task.task_id)}
-                            className="edit-save-button"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      ) : (
+                        )}
+                      </div>
+                      <div className="update-section" style={{ opacity: editable ? 1 : 0.2 }}>
+                        {editingTask === task.task_id && userRole === "employee" && (
+                          <div className="edit-popup">
+                            <div className="checkbox-group">
+                              {["completed", "not started", "working"].map((status) => (
+                                <label key={status} className="checkbox-label">
+                                  <input
+                                    type="radio"
+                                    name="emp-status"
+                                    value={status}
+                                    checked={formData.status === status}
+                                    onChange={(e) =>
+                                      setFormData({ ...formData, status: e.target.value })
+                                    }
+                                    disabled={!editable}
+                                  />
+                                  {statusLabels[status] || status}
+                                </label>
+                              ))}
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Add comment"
+                              value={formData.comment}
+                              onChange={(e) =>
+                                setFormData({ ...formData, comment: e.target.value })
+                              }
+                              className="edit-comment-input"
+                              disabled={!editable}
+                            />
+                            <div className="edit-actions">
+                              <button
+                                onClick={handleCancelEdit}
+                                className="cancel-button"
+                                disabled={!editable}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleSave(task.task_id)}
+                                className="edit-save-button"
+                                disabled={!editable}
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         <div className="status-container">
-                          <span className="comment">{task.sup_comment || "N/A"}</span>
+                          <span className="comment">{task.emp_comment || "N/A"}</span>
                           <div className="status-dots">
                             <span
                               className="status-dot"
-                              style={{ backgroundColor: statusColors[task.sup_status] || "#888" }}
-                              title={statusLabels[task.sup_status] || task.sup_status}
+                              style={{ backgroundColor: statusColors[task.emp_status] || "#888" }}
+                              title={statusLabels[task.emp_status] || task.emp_status}
                             ></span>
-                            {userRole === "supervisor" && supReviewMode && (
+                            {userRole === "employee" && (
                               <svg
                                 className="edit-icon"
-                                onClick={() => handleSupStatusEditClick(task)}
+                                onClick={() => handleEditClick(task)}
                                 width="16"
                                 height="16"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="#007bff"
                                 strokeWidth="2"
+                                style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
                               >
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -1153,10 +1170,86 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                             )}
                           </div>
                         </div>
-                      )}
+                      </div>
+                      <div className="supervisor-section" style={{ opacity: editable ? 1 : 0.2 }}>
+                        {userRole === "supervisor" && supReviewMode && editingSupStatus === task.task_id ? (
+                          <div className="edit-section">
+                            <div className="checkbox-group">
+                              {["completed", "add on", "re-work", "incomplete"].map((status) => (
+                                <label key={status} className="checkbox-label">
+                                  <input
+                                    type="radio"
+                                    name="sup-status"
+                                    value={status}
+                                    checked={supFormData.supStatus === status}
+                                    onChange={(e) =>
+                                      setSupFormData({ ...supFormData, supStatus: e.target.value })
+                                    }
+                                    disabled={!editable}
+                                  />
+                                  {statusLabels[status] || status}
+                                </label>
+                              ))}
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Add supervisor comment"
+                              value={supFormData.supComment}
+                              onChange={(e) =>
+                                setSupFormData({ ...supFormData, supComment: e.target.value })
+                              }
+                              className="edit-comment-input"
+                              disabled={!editable}
+                            />
+                            <div className="edit-actions">
+                              <button
+                                onClick={handleSupStatusCancel}
+                                className="cancel-button"
+                                disabled={!editable}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleSupStatusSave(task.task_id)}
+                                className="edit-save-button"
+                                disabled={!editable}
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="status-container">
+                            <span className="comment">{task.sup_comment || "N/A"}</span>
+                            <div className="status-dots">
+                              <span
+                                className="status-dot"
+                                style={{ backgroundColor: statusColors[task.sup_status] || "#888" }}
+                                title={statusLabels[task.sup_status] || task.sup_status}
+                              ></span>
+                              {userRole === "supervisor" && supReviewMode && (
+                                <svg
+                                  className="edit-icon"
+                                  onClick={() => handleSupStatusEditClick(task)}
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="#007bff"
+                                  strokeWidth="2"
+                                  style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                                >
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {day.tasks.length > 3 && (
                 <svg

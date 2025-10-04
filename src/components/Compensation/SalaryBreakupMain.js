@@ -463,109 +463,65 @@ const handleAdvanceSubmit = async () => {
   };
 
 
-  // const handleAdvanceSubmit = async () => { // 🔹 Add handler
-  //   if (!advanceModal.employeeId) {
-  //     setAdvanceModal({ ...advanceModal, error: "Employee ID missing." });
-  //     return;
-  //   }
-  //   if (!advanceModal.advanceAmount || parseFloat(advanceModal.advanceAmount) <= 0) {
-  //     setAdvanceModal({ ...advanceModal, error: "Enter a valid advance amount." });
-  //     return;
-  //   }
-  //   if (parseFloat(advanceModal.advanceAmount) > advanceModal.threeMonthsSalary) {
-  //     setAdvanceModal({ ...advanceModal, error: "Advance cannot exceed three months' salary." });
-  //     return;
-  //   }
-  //   if (!advanceModal.recoveryMonths || parseInt(advanceModal.recoveryMonths) <= 0) {
-  //     setAdvanceModal({ ...advanceModal, error: "Enter valid recovery months." });
-  //     return;
-  //   }
-  //   if (!advanceModal.applicableMonth) {
-  //     setAdvanceModal({ ...advanceModal, error: "Select applicable month." });
-  //     return;
-  //   }
-
-  //   setIsLoading(true);
-  //   try {
-  //     const payload = {
-  //       employeeId: advanceModal.employeeId,
-  //       advanceAmount: advanceModal.advanceAmount,
-  //       recoveryMonths: advanceModal.recoveryMonths,
-  //       applicableMonth: advanceModal.applicableMonth, // Modal converts to YYYY-MM-DD
-  //     };
-
-  //     const response = await axios.post(`${BASE_URL}/api/compensation/advance`, payload, {
-  //       headers: { "x-api-key": API_KEY, "x-employee-id": meId, "Content-Type": "application/json" },
-  //     });
-
-  //     if (response.data.success || response.data.message === "Advance added successfully") {
-  //       setAdvanceModal({
-  //         isVisible: false,
-  //         employeeId: null,
-  //         fullName: "",
-  //         advanceAmount: "",
-  //         recoveryMonths: "",
-  //         applicableMonth: "",
-  //         error: "",
-  //         threeMonthsSalary: 0,
-  //       });
-  //       openMessageModal("Success", "Advance added successfully!", false);
-  //       // Optional: Refetch advances
-  //       // const advancesRes = await axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers });
-  //       // setAdvances(advancesRes.data.data || []);
-  //     } else {
-  //       setAdvanceModal({
-  //         ...advanceModal,
-  //         error: response.data.message || "Failed to add advance.",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     setAdvanceModal({
-  //       ...advanceModal,
-  //       error: error.response?.data?.message || "Network error.",
-  //     });
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // 🔧 Helper function for conversion (add this before the function)
+  
+  
+  
 const convertToMonthYear = (monthYearStr) => {
   console.log(`🔍 Input to convert: "${monthYearStr}"`);
   if (!monthYearStr) return null;
   
-  // Try space, fallback to dash
+  // Handle YYYY-MM format directly (common from selects)
+  if (/^\d{4}-\d{2}$/.test(monthYearStr)) {
+    const [year, month] = monthYearStr.split('-');
+    const monthNum = parseInt(month, 10);
+    if (monthNum >= 1 && monthNum <= 12 && parseInt(year, 10) >= 1900 && parseInt(year, 10) <= 2100) {
+      console.log(`🔄 Already valid YYYY-MM: "${monthYearStr}"`);
+      return monthYearStr;
+    }
+  }
+  
+  // Fallback: Parse "Month Year" (space-separated)
   let parts = monthYearStr.split(" ");
-  if (parts.length !== 2) parts = monthYearStr.split("-");
-  if (parts.length !== 2) {
-    console.warn("Invalid format:", monthYearStr);
-    return null;
-  }
-  const monthName = parts[0].trim().toLowerCase();
-  const yearStr = parts[1].trim();
-  
-  const year = parseInt(yearStr, 10);
-  if (isNaN(year) || year < 1900 || year > 2100) {
-    console.warn(`Invalid year: ${yearStr}`);
-    return null;
-  }
-  
-  const monthMap = {
-    'january': 1, 'jan': 1, 'february': 2, 'feb': 2, 'march': 3, 'mar': 3, 'april': 4, 'apr': 4,
-    'may': 5, 'june': 6, 'jun': 6, 'july': 7, 'jul': 7, 'august': 8, 'aug': 8,
-    'september': 9, 'sept': 9, 'sep': 9, 'october': 10, 'oct': 10, 'november': 11, 'nov': 11,
-    'december': 12, 'dec': 12
-  };
-  const monthNum = monthMap[monthName];
-  if (!monthNum) {
-    console.warn(`Invalid month: ${monthName}`);
-    return null;
+  if (parts.length === 2) {
+    const monthName = parts[0].trim().toLowerCase();
+    const yearStr = parts[1].trim();
+    const year = parseInt(yearStr, 10);
+    if (!isNaN(year) && year >= 1900 && year <= 2100) {
+      const monthMap = {
+        'january': 1, 'jan': 1, 'february': 2, 'feb': 2, 'march': 3, 'mar': 3, 'april': 4, 'apr': 4,
+        'may': 5, 'june': 6, 'jun': 6, 'july': 7, 'jul': 7, 'august': 8, 'aug': 8,
+        'september': 9, 'sept': 9, 'sep': 9, 'october': 10, 'oct': 10, 'november': 11, 'nov': 11,
+        'december': 12, 'dec': 12
+      };
+      const monthNum = monthMap[monthName];
+      if (monthNum) {
+        const monthStr = monthNum.toString().padStart(2, '0');
+        const result = `${year}-${monthStr}`;
+        console.log(`🔄 Converted name-based "${monthYearStr}" → "${result}"`);
+        return result;
+      }
+    }
   }
   
-  const monthStr = monthNum.toString().padStart(2, '0');
-  const result = `${year}-${monthStr}`;
-  console.log(`🔄 Converted "${monthYearStr}" → "${result}" (month: ${monthNum})`);
-  return result;
+  // Optional: Handle "Month-YYYY" (dash-separated name)
+  parts = monthYearStr.split("-");
+  if (parts.length === 2) {
+    const [monthName, yearStr] = parts.map(p => p.trim().toLowerCase());
+    const year = parseInt(yearStr, 10);
+    if (!isNaN(year) && year >= 1900 && year <= 2100) {
+      const monthMap = { /* same as above */ };
+      const monthNum = monthMap[monthName];
+      if (monthNum) {
+        const monthStr = monthNum.toString().padStart(2, '0');
+        const result = `${year}-${monthStr}`;
+        console.log(`🔄 Converted dash-name "${monthYearStr}" → "${result}"`);
+        return result;
+      }
+    }
+  }
+  
+  console.warn("Invalid format:", monthYearStr);
+  return null;
 };
 
 const handleIncentiveSubmit = async () => {

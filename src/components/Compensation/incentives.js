@@ -14,9 +14,11 @@ export const calculateCurrentMonthIncentives = async (employees, meId) => {
   }
 
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = String(now.getMonth() + 1).padStart(2, "0"); // e.g., "09" for September
-  console.log(`Calculating incentives for ${currentYear}-${currentMonth}`);
+const currentYear = now.getFullYear();
+const currentMonth = String(now.getMonth() + 1).padStart(2, "0"); // e.g., "09"
+const formattedMonthYear = now.toLocaleString("default", { month: "long", year: "numeric" }); 
+console.log(`Calculating incentives for ${currentYear}-${currentMonth} (${formattedMonthYear})`);
+
 
   try {
     const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/incentives`, {
@@ -111,7 +113,9 @@ export const calculateCurrentMonthIncentives = async (employees, meId) => {
       totalIncentives,
       employeesWithIncentives,
       perEmployeeIncentives,
-      rawIncentiveRecords: validIncentives
+      rawIncentiveRecords: validIncentives,
+        formattedMonthYear // e.g. October 2025
+
     };
   } catch (error) {
     console.error("Error fetching incentives:", error.message);
