@@ -161,7 +161,7 @@
   padding: 10px;
 }
 
-.assign-form {
+.assign-form-empdriven{
   background: #ffffff;
   padding: 0 0 15px 0;
   border-radius: 8px;
@@ -171,7 +171,29 @@
   overflow-y: auto;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
+.edit-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
 
+.edit-actions .cancel-button {
+ 
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-actions .edit-save-button {
+  background-color: #28a745;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
 /* Form header */
 .form-header {
   background: #3067bb; /* Blue header like screenshot */

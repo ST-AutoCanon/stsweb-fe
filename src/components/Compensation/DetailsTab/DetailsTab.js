@@ -32,12 +32,23 @@ const DetailsTab = ({
     advanceRecovery: { amount: '0', type: 'amount' },
   };
 
-  const formatWorkingDays = (workingDays) => {
-    if (!workingDays || typeof workingDays !== 'object') return 'None';
-    return Object.entries(workingDays)
-      .map(([day, status]) => `${day}: ${status}`)
-      .join(', ');
+  const getDisplayDayStatus = (status) => {
+    switch(status) {
+      case 'fullDay': return 'Full Day';
+      case 'halfDay': return 'Half Day';
+      case 'weekOff': return 'Week Off';
+      default: return status;
+    }
   };
+  
+
+  const formatWorkingDays = (workingDays) => {
+  if (!workingDays || typeof workingDays !== 'object') return ['None'];
+  
+  return Object.entries(workingDays)
+    .map(([day, status]) => `${day}: ${getDisplayDayStatus(status)}`);
+};
+
 
   const formatTdsSlabs = (slabs) => {
     if (!Array.isArray(slabs) || slabs.length === 0) return 'None';
@@ -65,17 +76,26 @@ const DetailsTab = ({
     employeeLopData
   );
 
-  // Calculate total overtime hours and rate
+  // Calculate total overtime hours, rate, and pay
   const currentYear = new Date().getFullYear();
-  const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+  const currentMonthNum = new Date().getMonth() + 1;
+  const currentMonthStr = String(currentMonthNum).padStart(2, '0');
+  const lastMonthIndex = currentMonthNum - 2;  // 0-based for last month (September for October)
+  const startWorkDate = new Date(currentYear, lastMonthIndex, 25);
+  const endWorkDate = new Date(currentYear, currentMonthNum - 1, 25);  // Current month 25th
+
   const employeeOvertime = overtimeRecords.filter((ot) => {
-    const otDate = parseWorkDate(ot.work_date);
+    const workDate = parseWorkDate(ot.work_date);
+    const createdDate = parseWorkDate(ot.created_at);
     return (
       ot.employee_id === selectedEmployee.employee_id &&
       ot.status === 'Approved' &&
-      otDate &&
-      otDate.getFullYear() === currentYear &&
-      (otDate.getMonth() + 1).toString().padStart(2, '0') === currentMonth
+      workDate &&
+      workDate >= startWorkDate &&
+      workDate <= endWorkDate &&
+      createdDate &&
+      createdDate.getFullYear() === currentYear &&
+      String(createdDate.getMonth() + 1).padStart(2, '0') === currentMonthStr
     );
   });
 
@@ -84,11 +104,37 @@ const DetailsTab = ({
     return isNaN(hours) || hours <= 0 ? sum : sum + hours;
   }, 0);
 
+  const totalOvertimePay = employeeOvertime.reduce((sum, ot) => {
+    const hours = parseFloat(ot.extra_hours);
+    let rate = parseFloat(ot.rate);
+    if (isNaN(rate) || rate <= 0) {
+      if (
+        planData.isOvertimePay &&
+        planData.overtimePayAmount &&
+        !isNaN(parseFloat(planData.overtimePayAmount))
+      ) {
+        rate = parseFloat(planData.overtimePayAmount);
+      } else {
+        rate = 500; // Fallback default rate
+      }
+    }
+    return isNaN(hours) || hours <= 0 ? sum : sum + (hours * rate);
+  }, 0);
+
+  const today = new Date();
+const currentMonth = String(today.getMonth() + 1).padStart(2, "0"); // "10" for October
+const currentYm = `${currentYear}-${currentMonth}`; // "2025-10"
+
+const empId = String(selectedEmployee.employee_id || "").toUpperCase();
+
   let overtimeRate = 0;
-  if (employeeOvertime.length > 0) {
+  if (employeeOvertime.length > 0 && totalOvertimeHours > 0) {
+    // Use average rate for display
+    overtimeRate = totalOvertimePay / totalOvertimeHours;
+  } else if (employeeOvertime.length > 0) {
     const firstRecord = employeeOvertime[0];
     overtimeRate = parseFloat(firstRecord.rate);
-    if (!overtimeRate || isNaN(overtimeRate) || overtimeRate === 0) {
+    if (isNaN(overtimeRate) || overtimeRate <= 0) {
       if (
         planData.isOvertimePay &&
         planData.overtimePayAmount &&
@@ -107,16 +153,71 @@ const DetailsTab = ({
       ? `${totalOvertimeHours.toFixed(2)} hours at ₹${overtimeRate.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        })}/hour`
+        })}/hour})`
       : 'No overtime records';
+const formatMonthYear = (monthString) => {
+  if (!monthString) return "";
+  const [year, month] = monthString.split("-");
+  const date = new Date(year, month - 1);
+  return date.toLocaleString("default", { month: "long", year: "numeric" }); // e.g. October 2025
+};
 
-  const empId = String(selectedEmployee.employee_id).toUpperCase();
-  const matchedKey = Object.keys(employeeIncentiveData).find((key) => String(key).toUpperCase() === empId);
-  const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-  const incentiveData = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-  const incentivePlanDetail = incentiveData > 0
-    ? `Calculated Total: ₹${incentiveData.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : 'None';
+
+// empId already defined
+const incentiveObj = employeeIncentiveData[empId] || null;
+
+let incentivePlanDetail = "None";
+let incentiveData = 0;
+
+if (incentiveObj) {
+  if (activeTab === "monthly") {
+    // Monthly: show only current month & year
+    const currentMonthIncentives = (incentiveObj.incentives || []).filter(
+      (inc) => inc.applicable_month === currentYm
+    );
+
+    if (currentMonthIncentives.length > 0) {
+      incentivePlanDetail = currentMonthIncentives
+        .map((inc) => {
+          const typeLabel = inc.incentive_type === "ctc" ? "CTC" : "Sales";
+          const value = parseFloat(inc.value || 0).toLocaleString();
+          return `${formatMonthYear(inc.applicable_month)}: ₹${value} (${typeLabel} ${inc.ctc_percentage || ""}%)`;
+        })
+        .join(", ");
+      incentiveData = currentMonthIncentives.reduce(
+        (sum, inc) => sum + parseFloat(inc.value || 0),
+        0
+      );
+    }
+  } else if (activeTab === "yearly") {
+    // Yearly: show only current year
+    const currentYearIncentives = (incentiveObj.incentives || []).filter(
+      (inc) => new Date(inc.applicable_month + "-01").getFullYear() === currentYear
+    );
+
+    if (currentYearIncentives.length > 0) {
+      incentivePlanDetail = currentYearIncentives
+        .map((inc) => {
+          const typeLabel = inc.incentive_type === "ctc" ? "CTC" : "Sales";
+          const value = parseFloat(inc.value || 0).toLocaleString();
+          return `${formatMonthYear(inc.applicable_month)}: ₹${value} (${typeLabel} ${inc.ctc_percentage || ""}%)`;
+        })
+        .join(", ");
+      incentiveData = currentYearIncentives.reduce(
+        (sum, inc) => sum + parseFloat(inc.value || 0),
+        0
+      );
+    }
+  }
+} else {
+  incentivePlanDetail = "None";
+  incentiveData = 0;
+}
+
+
+
+
+
 
   const lopData = employeeLopData[selectedEmployee.employee_id] || {
     currentMonth: { days: 0, value: '0.00', currency: 'INR' },
@@ -134,7 +235,7 @@ const DetailsTab = ({
     return (
       date &&
       date.getFullYear() === currentYear &&
-      (date.getMonth() + 1).toString().padStart(2, '0') === currentMonth
+      (date.getMonth() + 1).toString().padStart(2, '0') === currentMonthStr
     );
   });
 
@@ -165,17 +266,17 @@ const DetailsTab = ({
       category: 'Earnings',
     },
     {
-  label: 'LTA Allowance',
-  planDetail: planData.isLtaAllowance && planData.ltaAllowanceType === 'percentage' && planData.ltaAllowance
-    ? `${planData.ltaAllowance}% of Basic`
-    : planData.isLtaAllowance && planData.ltaAllowanceType === 'amount' && planData.ltaAllowanceAmount
-    ? `₹${parseFloat(planData.ltaAllowanceAmount).toLocaleString()}`
-    : `${calculationDefaults.lta.percentage}% of Basic (default)`,
-  yearly: salaryDetails.ltaAllowance * 12,
-  monthly: salaryDetails.ltaAllowance,
-  isDeduction: false,
-  category: 'Earnings',
-},
+      label: 'LTA Allowance',
+      planDetail: planData.isLtaAllowance && planData.ltaAllowanceType === 'percentage' && planData.ltaAllowance
+        ? `${planData.ltaAllowance}% of CTC`
+        : planData.isLtaAllowance && planData.ltaAllowanceType === 'amount' && planData.ltaAllowanceAmount
+        ? `₹${parseFloat(planData.ltaAllowanceAmount).toLocaleString()}`
+        : `${calculationDefaults.lta.percentage}% of CTC (default)`,
+      yearly: salaryDetails.ltaAllowance * 12,
+      monthly: salaryDetails.ltaAllowance,
+      isDeduction: false,
+      category: 'Earnings',
+    },
     {
       label: 'Other Allowances',
       planDetail: planData.isOtherAllowance && planData.otherAllowanceType === 'percentage' && planData.otherAllowance
@@ -193,7 +294,7 @@ const DetailsTab = ({
     {
       label: 'Incentives',
       planDetail: incentivePlanDetail,
-      yearly: incentiveData * 12,
+      yearly: incentiveData ,
       monthly: incentiveData,
       isDeduction: false,
       category: 'Earnings',
@@ -201,8 +302,8 @@ const DetailsTab = ({
     {
       label: 'Overtime Pay',
       planDetail: overtimePlanDetail,
-      yearly: salaryDetails.overtimePay * 12,
-      monthly: salaryDetails.overtimePay,
+      yearly: null,
+      monthly: totalOvertimePay,
       isDeduction: false,
       category: 'Earnings',
     },
@@ -219,7 +320,7 @@ const DetailsTab = ({
       category: 'Earnings',
     },
     {
-      label: ' Bonus Pay',
+      label: 'Bonus Pay',
       planDetail: (() => {
         if (employeeBonuses.length > 0) {
           const bonusDetails = employeeBonuses
@@ -245,7 +346,6 @@ const DetailsTab = ({
       category: 'Earnings',
     },
     // Deduction Components
-   
     {
       label: 'Employee PF',
       planDetail: planData.isPFApplicable && planData.isPFEmployee && planData.pfEmployeeType === 'percentage' && planData.pfEmployeePercentage
@@ -257,6 +357,7 @@ const DetailsTab = ({
       monthly: salaryDetails.employeePF,
       isDeduction: true,
       category: 'Deductions',
+      deductedFromNet: planData.pfEmployeeIncludeInCtc !== false,
     },
     {
       label: 'Employer PF',
@@ -267,8 +368,9 @@ const DetailsTab = ({
         : `${calculationDefaults.pfEmployer.percentage}% of Basic (default)`,
       yearly: salaryDetails.employerPF * 12,
       monthly: salaryDetails.employerPF,
-      isDeduction: true,
+      isDeduction: false,
       category: 'Deductions',
+      deductedFromNet: false,
     },
     {
       label: 'ESIC',
@@ -281,6 +383,7 @@ const DetailsTab = ({
       monthly: salaryDetails.esic,
       isDeduction: true,
       category: 'Deductions',
+      deductedFromNet: planData.esicEmployeeIncludeInCtc !== false,
     },
     {
       label: 'Gratuity',
@@ -291,8 +394,9 @@ const DetailsTab = ({
         : `${calculationDefaults.gratuity.percentage}% of Basic (default)`,
       yearly: salaryDetails.gratuity * 12,
       monthly: salaryDetails.gratuity,
-      isDeduction: true,
+      isDeduction: false,
       category: 'Deductions',
+      deductedFromNet: false,
     },
     {
       label: 'Professional Tax',
@@ -307,6 +411,7 @@ const DetailsTab = ({
       monthly: salaryDetails.professionalTax,
       isDeduction: true,
       category: 'Deductions',
+      deductedFromNet: planData.professionalTaxIncludeInCtc !== false,
     },
     {
       label: 'TDS',
@@ -317,6 +422,7 @@ const DetailsTab = ({
       monthly: salaryDetails.tds,
       isDeduction: true,
       category: 'Deductions',
+      deductedFromNet: true,
     },
     {
       label: 'Insurance',
@@ -329,19 +435,40 @@ const DetailsTab = ({
       monthly: salaryDetails.insurance,
       isDeduction: true,
       category: 'Deductions',
+      deductedFromNet: planData.insuranceEmployeeIncludeInCtc !== false,
     },
+   {
+  label: 'LOP Deduction',
+  planDetail: (() => {
+    if (!lopData) return 'None';
+
+    let days = 0;
+    let value = 0;
+
+    if (activeTab === 'monthly') {
+      days = parseFloat(lopData.yearly?.days || 0); // Use yearly days in monthly tab
+      value = parseFloat(lopData.yearly?.value || 0); // Use yearly amount in monthly tab
+    } else if (activeTab === 'yearly') {
+      days = 0; // Show 0 in yearly tab
+      value = 0;
+    }
+
+    if (days === 0 && value === 0) return 'None';
+
+    return `${days} day${days > 1 ? 's' : ''} – ₹${value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  })(),
+  yearly: 0, // Show 0 in yearly tab
+  monthly: parseFloat(lopData?.yearly?.value || 0), // Monthly tab shows yearly amount
+  isDeduction: true,
+  category: 'Deductions',
+  deductedFromNet: true,
+},
+
+
     {
-      label: 'LOP Deduction',
-      planDetail: lopData && lopData.currentMonth.days > 0
-        ? `${lopData.currentMonth.days} day${lopData.currentMonth.days > 1 ? 's' : ''}`
-        : 'None (default)',
-      yearly: lopData ? parseFloat(lopData.yearly.value) : 0,
-      monthly: lopData ? parseFloat(lopData.currentMonth.value) : 0,
-      isDeduction: true,
-      category: 'Deductions',
-    },
-    // Other Components
-     {
       label: 'Advance Recovery',
       planDetail: (() => {
         const employeeAdvances = advances.filter((adv) => {
@@ -401,6 +528,7 @@ const DetailsTab = ({
       monthly: salaryDetails.advanceRecovery,
       isDeduction: true,
       category: 'Deductions',
+      deductedFromNet: true,
     },
     {
       label: 'Default Working Hours',
@@ -424,20 +552,36 @@ const DetailsTab = ({
     },
   ];
 
-  const totalEarningsMonthly = components
-    .filter((comp) => comp.isDeduction === false && comp.monthly !== null)
-    .reduce((sum, comp) => sum + (comp.monthly || 0), 0);
-  const totalDeductionsMonthly = components
-    .filter((comp) => comp.isDeduction === true && comp.monthly !== null)
-    .reduce((sum, comp) => sum + (comp.monthly || 0), 0);
-  const netSalaryMonthly = totalEarningsMonthly - totalDeductionsMonthly;
-  const totalEarningsYearly = components
-    .filter((comp) => comp.isDeduction === false && comp.yearly !== null)
-    .reduce((sum, comp) => sum + (comp.yearly || 0), 0);
-  const totalDeductionsYearly = components
-    .filter((comp) => comp.isDeduction === true && comp.yearly !== null)
-    .reduce((sum, comp) => sum + (comp.yearly || 0), 0);
-  const netSalaryYearly = totalEarningsYearly - totalDeductionsYearly;
+  // Use pre-calculated net salary from salaryDetails (applies IncludeInCtc conditions)
+  const netSalaryMonthly = salaryDetails.netSalary || 0;
+  const netSalaryYearly = netSalaryMonthly * 12;
+
+  // Filter components to show only those with positive monthly amounts (except for Other category)
+  // Always include Overtime Pay and LOP Deduction
+  const filteredEarnings = components.filter((comp) => {
+    if (comp.label === 'Overtime Pay') return true;
+    return comp.category === 'Earnings' && comp.monthly > 0;
+  });
+ const deductedComponents = components.filter((comp) => {
+  if (comp.label === 'LOP Deduction') return true; // always show, we'll handle display inside planDetail
+  return comp.category === 'Deductions' && comp.deductedFromNet && (
+    activeTab === 'yearly' ? comp.yearly > 0 : comp.monthly > 0
+  );
+});
+
+  const employerComponents = components.filter((comp) => comp.category === 'Deductions' && !comp.deductedFromNet && comp.monthly > 0);
+  const filteredOther = components.filter((comp) => comp.category === 'Other');
+
+  const renderAmount = (item, tab) => {
+    const amount = tab === 'yearly' ? item.yearly : item.monthly;
+    if (amount != null && amount >= 0) {
+      return `₹${parseFloat(amount).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+    return 'N/A';
+  };
 
   return (
     <div className="sb-details-tab">
@@ -492,65 +636,69 @@ const DetailsTab = ({
               <tr className="sb-details-section-header">
                 <td colSpan="3" className="sb-details-section-title">Earnings</td>
               </tr>
-              {components
-                .filter((comp) => comp.category === 'Earnings')
-                .map((item, index) => (
-                  <tr key={`earnings-${index}`} className="sb-details-earnings-row">
-                    <td className="sb-details-table-cell sb-details-align-left">{item.label}</td>
-                    <td className="sb-details-table-cell sb-details-align-left">{item.planDetail}</td>
-                    <td className="sb-details-table-cell sb-details-align-right">
-                      {(activeTab === 'yearly' ? item.yearly : item.monthly) != null &&
-                      (activeTab === 'yearly' ? item.yearly : item.monthly) >= 0
-                        ? `₹${parseFloat(activeTab === 'yearly' ? item.yearly : item.monthly).toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}`
-                        : 'N/A'}
-                    </td>
-                  </tr>
-                ))}
-              {/* Deductions Section */}
+              {filteredEarnings.map((item, index) => (
+                <tr key={`earnings-${index}`} className="sb-details-earnings-row">
+                  <td className="sb-details-table-cell sb-details-align-left">{item.label}</td>
+                  <td className="sb-details-table-cell sb-details-align-left">{item.planDetail}</td>
+                  <td className="sb-details-table-cell sb-details-align-right">
+                    {renderAmount(item, activeTab)}
+                  </td>
+                </tr>
+              ))}
+              {/* Deductions Section (only deducted from net and >0) */}
               <tr className="sb-details-section-header">
                 <td colSpan="3" className="sb-details-section-title">Deductions</td>
               </tr>
-              {components
-                .filter((comp) => comp.category === 'Deductions')
-                .map((item, index) => (
-                  <tr key={`deductions-${index}`} className="sb-details-deduction-row">
-                    <td className="sb-details-table-cell sb-details-align-left">{item.label}</td>
-                    <td className="sb-details-table-cell sb-details-align-left">{item.planDetail}</td>
-                    <td className="sb-details-table-cell sb-details-align-right">
-                      {(activeTab === 'yearly' ? item.yearly : item.monthly) != null &&
-                      (activeTab === 'yearly' ? item.yearly : item.monthly) >= 0
-                        ? `₹${parseFloat(activeTab === 'yearly' ? item.yearly : item.monthly).toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}`
-                        : 'N/A'}
-                    </td>
+              {deductedComponents.map((item, index) => (
+                <tr key={`deductions-${index}`} className="sb-details-deduction-row">
+                  <td className="sb-details-table-cell sb-details-align-left">{item.label}</td>
+                  <td className="sb-details-table-cell sb-details-align-left">{item.planDetail}</td>
+                  <td className="sb-details-table-cell sb-details-align-right">
+                    {renderAmount(item, activeTab)}
+                  </td>
+                </tr>
+              ))}
+              {/* Other Employer Contributions Section (not deducted from net and >0) */}
+              {employerComponents.length > 0 && (
+                <>
+                  <tr className="sb-details-section-header">
+                    <td colSpan="3" className="sb-details-section-title">Other Employer Contributions</td>
                   </tr>
-                ))}
+                  {employerComponents.map((item, index) => (
+                    <tr key={`employer-contrib-${index}`} className="sb-details-deduction-row">
+                      <td className="sb-details-table-cell sb-details-align-left">{item.label}</td>
+                      <td className="sb-details-table-cell sb-details-align-left">{`${item.planDetail} (Employer Contribution)`}</td>
+                      <td className="sb-details-table-cell sb-details-align-right">
+                        {renderAmount(item, activeTab)}
+                      </td>
+                    </tr>
+                  ))}
+                </>
+              )}
               {/* Other Components */}
               <tr className="sb-details-section-header">
                 <td colSpan="3" className="sb-details-section-title">Other</td>
               </tr>
-              {components
-                .filter((comp) => comp.category === 'Other')
-                .map((item, index) => (
-                  <tr key={`other-${index}`}>
-                    <td className="sb-details-table-cell sb-details-align-left">{item.label}</td>
-                    <td className="sb-details-table-cell sb-details-align-left">{item.planDetail}</td>
-                    <td className="sb-details-table-cell sb-details-align-right">
-                      {(activeTab === 'yearly' ? item.yearly : item.monthly) != null &&
-                      (activeTab === 'yearly' ? item.yearly : item.monthly) >= 0
-                        ? `₹${parseFloat(activeTab === 'yearly' ? item.yearly : item.monthly).toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}`
-                        : item.planDetail}
-                    </td>
-                  </tr>
-                ))}
+        {filteredOther.map((item, index) => (
+  <tr key={`other-${index}`}>
+    <td className="sb-details-table-cell sb-details-align-left">{item.label}</td>
+    <td className="sb-details-table-cell sb-details-align-left">
+      {Array.isArray(item.planDetail)
+        ? item.planDetail.map((line, idx) => <div key={idx}>{line}</div>)
+        : item.planDetail}
+    </td>
+    <td className="sb-details-table-cell sb-details-align-right">
+      {typeof item.monthly === 'number' && item.monthly !== null
+        ? `₹${parseFloat(activeTab === 'yearly' ? (item.yearly || 0) : item.monthly).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`
+        : '-'}
+    </td>
+  </tr>
+))}
+
+
               {/* Totals */}
               <tr className="sb-details-total-row">
                 

@@ -12,7 +12,6 @@
   position: relative;
 }
 
-
 .compensation-checkbox:checked {
   background-color: #79c42b;
   border: 2px solid #79c42b;
@@ -31,28 +30,6 @@
   left: 1px;
   display: none;
 }
-
-
-
-.compensation-checkbox:checked {
-  background-color: #79c42b;
-  border: 2px solid #79c42b;
-}
-
-.compensation-checkbox::after {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 4px;
-  border: 2px solid white;
-  border-top: none;
-  border-right: none;
-  transform: rotate(-45deg);
-  top: 1px;
-  left: 1px;
-  display: none;
-}
-
 
 .compensation-checkbox:checked::after {
   display: block; /* Show tick when checked */
@@ -351,13 +328,18 @@
   font-size: 14px;
   box-sizing: border-box;
   height: 34px; /* Fixed height for consistency */
-
-  margin-top:0px;
-
   margin-top:40px;
-
 }
-
+.compensation-number-inputtds{
+    border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 6px 10px;
+  width: 120px;
+  font-size: 14px;
+  box-sizing: border-box;
+  height: 34px; /* Fixed height for consistency */
+  margin-top:0px;
+}
 .compensation-percentage-input{
   border: 1px solid #ced4da;
   border-radius: 4px;
@@ -419,9 +401,7 @@ compensation-select-incentives{
   height: 34px; /* Fixed height for consistency */
   margin-top:30px;
 
-
 }
-
 
 .compensation-select:focus {
   border-color: #7FBD2C;

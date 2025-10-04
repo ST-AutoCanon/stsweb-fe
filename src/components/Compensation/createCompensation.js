@@ -5,10 +5,8 @@ import './createCompensation.css';
 import { FaEye, FaPencilAlt } from 'react-icons/fa';
 import Modal from '../Modal/Modal';
 import { calculateSalaryDetails } from './../../utils/SalaryCalculations'; // Adjust path as needed
-
 const API_KEY = process.env.REACT_APP_API_KEY;
 const DEFAULT_CTC = 100000; // Default CTC for percentage conversion
-
 const allowancePercentageFields = [
   { field: 'basicSalary', enable: 'isBasicSalary', type: 'basicSalaryType', amountField: 'basicSalaryAmount' },
   { field: 'houseRentAllowance', enable: 'isHouseRentAllowance', type: 'houseRentAllowanceType', amountField: 'houseRentAllowanceAmount' },
@@ -24,7 +22,6 @@ const allowancePercentageFields = [
   { field: 'statutoryBonusPercentage', enable: 'isStatutoryBonus', type: 'statutoryBonusType', amountField: 'statutoryBonusAmount', include: 'statutoryBonusIncludeInCtc' },
   { field: 'incentives', enable: 'isIncentives', type: 'incentivesType', amountField: 'incentivesAmount', include: 'incentivesIncludeInCtc' },
 ];
-
 const defaultFormData = {
   compensationPlanName: '',
   isPFApplicable: false,
@@ -121,7 +118,6 @@ const defaultFormData = {
   isTDSApplicable: false,
   tdsSlabs: []
 };
-
 const calculationDefaults = {
   basicSalary: { percentage: '40', type: 'percentage' },
   hra: { percentage: '20', type: 'percentage' },
@@ -139,7 +135,6 @@ const calculationDefaults = {
   tds: { percentage: '0', type: 'percentage' },
   advanceRecovery: { amount: '0', type: 'amount' },
 };
-
 const salaryFieldToFormDataMap = {
   basicSalary: { amount: 'basicSalaryAmount', percentage: 'basicSalary', type: 'basicSalaryType', enable: 'isBasicSalary', default: calculationDefaults.basicSalary },
   hra: { amount: 'houseRentAllowanceAmount', percentage: 'houseRentAllowance', type: 'houseRentAllowanceType', enable: 'isHouseRentAllowance', default: calculationDefaults.hra },
@@ -161,13 +156,11 @@ const salaryFieldToFormDataMap = {
   advanceRecovery: { default: calculationDefaults.advanceRecovery },
   overtimePay: { amount: 'overtimePayAmount', type: 'overtimePayType', enable: 'isOvertimePay', units: 'overtimePayUnits', default: { amount: '0', type: 'hourly' } },
 };
-
 const convertAmountToPercentage = (amount, baseCtc = DEFAULT_CTC) => {
   const parsedAmount = parseFloat(amount);
   if (isNaN(parsedAmount) || parsedAmount <= 0) return 0;
   return (parsedAmount / baseCtc) * 100;
 };
-
 const formatFieldName = (key) => {
   const fieldNames = {
     basicSalary: 'Basic Salary',
@@ -194,7 +187,6 @@ const formatFieldName = (key) => {
   };
   return fieldNames[key] || key.replace(/([A-Z][a-z]+)/g, ' $1').replace(/^./, (str) => str.toUpperCase()).trim();
 };
-
 const validateTotalPercentage = (formData, ctc = DEFAULT_CTC) => {
   let totalPercentage = 0;
   const components = [];
@@ -232,7 +224,20 @@ const validateTotalPercentage = (formData, ctc = DEFAULT_CTC) => {
     components,
   };
 };
-
+const normalizeWorkingDay = (value) => {
+  if (value === 'FullDay' || value === 'fullDay') return 'fullDay';
+  if (value === 'HalfDay' || value === 'halfDay') return 'halfDay';
+  if (value === 'WeekOff' || value === 'weekOff') return 'weekOff';
+  return value;
+};
+const getDisplayDayStatus = (status) => {
+  switch(status) {
+    case 'fullDay': return 'Full Day';
+    case 'halfDay': return 'Half Day';
+    case 'weekOff': return 'Week Off';
+    default: return status;
+  }
+};
 const CreateCompensation = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -251,8 +256,6 @@ const CreateCompensation = () => {
   const [viewExecCompensation, setViewExecCompensation] = useState(null);
   const [errors, setErrors] = useState({});
   const meId = JSON.parse(localStorage.getItem('dashboardData') || '{}').employeeId;
-
-
 const allowancePercentageFields = [
   { field: 'basicSalary', enable: 'isBasicSalary', type: 'basicSalaryType', amountField: 'basicSalaryAmount' },
   { field: 'houseRentAllowance', enable: 'isHouseRentAllowance', type: 'houseRentAllowanceType', amountField: 'houseRentAllowanceAmount' },
@@ -268,15 +271,11 @@ const allowancePercentageFields = [
   { field: 'statutoryBonusPercentage', enable: 'isStatutoryBonus', type: 'statutoryBonusType', amountField: 'statutoryBonusAmount', include: 'statutoryBonusIncludeInCtc' },
   { field: 'incentives', enable: 'isIncentives', type: 'incentivesType', amountField: 'incentivesAmount', include: 'incentivesIncludeInCtc' },
 ];
-
-
-
 const remainingPercentage = useMemo(() => {
   let sum = 0;
   const components = [];
   const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC; // Use ctcInput or 100000
   console.log('Calculating remainingPercentage:', { formData, totalCTC, allowancePercentageFields });
-
   allowancePercentageFields.forEach(({ field, enable, type, amountField, include }) => {
     const isEnabled = formData[enable];
     const isIncluded = include ? formData[include] : true;
@@ -284,7 +283,6 @@ const remainingPercentage = useMemo(() => {
     const percentageValue = formData[field];
     const amountValue = formData[amountField];
     console.log(`Processing field: ${field}, enable: ${isEnabled}, type: ${fieldType}, percentage: ${percentageValue}, amount: ${amountValue}, include: ${isIncluded}`);
-
     if (isEnabled && isIncluded) {
       if (fieldType === 'percentage' && percentageValue !== undefined && percentageValue !== '') {
         const val = parseFloat(percentageValue);
@@ -312,15 +310,10 @@ const remainingPercentage = useMemo(() => {
       console.log(`Field ${field} skipped: enable=${isEnabled}, include=${isIncluded}`);
     }
   });
-
   const remaining = 100 - sum;
   console.log('Percentage Components:', components, 'Total:', sum.toFixed(2), 'Remaining:', remaining.toFixed(2));
   return remaining;
 }, [formData, ctcInput]);
-
-
-
-
  const renderCategoryField = ({
   label,
   field,
@@ -335,7 +328,6 @@ const remainingPercentage = useMemo(() => {
 }) => {
   const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC;
   const percentageValue = formData[percentageField] || (formData[typeField] === 'amount' && formData[amountField] ? convertAmountToPercentage(formData[amountField], totalCTC).toFixed(2) : '');
-
   return (
     <div key={field} className="compensation-form-group">
       <span className="compensation-label-text">
@@ -469,19 +461,16 @@ const remainingPercentage = useMemo(() => {
     </div>
   );
 };
-
 const handleSubmit = async (e) => {
   e.preventDefault();
   setErrors({});
   console.log('formData:', formData);
-
   // Validate Compensation Plan Name
   if (!formData.compensationPlanName.trim()) {
     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
     showAlert('Compensation Plan Name is required and cannot be empty');
     return;
   }
-
   // Validate Total Percentage
   const totalPercentage = 100 - remainingPercentage;
   if (remainingPercentage < -0.01) {
@@ -494,7 +483,6 @@ const handleSubmit = async (e) => {
     showAlert(`Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%`);
     return;
   }
-
   // Prepare payload, including defaultWorkingDays if applicable
   const data = {
     compensationPlanName: formData.compensationPlanName,
@@ -504,7 +492,6 @@ const handleSubmit = async (e) => {
       defaultWorkingDays: formData.isDefaultWorkingDays ? formData.defaultWorkingDays : null,
     },
   };
-
   try {
     let response;
     const headers = {
@@ -516,7 +503,6 @@ const handleSubmit = async (e) => {
       ? `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`
       : `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`);
     console.log('Payload:', data);
-
     if (isEditing) {
       data.id = editingCompensationId;
       response = await axios.put(
@@ -533,7 +519,6 @@ const handleSubmit = async (e) => {
       );
       showAlert('Compensation created successfully!');
     }
-
     togglePopup();
     fetchCompensations();
   } catch (error) {
@@ -547,11 +532,9 @@ const handleSubmit = async (e) => {
   const showAlert = (message, title = '') => {
     setAlertModal({ isVisible: true, title, message });
   };
-
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: '', message: '' });
   };
-
   const togglePopup = () => {
     setIsPopupOpen(!isPopupOpen);
     setIsEditing(false);
@@ -560,13 +543,11 @@ const handleSubmit = async (e) => {
     setFormData(defaultFormData);
     setErrors({});
   };
-
  const handleCheckboxChange = (field, value) => {
   console.log(`handleCheckboxChange: field=${field}, value=${value}`);
   setFormData((prev) => {
     const newData = { ...prev, [field]: value === 'yes' };
     const updatedErrors = { ...errors };
-
     if (value !== 'yes') {
       // Reset fields when unchecked
       if (field === 'isBasicSalary') {
@@ -720,42 +701,39 @@ const handleSubmit = async (e) => {
         newData.incentivesIncludeInCtc = true;
       }
     }
-
     setErrors(updatedErrors);
     return newData;
   });
 };
-
   // const handleInputChange = (field, value) => {
-  //   const newFormData = { ...formData, [field]: value };
-  //   if (field.endsWith('Type')) {
-  //     const baseField = field.replace('Type', '');
-  //     const percentageField = salaryFieldToFormDataMap[baseField]?.percentage || `${baseField}Percentage`;
-  //     const amountField = salaryFieldToFormDataMap[baseField]?.amount || `${baseField}Amount`;
-  //     if (value === 'percentage') {
-  //       newFormData[percentageField] = newFormData[percentageField] || '0';
-  //       newFormData[amountField] = '';
-  //     } else if (value === 'amount') {
-  //       newFormData[amountField] = newFormData[amountField] || '0';
-  //       newFormData[percentageField] = '';
-  //     }
-  //   }
-  //   setFormData(newFormData);
-  //   const fieldConfig = categories
-  //     .flatMap((category) => category.fields)
-  //     .find((f) => f.percentageField === field || f.amountField === field);
-  //   if (fieldConfig && fieldConfig.validation && field === fieldConfig.percentageField) {
-  //     const error = validateField(field, value, fieldConfig, newFormData);
-  //     setErrors((prevErrors) => ({ ...prevErrors, [field]: error }));
-  //   } else {
-  //     setErrors((prevErrors) => ({ ...prevErrors, [field]: '' }));
-  //   }
+  // const newFormData = { ...formData, [field]: value };
+  // if (field.endsWith('Type')) {
+  // const baseField = field.replace('Type', '');
+  // const percentageField = salaryFieldToFormDataMap[baseField]?.percentage || `${baseField}Percentage`;
+  // const amountField = salaryFieldToFormDataMap[baseField]?.amount || `${baseField}Amount`;
+  // if (value === 'percentage') {
+  // newFormData[percentageField] = newFormData[percentageField] || '0';
+  // newFormData[amountField] = '';
+  // } else if (value === 'amount') {
+  // newFormData[amountField] = newFormData[amountField] || '0';
+  // newFormData[percentageField] = '';
+  // }
+  // }
+  // setFormData(newFormData);
+  // const fieldConfig = categories
+  // .flatMap((category) => category.fields)
+  // .find((f) => f.percentageField === field || f.amountField === field);
+  // if (fieldConfig && fieldConfig.validation && field === fieldConfig.percentageField) {
+  // const error = validateField(field, value, fieldConfig, newFormData);
+  // setErrors((prevErrors) => ({ ...prevErrors, [field]: error }));
+  // } else {
+  // setErrors((prevErrors) => ({ ...prevErrors, [field]: '' }));
+  // }
   // };
 const handleInputChange = (field, value) => {
   console.log(`handleInputChange: field=${field}, value=${value}`);
   const newFormData = { ...formData, [field]: value };
   const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC;
-
   // Handle type changes (percentage/amount)
   if (field.endsWith('Type')) {
     const baseField = field.replace('Type', '');
@@ -769,7 +747,6 @@ const handleInputChange = (field, value) => {
       newFormData[percentageField] = ''; // Reset to ensure recalculation
     }
   }
-
   // Calculate percentage for amount-based fields
   allowancePercentageFields.forEach(({ field: percentageField, amountField, typeField }) => {
     if (field === amountField && newFormData[typeField] === 'amount' && value) {
@@ -778,9 +755,7 @@ const handleInputChange = (field, value) => {
       console.log(`Set ${percentageField} to ${percentage.toFixed(2)} for ${amountField}: ${value}`);
     }
   });
-
   setFormData(newFormData);
-
   // Validate field if applicable
   const fieldConfig = categories
     .flatMap((category) => category.fields)
@@ -799,7 +774,6 @@ const handleInputChange = (field, value) => {
       return { ...prev, tdsSlabs: newSlabs };
     });
   };
-
   const handleAddSlab = () => {
     if (formData.tdsSlabs.length < 4) {
       setFormData((prev) => ({
@@ -808,7 +782,6 @@ const handleInputChange = (field, value) => {
       }));
     }
   };
-
   const handleRemoveSlab = (index) => {
     if (!Number.isInteger(index) || index < 0 || index >= formData.tdsSlabs.length) {
       console.warn(`Invalid index ${index} for removing TDS slab`);
@@ -822,7 +795,6 @@ const handleInputChange = (field, value) => {
         : []
     }));
   };
-
   const handleWorkingDayChange = (day, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -832,7 +804,6 @@ const handleInputChange = (field, value) => {
       }
     }));
   };
-
   const fetchCompensations = async () => {
   try {
     const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`, {
@@ -850,14 +821,18 @@ const handleInputChange = (field, value) => {
     showAlert('Failed to fetch compensations: ' + (error.message || 'Network error'));
   }
 };
-
   useEffect(() => {
     fetchCompensations();
   }, []);
-
   const handleEdit = (compensation) => {
     setIsEditing(true);
     setEditingCompensationId(compensation.id);
+    const rawWorkingDays = compensation.plan_data?.defaultWorkingDays || defaultFormData.defaultWorkingDays;
+    const normalizedWorkingDays = typeof rawWorkingDays === 'object' 
+      ? Object.fromEntries(
+          Object.entries(rawWorkingDays).map(([day, status]) => [day, normalizeWorkingDay(status)])
+        )
+      : defaultFormData.defaultWorkingDays;
     setFormData({
       compensationPlanName: compensation.compensation_plan_name || '',
       isPFApplicable: compensation.plan_data?.isPFApplicable || false,
@@ -942,7 +917,7 @@ const handleInputChange = (field, value) => {
       isDefaultWorkingHours: compensation.plan_data?.isDefaultWorkingHours || false,
       defaultWorkingHours: compensation.plan_data?.defaultWorkingHours || '',
       isDefaultWorkingDays: compensation.plan_data?.isDefaultWorkingDays || false,
-      defaultWorkingDays: compensation.plan_data?.defaultWorkingDays || defaultFormData.defaultWorkingDays,
+      defaultWorkingDays: normalizedWorkingDays,
       isTDSApplicable: compensation.plan_data?.isTDSApplicable || false,
       tdsSlabs: compensation.plan_data?.tdsSlabs || (compensation.plan_data?.tdsFrom ? [{ from: compensation.plan_data.tdsFrom, to: compensation.plan_data.tdsTo, percentage: compensation.plan_data.tdsPercentage }] : [])
     });
@@ -950,7 +925,6 @@ const handleInputChange = (field, value) => {
     setCurrentStep(1);
     setErrors({});
   };
-
   const validateField = (name, value, fieldConfig, formData) => {
     const { validation } = fieldConfig;
     if (!validation || !formData[validation.appliesWhen.field] || formData[validation.appliesWhen.field] !== validation.appliesWhen.value) {
@@ -965,7 +939,6 @@ const handleInputChange = (field, value) => {
     }
     return '';
   };
-
   const handleViewPopup = async (planData, planId) => {
     if (planData && typeof planData === 'object' && !Array.isArray(planData)) {
       try {
@@ -980,13 +953,13 @@ const handleInputChange = (field, value) => {
           if (workingDaysResponse.data.success && workingDaysResponse.data.data.length > 0) {
             const workingDays = workingDaysResponse.data.data[0];
             defaultWorkingDays = {
-              Sunday: workingDays.sunday,
-              Monday: workingDays.monday,
-              Tuesday: workingDays.tuesday,
-              Wednesday: workingDays.wednesday,
-              Thursday: workingDays.thursday,
-              Friday: workingDays.friday,
-              Saturday: workingDays.saturday,
+              Sunday: normalizeWorkingDay(workingDays.sunday),
+              Monday: normalizeWorkingDay(workingDays.monday),
+              Tuesday: normalizeWorkingDay(workingDays.tuesday),
+              Wednesday: normalizeWorkingDay(workingDays.wednesday),
+              Thursday: normalizeWorkingDay(workingDays.thursday),
+              Friday: normalizeWorkingDay(workingDays.friday),
+              Saturday: normalizeWorkingDay(workingDays.saturday),
             };
           } else {
             console.warn(`No working days found for plan ID ${planId}, using defaults`);
@@ -1091,19 +1064,16 @@ const handleInputChange = (field, value) => {
       showAlert('Failed to display compensation details: Invalid data format');
     }
   };
-
   const handlePreview = () => {
     setPreviewModal(true);
     setCtcInput('');
     setSalaryDetails(null);
   };
-
   const closePreview = () => {
     setPreviewModal(false);
     setCtcInput('');
     setSalaryDetails(null);
   };
-
   const isDefaultValue = (key, value) => {
     const defaultValue = defaultFormData[key];
     if (typeof value === 'object' && value !== null) {
@@ -1111,7 +1081,6 @@ const handleInputChange = (field, value) => {
     }
     return value === defaultValue;
   };
-
   const shouldDisplayField = (key, value, formData) => {
     const excludedFields = [
       'pfEmployeeText',
@@ -1227,7 +1196,6 @@ const handleInputChange = (field, value) => {
     }
     return false;
   };
-
   const getPlanValue = (calcField, formData) => {
     const mapping = salaryFieldToFormDataMap[calcField];
     if (!mapping) return { value: '-', basis: 'N/A' };
@@ -1278,8 +1246,10 @@ const handleInputChange = (field, value) => {
     let basis = 'N/A';
     if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'professionalTax'].includes(calcField)) {
       basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)';
-    } else if (['hra', 'ltaAllowance', 'gratuity'].includes(calcField)) {
+    } else if (['hra', 'gratuity'].includes(calcField)) {
       basis = 'Basic Salary';
+    } else if (calcField === 'ltaAllowance') {
+      basis = 'CTC (Monthly)';
     } else if (calcField === 'incentives') {
       basis = 'Incentive Data';
     } else if (calcField === 'tds') {
@@ -1322,12 +1292,10 @@ const handleInputChange = (field, value) => {
     }
     return { value: '-', basis: 'N/A' };
   };
-
   const handleStepChange = (step) => {
     const newStep = Math.max(1, Math.min(step, categories.length));
     setCurrentStep(newStep);
   };
-
   const handleCalculate = () => {
     if (!ctcInput || isNaN(parseFloat(ctcInput)) || parseFloat(ctcInput) <= 0) {
       showAlert('Please enter a valid CTC amount');
@@ -1561,7 +1529,7 @@ const handleInputChange = (field, value) => {
                         placeholder="Percentage"
                         value={slab.percentage}
                         onChange={(e) => handleSlabChange(index, 'percentage', e.target.value)}
-                        className="compensation-number-input"
+                        className="compensation-number-inputtds"
                       />
                       {index > 0 && (
                         <button onClick={() => handleRemoveSlab(index)} className="compensation-remove-button">
@@ -1582,7 +1550,6 @@ const handleInputChange = (field, value) => {
         }
       ]
     },
-   
 {
   title: 'Allowances',
   fields: [
@@ -1900,7 +1867,6 @@ const handleInputChange = (field, value) => {
     'pfEmployerType',
     // ... other fields
   ];
-
   const typeFieldMap = {
     basicSalary: { typeField: 'basicSalaryType', percentageField: 'basicSalary' },
     basicSalaryAmount: { typeField: 'basicSalaryType', percentageField: 'basicSalary' },
@@ -1915,7 +1881,6 @@ const handleInputChange = (field, value) => {
     pfEmployerPercentage: { typeField: 'pfEmployerType', percentageField: 'pfEmployerPercentage' },
     pfEmployerAmount: { typeField: 'pfEmployerType', percentageField: 'pfEmployerPercentage' },
   };
-
   return (
     <tbody>
       {fieldOrder
@@ -1927,7 +1892,6 @@ const handleInputChange = (field, value) => {
           const percentageField = config.percentageField;
           const typeValue = typeField ? compensationData[typeField] : null;
           let displayValue = '';
-
           if (typeof value === 'boolean') {
             displayValue = value ? 'Yes' : 'No';
           } else if (typeof value === 'object' && value !== null) {
@@ -1941,6 +1905,10 @@ const handleInputChange = (field, value) => {
               ) : (
                 '-'
               );
+            } else if (key === 'defaultWorkingDays') {
+              displayValue = Object.entries(value).map(([day, status]) => (
+                <div key={day}>{`${day}: ${getDisplayDayStatus(status)}`}</div>
+              ));
             } else {
               displayValue = Object.entries(value).map(([day, status]) => (
                 <div key={day}>{`${day}: ${status}`}</div>
@@ -1964,7 +1932,6 @@ const handleInputChange = (field, value) => {
           } else {
             displayValue = '-';
           }
-
           return (
             <tr key={key}>
               <td>{formatFieldName(key)}</td>
@@ -2270,16 +2237,15 @@ const handleInputChange = (field, value) => {
     if (!formData[field.enableField]) return null; // Skip disabled fields
     const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC;
     let displayValue = '';
-
     if (field.label === "Default Working Days") {
       displayValue = Object.entries(field.values).map(([day, status]) => (
-        <div key={day}>{`${day}: ${status}`}</div>
+        <div key={day}>{`${day}: ${getDisplayDayStatus(status)}`}</div>
       ));
     } else if (field.label === "TDS Slabs") {
       displayValue = field.values.Slabs.length > 0 ? (
         field.values.Slabs.map((slab, i) => (
           <div key={i}>
-            From: {slab.from}, To: {slab.to}, %: {slab.percentage}
+            From: {slab.from}, To: {slab.to}, : {slab.percentage}%
           </div>
         ))
       ) : (
@@ -2313,7 +2279,6 @@ const handleInputChange = (field, value) => {
         displayValue = '-';
       }
     }
-
     return (
       <tr key={idx}>
         <td>{field.label}</td>

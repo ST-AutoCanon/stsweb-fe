@@ -1,18 +1,16 @@
-
 /* Container */
 .sb-details-tab {
-  position: absolute;
-  right: 40px;
-  top: 245px;
-  width: 440px;
+  position: relative;
+  width: 520px;
   background: #f3f0f0; /* light gray background */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   border-radius: 8px;
   overflow-y: auto;
-  z-index: 500;
-  height: 55%;
+  z-index: 1;
+  max-height: 75vh;
   font-family: "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 /* Header */
@@ -175,11 +173,8 @@
 @media (max-width: 768px) {
   .sb-details-tab {
     width: 100%;
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 0;
+    max-height: none;
+    height: auto;
   }
 
   .sb-details-tab-header h2 {

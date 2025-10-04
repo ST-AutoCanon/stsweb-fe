@@ -64,8 +64,6 @@ const fetchIncentiveData = async () => {
  */
 export const calculateIncentives = async (employeeId) => {
   try {
-    console.log("🚀 Starting incentive calculation for:", employeeId);
-
     const [ctcAmount, allIncentives] = await Promise.all([
       fetchEmployeeCTC(employeeId),
       fetchIncentiveData()
@@ -73,43 +71,41 @@ export const calculateIncentives = async (employeeId) => {
 
     const currentYm = getCurrentYearMonth();
 
-    // Filter incentives for employee and current month
     const currentMonthIncentives = allIncentives.filter(
       (inc) =>
-        inc.employee_id?.toUpperCase() === employeeId.toUpperCase() &&
-        inc.applicable_month === currentYm
+        inc.employee_id?.toUpperCase() === employeeId.toUpperCase()
     );
 
-    let ctcIncentiveValue = 0;
-    let salesIncentiveValue = 0;
+    let incentivesArr = [];
+    let totalIncentiveValue = 0;
 
     currentMonthIncentives.forEach((inc) => {
+      let value = 0;
       if (inc.incentive_type === "ctc") {
-        const percent = parseFloat(inc.ctc_percentage || 0);
-        const value = (ctcAmount * percent) / 100;
-        ctcIncentiveValue += value;
-        console.log(`📊 CTC incentive added: ${value} (percentage: ${percent}%)`);
+        value = (ctcAmount * parseFloat(inc.ctc_percentage || 0)) / 100;
       } else if (inc.incentive_type === "sales") {
-        const value = parseFloat(inc.sales_amount || 0);
-        salesIncentiveValue += value;
-        console.log(`📊 Sales incentive added: ${value}`);
+        value = parseFloat(inc.sales_amount || 0);
       }
+      totalIncentiveValue += value;
+
+      incentivesArr.push({
+        applicable_month: inc.applicable_month,
+        incentive_type: inc.incentive_type,
+        value,
+        ctc_percentage: inc.ctc_percentage,
+        sales_amount: inc.sales_amount,
+      });
     });
 
-    const result = {
-      ctcIncentive: { value: ctcIncentiveValue.toFixed(2), currency: "INR" },
-      salesIncentive: { value: salesIncentiveValue.toFixed(2), currency: "INR" },
-      totalIncentive: { value: (ctcIncentiveValue + salesIncentiveValue).toFixed(2), currency: "INR" },
-    };
-
-    console.log(`✅ Final Incentives for ${employeeId}:`, result);
-    return result;
-  } catch (error) {
-    console.error(`❌ Error calculating incentives for ${employeeId}:`, error);
     return {
-      ctcIncentive: { value: "0.00", currency: "INR" },
-      salesIncentive: { value: "0.00", currency: "INR" },
+      totalIncentive: { value: totalIncentiveValue.toFixed(2), currency: "INR" },
+      incentives: incentivesArr,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
       totalIncentive: { value: "0.00", currency: "INR" },
+      incentives: [],
     };
   }
 };
