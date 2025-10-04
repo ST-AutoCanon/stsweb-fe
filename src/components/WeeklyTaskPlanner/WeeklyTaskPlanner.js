@@ -878,12 +878,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                         </>
                       )}
                       <div className="form-group">
-                        <label>Task Name</label>
+                        <label>Task</label>
                         <input
                           type="text"
                           value={task.taskName}
                           onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
-                          placeholder="Enter task name"
+                          placeholder="Enter task"
                         />
                       </div>
                     </div>
