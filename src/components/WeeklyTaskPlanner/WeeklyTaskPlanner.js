@@ -846,13 +846,44 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           ))}
                         </select>
                       </div>
+
                       <div className="form-group-task">
                         <label>Task </label>
+
+                      {task.isNewProject && (
+                        <>
+                          <div className="form-group">
+                            <label>Project ID</label>
+                            <input
+                              type="text"
+                              value={task.projectId}
+                              onChange={(e) => handleAssignChange(index, "projectId", e.target.value)}
+                              placeholder="Enter new project ID"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Project Name</label>
+                            <input
+                              type="text"
+                              value={task.projectName}
+                              onChange={(e) => handleAssignChange(index, "projectName", e.target.value)}
+                              placeholder="Enter new project name"
+                            />
+                          </div>
+                        </>
+                      )}
+                      <div className="form-group">
+                        <label>Task</label>
+
                         <input
                           type="text"
                           value={task.taskName}
                           onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
+
                           placeholder="Enter task "
+
+                          placeholder="Enter task"
+
                         />
                       </div>
                     </div>
