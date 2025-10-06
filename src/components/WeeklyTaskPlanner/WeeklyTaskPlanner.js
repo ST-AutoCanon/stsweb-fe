@@ -65,7 +65,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     projectName: "",
     taskName: "",
     date: "",
-    isNewProject: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -432,7 +431,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         }))
       );
       setStrikeTaskId(taskId);
-      setReplacementData({ projectId: "", projectName: "", taskName: "", date: dayDate, isNewProject: false });
+      setReplacementData({ projectId: "", projectName: "", taskName: "", date: dayDate });
     } catch (err) {
       showAlert(`Failed to strike task: ${err.message}`);
       console.error(err);
@@ -440,22 +439,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
 
   const handleReplacementChange = (field, value) => {
-    if (field === "projectId") {
-      setReplacementData((prev) => ({
-        ...prev,
-        projectId: value,
-        projectName: projects[value] || (prev.isNewProject ? prev.projectName : ""),
-        isNewProject: !projects[value] && value !== "new",
-      }));
-    } else {
-      setReplacementData((prev) => ({ ...prev, [field]: value }));
-    }
+    setReplacementData((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "projectId" ? { projectName: projects[value] || "" } : {}),
+    }));
   };
 
   const handleAddReplacement = async () => {
     if (userRole !== "supervisor") return;
-    if (!replacementData.projectId || !replacementData.taskName || (replacementData.isNewProject ? !replacementData.projectName : false)) {
-      showAlert("Please provide project ID, project name (if new project), and task name.");
+    if (!replacementData.projectId || !replacementData.taskName) {
+      showAlert("Please provide project ID and task name.");
       return;
     }
     try {
@@ -530,7 +524,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setNoTasks(false);
       showAlert("Replacement task added successfully!");
       setStrikeTaskId(null);
-      setReplacementData({ projectId: "", projectName: "", taskName: "", date: "", isNewProject: false });
+      setReplacementData({ projectId: "", projectName: "", taskName: "", date: "" });
     } catch (err) {
       showAlert(`Failed to add replacement task: ${err.message}`);
       console.error(err);
@@ -551,7 +545,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         projectId: "",
         projectName: "",
         taskName: "",
-        isNewProject: false,
       },
     ]);
   };
@@ -588,8 +581,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           ? {
               ...t,
               projectId: id,
-              projectName: projects[id] || (t.isNewProject ? t.projectName : ""),
-              isNewProject: !projects[id] && id !== "new",
+              projectName: projects[id] || "",
             }
           : t
       )
@@ -598,10 +590,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const handleAssignSubmit = async () => {
     const validTasks = assignTasks.filter(
-      (task) => task.projectId && task.taskName && task.dates.length > 0 && (task.isNewProject ? task.projectName : true)
+      (task) => task.projectId && task.taskName && task.dates.length > 0
     );
     if (validTasks.length === 0) {
-      showAlert("Please fill in at least one valid task with at least one date, project ID, project name (if new), and task name.");
+      showAlert("Please fill in at least one valid task with at least one date, project ID, and task name.");
       return;
     }
     try {
@@ -812,7 +804,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                       </button>
                     </div>
                     <div className="form-grid">
-                      <div className="form-group">
+                      <div className="form-group-task">
                         <label>Dates</label>
                         <div className="multi-select-dropdown">
                           <div
@@ -840,7 +832,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           )}
                         </div>
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-task">
                         <label>Project</label>
                         <select
                           value={task.projectId}
@@ -852,9 +844,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               {id} - {name}
                             </option>
                           ))}
-                          <option value="new">New Project</option>
                         </select>
                       </div>
+
+                      <div className="form-group-task">
+                        <label>Task </label>
+
                       {task.isNewProject && (
                         <>
                           <div className="form-group">
@@ -879,11 +874,16 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                       )}
                       <div className="form-group">
                         <label>Task</label>
+
                         <input
                           type="text"
                           value={task.taskName}
                           onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
+
+                          placeholder="Enter task "
+
                           placeholder="Enter task"
+
                         />
                       </div>
                     </div>
@@ -914,7 +914,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               <button className="close-button" onClick={() => setStrikeTaskId(null)}>×</button>
             </div>
             <div className="form-grid">
-              <div className="form-group">
+              <div className="form-group-task">
                 <label>Project</label>
                 <select
                   value={replacementData.projectId}
@@ -926,32 +926,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                       {id} - {name}
                     </option>
                   ))}
-                  <option value="new">New Project</option>
                 </select>
               </div>
-              {replacementData.isNewProject && (
-                <>
-                  <div className="form-group">
-                    <label>Project ID</label>
-                    <input
-                      type="text"
-                      value={replacementData.projectId}
-                      onChange={(e) => handleReplacementChange("projectId", e.target.value)}
-                      placeholder="Enter new project ID"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Project Name</label>
-                    <input
-                      type="text"
-                      value={replacementData.projectName}
-                      onChange={(e) => handleReplacementChange("projectName", e.target.value)}
-                      placeholder="Enter new project name"
-                    />
-                  </div>
-                </>
-              )}
-              <div className="form-group">
+              <div className="form-group-task">
                 <label>Task Name</label>
                 <input
                   type="text"

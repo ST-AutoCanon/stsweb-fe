@@ -5,6 +5,7 @@
   margin: 18px auto;
   font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: #0f172a;
+  z-index: 1000;
 }
 
 /* Header */
@@ -61,6 +62,7 @@
 .rp-dates {
   gap: 12px;
   flex-wrap: wrap;
+  z-index: 1000;
 }
 
 .rp-date-field {
@@ -76,6 +78,7 @@
   border: 1px solid #e6eef6;
   border-radius: 8px;
   padding: 6px 10px;
+  z-index: 999;
 }
 
 .rp-input-with-icon input[type="date"],
@@ -165,7 +168,7 @@
 
 /* Excel style */
 .rp-btn.excel {
-  background: linear-gradient(180deg, #047857 0%, #036c56 100%);
+  background: #7fbd2c;
   color: white;
   box-shadow: 0 6px 16px rgba(3, 105, 96, 0.12);
 }
@@ -295,7 +298,7 @@
 .rp-field-chip .rp-field-chip-check {
   margin-left: 8px;
   font-weight: 700;
-  color: #047857;
+  color: #4CAF50;
 }
 
 .rp-field-chip.selected {

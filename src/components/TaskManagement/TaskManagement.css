@@ -716,8 +716,8 @@
   justify-content: flex-end;
 }
 
-.assign-task-modal .submit-btn {
-  /* padding: 8px 16px; */
+.assign-task-modal .submit-btn-task {
+  padding: 8px 16px;
   background-color: #28a745;
   color: #ffffff;
   border: none;
@@ -728,7 +728,7 @@
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.assign-task-modal .submit-btn:hover {
+.assign-task-modal .submit-btn-task:hover {
   background-color: #28a745;
   transform: translateY(-1px);
 }

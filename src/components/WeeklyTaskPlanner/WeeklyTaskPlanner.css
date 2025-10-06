@@ -313,20 +313,20 @@
 }
 
 /* Form group */
-.form-group {
+.form-group-task {
   display: flex;
   flex-direction: column;
 }
 
-.form-group label {
+.form-group-task label {
   font-size: 12px;
   font-weight: 500;
   color: #374151;
   margin-bottom: 4px;
 }
 
-.form-group input,
-.form-group select {
+.form-group-task input,
+.form-group-task select {
   padding: 6px;
   font-size: 12px;
   border: 1px solid #d1d5db;
@@ -337,8 +337,8 @@
   background: #f0f0f0; /* Light gray like screenshot */
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group-task input:focus,
+.form-group-task select:focus {
   outline: none;
   border-color: #218838;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
@@ -542,18 +542,18 @@
   padding: 0 20px;
 }
 
-.replacement-form .form-group {
+.replacement-form .form-group-task {
   display: flex;
   flex-direction: column;
 }
 
-.replacement-form .form-group label {
+.replacement-form .form-group-task label {
   font-size: 14px;
   margin-bottom: 5px;
 }
 
-.replacement-form .form-group input,
-.replacement-form .form-group select {
+.replacement-form .form-group-task input,
+.replacement-form .form-group-task select {
   padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 4px;

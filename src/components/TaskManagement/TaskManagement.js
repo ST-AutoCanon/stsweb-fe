@@ -1,5 +1,4 @@
 
-
 import React, { useMemo, useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -101,32 +100,6 @@ const TaskManagement = () => {
   const [tempProgress, setTempProgress] = useState(0);
   const [tempStatus, setTempStatus] = useState("");
   const [alertModal, setAlertModal] = useState({ isVisible: false, title: "", message: "" });
-  const defaultProfileImage = "https://placehold.co/80x80";
-  const photoUrlCache = {};
-
-  const normalizePhotoUrl = (photoUrl) => {
-    if (!photoUrl) return defaultProfileImage;
-    if (Array.isArray(photoUrl)) return photoUrl[0] || defaultProfileImage;
-    if (typeof photoUrl === "string" && photoUrl.startsWith("/")) {
-      return `${process.env.REACT_APP_BACKEND_URL}${photoUrl}`;
-    }
-    return photoUrl || defaultProfileImage;
-  };
-
-  async function fetchPhotoUrl(employeeId) {
-    if (photoUrlCache[employeeId]) return photoUrlCache[employeeId];
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/employee-personal/${employeeId}`, {
-        headers: { "x-employee-id": supervisorId },
-      });
-      const photoUrl = normalizePhotoUrl(response.data.photo_url);
-      photoUrlCache[employeeId] = photoUrl;
-      return photoUrl;
-    } catch (err) {
-      photoUrlCache[employeeId] = defaultProfileImage;
-      return defaultProfileImage;
-    }
-  }
 
   useEffect(() => {
     const data = localStorage.getItem("dashboardData");
@@ -174,17 +147,19 @@ const TaskManagement = () => {
   }, [supervisorId]);
 
   useEffect(() => {
-    if (!supervisorId) return;
+    if (!supervisorId || !employees.length) return; // Wait for employees to be loaded
     const fetchTasks = async () => {
       setLoadingTasks(true);
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/tasks`, {
           headers: { "x-employee-id": supervisorId },
         });
-        const tasksWithPhotos = await Promise.all(
-          response.data.map(async (task) => {
+        // Filter tasks to include only those assigned to employees under the supervisor
+        const validEmployeeIds = new Set(employees.map(emp => emp.employee_id));
+        const tasksWithEmployeeData = response.data
+          .filter(task => validEmployeeIds.has(task.employee_id))
+          .map((task) => {
             const employee = employees.find((emp) => emp.employee_id === task.employee_id);
-            const photoUrl = employee ? normalizePhotoUrl(employee.photo_url) : await fetchPhotoUrl(task.employee_id);
             return {
               id: `Task-${task.task_id}`,
               title: task.task_title,
@@ -194,15 +169,14 @@ const TaskManagement = () => {
               endDate: formatDate(task.due_date),
               employeeId: task.employee_id,
               user: {
-                name: employee?.employee_name || "Loading...",
-                profile: photoUrl,
+                name: employee?.employee_name || "Unknown Employee",
+                profile: "", // No photo URL
               },
               progress: task.percentage,
               messages: [],
             };
-          })
-        );
-        setTasks(tasksWithPhotos);
+          });
+        setTasks(tasksWithEmployeeData);
         setError(null);
       } catch (err) {
         let errorMessage = "Failed to fetch tasks";
@@ -217,25 +191,6 @@ const TaskManagement = () => {
     };
     fetchTasks();
   }, [supervisorId, employees]);
-
-  useEffect(() => {
-    if (employees.length > 0) {
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => {
-          const employee = employees.find((emp) => emp.employee_id === task.employeeId);
-          const photoUrl = employee ? normalizePhotoUrl(employee.photo_url) : task.user.profile;
-          return {
-            ...task,
-            user: {
-              ...task.user,
-              name: employee?.employee_name || "Unknown",
-              profile: photoUrl,
-            },
-          };
-        })
-      );
-    }
-  }, [employees]);
 
   useEffect(() => {
     if (!selectedTaskId || !supervisorId) return;
@@ -523,6 +478,10 @@ const TaskManagement = () => {
     }
     try {
       const selectedEmployee = employees.find((emp) => emp.employee_id === employeeId);
+      if (!selectedEmployee) {
+        setError("Selected employee is not under your supervision.");
+        return;
+      }
       const newTaskId = tasks.length ? `Task-${Math.max(...tasks.map((t) => parseInt(t.id.split("-")[1]))) + 1}` : "Task-1";
       const taskData = {
         employee_id: employeeId,
@@ -536,7 +495,6 @@ const TaskManagement = () => {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/tasks`, taskData, {
         headers: { "x-employee-id": supervisorId },
       });
-      const photoUrl = normalizePhotoUrl(selectedEmployee?.photo_url) || (await fetchPhotoUrl(employeeId));
       setTasks((prev) => [
         ...prev,
         {
@@ -548,8 +506,8 @@ const TaskManagement = () => {
           endDate: formatDate(endDate),
           employeeId,
           user: {
-            name: selectedEmployee?.employee_name || "Unknown Employee",
-            profile: photoUrl,
+            name: selectedEmployee.employee_name,
+            profile: "", // No photo URL
           },
           progress: percentage,
           messages: [],
@@ -604,9 +562,6 @@ const TaskManagement = () => {
       </div>
       {mainTab === "Task Board" && (
         <>
-          {/* <div className="task-board-header">
-            <h2>Supervisor Driven Tasks</h2>
-          </div> */}
           <div className="task-board-subheader">
             <button className="assign-task-btn" onClick={openAssignForm}>
               Assign Task
@@ -614,7 +569,7 @@ const TaskManagement = () => {
           </div>
           {error && <div className="task-error-message">{error}</div>}
           {loadingTasks && <div className="task-loading-message">Loading tasks...</div>}
-          {!loadingTasks && tasks.length === 0 && !error && <div className="task-no-tasks">No tasks available</div>}
+          {!loadingTasks && tasks.length === 0 && !error && <div className="task-no-tasks">No tasks available for your employees</div>}
           <div className="task-board">
             {columns.map((col) => {
               const colTasks = tasks
@@ -972,7 +927,7 @@ const TaskManagement = () => {
                           id="title"
                           name="title"
                           value={formData.title}
-                           onChange={handleFormChange}
+                          onChange={handleFormChange}
                           placeholder="Enter task name"
                           required
                         />
@@ -1076,7 +1031,7 @@ const TaskManagement = () => {
                     </div>
                     <div className="form-actions">
                       <button
-                        className="submit-btn"
+                        className="submit-btn-task"
                         onClick={handleFormSubmit}
                         disabled={loadingEmployees || loadingTasks || (error && employees.length === 0)}
                       >

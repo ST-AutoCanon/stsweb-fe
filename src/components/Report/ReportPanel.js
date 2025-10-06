@@ -1,4 +1,3 @@
-// src/components/Report/ReportPanel.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -8,13 +7,20 @@ import {
   MdOutlineAssessment,
 } from "react-icons/md";
 import "./ReportPanel.css";
+import Modal from "../Modal/Modal";
 
 const STATUS_OPTIONS = {
-  leaves: ["All", "Pending", "Approved", "Rejected", "Cancelled"],
-  reimbursements: ["All", "Pending", "Approved", "Paid", "Unpaid", "Rejected"],
-  employees: ["All", "Active", "Inactive", "Probation"],
-  vendors: ["All", "Active", "Inactive"],
-  assets: ["All", "In Use", "Available", "Disposed", "Under Repair"],
+  leaves: ["All", "Pending", "Approved", "Rejected"],
+  reimbursements: [
+    "All",
+    "Pending",
+    "Approved",
+    "Rejected",
+    "Approved/Pending",
+    "Approved/paid",
+  ],
+  employees: ["All", "Active", "Inactive"],
+  assets: ["All", "In Use", "Assigned", "Returned", "Decommissioned"],
   attendance: ["All", "Punch In", "Punch Out"],
 };
 
@@ -43,7 +49,6 @@ const SUB_OPTIONS = {
     { key: "total_amount", label: "Total Amount" },
     { key: "approval_status", label: "Approval Status" },
     { key: "payment_status", label: "Payment Status" },
-    { key: "attachments", label: "Attachments" },
     { key: "created_at", label: "Created At" },
   ],
   employees: [
@@ -58,42 +63,37 @@ const SUB_OPTIONS = {
     { key: "role", label: "Role" },
     { key: "position", label: "Position" },
     { key: "joining_date", label: "Joining Date" },
-    { key: "salary", label: "Salary" },
-    { key: "bank_name", label: "Bank Name" },
-    { key: "account_number", label: "Account Number" },
-    { key: "ifsc_code", label: "IFSC" },
-    { key: "bank_branch", label: "Bank Branch" },
-    { key: "address", label: "Address" },
-    { key: "father_name", label: "Father Name" },
-    { key: "mother_name", label: "Mother Name" },
     { key: "dob", label: "DOB" },
     { key: "created_at", label: "Created At" },
   ],
   vendors: [
-    { key: "vendor_id", label: "Vendor ID" },
-    { key: "vendor_name", label: "Vendor Name" },
-    { key: "contact_person", label: "Contact Person" },
-    { key: "phone", label: "Phone" },
-    { key: "email", label: "Email" },
-    { key: "city", label: "City" },
-    { key: "gst_number", label: "GST Number" },
-    { key: "pan_number", label: "PAN Number" },
-    { key: "status", label: "Status" },
-    { key: "created_at", label: "Created At" },
+    { key: "vendor_id", label: "vendor_id" },
+    { key: "company_name", label: "company_name" },
+    { key: "registered_address", label: "registered_address" },
+    { key: "city", label: "city" },
+    { key: "gst_number", label: "gst_number" },
+    { key: "pan_number", label: "pan_number" },
+    { key: "company_type", label: "company_type" },
+    { key: "contact1_mobile", label: "contact_mobile" },
+    { key: "contact1_email", label: "contact_email" },
+    { key: "bank_name", label: "bank_name" },
+    { key: "account_number", label: "account_number" },
+    { key: "product_category", label: "product_category" },
+    { key: "created_at", label: "created_at" },
   ],
   assets: [
-    { key: "asset_id", label: "Asset ID" },
-    { key: "asset_tag", label: "Asset Tag" },
-    { key: "asset_name", label: "Asset Name" },
-    { key: "category", label: "Category" },
-    { key: "sub_category", label: "Sub Category" },
-    { key: "configuration", label: "Configuration" },
-    { key: "assigned_to_employee_id", label: "Assigned To (Employee ID)" },
-    { key: "assigned_to_name", label: "Assigned To (Name)" },
-    { key: "valuation_date", label: "Valuation Date" },
-    { key: "value", label: "Value" },
-    { key: "status", label: "Status" },
-    { key: "document_path", label: "Document Path" },
+    { key: "asset_id", label: "asset_id" },
+    { key: "asset_code", label: "asset_code" },
+    { key: "asset_name", label: "asset_name" },
+    { key: "configuration", label: "configuration" },
+    { key: "category", label: "category" },
+    { key: "sub_category", label: "sub_category" },
+    { key: "assigned_to", label: "assigned_to" },
+    { key: "document_path", label: "document_path" },
+    { key: "valuation_date", label: "valuation_date" },
+    { key: "status", label: "status" },
+    { key: "count", label: "count" },
+    { key: "created_at", label: "created_at" },
   ],
   attendance: [
     { key: "punch_id", label: "Punch ID" },
@@ -115,7 +115,10 @@ export default function Reportpanel() {
   const [component, setComponent] = useState("select");
   const [status, setStatus] = useState("All");
   const [statusOptions, setStatusOptions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // separate flags so buttons don't block each other
+  const [downloadingXlsx, setDownloadingXlsx] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");
@@ -125,6 +128,26 @@ export default function Reportpanel() {
 
   const [availableFields, setAvailableFields] = useState([]);
   const [selectedFields, setSelectedFields] = useState([]);
+
+  // --- new constant: max allowed range in days (must match backend)
+  const MAX_RANGE_DAYS = 62; // roughly 2 months
+
+  // centralized alert modal state (shared/common modal like Admin)
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+
+  const showAlert = (message, title = "") => {
+    // ensure preview closed when showing some alerts that might overlap (optional)
+    setPreviewOpen(false);
+    setTimeout(() => {
+      setAlertModal({ isVisible: true, title: title || "", message });
+    }, 80);
+  };
+  const closeAlert = () =>
+    setAlertModal({ isVisible: false, title: "", message: "" });
 
   useEffect(() => {
     if (!component || component === "select") {
@@ -166,15 +189,33 @@ export default function Reportpanel() {
   };
 
   const validateDates = () => {
+    // If both empty, allow (backend will default to last 2 months)
+    if (!startDate && !endDate) return true;
+
     if (startDate && endDate) {
       const s = new Date(startDate);
       const e = new Date(endDate);
       if (s > e) {
-        alert("Start date cannot be after End date.");
+        showAlert("Start date cannot be after End date.");
         return false;
       }
+      // compute inclusive days
+      const diffMs = e.getTime() - s.getTime();
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+      if (days > MAX_RANGE_DAYS) {
+        showAlert(
+          `Selected range is ${days} days. Maximum allowed is ${MAX_RANGE_DAYS} days (≈ 2 months).`
+        );
+        return false;
+      }
+      return true;
     }
-    return true;
+
+    // If only one provided, require both (or clear both to default)
+    showAlert(
+      "Please provide both Start Date and End Date, or leave both empty to use the default last 2 months range."
+    );
+    return false;
   };
 
   const toggleField = (key) => {
@@ -203,7 +244,6 @@ export default function Reportpanel() {
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
 
-    // ALWAYS include status (send empty string for "All")
     const st =
       status === undefined || status === null ? "" : String(status).trim();
     params.append("status", st);
@@ -218,24 +258,28 @@ export default function Reportpanel() {
 
   const validateSelection = () => {
     if (!component || component === "select") {
-      alert("Please select a component first.");
+      showAlert("Please select a component first.");
       return false;
     }
     if (!selectedFields || selectedFields.length === 0) {
-      alert("Please select at least one field to proceed.");
+      showAlert("Please select at least one field to proceed.");
       return false;
     }
     return true;
   };
 
+  // unified download helper but uses separate flags
   const download = async (format) => {
-    try {
-      if (!validateDates()) return;
-      if (!validateSelection()) return;
-      setLoading(true);
+    if (!validateDates()) return;
+    if (!validateSelection()) return;
 
+    const isPdf = format === "pdf";
+    // set only the relevant flag
+    if (isPdf) setDownloadingPdf(true);
+    else setDownloadingXlsx(true);
+
+    try {
       const base = process.env.REACT_APP_BACKEND_URL || "";
-      // build params WITHOUT adding format, then append format once
       const paramString = buildParams({ includeFormat: false, preview: false });
       const url = `${base}/api/report/${component}?${paramString}${
         paramString ? "&" : ""
@@ -243,14 +287,11 @@ export default function Reportpanel() {
 
       console.log("[ReportPanel] download URL:", url);
 
-      // set Accept header to the expected binary mime type (important)
       let acceptHeader = "*/*";
-      if (format === "pdf") {
-        acceptHeader = "application/pdf";
-      } else if (format === "xlsx") {
+      if (isPdf) acceptHeader = "application/pdf";
+      else
         acceptHeader =
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      }
 
       const res = await axios.get(url, {
         responseType: "blob",
@@ -259,33 +300,37 @@ export default function Reportpanel() {
           "x-employee-id": employeeId,
           Accept: acceptHeader,
         },
-        // increase timeout for large reports if needed
         timeout: 2 * 60 * 1000,
       });
 
-      // if server returned JSON with an error (text), detect and show message
       const contentType = res.headers["content-type"] || "";
-      const isJson = contentType.includes("application/json");
+      const isJson =
+        contentType.includes("application/json") ||
+        contentType.includes("text/plain");
       if (isJson) {
-        // server returned JSON instead of binary (likely an error or preview)
-        const text = await res.data.text();
-        console.error(
-          "Expected binary file but server returned JSON/text:",
-          text
-        );
-        alert(
-          "Server returned an error or preview instead of a file. Check console for details."
+        // Blob.text() is supported in modern browsers and simpler than FileReader
+        let text = "";
+        try {
+          text = await res.data.text();
+        } catch (e) {
+          text = "(unable to read response body)";
+        }
+        console.error("Server returned JSON/text instead of file:", text);
+        showAlert(
+          "Server returned an error instead of the file. Check console for details."
         );
         return;
       }
 
-      let filename = `${component}_report.${format === "pdf" ? "pdf" : "xlsx"}`;
+      // determine filename (fallback to component_report.<ext>)
+      let filename = `${component}_report.${isPdf ? "pdf" : "xlsx"}`;
       const disposition = res.headers["content-disposition"];
       if (disposition) {
-        const match = disposition.match(/filename="?([^"]+)"?/);
+        const match = disposition.match(/filename="?([^\"]+)"?/);
         if (match && match[1]) filename = match[1];
       }
 
+      // create download link
       const blob = new Blob([res.data], { type: res.headers["content-type"] });
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
@@ -296,9 +341,32 @@ export default function Reportpanel() {
       window.URL.revokeObjectURL(link.href);
     } catch (err) {
       console.error("Report download error:", err);
-      alert("Failed to download report. Check console for details.");
+      if (err.response) {
+        const msg =
+          (err.response.data && err.response.data.message) ||
+          `Server responded with status ${err.response.status}`;
+        console.error(
+          "Response status:",
+          err.response.status,
+          err.response.data
+        );
+        showAlert(msg);
+      } else if (err.request) {
+        console.error(
+          "No response received (possible network/CORS issue):",
+          err.request
+        );
+        showAlert(
+          "No response from server. Check network / CORS or backend availability."
+        );
+      } else {
+        console.error("Download setup error:", err.message);
+        showAlert("Failed to download report: " + err.message);
+      }
     } finally {
-      setLoading(false);
+      // always clear only the relevant flag
+      if (isPdf) setDownloadingPdf(false);
+      else setDownloadingXlsx(false);
     }
   };
 
@@ -344,6 +412,13 @@ export default function Reportpanel() {
       const MAX_PREVIEW_ROWS = 200;
       setPreviewData(rows.slice(0, MAX_PREVIEW_ROWS));
       setPreviewTotalRows((prev) => prev ?? rows.length);
+
+      if (rows.length === 0) {
+        showAlert(
+          "No data available for the selected date range (max 2 months). Please change filters."
+        );
+      }
+
       if (rows.length > MAX_PREVIEW_ROWS) {
         setPreviewError(
           `Preview shows first ${MAX_PREVIEW_ROWS} rows. Server returned ${rows.length} rows.`
@@ -357,6 +432,8 @@ export default function Reportpanel() {
           (err?.message || "")
       );
       setPreviewData([]);
+      // Also show a modal alert for preview-level failures
+      showAlert("Failed to fetch preview. Check console for details.");
     } finally {
       setPreviewLoading(false);
     }
@@ -519,9 +596,7 @@ export default function Reportpanel() {
           <button className="rp-chip" onClick={() => presetRange(7)}>
             Last 7 days
           </button>
-          <button className="rp-chip" onClick={() => presetRange(30)}>
-            Last 30 days
-          </button>
+
           <button className="rp-chip" onClick={thisMonth}>
             This month
           </button>
@@ -559,26 +634,34 @@ export default function Reportpanel() {
           <button
             className="rp-btn excel"
             onClick={() => download("xlsx")}
-            disabled={loading || !componentIsSelected}
+            disabled={downloadingXlsx || !componentIsSelected}
             title={
               componentIsSelected
                 ? "Download Excel"
                 : "Select a component first"
             }
           >
-            {loading ? <span className="rp-spinner" /> : <MdFileDownload />}
+            {downloadingXlsx ? (
+              <span className="rp-spinner" />
+            ) : (
+              <MdFileDownload />
+            )}
             <span>Download Excel</span>
           </button>
 
           <button
             className="rp-btn pdf"
             onClick={() => download("pdf")}
-            disabled={loading || !componentIsSelected}
+            disabled={downloadingPdf || !componentIsSelected}
             title={
               componentIsSelected ? "Download PDF" : "Select a component first"
             }
           >
-            {loading ? <span className="rp-spinner" /> : <MdPictureAsPdf />}
+            {downloadingPdf ? (
+              <span className="rp-spinner" />
+            ) : (
+              <MdPictureAsPdf />
+            )}
             <span>Download PDF</span>
           </button>
 
@@ -668,6 +751,16 @@ export default function Reportpanel() {
           </div>
         )}
       </section>
+
+      {/* Common alert modal (re-uses the project's Modal component) */}
+      <Modal
+        isVisible={alertModal.isVisible}
+        onClose={closeAlert}
+        buttons={[{ label: "OK", onClick: closeAlert }]}
+      >
+        {alertModal.title && <h4>{alertModal.title}</h4>}
+        <div style={{ whiteSpace: "pre-wrap" }}>{alertModal.message}</div>
+      </Modal>
     </div>
   );
 }
