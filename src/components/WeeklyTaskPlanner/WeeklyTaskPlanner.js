@@ -804,7 +804,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                       </button>
                     </div>
                     <div className="form-grid">
-                      <div className="form-group">
+                      <div className="form-group-task">
                         <label>Dates</label>
                         <div className="multi-select-dropdown">
                           <div
@@ -832,7 +832,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           )}
                         </div>
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-task">
                         <label>Project</label>
                         <select
                           value={task.projectId}
@@ -846,7 +846,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           ))}
                         </select>
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-task">
                         <label>Task </label>
                         <input
                           type="text"
@@ -883,7 +883,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               <button className="close-button" onClick={() => setStrikeTaskId(null)}>×</button>
             </div>
             <div className="form-grid">
-              <div className="form-group">
+              <div className="form-group-task">
                 <label>Project</label>
                 <select
                   value={replacementData.projectId}
@@ -897,7 +897,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                   ))}
                 </select>
               </div>
-              <div className="form-group">
+              <div className="form-group-task">
                 <label>Task Name</label>
                 <input
                   type="text"
