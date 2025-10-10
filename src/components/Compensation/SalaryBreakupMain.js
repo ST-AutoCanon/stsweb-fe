@@ -6,7 +6,7 @@ import debounce from "lodash/debounce";
 import Header from "./Header/Header.js";
 import TotalsContainer from "./TotalsContainer/TotalsContainer.js";
 import EmployeeTable from "./EmployeeTable/EmployeeTable.js";
-
+import SalaryDetails from "./SalaryDetails/SalaryDetails.js"; // NEW: Import SalaryDetails
 import AllDetailsView from "./AllDetailsView/AllDetailsView.js";
 import NoPlanDetails from "./NoPlanDetails/NoPlanDetails.js";
 import BonusModal from "./BonusModal/BonusModal.js";
@@ -83,7 +83,13 @@ const SalaryBreakupMain = () => {
     selectedCompensation: "",
     error: "",
   });
-
+// NEW: Handler to switch to SalaryDetails view
+const handleViewSalaryDetails = () => {
+  setViewMode("salaryDetails"); // NEW: Switch to new view mode
+  setSearchQuery(""); // NEW: Reset search
+  setCurrentPage(1); // NEW: Reset pagination if needed
+  setMenuOpen(false); // NEW: Close menu if open
+};
   const [viewMode, setViewMode] = useState("main");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -727,6 +733,7 @@ const handleIncentiveSubmit = async () => {
   };
 
   const handleBackToMain = () => {
+    
     setViewMode("main");
     setSelectedEmployee(null);
     setSearchQuery("");
@@ -962,6 +969,7 @@ const handleIncentiveSubmit = async () => {
                     openNoPlanModal={openNoPlanModal}
                     openBonusModal={openBonusModal}
                     handleViewAllDetails={handleViewAllDetails}
+                    handleViewSalaryDetails={handleViewSalaryDetails}
                   />
                   <TotalsContainer
                     totals={totals}
@@ -996,6 +1004,20 @@ const handleIncentiveSubmit = async () => {
               )}
             </>
           )}
+          {viewMode === "salaryDetails" && ( // NEW: Conditional render for SalaryDetails
+  <SalaryDetails
+    employees={employees}
+    searchQuery={searchQuery}
+    setSearchQuery={setSearchQuery}
+    handleBackToMain={handleBackToMain}
+    calculateSalaryDetails={calculateSalaryDetails}
+    employeeLopData={employeeLopData}
+    employeeIncentiveData={employeeIncentiveData}
+    overtimeRecords={overtimeRecords}
+    bonusRecords={bonusRecords}
+    advances={advances}
+  />
+)}
           {viewMode === "allDetails" && (
             <AllDetailsView
               employees={employees}

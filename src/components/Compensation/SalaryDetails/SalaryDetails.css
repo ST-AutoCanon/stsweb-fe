@@ -1,0 +1,420 @@
+/* SalaryDetails.css - Styles for the Employee Salary Overview Table */
+
+/* Container for the entire component */
+.sd-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Header section */
+.sd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.sd-header-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+/* Search container */
+.sd-search-container {
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 200px;
+}
+
+.sd-search-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.sd-search-input:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Loading state */
+.sd-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #6c757d;
+}
+
+/* Table container */
+.sd-table-container {
+  flex: 1;
+  overflow: hidden;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 1200px;
+}
+
+.sd-table-wrapper {
+  height: 100%;
+  max-height: 400px; /* FIXED height for ~10 rows */
+  overflow-y: auto; /* Vertical scroll for more rows */
+  overflow-x: auto; /* Horizontal scroll for columns */
+}
+
+/* Table styles */
+.sd-table {
+  width: 100%;
+  min-width: 1100px; /* Further reduced width to decrease overall table width */
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: auto; /* Auto layout to respect content and min-widths */
+}
+
+.sd-table-header,
+.sd-table-cell {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Handle overflow in cells */
+}
+
+.sd-table-header {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Alignment classes */
+.sd-align-left {
+  text-align: left;
+}
+
+.sd-align-right {
+  text-align: right;
+}
+
+.sd-align-center {
+  text-align: center;
+}
+
+/* Column min-widths to prevent minimizing, but keep more compact */
+.sd-select-column {
+  min-width: 40px;
+}
+
+.sd-id-column {
+  min-width: 50px;
+}
+
+.sd-name-column {
+  min-width: 100px;
+}
+
+/* General min-width for other columns - further reduced to 70px */
+.sd-table th:not(.sd-select-column):not(.sd-id-column):not(.sd-name-column),
+.sd-table td:not(.sd-select-column):not(.sd-id-column):not(.sd-name-column) {
+  min-width: 70px;
+}
+
+/* Deduction styling */
+.sd-deduction {
+  color: #dc3545;
+}
+
+/* Table body */
+.sd-table-body tr {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.sd-table-body tr:hover {
+  background-color: #f8f9fa;
+}
+
+.sd-table-body .sd-table-cell {
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* No data message */
+.sd-no-data {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sd-container {
+    padding: 10px;
+  }
+
+  .sd-header-title {
+    font-size: 20px;
+  }
+
+  .sd-table {
+    font-size: 12px;
+    min-width: 900px; /* Adjusted further for mobile */
+  }
+
+  .sd-table-header,
+  .sd-table-cell {
+    padding: 8px 4px;
+  }
+
+  .sd-search-container {
+    max-width: 100%;
+  }
+
+  /* Do not hide columns; allow horizontal scroll on mobile */
+}
+
+/* Custom scrollbar for better UX */
+.sd-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.sd-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sd-table-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.sd-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Footer for Proceed button (fixed at bottom, visible after scrolling if >10 rows) */
+.sd-footer {
+  position: sticky; /* Sticky to bottom of container */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-top: 1px solid #dee2e6;
+  padding: 15px;
+  text-align: center;
+  z-index: 5; /* Above table scroll */
+}
+
+/* Proceed button styling */
+.sd-proceed-button {
+  background-color: #28a745; /* Green for "proceed" action */
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.sd-proceed-button:hover {
+  background-color: #218838;
+}
+
+.sd-proceed-button:active {
+  background-color: #1e7e34;
+}
+
+/* Wrapper for table + footer */
+.sd-table-section {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px); /* Adjust for header/search space */
+  overflow: hidden;
+}
+
+/* Preview modal overlay */
+.sd-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sd-preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.sd-preview-content {
+  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  width: 95%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Preview header */
+.sd-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.sd-preview-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.sd-close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sd-close-button:hover {
+  color: #dc3545;
+}
+
+/* Preview table wrapper */
+.sd-preview-table-wrapper {
+  flex: 1;
+  overflow: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.sd-preview-table {
+  width: 100%;
+  min-width: 1100px; /* Reduced to match main table */
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: auto;
+}
+
+.sd-preview-table th,
+.sd-preview-table-cell {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 70px; /* Compact min-width to match */
+}
+
+.sd-preview-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.sd-preview-table-cell {
+  background-color: white;
+}
+
+.sd-preview-table th.sd-align-right,
+.sd-preview-table-cell.sd-align-right {
+  text-align: right;
+}
+
+.sd-preview-table-cell.sd-deduction,
+.sd-preview-table th.sd-deduction {
+  color: #dc3545;
+}
+
+/* Preview footer */
+.sd-preview-footer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  border-top: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+/* Download button in preview */
+.sd-download-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.sd-download-button:hover {
+  background-color: #0056b3;
+}
+
+.sd-download-button:active {
+  background-color: #004085;
+}
+
+/* Responsive for preview on small screens */
+@media (max-width: 768px) {
+  .sd-preview-content {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .sd-preview-table {
+    font-size: 10px;
+    min-width: 900px;
+  }
+
+  .sd-preview-table th,
+  .sd-preview-table-cell {
+    padding: 6px 4px;
+    min-width: 60px;
+  }
+}
