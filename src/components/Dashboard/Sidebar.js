@@ -28,6 +28,8 @@ import OvertimeDetails from "../Compensation/OvertimeDetails";
 import { ContentContext } from "./Context";
 import SalaryBreakupMain from "../Compensation/SalaryBreakupMain";
 import OvertimeSummary from "../Compensation/overtimeSupervisor";
+import SalaryDetails from "../Compensation/SalaryDetails/SalaryDetails";
+
 import WeeklyTaskPlanner from "../WeeklyTaskPlanner/WeeklyTaskPlanner";
 import SupervisorPlanViewer from "../SupervisorPlanViewer/SupervisorPlanViewer";
 import TaskManagementEmployee from "../TaskManagementEmployee/EmpTaskManagement";
@@ -178,28 +180,27 @@ const Sidebar = () => {
         setActiveContent(<OvertimeSummary />);
         break;
       case "/compensation":
-        switch (subOption) {
-          case "create":
-            setActiveContent(<CreateCompensation />);
-            break;
-          case "assign":
-            setActiveContent(<AssignCompensation />);
-            break;
-          case "SalaryBreakupMain":
-            setActiveContent(<SalaryBreakupMain />);
-            break;
-          default:
-            setActiveContent(<p>Please select a compensation option.</p>);
-        }
-        break;
-      //         case "/WeeklyTaskPlanner":
+  switch (subOption) {
+    case "create":
+      setActiveContent(<CreateCompensation />);
+      break;
+    case "assign":
+      setActiveContent(<AssignCompensation />);
+      break;
+    case "SalaryBreakupMain":
+      setActiveContent(<SalaryBreakupMain />);
+      break;
+    case "EmployeeTable":
+  setActiveContent(<SalaryDetails />); // UPDATED: Render standalone SalaryDetails (fetches own data, no wrapper)
+  break;
+    default:
+      setActiveContent(<p>Please select a compensation option.</p>);
+  }
+  break;
 
-      // setActiveContent(<WeeklyTaskPlanner/>);
-      // break;
-      //  case "/SupervisorPlanViewer":
+            
 
-      // setActiveContent(<SupervisorPlanViewer/>);
-      // break;
+          
 
       default:
         setActiveContent(<p>Content not found for this path.</p>);
@@ -274,6 +275,16 @@ const Sidebar = () => {
                         >
                           Salary Breakup
                         </li>
+                  <li
+  className={`p-2 cursor-pointer hover:bg-gray-700 ${
+    activeSubItem === "EmployeeTable" ? "bg-gray-700" : ""
+  }`}
+  onClick={() => handleMenuClick(item, "EmployeeTable")}
+>
+  Salary Details
+</li>
+
+
                       </ul>
                     )}
                 </li>

@@ -319,13 +319,22 @@ export const calculateSalaryDetails = (
   console.log(`✅ Total bonusPay (monthly) for employee ${employeeId}: ₹${bonusPay}`);
 
   // Incentive Pay
-  const empId = String(employeeId).toUpperCase();
-  const matchedKey = Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId);
-  incentivePay = matchedKey && employeeIncentiveData[matchedKey]?.totalIncentive
-    ? parseFloat(employeeIncentiveData[matchedKey].totalIncentive.value) || 0
-    : 0;
-  console.log(`Incentive Pay (monthly) for employee ${employeeId}: ₹${incentivePay}`);
+  // Incentive Pay (filtered to current month)
+const empId = String(employeeId).toUpperCase();
+const matchedKey = Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId);
 
+if (matchedKey && employeeIncentiveData[matchedKey]) {
+  const incData = employeeIncentiveData[matchedKey];
+  const currentYm = getCurrentYearMonth(); // e.g., "2025-10"
+  const currentMonthIncentives = (incData.incentives || []).filter(
+    (inc) => inc.applicable_month === currentYm
+  );
+  incentivePay = currentMonthIncentives.reduce(
+    (sum, inc) => sum + parseFloat(inc.value || 0),
+    0
+  );
+}
+console.log(`Incentive Pay (monthly, current month only) for employee ${employeeId}: ₹${incentivePay}`);
   // Calculate Gross Salary
   grossSalary = basicSalary + hra + ltaAllowance + overtimePay + bonusPay + otherAllowances + incentivePay;
   console.log(`Gross Salary (monthly): ₹${grossSalary}`);
@@ -562,6 +571,13 @@ export const calculateSalaryDetails = (
   } else {
     console.log(`Skipping Professional Tax deduction (not included in CTC): ₹${professionalTax}`);
   }
+if (planData.pfEmployerIncludeInCtc !== false) {
+  conditionalDeductions += employerPF;
+}
+if (planData.gratuityIncludeInCtc !== false) {
+  conditionalDeductions += gratuity;
+}
+
 
   const netSalary = grossSalary - conditionalDeductions - tds - advanceRecovery - lopDeduction;
   console.log(`Conditional Deductions total: ₹${conditionalDeductions}`);

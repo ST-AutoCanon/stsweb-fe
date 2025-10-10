@@ -340,6 +340,16 @@
   height: 34px; /* Fixed height for consistency */
   margin-top:0px;
 }
+.compensation-number-input-ot{
+border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 6px 10px;
+  width: 120px;
+  font-size: 14px;
+  box-sizing: border-box;
+  height: 34px; /* Fixed height for consistency */
+  margin-top:0px;
+}
 .compensation-percentage-input{
   border: 1px solid #ced4da;
   border-radius: 4px;
