@@ -4,16 +4,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getISOWeek, startOfISOWeek, endOfISOWeek, format } from 'date-fns';
 import Modal from '../Modal/Modal';
-import './SupervisorPlanViewer.css';
+import './SupervisorPlanViewerAdmin.css';
 
-const SupervisorPlanViewer = () => {
+const SupervisorPlanViewerAdmin = () => {
   const [supervisorId, setSupervisorId] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState({});
   const [holidays, setHolidays] = useState([]);
-  const [employeeLeaves, setEmployeeLeaves] = useState({});
+  const [approvedLeaves, setApprovedLeaves] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedWeekId, setSelectedWeekId] = useState(null);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
@@ -22,16 +22,28 @@ const SupervisorPlanViewer = () => {
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [error, setError] = useState(null);
-  const [alertModal, setAlertModal] = useState({ isVisible: false, message: '' });
-  const [freezeDays, setFreezeDays] = useState(0);
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    message: '',
+  });
+  const [configModal, setConfigModal] = useState({
+    isVisible: false,
+    freezeDaysSupervisor: '',
+    freezeDaysEmployee: '',
+  });
+  const [loadingConfig, setLoadingConfig] = useState(false);
 
   const showAlert = (message) => {
     setAlertModal({ isVisible: true, message });
-    setTimeout(() => setAlertModal({ isVisible: false, message: '' }), 5000);
+    setTimeout(() => closeAlert(), 5000);
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, message: '' });
   };
 
   const formatWeekId = (weekId) => {
-    if (!weekId) return 'N/A';
+    if (weekId === null) return 'N/A';
     const currentYear = new Date().getFullYear(); // Use current year (2025)
     const startDate = startOfISOWeek(new Date(currentYear, 0, 1));
     const weekStart = new Date(startDate.getTime() + (weekId - 1) * 7 * 24 * 60 * 60 * 1000);
@@ -43,22 +55,8 @@ const SupervisorPlanViewer = () => {
 
   const getWeekIdForDate = (date) => {
     const taskDate = new Date(date);
-    return isNaN(taskDate.getTime()) ? null : getISOWeek(taskDate);
-  };
-
-  const isTaskEditable = (taskDate) => {
-    if (!taskDate) {
-      console.log(`Task date: ${taskDate}, freezeDays: ${freezeDays}, editable: true (no date)`);
-      return true;
-    }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const taskDateObj = new Date(taskDate);
-    taskDateObj.setHours(0, 0, 0, 0);
-    const diffDays = (today - taskDateObj) / (1000 * 3600 * 24);
-    const editable = diffDays <= 0 || (diffDays > 0 && diffDays <= freezeDays);
-    console.log(`Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`);
-    return editable;
+    if (isNaN(taskDate.getTime())) return null;
+    return getISOWeek(taskDate);
   };
 
   useEffect(() => {
@@ -86,25 +84,34 @@ const SupervisorPlanViewer = () => {
       setLoadingEmployees(true);
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/employees`,
-          { headers: { 'x-employee-id': supervisorId }, timeout: 10000 }
+          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/employees/all`,
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
         );
         const empData = Array.isArray(response.data.employees)
           ? response.data.employees.map(emp => ({
               ...emp,
-              employee_id: emp.employee_id?.trim().toUpperCase()
+              employee_id: emp.employee_id?.trim().toUpperCase(),
             }))
           : [];
-        setEmployees(empData);
-        setSelectedEmployee(empData[0]?.employee_id || null);
-        setError(empData.length === 0 ? 'No employees assigned to you.' : null);
+        if (empData.length === 0) {
+          setError('No active employees available.');
+        } else {
+          setEmployees(empData);
+          setSelectedEmployee(empData[0]?.employee_id || null);
+          setError(null);
+        }
       } catch (err) {
         const errorMessage = err.response
           ? `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText}`
           : err.code === 'ECONNABORTED'
           ? 'Request timed out: Unable to connect to server'
           : `Network error: ${err.message}`;
-        console.error('Error fetching employees:', errorMessage);
         setError(errorMessage);
         setEmployees([]);
       } finally {
@@ -117,78 +124,65 @@ const SupervisorPlanViewer = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`,
-          { headers: { 'x-employee-id': supervisorId, 'x-api-key': process.env.REACT_APP_API_KEY || '' }, timeout: 10000 }
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
         );
-        setHolidays(Array.isArray(response.data.holidays) ? response.data.holidays.map(holiday => holiday.date) : []);
+        const holidayData = Array.isArray(response.data.holidays)
+          ? response.data.holidays.map(holiday => holiday.date)
+          : [];
+        setHolidays(holidayData);
       } catch (err) {
-        console.error('Error fetching holidays:', err.response?.data || err.message);
-        setHolidays(['2025-12-25']);
+        setHolidays([]);
       } finally {
         setLoadingHolidays(false);
       }
     };
 
-    const fetchLeaves = async () => {
+    const fetchApprovedLeaves = async () => {
       setLoadingLeaves(true);
       try {
-        const leavesMap = {};
-        for (const emp of employees) {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${emp.employee_id}`,
-            { headers: { 'x-api-key': process.env.REACT_APP_API_KEY || '', 'Content-Type': 'application/json' }, timeout: 10000 }
-          );
-          leavesMap[emp.employee_id] = Array.isArray(response.data.data)
-            ? response.data.data.filter(leave => leave.status === 'Approved')
-            : [];
-        }
-        setEmployeeLeaves(leavesMap);
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/admin/leave`,
+          {
+            params: { status: 'Approved' },
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
+        );
+        const leaveData = Array.isArray(response.data.data)
+          ? response.data.data.map(leave => ({
+              employee_id: leave.employee_id?.trim().toUpperCase(),
+              start_date: leave.start_date,
+              end_date: leave.end_date,
+              h_f_day: leave.H_F_day,
+            }))
+          : [];
+        setApprovedLeaves(leaveData);
       } catch (err) {
-        console.error('Error fetching leaves:', err.response?.data || err.message);
-        setEmployeeLeaves({});
+        const errorMessage = err.response
+          ? `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText}`
+          : err.code === 'ECONNABORTED'
+          ? 'Request timed out: Unable to connect to server'
+          : `Network error: ${err.message}`;
+        setError(errorMessage);
+        setApprovedLeaves([]);
       } finally {
         setLoadingLeaves(false);
       }
     };
 
-    const fetchFreezeDays = async () => {
-      try {
-        console.log('Fetching freeze days from API...');
-        const response = await axios.get(
-          `http://localhost:5000/api/config`,
-          { headers: { 'x-employee-id': supervisorId, 'x-api-key': process.env.REACT_APP_API_KEY || '' }, timeout: 10000 }
-        );
-        console.log('Config API response:', JSON.stringify(response.data, null, 2));
-        if (!response.data || !response.data.success || !Array.isArray(response.data.data)) {
-          console.error('Invalid API response structure:', response.data);
-          setFreezeDays(0);
-          return;
-        }
-        const configData = response.data.data;
-        const freezeDaysConfig = configData.find(item => item.key === 'freeze_days_supervisor');
-        if (!freezeDaysConfig) {
-          console.error('freeze_days_supervisor key not found in config data:', configData);
-          setFreezeDays(0);
-          return;
-        }
-        const days = Number(freezeDaysConfig.value);
-        if (isNaN(days) || days < 0) {
-          console.error(`Invalid freeze_days_supervisor value: ${freezeDaysConfig.value}`);
-          setFreezeDays(0);
-          return;
-        }
-        console.log(`freeze_days_supervisor value: ${freezeDaysConfig.value}, parsed days: ${days}`);
-        setFreezeDays(days);
-      } catch (err) {
-        console.error('Error fetching freeze days:', err.message, err.response?.data);
-        setFreezeDays(0);
-      }
-    };
-
     fetchEmployees();
     fetchHolidays();
-    fetchFreezeDays();
-    if (employees.length > 0) fetchLeaves();
-  }, [supervisorId, employees.length]);
+    fetchApprovedLeaves();
+  }, [supervisorId]);
 
   useEffect(() => {
     if (!supervisorId) return;
@@ -197,21 +191,30 @@ const SupervisorPlanViewer = () => {
       setLoadingTasks(true);
       try {
         const res = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${supervisorId}`,
-          { headers: { 'x-employee-id': supervisorId }, timeout: 10000 }
+          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
         );
         const validStatuses = ['not started', 'working', 'completed', 'suspended'];
         const taskData = res.data.success && Array.isArray(res.data.data)
           ? res.data.data.map(task => ({
               ...task,
               employee_id: task.employee_id?.trim().toUpperCase(),
-              emp_status: validStatuses.includes(task.emp_status) ? task.emp_status : 'not started'
+              emp_status: validStatuses.includes(task.emp_status) ? task.emp_status : 'not started',
+              week_id: Number(task.week_id),
             }))
           : [];
         setTasks(taskData);
         if (taskData.length > 0) {
           const weekIds = [...new Set(taskData.map(task => task.week_id))].sort((a, b) => a - b);
-          setSelectedWeekId(weekIds[weekIds.length - 1]);
+          setSelectedWeekId(weekIds[weekIds.length - 1] || null);
+        } else {
+          setSelectedWeekId(null);
         }
         setError(null);
       } catch (err) {
@@ -220,7 +223,6 @@ const SupervisorPlanViewer = () => {
           : err.code === 'ECONNABORTED'
           ? 'Request timed out: Unable to connect to server'
           : `Network error: ${err.message}`;
-        console.error('Error fetching tasks:', errorMessage);
         setError(errorMessage);
         setTasks([]);
       } finally {
@@ -239,7 +241,14 @@ const SupervisorPlanViewer = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`,
-          { params: { employeeId: selectedEmployee }, headers: { 'x-api-key': process.env.REACT_APP_API_KEY || '' }, timeout: 10000 }
+          {
+            params: { employeeId: selectedEmployee },
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
         );
         const newProjects = {};
         (response.data.projects || []).forEach((project) => {
@@ -253,7 +262,6 @@ const SupervisorPlanViewer = () => {
           : err.code === 'ECONNABORTED'
           ? 'Request timed out: Unable to connect to server'
           : `Network error: ${err.message}`;
-        console.error('Error fetching projects:', errorMessage);
         setError(errorMessage);
         setProjects({});
       } finally {
@@ -263,6 +271,92 @@ const SupervisorPlanViewer = () => {
 
     fetchProjects();
   }, [selectedEmployee]);
+
+  const fetchConfig = async () => {
+    setLoadingConfig(true);
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/config`,
+        {
+          headers: {
+            'x-employee-id': supervisorId,
+            'x-api-key': process.env.REACT_APP_API_KEY || '',
+          },
+          timeout: 10000,
+        }
+      );
+      const configData = response.data.data || [];
+      const freezeDaysSupervisor = configData.find(item => item.key === 'freeze_days_supervisor')?.value || '';
+      const freezeDaysEmployee = configData.find(item => item.key === 'freeze_days_employee')?.value || '';
+      setConfigModal({
+        isVisible: true,
+        freezeDaysSupervisor,
+        freezeDaysEmployee,
+      });
+      setError(null);
+    } catch (err) {
+      const errorMessage = err.response
+        ? `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText}`
+        : err.code === 'ECONNABORTED'
+        ? 'Request timed out: Unable to connect to server'
+        : `Network error: ${err.message}`;
+      setError(errorMessage);
+      setConfigModal({
+        isVisible: true,
+        freezeDaysSupervisor: '',
+        freezeDaysEmployee: '',
+      });
+    } finally {
+      setLoadingConfig(false);
+    }
+  };
+
+  const updateConfig = async () => {
+    setLoadingConfig(true);
+    try {
+      const { freezeDaysSupervisor, freezeDaysEmployee } = configModal;
+      if (!/^\d+$/.test(freezeDaysSupervisor) || !/^\d+$/.test(freezeDaysEmployee)) {
+        showAlert('Freeze days must be positive integers.');
+        return;
+      }
+      await Promise.all([
+        axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/config/update`,
+          { key: 'freeze_days_supervisor', value: freezeDaysSupervisor },
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
+        ),
+        axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/config/update`,
+          { key: 'freeze_days_employee', value: freezeDaysEmployee },
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
+        ),
+      ]);
+      showAlert('Configuration updated successfully');
+      setConfigModal({ ...configModal, isVisible: false });
+    } catch (err) {
+      const errorMessage = err.response
+        ? `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText}`
+        : err.code === 'ECONNABORTED'
+        ? 'Request timed out: Unable to connect to server'
+        : `Network error: ${err.message}`;
+      showAlert(`Failed to update configuration: ${errorMessage}.`);
+      setConfigModal({ ...configModal, isVisible: false });
+    } finally {
+      setLoadingConfig(false);
+    }
+  };
 
   const updateTaskField = (taskId, field, value) => {
     setTasks((prev) =>
@@ -291,11 +385,6 @@ const SupervisorPlanViewer = () => {
       return;
     }
 
-    if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit task: It is before the ${freezeDays}-day editable period.`);
-      return;
-    }
-
     try {
       const updateData = {
         sup_status: task.sup_status || 'incomplete',
@@ -309,15 +398,13 @@ const SupervisorPlanViewer = () => {
 
       if (task.sup_status === 're-work') {
         const taskDate = new Date(task.task_date || new Date());
-        if (isNaN(taskDate.getTime())) taskDate = new Date();
+        if (isNaN(taskDate.getTime())) {
+          taskDate = new Date();
+        }
         taskDate.setHours(0, 0, 0, 0);
         const nextDay = new Date(taskDate);
         nextDay.setDate(taskDate.getDate() + 1);
         const nextDayString = nextDay.toLocaleDateString('en-CA');
-        if (!isTaskEditable(nextDayString)) {
-          showAlert(`Cannot create new task: Next day is before the ${freezeDays}-day editable period.`);
-          return;
-        }
         const nextDayWeekId = getWeekIdForDate(nextDay);
 
         const newTaskData = {
@@ -336,52 +423,89 @@ const SupervisorPlanViewer = () => {
           parent_task_id: task.task_id,
         };
 
+        console.log('New task data:', newTaskData);
+
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
           newTaskData,
-          { headers: { 'x-employee-id': supervisorId }, timeout: 10000 }
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
         );
 
         updateData.sup_status = 're-work';
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${taskId}`,
           updateData,
-          { headers: { 'x-employee-id': supervisorId }, timeout: 10000 }
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
         );
 
         showAlert(response.data.message || 'New task created successfully');
+
         if (response.data.newTask) {
           const newTask = {
             ...response.data.newTask,
             employee_name: employees.find(emp => emp.employee_id === response.data.newTask.employee_id)?.employee_name || 'Unknown',
             employee_id: response.data.newTask.employee_id?.trim().toUpperCase(),
             emp_status: response.data.newTask.emp_status || 'not started',
+            week_id: Number(response.data.newTask.week_id),
+            project_id: response.data.newTask.project_id,
+            project_name: response.data.newTask.project_name,
           };
           setTasks((prev) => [...prev, newTask]);
           const newTaskWeek = newTask.week_id;
           if (newTaskWeek && newTaskWeek !== selectedWeekId) {
             setSelectedWeekId(newTaskWeek);
           }
+          if (newTask.employee_id !== selectedEmployee) {
+            console.log(`Switching selectedEmployee to ${newTask.employee_id} for project fetch`);
+            setSelectedEmployee(newTask.employee_id);
+          }
         }
       } else {
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${taskId}`,
           updateData,
-          { headers: { 'x-employee-id': supervisorId }, timeout: 10000 }
+          {
+            headers: {
+              'x-employee-id': supervisorId,
+              'x-api-key': process.env.REACT_APP_API_KEY || '',
+            },
+            timeout: 10000,
+          }
         );
         showAlert('Task updated successfully');
       }
 
       const res = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${supervisorId}`,
-        { headers: { 'x-employee-id': supervisorId }, timeout: 10000 }
+        `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
+        {
+          headers: {
+            'x-employee-id': supervisorId,
+            'x-api-key': process.env.REACT_APP_API_KEY || '',
+          },
+          timeout: 10000,
+        }
       );
       const validStatuses = ['not started', 'working', 'completed', 'suspended'];
       const taskData = res.data.success && Array.isArray(res.data.data)
         ? res.data.data.map(task => ({
             ...task,
             employee_id: task.employee_id?.trim().toUpperCase(),
-            emp_status: validStatuses.includes(task.emp_status) ? task.emp_status : 'not started'
+            emp_status: validStatuses.includes(task.emp_status) ? task.emp_status : 'not started',
+            week_id: Number(task.week_id),
+            project_id: task.project_id,
+            project_name: task.project_name,
           }))
         : [];
       setTasks(taskData);
@@ -434,12 +558,17 @@ const SupervisorPlanViewer = () => {
     }
     const taskDate = new Date(dateString);
     taskDate.setHours(0, 0, 0, 0);
-    const isApprovedLeave = employeeLeaves[employeeId]?.some(leave => {
+    const isApprovedLeave = approvedLeaves.some(leave => {
+      if (leave.employee_id !== employeeId) return false;
       const startDate = new Date(leave.start_date);
       const endDate = new Date(leave.end_date);
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(0, 0, 0, 0);
-      return taskDate >= startDate && taskDate <= endDate;
+      const isHalfDay = leave.h_f_day.toLowerCase().includes('half');
+      if (isHalfDay) {
+        return taskDate.getTime() === startDate.getTime();
+      }
+      return taskDate.getTime() >= startDate.getTime() && taskDate.getTime() <= endDate.getTime();
     });
     const isSunday = taskDate.getDay() === 0;
     const isHoliday = holidays.some(holiday => {
@@ -463,14 +592,18 @@ const SupervisorPlanViewer = () => {
   const currentWeekIndex = weekIds.indexOf(selectedWeekId);
 
   const goToPreviousWeek = () => {
-    if (currentWeekIndex > 0) setSelectedWeekId(weekIds[currentWeekIndex - 1]);
+    if (currentWeekIndex > 0) {
+      setSelectedWeekId(weekIds[currentWeekIndex - 1]);
+    }
   };
 
   const goToNextWeek = () => {
-    if (currentWeekIndex < weekIds.length - 1) setSelectedWeekId(weekIds[currentWeekIndex + 1]);
+    if (currentWeekIndex < weekIds.length - 1) {
+      setSelectedWeekId(weekIds[currentWeekIndex + 1]);
+    }
   };
 
-  const filteredTasks = selectedEmployee && selectedWeekId
+  const filteredTasks = selectedEmployee && selectedWeekId !== null
     ? tasks.filter(task => task.employee_id === selectedEmployee && task.week_id === selectedWeekId)
     : [];
 
@@ -480,8 +613,8 @@ const SupervisorPlanViewer = () => {
 
   if (!supervisorId) {
     return (
-      <div className="supervisor-plan-wrapper">
-        <div className="supervisor-plan-error-message">
+      <div className="supervisor-plan-admin-wrapper">
+        <div className="supervisor-plan-admin-error-message">
           {error || 'Supervisor ID is missing. Please '}
           <a href="/login">log in again</a>.
         </div>
@@ -490,23 +623,91 @@ const SupervisorPlanViewer = () => {
   }
 
   return (
-    <div className="supervisor-plan-wrapper">
+    <div className="supervisor-plan-admin-wrapper">
       <Modal
         isVisible={alertModal.isVisible}
-        onClose={() => setAlertModal({ isVisible: false, message: '' })}
-        buttons={[{ label: 'OK', onClick: () => setAlertModal({ isVisible: false, message: '' })}]}
+        onClose={closeAlert}
+        buttons={[{ label: 'OK', onClick: closeAlert }]}
       >
         <p>{alertModal.message}</p>
       </Modal>
-      <div className="supervisor-plan-employee-list">
+      {configModal.isVisible && (
+        <div
+          className="supervisor-plan-admin-modal-overlay"
+          onClick={() => setConfigModal({ ...configModal, isVisible: false })}
+        >
+          <form
+            className="supervisor-plan-admin-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="supervisor-plan-admin-modal-title">Update Freeze Days</h3>
+            <div className="supervisor-plan-admin-config-modal-content">
+              <div className="supervisor-plan-admin-config-input-group">
+                <label className="supervisor-plan-admin-config-label">
+                  Supervisor Freeze Days
+                  <input
+                    type="number"
+                    min="0"
+                    value={configModal.freezeDaysSupervisor}
+                    onChange={(e) => setConfigModal({ ...configModal, freezeDaysSupervisor: e.target.value })}
+                    placeholder="Enter freeze days for supervisors"
+                    disabled={loadingConfig}
+                    className="supervisor-plan-admin-config-input"
+                  />
+                </label>
+                <label className="supervisor-plan-admin-config-label">
+                  Employee Freeze Days
+                  <input
+                    type="number"
+                    min="0"
+                    value={configModal.freezeDaysEmployee}
+                    onChange={(e) => setConfigModal({ ...configModal, freezeDaysEmployee: e.target.value })}
+                    placeholder="Enter freeze days for employees"
+                    disabled={loadingConfig}
+                    className="supervisor-plan-admin-config-input"
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="supervisor-plan-admin-modal-buttons">
+              <button
+                type="button"
+                className="supervisor-plan-admin-modal-button supervisor-plan-admin-modal-button-cancel"
+                onClick={() => setConfigModal({ ...configModal, isVisible: false })}
+                disabled={loadingConfig}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="supervisor-plan-admin-modal-button supervisor-plan-admin-modal-button-save"
+                onClick={updateConfig}
+                disabled={loadingConfig}
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      <div className="supervisor-plan-admin-header">
+        <button
+          className="supervisor-plan-admin-config-button"
+          onClick={fetchConfig}
+          disabled={loadingConfig}
+          style={{ position: 'absolute', top: '10px', right: '10px' }}
+        >
+          {loadingConfig ? 'Loading...' : 'Update Freeze Days'}
+        </button>
+      </div>
+      <div className="supervisor-plan-admin-employee-list">
         <h3>Employees</h3>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search employees by name"
-          className="supervisor-plan-search-bar"
-          style={{ padding: '8px', fontSize:'11px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+          className="supervisor-plan-admin-search-bar"
         />
         {error && <p style={{ color: 'red' }}>{error}</p>}
         {loadingEmployees || loadingHolidays || loadingLeaves ? (
@@ -514,11 +715,11 @@ const SupervisorPlanViewer = () => {
         ) : filteredEmployees.length === 0 ? (
           <p>No employees match the search criteria.</p>
         ) : (
-          <ul className="supervisor-plan-employee-scroll">
+          <ul className="supervisor-plan-admin-employee-scroll">
             {filteredEmployees.map((emp) => (
               <li
                 key={emp.employee_id}
-                className={selectedEmployee === emp.employee_id ? 'supervisor-plan-active' : ''}
+                className={selectedEmployee === emp.employee_id ? 'supervisor-plan-admin-active' : ''}
                 onClick={() => setSelectedEmployee(emp.employee_id)}
               >
                 {emp.employee_name}
@@ -527,8 +728,8 @@ const SupervisorPlanViewer = () => {
           </ul>
         )}
       </div>
-      <div className="supervisor-plan-task-details">
-        {loadingTasks || loadingProjects || loadingLeaves ? (
+      <div className="supervisor-plan-admin-task-details">
+        {loadingTasks || loadingProjects ? (
           <p>Loading tasks or projects...</p>
         ) : selectedEmployee === null ? (
           <p>Select an employee to view tasks</p>
@@ -536,38 +737,33 @@ const SupervisorPlanViewer = () => {
           <p>No tasks assigned for this employee.</p>
         ) : (
           <>
-            <div className="supervisor-plan-week-navigation">
+            <div className="supervisor-plan-admin-week-navigation">
               <button
-                className="supervisor-plan-nav-button"
+                className="supervisor-plan-admin-nav-button"
                 onClick={goToPreviousWeek}
                 disabled={currentWeekIndex <= 0}
               >
                 &lt;
               </button>
-              <span className="supervisor-plan-week-label">{formatWeekId(selectedWeekId)}</span>
+              <span className="supervisor-plan-admin-week-label">{formatWeekId(selectedWeekId)}</span>
               <button
-                className="supervisor-plan-nav-button"
+                className="supervisor-plan-admin-nav-button"
                 onClick={goToNextWeek}
                 disabled={currentWeekIndex >= weekIds.length - 1}
               >
                 &gt;
               </button>
             </div>
-            <div className="supervisor-plan-tasks-container">
+            <div className="supervisor-plan-admin-tasks-container">
               {filteredTasks.length === 0 ? (
                 <p>No tasks for {selectedEmployee} in week {formatWeekId(selectedWeekId)}.</p>
               ) : (
                 filteredTasks.map((task) => {
                   const dateStyle = getTaskDateStyle(task.task_date, task.employee_id);
-                  const editable = isTaskEditable(task.task_date);
-                  console.log(`Rendering task ${task.task_id}: date=${task.task_date}, editable=${editable}, class=${!editable ? 'supervisor-plan-task-frozen' : ''}`);
                   return (
-                    <div
-                      key={task.task_id}
-                      className={`supervisor-plan-task-card ${!editable ? 'supervisor-plan-task-frozen' : ''}`}
-                    >
-                      <div className="supervisor-plan-task-header">
-                        <div className="supervisor-plan-task-title">
+                    <div key={task.task_id} className="supervisor-plan-admin-task-card">
+                      <div className="supervisor-plan-admin-task-header">
+                        <div className="supervisor-plan-admin-task-title">
                           {task.sup_review_status === 'struck' ? (
                             <>
                               <span style={{ textDecoration: 'line-through', color: '#a0a0a0' }}>
@@ -583,9 +779,9 @@ const SupervisorPlanViewer = () => {
                             task.task_name
                           )}
                         </div>
-                        <div className="supervisor-plan-task-meta">
+                        <div className="supervisor-plan-admin-task-meta">
                           {task.sup_review_status !== 'pending' && (
-                            <span className="supervisor-plan-status-icon">
+                            <span className="supervisor-plan-admin-status-icon">
                               {task.sup_review_status === 'approved' && '✅'}
                               {task.sup_review_status === 'struck' && '📝'}
                               {task.sup_review_status === 'suspended_review' && '⛔'}
@@ -594,33 +790,36 @@ const SupervisorPlanViewer = () => {
                           <span className={dateStyle.className} title={dateStyle.tooltip}>
                             {formatDate(task.task_date)}
                           </span>
-                          <div className="supervisor-plan-project-circle-wrapper">
-                            <span className="supervisor-plan-project-circle">{task.project_id}</span>
-                            <div className="supervisor-plan-tooltip">{task.project_name}</div>
+                          <div className="supervisor-plan-admin-project-circle-wrapper">
+                            <span className="supervisor-plan-admin-project-circle">{task.project_id || 'N/A'}</span>
+                            <div className="supervisor-plan-admin-tooltip">{task.project_name || 'Unknown'}</div>
                           </div>
-                          <div className="supervisor-plan-status-dot-wrapper">
+                          <div className="supervisor-plan-admin-status-dot-wrapper">
                             <span
-                              className="supervisor-plan-status-dot"
+                              className="supervisor-plan-admin-status-dot"
                               style={{ backgroundColor: statusColor(task.emp_status) }}
                             ></span>
-                            <div className="supervisor-plan-tooltip">{statusLabel(task.emp_status)}</div>
+                            <div className="supervisor-plan-admin-tooltip">
+                              {statusLabel(task.emp_status)}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="supervisor-plan-task-body">
+                      <div className="supervisor-plan-admin-task-body">
                         <p><strong>Emp-Update:</strong> {task.emp_comment || '-'}</p>
                       </div>
-                      <div className="supervisor-plan-edit-section">
+                      <div className="supervisor-plan-admin-edit-section">
                         <label>
                           Project:
                           <select
                             value={task.project_id || ''}
                             onChange={(e) => updateTaskField(task.task_id, 'project', e.target.value)}
-                            disabled={!editable}
                           >
                             <option value="">Select Project</option>
                             {Object.entries(projects).map(([id, name]) => (
-                              <option key={id} value={id}>{id} - {name}</option>
+                              <option key={id} value={id}>
+                                {id} - {name}
+                              </option>
                             ))}
                           </select>
                         </label>
@@ -629,7 +828,6 @@ const SupervisorPlanViewer = () => {
                           <select
                             value={task.sup_status || 'incomplete'}
                             onChange={(e) => updateTaskField(task.task_id, 'sup_status', e.target.value)}
-                            disabled={!editable}
                           >
                             <option value="completed">Completed</option>
                             <option value="add on">Add On</option>
@@ -644,7 +842,6 @@ const SupervisorPlanViewer = () => {
                             value={task.sup_comment || ''}
                             onChange={(e) => updateTaskField(task.task_id, 'sup_comment', e.target.value)}
                             placeholder="Add comment"
-                            disabled={!editable}
                           />
                         </label>
                         {task.sup_review_status === 'pending' && (
@@ -654,7 +851,6 @@ const SupervisorPlanViewer = () => {
                               value={task.sup_review_status || 'pending'}
                               style={{ color: statusColor(task.sup_review_status) }}
                               onChange={(e) => updateTaskField(task.task_id, 'sup_review_status', e.target.value)}
-                              disabled={!editable}
                             >
                               <option value="pending">Pending</option>
                               <option value="approved">Approved</option>
@@ -671,20 +867,19 @@ const SupervisorPlanViewer = () => {
                               value={task.replacement_task || ''}
                               onChange={(e) => updateTaskField(task.task_id, 'replacement_task', e.target.value)}
                               placeholder="Enter updated task"
-                              disabled={!editable}
                             />
                           </label>
                         )}
                         {task.sup_review_status !== 'pending' && (
                           <label>
                             Rating:
-                            <div className="supervisor-plan-star-rating">
+                            <div className="supervisor-plan-admin-star-rating">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <span
                                   key={star}
-                                  className={`supervisor-plan-star ${task.star_rating >= star ? 'filled' : ''}`}
-                                  onClick={() => editable && updateTaskField(task.task_id, 'star_rating', star)}
-                                  style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                                  className={`supervisor-plan-admin-star ${task.star_rating >= star ? 'filled' : ''}`}
+                                  onClick={() => updateTaskField(task.task_id, 'star_rating', star)}
+                                  style={{ cursor: 'pointer' }}
                                 >
                                   ★
                                 </span>
@@ -693,9 +888,8 @@ const SupervisorPlanViewer = () => {
                           </label>
                         )}
                         <button
-                          className="supervisor-plan-update-task-button"
+                          className="supervisor-plan-admin-update-task-button"
                           onClick={() => saveTaskField(task.task_id)}
-                          disabled={!editable}
                         >
                           Update
                         </button>
@@ -712,4 +906,4 @@ const SupervisorPlanViewer = () => {
   );
 };
 
-export default SupervisorPlanViewer;
+export default SupervisorPlanViewerAdmin;

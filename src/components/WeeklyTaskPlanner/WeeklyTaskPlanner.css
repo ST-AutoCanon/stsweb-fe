@@ -161,7 +161,7 @@
   padding: 10px;
 }
 
-.assign-form-empdriven{
+.assign-form-empdriven {
   background: #ffffff;
   padding: 0 0 15px 0;
   border-radius: 8px;
@@ -171,6 +171,7 @@
   overflow-y: auto;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
+
 .edit-actions {
   display: flex;
   justify-content: space-between;
@@ -178,7 +179,6 @@
 }
 
 .edit-actions .cancel-button {
- 
   color: white;
   padding: 5px 10px;
   border: none;
@@ -194,6 +194,7 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
 /* Form header */
 .form-header {
   background: #3067bb; /* Blue header like screenshot */
@@ -589,6 +590,36 @@
   font-weight: 600;
   color: #111827;
   text-align: center;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Date-specific classes */
+.day-date.day-date-leave {
+  background-color: #F5F501;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.day-date.day-date-holiday {
+  background-color: #ff9800;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.day-date.day-date-sunday {
+  background-color: #3770ecff;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.day-date.day-date-regular {
+  background-color: transparent;
+  color: #333;
 }
 
 /* Projects column */
@@ -926,77 +957,222 @@
   background: #218838;
 }
 
-/* Responsive adjustments */
+/* Mobile design (≤ 768px) */
 @media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+  /* Main layout adjustments */
+  .weekly-task-planner {
+    padding: 10px;
+    gap: 15px;
   }
-  .form-actions {
+
+  .planner-header {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
-  .day-left-column {
-    width: 100px;
+
+  .planner-header h2 {
+    font-size: 18px;
   }
-  .circle-container {
-    flex-direction: column;
-    gap: 4px;
-  }
-  .edit-section {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .edit-task-input,
-  .edit-status-select,
-  .edit-comment-input {
-    flex: 1 1 100%;
-  }
-  .edit-save-button {
-    flex: 1 1 100%;
-  }
-  .multi-select-dropdown {
-    min-width: 180px;
-    max-width: 100%;
-  }
-  .dropdown-header-task {
-    min-width: 180px;
-  }
-  .dropdown-list {
-    min-width: 180px;
-    max-width: 100%;
-  }
-  .checkbox-label {
-    font-size: 11px;
-  }
-  .checkbox-label input[type="checkbox"] {
-    width: 10px;
-    height: 10px;
-  }
-  .edit-popup {
-    right: auto; /* Reset right alignment on mobile */
-    left: 0; /* Align to left on smaller screens */
-    max-width: 90%; /* Fit within parent */
-    transform: translateY(5px);
-  }
+
   .week-navigation {
-    gap: 8px; /* Slightly smaller gap on mobile */
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
   }
-  .nav-button {
-    width: 32px; /* Slightly smaller on mobile */
-    height: 32px;
-    padding: 8px;
+
+  .nav-button-task {
+    width: 30px;
+    height: 30px;
+    padding: 6px;
   }
+
   .nav-icon {
     width: 14px;
     height: 14px;
   }
-  .nav-dots {
-    gap: 4px;
+
+  .header-buttons {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
   }
+
+  .assign-task-button,
+  .review-button,
+  .exit-review-button {
+    width: 48%;
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* Day Card layout */
+  .day-card {
+    flex-direction: column;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .day-left-column {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 15px;
+  }
+
+  .day-date {
+    font-size: 14px;
+  }
+
+  .projects-column {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .project-circle,
+  .task-id-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+
+  /* Tasks section (right part) */
+  .tasks-section {
+    padding: 10px;
+  }
+
+  .tasks-header {
+    display: none; /* Hide table header on mobile for cleaner look */
+  }
+
+  .tasks-list {
+    gap: 10px;
+  }
+
+  /* Each task as a card block */
+  .task-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .task-name {
+    font-size: 13px;
+    font-weight: 600;
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* Employee & Supervisor info stacked */
+  .update-section,
+  .supervisor-section {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .comment {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  /* Form and modal refinements */
+  .assign-form-empdriven,
+  .replacement-form {
+    width: 95%;
+    padding: 10px 0 15px 0;
+    max-height: 85vh;
+  }
+
+  .form-header {
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .multi-select-dropdown,
+  .dropdown-header-task,
+  .dropdown-list {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .checkbox-group {
+    flex-direction: column;
+  }
+
+  .checkbox-label {
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  /* Edit section compact view */
+  .edit-section {
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .edit-task-input,
+  .edit-status-select,
+  .edit-comment-input {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .edit-save-button {
+    width: 100%;
+    padding: 6px 0;
+  }
+
+  /* Edit popup */
+  .edit-popup {
+    left: 0;
+    right: 0;
+    width: 95%;
+    max-width: 95%;
+    transform: translateY(5px);
+  }
+
+  /* Alerts */
+  .alert-content {
+    width: 90%;
+    padding: 15px;
+  }
+
+  /* Smaller dots & icons */
   .dot {
     width: 5px;
     height: 5px;
   }
-  .task-name {
-    max-width: 150px; /* Smaller max-width on mobile to fit smaller screens */
+
+  /* Date-specific classes for mobile */
+  .day-date.day-date-leave,
+  .day-date.day-date-holiday,
+  .day-date.day-date-sunday,
+  .day-date.day-date-regular {
+    padding: 2px 6px;
+    border-radius: 4px;
   }
 }

@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
@@ -8,16 +7,14 @@ import Modal from "../Modal/Modal";
 
 const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [weekOffset, setWeekOffset] = useState(0); // Start at current week
-  const currentDate = new Date(2025, 8, 29); // September 29, 2025
+  const currentDate = new Date(2025, 9, 13); // October 13, 2025
   const dayOfWeek = currentDate.getDay();
   const offset = (dayOfWeek + 6) % 7; // Adjust to Monday as week start
   const startDate = new Date(currentDate);
   startDate.setDate(currentDate.getDate() - offset + weekOffset * 7);
-
   // Calculate end date of the week
   const endDate = new Date(startDate);
   endDate.setDate(startDate.getDate() + 6);
-
   // Format dates for display
   const formatDateRange = (start, end) => {
     const startDay = start.getDate();
@@ -28,7 +25,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
   };
   const dateRange = formatDateRange(startDate, endDate);
-
   const getISOWeekNumber = (date) => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -39,7 +35,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
   const weekId = getISOWeekNumber(startDate);
   console.log("Week ID:", weekId, "Employee ID:", employeeId);
-
   const weekDates = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(startDate);
@@ -47,11 +42,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const dateStr = `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
     weekDates.push(dateStr);
   }
-
   const [tasksData, setTasksData] = useState(
     weekDates.map((date) => ({ date, tasks: [] }))
   );
   const [projects, setProjects] = useState({});
+  const [holidays, setHolidays] = useState([]);
+  const [approvedLeaves, setApprovedLeaves] = useState([]);
   const [expandedDates, setExpandedDates] = useState({});
   const [editingTask, setEditingTask] = useState(null);
   const [editingSupStatus, setEditingSupStatus] = useState(null);
@@ -68,6 +64,8 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     date: "",
   });
   const [loading, setLoading] = useState(false);
+  const [loadingHolidays, setLoadingHolidays] = useState(false);
+  const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [error, setError] = useState(null);
   const [noTasks, setNoTasks] = useState(false);
   const [alertModal, setAlertModal] = useState({
@@ -76,23 +74,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     message: "",
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
-
+  const [freezeDays, setFreezeDays] = useState(0);
   // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
-
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
-
   const toggleDropdown = (index) => {
     setDropdownOpen((prev) => ({
       ...prev,
       [index]: !prev[index],
     }));
   };
-
   const withRetry = async (fn, retries = 3, delay = 1000) => {
     for (let i = 0; i < retries; i++) {
       try {
@@ -103,7 +98,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       }
     }
   };
-
   const formatDateIST = (date) => {
     const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
     const istDate = new Date(date.getTime() + istOffset);
@@ -112,24 +106,65 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const day = String(istDate.getUTCDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-
   const isTaskEditable = (taskDate) => {
-    if (!taskDate) return false;
+    if (!taskDate) {
+      console.log(`Task date: ${taskDate}, freezeDays: ${freezeDays}, editable: false (no date)`);
+      return false;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const taskDateObj = new Date(taskDate);
-    const currentDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-
-    // Reset time components to compare dates only
     taskDateObj.setHours(0, 0, 0, 0);
-    currentDate.setHours(0, 0, 0, 0);
-
-    // Calculate the earliest editable date (current date - 1 day)
-    const earliestEditableDate = new Date(currentDate);
-    earliestEditableDate.setDate(currentDate.getDate() - 1);
-
-    // Task is editable if its date is on or after the earliest editable date
-    return taskDateObj >= earliestEditableDate;
+    const diffDays = (today - taskDateObj) / (1000 * 3600 * 24);
+    // Allow edits for:
+    // 1. Current day and future (diffDays <= 0)
+    // 2. Past tasks within freezeDays (0 < diffDays <= freezeDays)
+    // Freeze tasks before freezeDays (diffDays > freezeDays)
+    const editable = diffDays <= 0 || (diffDays > 0 && diffDays <= freezeDays);
+    console.log(`Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`);
+    return editable;
   };
-
+  const getTaskDateStyle = (dateStr) => {
+    const [day, month] = dateStr.split(" ");
+    const year = new Date().getFullYear();
+    const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
+    const taskDate = new Date(year, monthIndex, parseInt(day));
+    taskDate.setHours(0, 0, 0, 0);
+    // Check if the date is within an approved leave range
+    const isApprovedLeave = approvedLeaves.some(leave => {
+      const startDate = new Date(leave.start_date);
+      const endDate = new Date(leave.end_date);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      return taskDate >= startDate && taskDate <= endDate;
+    });
+    const isSunday = taskDate.getDay() === 0;
+    const isHoliday = holidays.some(holiday => {
+      const holidayDate = new Date(holiday);
+      holidayDate.setHours(0, 0, 0, 0);
+      return taskDate.getTime() === holidayDate.getTime();
+    });
+    if (isApprovedLeave) {
+      return {
+        className: 'day-date day-date-leave',
+        tooltip: 'Leave'
+      };
+    } else if (isHoliday) {
+      return {
+        className: 'day-date day-date-holiday',
+        tooltip: 'Holiday'
+      };
+    } else if (isSunday) {
+      return {
+        className: 'day-date day-date-sunday',
+        tooltip: 'Sunday'
+      };
+    }
+    return {
+      className: 'day-date day-date-regular',
+      tooltip: dateStr
+    };
+  };
   const fetchData = async () => {
     if (!employeeId) {
       showAlert("Employee ID is required to fetch data.");
@@ -137,10 +172,80 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       return;
     }
     setLoading(true);
+    setLoadingHolidays(true);
+    setLoadingLeaves(true);
     setError(null);
     setNoTasks(false);
-
     try {
+      // Fetch freeze days
+      console.log('Fetching freeze days from API...');
+      const configResponse = await withRetry(() =>
+        axios.get(`http://localhost:5000/api/config`, {
+          headers: {
+            "x-employee-id": employeeId,
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "Content-Type": "application/json",
+          },
+        })
+      );
+      console.log('Config API response:', JSON.stringify(configResponse.data, null, 2));
+      if (!configResponse.data || !configResponse.data.success || !Array.isArray(configResponse.data.data)) {
+        console.error('Invalid API response structure:', configResponse.data);
+        setFreezeDays(0);
+        showAlert('Invalid config API response. Freezing all past tasks.');
+      } else {
+        const configData = configResponse.data.data;
+        const freezeDaysConfig = configData.find(item => item.key === 'freeze_days_employee');
+        if (!freezeDaysConfig) {
+          console.error('freeze_days_employee key not found in config data:', configData);
+          setFreezeDays(0);
+          showAlert('freeze_days_employee not found. Freezing all past tasks.');
+        } else {
+          const days = Number(freezeDaysConfig.value);
+          if (isNaN(days) || days < 0) {
+            console.error(`Invalid freeze_days_employee value: ${freezeDaysConfig.value}`);
+            setFreezeDays(0);
+            showAlert('Invalid freeze_days_employee value. Freezing all past tasks.');
+          } else {
+            console.log(`freeze_days_employee value: ${freezeDaysConfig.value}, parsed days: ${days}`);
+            setFreezeDays(days);
+          }
+        }
+      }
+      // Fetch holidays
+      const holidaysUrl = `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`;
+      console.log("Fetching holidays from:", holidaysUrl);
+      const holidaysRes = await withRetry(() =>
+        axios.get(holidaysUrl, {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-employee-id": employeeId,
+            "Content-Type": "application/json",
+          },
+        })
+      );
+      const holidayData = Array.isArray(holidaysRes.data.holidays)
+        ? holidaysRes.data.holidays.map(holiday => holiday.date)
+        : [];
+      setHolidays(holidayData.length > 0 ? holidayData : ['2025-12-25']);
+      console.log("Holidays:", holidayData);
+      // Fetch approved leaves
+      const leavesUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
+      console.log("Fetching leaves from:", leavesUrl);
+      const leavesRes = await withRetry(() =>
+        axios.get(leavesUrl, {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "Content-Type": "application/json",
+          },
+        })
+      );
+      const approvedLeavesData = Array.isArray(leavesRes.data.data)
+        ? leavesRes.data.data.filter(leave => leave.status === "Approved")
+        : [];
+      setApprovedLeaves(approvedLeavesData);
+      console.log("Approved Leaves:", approvedLeavesData);
+      // Fetch projects
       const projectsUrl = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`;
       console.log("Fetching projects from:", projectsUrl);
       const projectsRes = await withRetry(() =>
@@ -157,7 +262,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         newProjects[project.id] = project.project;
       });
       setProjects(newProjects);
-
+      // Fetch tasks
       const tasksUrl = `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/employee/${employeeId}`;
       console.log("Fetching tasks from:", tasksUrl);
       const tasksRes = await withRetry(() =>
@@ -171,7 +276,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         setTasksData(weekDates.map((date) => ({ date, tasks: [] })));
         return;
       }
-
       const filteredTasks = tasks.filter((task) => task.week_id === weekId);
       const groupedTasks = weekDates.map((date) => ({
         date,
@@ -190,11 +294,15 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       } else {
         showAlert(`Failed to fetch data: ${err.response?.status || ''} ${err.message}. Please check the backend server or network.`);
       }
+      setHolidays(['2025-12-25']);
+      setApprovedLeaves([]);
+      setFreezeDays(0);
     } finally {
       setLoading(false);
+      setLoadingHolidays(false);
+      setLoadingLeaves(false);
     }
   };
-
   useEffect(() => {
     if (process.env.REACT_APP_BACKEND_URL) {
       fetchData();
@@ -202,46 +310,40 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert("Backend URL not configured. Please check your .env file.");
     }
   }, [employeeId, weekId, weekOffset]);
-
   const handlePreviousWeek = () => {
     setWeekOffset((prev) => Math.max(prev - 1, -3));
   };
-
   const handleNextWeek = () => {
     setWeekOffset((prev) => Math.min(prev + 1, 3));
   };
-
   const toggleExpand = (date) => {
     setExpandedDates((prev) => ({ ...prev, [date]: !prev[date] }));
   };
-
   const handleEditClick = (task) => {
     if (userRole !== "employee") return;
     if (!isTaskEditable(task.task_date)) {
-      showAlert("Cannot edit: Task is from more than one day ago.");
+      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
     setEditingTask(task.task_id);
     setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
   };
-
   const handleSupStatusEditClick = (task) => {
     if (userRole !== "supervisor") return;
     if (!isTaskEditable(task.task_date)) {
-      showAlert("Cannot edit: Task is from more than one day ago.");
+      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
     setEditingSupStatus(task.task_id);
     setSupFormData({ supStatus: task.sup_status || "incomplete", supComment: task.sup_comment || "" });
   };
-
   const handleSave = async (taskId) => {
     if (userRole !== "employee") return;
     const task = tasksData
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert("Cannot edit: Task is from more than one day ago.");
+      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
     try {
@@ -278,19 +380,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
-
   const handleCancelEdit = () => {
     setEditingTask(null);
     setFormData({ taskName: "", status: "", comment: "" });
   };
-
   const handleSupStatusSave = async (taskId) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert("Cannot edit: Task is from more than one day ago.");
+      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
     try {
@@ -327,31 +427,27 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
-
   const handleSupStatusCancel = () => {
     setEditingSupStatus(null);
     setSupFormData({ supStatus: "", supComment: "" });
   };
-
   const handleEnterReview = () => {
     if (userRole === "supervisor") {
       setSupReviewMode(true);
     }
   };
-
   const handleExitReview = () => {
     setSupReviewMode(false);
     setStrikeTaskId(null);
     setEditingSupStatus(null);
   };
-
   const handleApprove = async (taskId) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert("Cannot edit: Task is from more than one day ago.");
+      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
     try {
@@ -375,14 +471,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
-
   const handleSuspendReview = async (taskId) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert("Cannot edit: Task is from more than one day ago.");
+      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
     try {
@@ -406,14 +501,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
-
   const handleStrike = async (taskId, dayDate) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert("Cannot edit: Task is from more than one day ago.");
+      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
     try {
@@ -438,7 +532,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
-
   const handleReplacementChange = (field, value) => {
     setReplacementData((prev) => ({
       ...prev,
@@ -446,7 +539,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       ...(field === "projectId" ? { projectName: projects[value] || "" } : {}),
     }));
   };
-
   const handleAddReplacement = async () => {
     if (userRole !== "supervisor") return;
     if (!replacementData.projectId || !replacementData.taskName) {
@@ -457,12 +549,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const dayIndex = tasksData.findIndex((d) => d.date === replacementData.date);
       const taskIndex = tasksData[dayIndex].tasks.findIndex((t) => t.task_id === strikeTaskId);
       const task = tasksData[dayIndex].tasks[taskIndex];
-
       if (!isTaskEditable(task.task_date)) {
-        showAlert("Cannot edit: Task is from more than one day ago.");
+        showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
         return;
       }
-
       const updatedTask = {
         project_id: task.project_id,
         project_name: task.project_name,
@@ -479,12 +569,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${strikeTaskId}`, updatedTask, {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
       });
-
       const [day, monthName] = replacementData.date.split(" ");
       const year = new Date().getFullYear();
       const month = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
       const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-
       const newTask = {
         week_id: weekId,
         task_date: formattedDate,
@@ -503,7 +591,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`, newTask, {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
       });
-
       setTasksData((prev) =>
         prev.map((day, i) =>
           i === dayIndex
@@ -531,13 +618,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
-
   const handleAssignClick = () => {
     setShowAssignForm(true);
     setAssignTasks([]);
     setDropdownOpen({});
   };
-
   const handleAddTask = () => {
     setAssignTasks((prev) => [
       ...prev,
@@ -549,7 +634,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       },
     ]);
   };
-
   const handleRemoveTask = (index) => {
     setAssignTasks((prev) => prev.filter((_, i) => i !== index));
     setDropdownOpen((prev) => {
@@ -558,7 +642,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       return newState;
     });
   };
-
   const handleAssignChange = (index, field, value) => {
     setAssignTasks((prev) =>
       prev.map((t, i) => {
@@ -573,7 +656,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       })
     );
   };
-
   const handleProjectSelect = (index) => (e) => {
     const id = e.target.value;
     setAssignTasks((prev) =>
@@ -588,7 +670,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       )
     );
   };
-
   const handleAssignSubmit = async () => {
     const validTasks = assignTasks.filter(
       (task) => task.projectId && task.taskName && task.dates.length > 0
@@ -606,7 +687,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           taskDate.setHours(0, 0, 0, 0);
           const taskDateStr = formatDateIST(taskDate);
           console.log("Assigning task for date:", date, "Parsed Date:", taskDate, "Formatted Date:", taskDateStr);
-
           const newTask = {
             week_id: weekId,
             task_date: taskDateStr,
@@ -625,11 +705,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`, newTask, {
             headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
           });
-
           setTasksData((prev) => {
             const newData = [...prev];
             const dayIndex = newData.findIndex((d) => d.date === date);
-            console.log("Day Index:", dayIndex, "Date:", date, "Task:", newTask);
+            console.log("Day знания Index:", dayIndex, "Date:", date, "Task:", newTask);
             if (dayIndex > -1) {
               newData[dayIndex] = {
                 ...newData[dayIndex],
@@ -656,13 +735,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
-
   const handleAssignCancel = () => {
     setShowAssignForm(false);
     setAssignTasks([]);
     setDropdownOpen({});
   };
-
   const statusColors = {
     completed: "#28a745",
     "add on": "#17a2b8",
@@ -671,7 +748,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     "not started": "#888",
     working: "#007bff",
   };
-
   const statusLabels = {
     completed: "Completed",
     "add on": "Add On",
@@ -680,19 +756,16 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     "not started": "Not Started",
     working: "Working",
   };
-
   const reviewColors = {
     approved: "#28a745",
     struck: "#dc3545",
     suspended_review: "#ffc107",
   };
-
   const reviewIcons = {
     approved: "✓",
     struck: "✗",
     suspended_review: "⛔",
   };
-
   return (
     <div className="weekly-task-planner">
       <div className="planner-header">
@@ -761,8 +834,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           )}
         </div>
       </div>
-
-      {loading && <div>Loading tasks...</div>}
+      {loading || loadingHolidays || loadingLeaves ? <div>Loading data...</div> : null}
       {error && (
         <div className="error-message">
           {error}
@@ -776,7 +848,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           No tasks available in this Week {weekId}: {dateRange}.{" "}
         </div>
       )}
-
       {showAssignForm && (
         <div className="assign-form-modal">
           <div className="assign-form-empdriven">
@@ -875,7 +946,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           </div>
         </div>
       )}
-
       {userRole === "supervisor" && strikeTaskId && (
         <div className="replacement-modal">
           <div className="replacement-form">
@@ -919,15 +989,16 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           </div>
         </div>
       )}
-
       {!loading && !error && !noTasks && tasksData.map((day) => {
         const isExpanded = expandedDates[day.date] || false;
         const visibleTasks = isExpanded ? day.tasks : day.tasks.slice(0, 3);
-
+        const dateStyle = getTaskDateStyle(day.date);
         return (
           <div key={day.date} className="day-card">
             <div className="day-left-column">
-              <span className="day-date">{day.date}</span>
+              <span className={dateStyle.className} title={dateStyle.tooltip}>
+                {day.date}
+              </span>
               <div className="projects-column">
                 {visibleTasks.map((task) => (
                   <div key={task.task_id} className="circle-container">
@@ -950,8 +1021,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               <div className="tasks-list">
                 {visibleTasks.map((task) => {
                   const editable = isTaskEditable(task.task_date);
+                  console.log(`Rendering task ${task.task_id}: date=${task.task_date}, editable=${editable}, class=${!editable ? 'task-frozen' : ''}`);
                   return (
-                    <div key={task.task_id} className="task-row">
+                    <div key={task.task_id} className={`task-row ${!editable ? 'task-frozen' : ''}`}>
                       <div className="task-name">
                         {task.sup_review_status === "struck" ? (
                           <>
@@ -998,7 +1070,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </>
                         )}
                         {userRole === "supervisor" && supReviewMode && task.sup_review_status === "pending" && (
-                          <div className="review-action-icons" style={{ opacity: editable ? 2 : 0.2 }}>
+                          <div className="review-action-icons" style={{ opacity: editable ? 1 : 0.5 }}>
                             <svg
                               className="action-icon approve"
                               onClick={() => handleApprove(task.task_id)}
@@ -1043,7 +1115,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </div>
                         )}
                       </div>
-                      <div className="update-section" style={{ opacity: editable ? 1 : 0.2 }}>
+                      <div className="update-section" style={{ opacity: editable ? 1 : 0.5 }}>
                         {editingTask === task.task_id && userRole === "employee" && (
                           <div className="edit-popup">
                             <div className="checkbox-group">
@@ -1118,7 +1190,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </div>
                         </div>
                       </div>
-                      <div className="supervisor-section" style={{ opacity: editable ? 1 : 0.2 }}>
+                      <div className="supervisor-section" style={{ opacity: editable ? 1 : 0.5 }}>
                         {userRole === "supervisor" && supReviewMode && editingSupStatus === task.task_id ? (
                           <div className="edit-section">
                             <div className="checkbox-group">
@@ -1220,7 +1292,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           </div>
         );
       })}
-
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

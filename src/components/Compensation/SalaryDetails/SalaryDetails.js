@@ -1,1795 +1,3 @@
-// // // // import React, { useEffect, useState } from 'react';
-// // // // import axios from 'axios';
-// // // // import './SalaryDetails.css'; // Assuming a corresponding CSS file; adjust path if needed
-// // // // import {
-// // // //   calculateSalaryDetails,
-// // // // } from "../../../utils/SalaryCalculations.js"; // Adjust path if needed
-// // // // import { calculateLOPEffect } from "../../../utils/lopCalculations.js"; // Adjust path if needed
-// // // // import { calculateIncentives } from "../../../utils/IncentiveUtils.js"; // Adjust path if needed
-
-// // // // const SalaryDetails = () => {
-// // // //   const [employees, setEmployees] = useState([]);
-// // // //   const [advances, setAdvances] = useState([]);
-// // // //   const [overtimeRecords, setOvertimeRecords] = useState([]);
-// // // //   const [bonusRecords, setBonusRecords] = useState([]);
-// // // //   const [employeeLopData, setEmployeeLopData] = useState({});
-// // // //   const [employeeIncentiveData, setEmployeeIncentiveData] = useState({});
-// // // //   const [isLoading, setIsLoading] = useState(true);
-// // // //   const [searchQuery, setSearchQuery] = useState(""); // Internal state for search
-
-// // // //   const API_KEY = process.env.REACT_APP_API_KEY;
-// // // //   const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
-// // // //   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
-
-// // // //   useEffect(() => {
-// // // //     const fetchSalaryBreakupData = async () => {
-// // // //       console.log("Environment Variables:", {
-// // // //         API_KEY: process.env.REACT_APP_API_KEY,
-// // // //         BASE_URL: process.env.REACT_APP_BACKEND_URL,
-// // // //         meId,
-// // // //       });
-
-// // // //       if (!process.env.REACT_APP_API_KEY || !meId) {
-// // // //         console.error("Missing credentials: API_KEY or meId");
-// // // //         setIsLoading(false);
-// // // //         return;
-// // // //       }
-
-// // // //       const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-// // // //       console.log("Fetching data with headers:", headers);
-
-// // // //       try {
-// // // //         setIsLoading(true);
-// // // //         const [
-// // // //           compensationsRes,
-// // // //           employeesRes,
-// // // //           advancesRes,
-// // // //           overtimeRes,
-// // // //           bonusRes,
-// // // //         ] = await Promise.all([
-// // // //           axios.get(`${BASE_URL}/api/compensations/list`, { headers }).catch(err => {
-// // // //             console.error("Error fetching compensations/list:", err);
-// // // //             throw err;
-// // // //           }),
-// // // //           axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }).catch(err => {
-// // // //             console.error("Error fetching compensation/assigned:", err);
-// // // //             throw err;
-// // // //           }),
-// // // //           axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers }).catch(err => {
-// // // //             console.error("Error fetching compensation/advance-details:", err);
-// // // //             throw err;
-// // // //           }),
-// // // //           axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }).catch(err => {
-// // // //             console.error("Error fetching compensation/overtime-status-summary:", err);
-// // // //             throw err;
-// // // //           }),
-// // // //           axios.get(`${BASE_URL}/api/compensation/bonus-list`, { headers }).catch(err => {
-// // // //             console.error("Error fetching compensation/bonus-list:", err);
-// // // //             throw err;
-// // // //           }),
-// // // //         ]);
-
-// // // //         console.log("API Responses:", {
-// // // //           compensations: compensationsRes.data,
-// // // //           employees: employeesRes.data,
-// // // //           advances: advancesRes.data,
-// // // //           overtime: overtimeRes.data,
-// // // //           bonus: bonusRes.data,
-// // // //         });
-
-// // // //         const compensationMap = new Map();
-// // // //         (compensationsRes.data.data || []).forEach((comp) => {
-// // // //           compensationMap.set(comp.compensation_plan_name, comp.plan_data);
-// // // //         });
-
-// // // //         const enrichedEmployeesMap = new Map();
-// // // //         (employeesRes.data.data || []).forEach((emp) => {
-// // // //           if (!enrichedEmployeesMap.has(emp.employee_id)) {
-// // // //             enrichedEmployeesMap.set(emp.employee_id, {
-// // // //               ...emp,
-// // // //               plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
-// // // //             });
-// // // //           } else {
-// // // //             console.warn(`Duplicate employee_id found: ${emp.employee_id}`);
-// // // //           }
-// // // //         });
-// // // //         const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
-// // // //         setEmployees(enrichedEmployees);
-// // // //         setAdvances(advancesRes.data.data || []);
-// // // //         setOvertimeRecords(overtimeRes.data.data || []);
-// // // //         setBonusRecords(bonusRes.data.data || []);
-
-// // // //         const lopDataPromises = enrichedEmployees.map((emp) =>
-// // // //           calculateLOPEffect(emp.employee_id)
-// // // //             .then((result) => ({
-// // // //               employeeId: emp.employee_id,
-// // // //               lopData: result,
-// // // //             }))
-// // // //             .catch((err) => {
-// // // //               console.warn(`LOP fetch failed for ${emp.employee_id}:`, err);
-// // // //               return {
-// // // //                 employeeId: emp.employee_id,
-// // // //                 lopData: {
-// // // //                   currentMonth: { days: 0, value: "0.00", currency: "INR" },
-// // // //                   deferred: { days: 0, value: "0.00", currency: "INR" },
-// // // //                   nextMonth: { days: 0, value: "0.00", currency: "INR" },
-// // // //                   yearly: { days: 0, value: "0.00", currency: "INR" },
-// // // //                 },
-// // // //               };
-// // // //             })
-// // // //         );
-
-// // // //         const lopDataResults = await Promise.all(lopDataPromises);
-// // // //         const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
-// // // //           acc[employeeId] = lopData;
-// // // //           return acc;
-// // // //         }, {});
-// // // //         setEmployeeLopData(lopDataMap);
-
-// // // //         const incentiveDataPromises = enrichedEmployees.map((emp) =>
-// // // //           calculateIncentives(emp.employee_id)
-// // // //             .then((result) => ({
-// // // //               employeeId: emp.employee_id,
-// // // //               incentiveData: result,
-// // // //             }))
-// // // //             .catch((err) => {
-// // // //               console.warn(`Incentive fetch failed for ${emp.employee_id}:`, err);
-// // // //               return {
-// // // //                 employeeId: emp.employee_id,
-// // // //                 incentiveData: {
-// // // //                   ctcIncentive: { value: "0.00", currency: "INR" },
-// // // //                   salesIncentive: { value: "0.00", currency: "INR" },
-// // // //                   totalIncentive: { value: "0.00", currency: "INR" },
-// // // //                 },
-// // // //               };
-// // // //             })
-// // // //         );
-
-// // // //         const incentiveDataResults = await Promise.all(incentiveDataPromises);
-// // // //         const incentiveDataMap = incentiveDataResults.reduce(
-// // // //           (acc, { employeeId, incentiveData }) => {
-// // // //             if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
-// // // //               acc[employeeId] = incentiveData;
-// // // //             }
-// // // //             return acc;
-// // // //           },
-// // // //           {}
-// // // //         );
-// // // //         setEmployeeIncentiveData(incentiveDataMap);
-
-// // // //       } catch (error) {
-// // // //         console.error("Fetch error:", error);
-// // // //       } finally {
-// // // //         setIsLoading(false);
-// // // //       }
-// // // //     };
-
-// // // //     fetchSalaryBreakupData();
-// // // //   }, []);
-
-// // // //   const filteredEmployees = (employees || []).filter(
-// // // //     (emp) =>
-// // // //       emp.employee_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-// // // //       emp.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-// // // //   );
-
-// // // //   if (isLoading) {
-// // // //     return <div className="sd-loading">Loading...</div>; // Simple loading state
-// // // //   }
-
-// // // //   return (
-// // // //     <div className="sd-container">
-// // // //       <div className="sd-header">
-// // // //         <div className="sd-header-title">Employee Salary Overview</div> {/* No back button, as per request */}
-// // // //       </div>
-// // // //       <div className="sd-search-container">
-// // // //         <input
-// // // //           type="text"
-// // // //           className="sd-search-input"
-// // // //           placeholder="Search by ID or Name"
-// // // //           value={searchQuery}
-// // // //           onChange={(e) => setSearchQuery(e.target.value)}
-// // // //         />
-// // // //       </div>
-// // // //       {filteredEmployees.length > 0 ? (
-// // // //         <div className="sd-table-container">
-// // // //           <div className="sd-table-wrapper">
-// // // //             <table className="sd-table">
-// // // //               <thead>
-// // // //                 <tr>
-// // // //                   <th className="sd-table-header sd-align-left sd-id-column">ID</th>
-// // // //                   <th className="sd-table-header sd-align-left sd-name-column">Name</th>
-// // // //                   <th className="sd-table-header sd-align-right">Annual CTC</th>
-// // // //                   <th className="sd-table-header sd-align-right">Basic Salary</th>
-// // // //                   <th className="sd-table-header sd-align-right">HRA</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable">LTA</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable">Other Allow.</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable">Incentives</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable">Overtime</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable">Bonus</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Advance Rec.</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Emp. PF</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Employer PF</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">ESIC</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Gratuity</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Prof. Tax</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Income Tax</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Insurance</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Days</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Ded.</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable">Gross Salary</th>
-// // // //                   <th className="sd-table-header sd-align-right sd-scrollable">Net Salary</th>
-// // // //                 </tr>
-// // // //               </thead>
-// // // //               <tbody className="sd-table-body">
-// // // //                 {filteredEmployees.map((emp) => {
-// // // //                   const salaryDetails = calculateSalaryDetails(
-// // // //                     emp.ctc,
-// // // //                     emp.plan_data,
-// // // //                     emp.employee_id,
-// // // //                     overtimeRecords || [],
-// // // //                     bonusRecords || [],
-// // // //                     advances || [],
-// // // //                     employeeIncentiveData || {}
-// // // //                   );
-// // // //                   const lopData =
-// // // //                     employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-// // // //                       currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                       deferred: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                       nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                       yearly: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                     } : {
-// // // //                       currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                       deferred: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                       nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                       yearly: { days: 0, value: '0.00', currency: 'INR' },
-// // // //                     };
-
-// // // //                   // Calculate incentive for this employee
-// // // //                   const empId = String(emp.employee_id).toUpperCase();
-// // // //                   const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-// // // //                   const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-// // // //                   const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-
-// // // //                   const netSalary = salaryDetails
-// // // //                     ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-// // // //                     : 0;
-// // // //                   return (
-// // // //                     <tr key={emp.employee_id}>
-// // // //                       <td className="sd-table-cell sd-align-left sd-id-column">{emp.employee_id}</td>
-// // // //                       <td className="sd-table-cell sd-align-left sd-name-column">{emp.full_name}</td>
-// // // //                       <td className="sd-table-cell sd-align-right">
-// // // //                         {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.basicSalary).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.hra).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.ltaAllowance).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.otherAllowances).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable">
-// // // //                         {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.overtimePay).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.bonusPay).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.advanceRecovery).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.employeePF).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.esic).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.gratuity).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.professionalTax).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.tds).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.insurance).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {lopData ? lopData.currentMonth.days : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // // //                         {lopData ? `₹${parseFloat(lopData.currentMonth.value || 0).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable">
-// // // //                         {salaryDetails ? `₹${parseFloat(salaryDetails.grossSalary).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                       <td className="sd-table-cell sd-align-right sd-scrollable">
-// // // //                         {netSalary > 0 ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
-// // // //                       </td>
-// // // //                     </tr>
-// // // //                   );
-// // // //                 })}
-// // // //               </tbody>
-// // // //             </table>
-// // // //           </div>
-// // // //         </div>
-// // // //       ) : (
-// // // //         <p className="sd-no-data">No employees found</p>
-// // // //       )}
-// // // //     </div>
-// // // //   );
-// // // // };
-
-// // // // export default SalaryDetails;
-// // // import React, { useEffect, useState } from 'react';
-// // // import axios from 'axios';
-// // // import * as XLSX from 'xlsx';
-// // // import './SalaryDetails.css'; // Assuming a corresponding CSS file; adjust path if needed
-// // // import {
-// // //   calculateSalaryDetails,
-// // // } from "../../../utils/SalaryCalculations.js"; // Adjust path if needed
-// // // import { calculateLOPEffect } from "../../../utils/lopCalculations.js"; // Adjust path if needed
-// // // import { calculateIncentives } from "../../../utils/IncentiveUtils.js"; // Adjust path if needed
-
-// // // const SalaryDetails = () => {
-// // //   const [employees, setEmployees] = useState([]);
-// // //   const [advances, setAdvances] = useState([]);
-// // //   const [overtimeRecords, setOvertimeRecords] = useState([]);
-// // //   const [bonusRecords, setBonusRecords] = useState([]);
-// // //   const [employeeLopData, setEmployeeLopData] = useState({});
-// // //   const [employeeIncentiveData, setEmployeeIncentiveData] = useState({});
-// // //   const [isLoading, setIsLoading] = useState(true);
-// // //   const [searchQuery, setSearchQuery] = useState(""); // Internal state for search
-
-// // //   const API_KEY = process.env.REACT_APP_API_KEY;
-// // //   const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
-// // //   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
-
-// // //   useEffect(() => {
-// // //     const fetchSalaryBreakupData = async () => {
-// // //       console.log("Environment Variables:", {
-// // //         API_KEY: process.env.REACT_APP_API_KEY,
-// // //         BASE_URL: process.env.REACT_APP_BACKEND_URL,
-// // //         meId,
-// // //       });
-
-// // //       if (!process.env.REACT_APP_API_KEY || !meId) {
-// // //         console.error("Missing credentials: API_KEY or meId");
-// // //         setIsLoading(false);
-// // //         return;
-// // //       }
-
-// // //       const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-// // //       console.log("Fetching data with headers:", headers);
-
-// // //       try {
-// // //         setIsLoading(true);
-// // //         const [
-// // //           compensationsRes,
-// // //           employeesRes,
-// // //           advancesRes,
-// // //           overtimeRes,
-// // //           bonusRes,
-// // //         ] = await Promise.all([
-// // //           axios.get(`${BASE_URL}/api/compensations/list`, { headers }).catch(err => {
-// // //             console.error("Error fetching compensations/list:", err);
-// // //             throw err;
-// // //           }),
-// // //           axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }).catch(err => {
-// // //             console.error("Error fetching compensation/assigned:", err);
-// // //             throw err;
-// // //           }),
-// // //           axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers }).catch(err => {
-// // //             console.error("Error fetching compensation/advance-details:", err);
-// // //             throw err;
-// // //           }),
-// // //           axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }).catch(err => {
-// // //             console.error("Error fetching compensation/overtime-status-summary:", err);
-// // //             throw err;
-// // //           }),
-// // //           axios.get(`${BASE_URL}/api/compensation/bonus-list`, { headers }).catch(err => {
-// // //             console.error("Error fetching compensation/bonus-list:", err);
-// // //             throw err;
-// // //           }),
-// // //         ]);
-
-// // //         console.log("API Responses:", {
-// // //           compensations: compensationsRes.data,
-// // //           employees: employeesRes.data,
-// // //           advances: advancesRes.data,
-// // //           overtime: overtimeRes.data,
-// // //           bonus: bonusRes.data,
-// // //         });
-
-// // //         const compensationMap = new Map();
-// // //         (compensationsRes.data.data || []).forEach((comp) => {
-// // //           compensationMap.set(comp.compensation_plan_name, comp.plan_data);
-// // //         });
-
-// // //         const enrichedEmployeesMap = new Map();
-// // //         (employeesRes.data.data || []).forEach((emp) => {
-// // //           if (!enrichedEmployeesMap.has(emp.employee_id)) {
-// // //             enrichedEmployeesMap.set(emp.employee_id, {
-// // //               ...emp,
-// // //               plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
-// // //             });
-// // //           } else {
-// // //             console.warn(`Duplicate employee_id found: ${emp.employee_id}`);
-// // //           }
-// // //         });
-// // //         const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
-// // //         setEmployees(enrichedEmployees);
-// // //         setAdvances(advancesRes.data.data || []);
-// // //         setOvertimeRecords(overtimeRes.data.data || []);
-// // //         setBonusRecords(bonusRes.data.data || []);
-
-// // //         const lopDataPromises = enrichedEmployees.map((emp) =>
-// // //           calculateLOPEffect(emp.employee_id)
-// // //             .then((result) => ({
-// // //               employeeId: emp.employee_id,
-// // //               lopData: result,
-// // //             }))
-// // //             .catch((err) => {
-// // //               console.warn(`LOP fetch failed for ${emp.employee_id}:`, err);
-// // //               return {
-// // //                 employeeId: emp.employee_id,
-// // //                 lopData: {
-// // //                   currentMonth: { days: 0, value: "0.00", currency: "INR" },
-// // //                   deferred: { days: 0, value: "0.00", currency: "INR" },
-// // //                   nextMonth: { days: 0, value: "0.00", currency: "INR" },
-// // //                   yearly: { days: 0, value: "0.00", currency: "INR" },
-// // //                 },
-// // //               };
-// // //             })
-// // //         );
-
-// // //         const lopDataResults = await Promise.all(lopDataPromises);
-// // //         const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
-// // //           acc[employeeId] = lopData;
-// // //           return acc;
-// // //         }, {});
-// // //         setEmployeeLopData(lopDataMap);
-
-// // //         const incentiveDataPromises = enrichedEmployees.map((emp) =>
-// // //           calculateIncentives(emp.employee_id)
-// // //             .then((result) => ({
-// // //               employeeId: emp.employee_id,
-// // //               incentiveData: result,
-// // //             }))
-// // //             .catch((err) => {
-// // //               console.warn(`Incentive fetch failed for ${emp.employee_id}:`, err);
-// // //               return {
-// // //                 employeeId: emp.employee_id,
-// // //                 incentiveData: {
-// // //                   ctcIncentive: { value: "0.00", currency: "INR" },
-// // //                   salesIncentive: { value: "0.00", currency: "INR" },
-// // //                   totalIncentive: { value: "0.00", currency: "INR" },
-// // //                 },
-// // //               };
-// // //             })
-// // //         );
-
-// // //         const incentiveDataResults = await Promise.all(incentiveDataPromises);
-// // //         const incentiveDataMap = incentiveDataResults.reduce(
-// // //           (acc, { employeeId, incentiveData }) => {
-// // //             if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
-// // //               acc[employeeId] = incentiveData;
-// // //             }
-// // //             return acc;
-// // //           },
-// // //           {}
-// // //         );
-// // //         setEmployeeIncentiveData(incentiveDataMap);
-
-// // //       } catch (error) {
-// // //         console.error("Fetch error:", error);
-// // //       } finally {
-// // //         setIsLoading(false);
-// // //       }
-// // //     };
-
-// // //     fetchSalaryBreakupData();
-// // //   }, []);
-
-// // //   const filteredEmployees = (employees || []).filter(
-// // //     (emp) =>
-// // //       emp.employee_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-// // //       emp.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-// // //   );
-
-// // //   const downloadExcel = () => {
-// // //     if (filteredEmployees.length === 0) return;
-
-// // //     const headers = [
-// // //       'ID',
-// // //       'Name',
-// // //       'Annual CTC',
-// // //       'Basic Salary',
-// // //       'HRA',
-// // //       'LTA',
-// // //       'Other Allow.',
-// // //       'Incentives',
-// // //       'Overtime',
-// // //       'Bonus',
-// // //       'Advance Rec.',
-// // //       'Emp. PF',
-// // //       'Employer PF',
-// // //       'ESIC',
-// // //       'Gratuity',
-// // //       'Prof. Tax',
-// // //       'Income Tax',
-// // //       'Insurance',
-// // //       'LOP Days',
-// // //       'LOP Ded.',
-// // //       'Gross Salary',
-// // //       'Net Salary'
-// // //     ];
-
-// // //     const rows = filteredEmployees.map((emp) => {
-// // //       const salaryDetails = calculateSalaryDetails(
-// // //         emp.ctc,
-// // //         emp.plan_data,
-// // //         emp.employee_id,
-// // //         overtimeRecords || [],
-// // //         bonusRecords || [],
-// // //         advances || [],
-// // //         employeeIncentiveData || {}
-// // //       );
-// // //       const lopData =
-// // //         employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-// // //           currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //           deferred: { days: 0, value: '0.00', currency: 'INR' },
-// // //           nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //           yearly: { days: 0, value: '0.00', currency: 'INR' },
-// // //         } : {
-// // //           currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //           deferred: { days: 0, value: '0.00', currency: 'INR' },
-// // //           nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //           yearly: { days: 0, value: '0.00', currency: 'INR' },
-// // //         };
-
-// // //       // Calculate incentive for this employee
-// // //       const empId = String(emp.employee_id).toUpperCase();
-// // //       const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-// // //       const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-// // //       const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-
-// // //       const netSalary = salaryDetails
-// // //         ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-// // //         : 0;
-
-// // //       return [
-// // //         emp.employee_id,
-// // //         emp.full_name,
-// // //         emp.ctc ? parseFloat(emp.ctc) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.hra) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0,
-// // //         incentiveValue,
-// // //         salaryDetails ? parseFloat(salaryDetails.overtimePay) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.bonusPay) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.employeePF) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.employerPF) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.esic) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.gratuity) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.tds) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.insurance) : 0,
-// // //         lopData ? lopData.currentMonth.days : 0,
-// // //         lopData ? parseFloat(lopData.currentMonth.value || 0) : 0,
-// // //         salaryDetails ? parseFloat(salaryDetails.grossSalary) : 0,
-// // //         netSalary > 0 ? netSalary : 0
-// // //       ];
-// // //     });
-
-// // //     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-// // //     // Optional: Adjust column widths
-// // //     const colWidths = [
-// // //       { wch: 8 }, // ID
-// // //       { wch: 15 }, // Name
-// // //       { wch: 12 }, // Annual CTC
-// // //       { wch: 12 }, // Basic Salary
-// // //       { wch: 10 }, // HRA
-// // //       { wch: 8 }, // LTA
-// // //       { wch: 12 }, // Other Allow.
-// // //       { wch: 10 }, // Incentives
-// // //       { wch: 10 }, // Overtime
-// // //       { wch: 8 }, // Bonus
-// // //       { wch: 12 }, // Advance Rec.
-// // //       { wch: 10 }, // Emp. PF
-// // //       { wch: 12 }, // Employer PF
-// // //       { wch: 8 }, // ESIC
-// // //       { wch: 10 }, // Gratuity
-// // //       { wch: 12 }, // Prof. Tax
-// // //       { wch: 10 }, // Income Tax
-// // //       { wch: 10 }, // Insurance
-// // //       { wch: 8 }, // LOP Days
-// // //       { wch: 10 }, // LOP Ded.
-// // //       { wch: 12 }, // Gross Salary
-// // //       { wch: 12 }, // Net Salary
-// // //     ];
-// // //     ws['!cols'] = colWidths;
-
-// // //     const wb = XLSX.utils.book_new();
-// // //     XLSX.utils.book_append_sheet(wb, ws, "Salary Details");
-
-// // //     XLSX.writeFile(wb, 'salary-details.xlsx');
-// // //   };
-
-// // //   const renderTableRows = (employeesToRender) => (
-// // //     <tbody className="sd-table-body">
-// // //       {employeesToRender.map((emp) => {
-// // //         const salaryDetails = calculateSalaryDetails(
-// // //           emp.ctc,
-// // //           emp.plan_data,
-// // //           emp.employee_id,
-// // //           overtimeRecords || [],
-// // //           bonusRecords || [],
-// // //           advances || [],
-// // //           employeeIncentiveData || {}
-// // //         );
-// // //         const lopData =
-// // //           employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-// // //             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //             deferred: { days: 0, value: '0.00', currency: 'INR' },
-// // //             nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //             yearly: { days: 0, value: '0.00', currency: 'INR' },
-// // //           } : {
-// // //             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //             deferred: { days: 0, value: '0.00', currency: 'INR' },
-// // //             nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// // //             yearly: { days: 0, value: '0.00', currency: 'INR' },
-// // //           };
-
-// // //         // Calculate incentive for this employee
-// // //         const empId = String(emp.employee_id).toUpperCase();
-// // //         const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-// // //         const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-// // //         const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-
-// // //         const netSalary = salaryDetails
-// // //           ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-// // //           : 0;
-// // //         return (
-// // //           <tr key={emp.employee_id}>
-// // //             <td 
-// // //               className="sd-table-cell sd-align-left sd-id-column" 
-// // //               style={{ 
-// // //                 position: 'sticky', 
-// // //                 left: 0, 
-// // //                 backgroundColor: 'white', 
-// // //                 zIndex: 2,
-// // //                 minWidth: '60px'
-// // //               }}
-// // //             >
-// // //               {emp.employee_id}
-// // //             </td>
-// // //             <td 
-// // //               className="sd-table-cell sd-align-left sd-name-column" 
-// // //               style={{ 
-// // //                 position: 'sticky', 
-// // //                 left: '60px', 
-// // //                 backgroundColor: 'white', 
-// // //                 zIndex: 2,
-// // //                 minWidth: '150px'
-// // //               }}
-// // //             >
-// // //               {emp.full_name}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right">
-// // //               {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.basicSalary).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.hra).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.ltaAllowance).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.otherAllowances).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// // //               {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.overtimePay).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.bonusPay).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.advanceRecovery).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.employeePF).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.esic).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.gratuity).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.professionalTax).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.tds).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.insurance).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {lopData ? lopData.currentMonth.days : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// // //               {lopData ? `₹${parseFloat(lopData.currentMonth.value || 0).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// // //               {salaryDetails ? `₹${parseFloat(salaryDetails.grossSalary).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// // //               {netSalary > 0 ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
-// // //             </td>
-// // //           </tr>
-// // //         );
-// // //       })}
-// // //     </tbody>
-// // //   );
-
-// // //   if (isLoading) {
-// // //     return <div className="sd-loading">Loading...</div>; // Simple loading state
-// // //   }
-
-// // //   return (
-// // //     <div className="sd-container">
-// // //       <div className="sd-header">
-// // //         <div className="sd-header-title">Employee Salary Overview</div> {/* No back button, as per request */}
-// // //         <button className="sd-proceed-button" onClick={downloadExcel}>
-// // //           Proceed
-// // //         </button>
-// // //       </div>
-// // //       <div className="sd-search-container">
-// // //         <input
-// // //           type="text"
-// // //           className="sd-search-input"
-// // //           placeholder="Search by ID or Name"
-// // //           value={searchQuery}
-// // //           onChange={(e) => setSearchQuery(e.target.value)}
-// // //         />
-// // //       </div>
-// // //       {filteredEmployees.length > 0 ? (
-// // //         <div className="sd-table-container">
-// // //           <div className="sd-table-wrapper" style={{ overflowX: 'auto' }}>
-// // //             <table className="sd-table" style={{ minWidth: '2000px' }}>
-// // //               <thead>
-// // //                 <tr>
-// // //                   <th 
-// // //                     className="sd-table-header sd-align-left sd-id-column" 
-// // //                     style={{ 
-// // //                       position: 'sticky', 
-// // //                       left: 0, 
-// // //                       backgroundColor: '#f8f9fa', 
-// // //                       zIndex: 3,
-// // //                       minWidth: '60px'
-// // //                     }}
-// // //                   >
-// // //                     ID
-// // //                   </th>
-// // //                   <th 
-// // //                     className="sd-table-header sd-align-left sd-name-column" 
-// // //                     style={{ 
-// // //                       position: 'sticky', 
-// // //                       left: '60px', 
-// // //                       backgroundColor: '#f8f9fa', 
-// // //                       zIndex: 3,
-// // //                       minWidth: '150px'
-// // //                     }}
-// // //                   >
-// // //                     Name
-// // //                   </th>
-// // //                   <th className="sd-table-header sd-align-right">Annual CTC</th>
-// // //                   <th className="sd-table-header sd-align-right">Basic Salary</th>
-// // //                   <th className="sd-table-header sd-align-right">HRA</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable">LTA</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable">Other Allow.</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable">Incentives</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable">Overtime</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable">Bonus</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Advance Rec.</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Emp. PF</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Employer PF</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">ESIC</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Gratuity</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Prof. Tax</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Income Tax</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Insurance</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Days</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Ded.</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable">Gross Salary</th>
-// // //                   <th className="sd-table-header sd-align-right sd-scrollable">Net Salary</th>
-// // //                 </tr>
-// // //               </thead>
-// // //               {renderTableRows(filteredEmployees)}
-// // //             </table>
-// // //           </div>
-// // //         </div>
-// // //       ) : (
-// // //         <p className="sd-no-data">No employees found</p>
-// // //       )}
-// // //     </div>
-// // //   );
-// // // };
-
-// // // export default SalaryDetails;
-// // import React, { useEffect, useState } from 'react';
-// // import axios from 'axios';
-// // import * as XLSX from 'xlsx';
-// // import './SalaryDetails.css'; // Assuming a corresponding CSS file; adjust path if needed
-// // import {
-// //   calculateSalaryDetails,
-// // } from "../../../utils/SalaryCalculations.js"; // Adjust path if needed
-// // import { calculateLOPEffect } from "../../../utils/lopCalculations.js"; // Adjust path if needed
-// // import { calculateIncentives } from "../../../utils/IncentiveUtils.js"; // Adjust path if needed
-
-// // const SalaryDetails = () => {
-// //   const [employees, setEmployees] = useState([]);
-// //   const [advances, setAdvances] = useState([]);
-// //   const [overtimeRecords, setOvertimeRecords] = useState([]);
-// //   const [bonusRecords, setBonusRecords] = useState([]);
-// //   const [employeeLopData, setEmployeeLopData] = useState({});
-// //   const [employeeIncentiveData, setEmployeeIncentiveData] = useState({});
-// //   const [isLoading, setIsLoading] = useState(true);
-// //   const [searchQuery, setSearchQuery] = useState(""); // Internal state for search
-
-// //   const API_KEY = process.env.REACT_APP_API_KEY;
-// //   const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
-// //   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
-
-// //   useEffect(() => {
-// //     const fetchSalaryBreakupData = async () => {
-// //       console.log("Environment Variables:", {
-// //         API_KEY: process.env.REACT_APP_API_KEY,
-// //         BASE_URL: process.env.REACT_APP_BACKEND_URL,
-// //         meId,
-// //       });
-
-// //       if (!process.env.REACT_APP_API_KEY || !meId) {
-// //         console.error("Missing credentials: API_KEY or meId");
-// //         setIsLoading(false);
-// //         return;
-// //       }
-
-// //       const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-// //       console.log("Fetching data with headers:", headers);
-
-// //       try {
-// //         setIsLoading(true);
-// //         const [
-// //           compensationsRes,
-// //           employeesRes,
-// //           advancesRes,
-// //           overtimeRes,
-// //           bonusRes,
-// //         ] = await Promise.all([
-// //           axios.get(`${BASE_URL}/api/compensations/list`, { headers }).catch(err => {
-// //             console.error("Error fetching compensations/list:", err);
-// //             throw err;
-// //           }),
-// //           axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }).catch(err => {
-// //             console.error("Error fetching compensation/assigned:", err);
-// //             throw err;
-// //           }),
-// //           axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers }).catch(err => {
-// //             console.error("Error fetching compensation/advance-details:", err);
-// //             throw err;
-// //           }),
-// //           axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }).catch(err => {
-// //             console.error("Error fetching compensation/overtime-status-summary:", err);
-// //             throw err;
-// //           }),
-// //           axios.get(`${BASE_URL}/api/compensation/bonus-list`, { headers }).catch(err => {
-// //             console.error("Error fetching compensation/bonus-list:", err);
-// //             throw err;
-// //           }),
-// //         ]);
-
-// //         console.log("API Responses:", {
-// //           compensations: compensationsRes.data,
-// //           employees: employeesRes.data,
-// //           advances: advancesRes.data,
-// //           overtime: overtimeRes.data,
-// //           bonus: bonusRes.data,
-// //         });
-
-// //         const compensationMap = new Map();
-// //         (compensationsRes.data.data || []).forEach((comp) => {
-// //           compensationMap.set(comp.compensation_plan_name, comp.plan_data);
-// //         });
-
-// //         const enrichedEmployeesMap = new Map();
-// //         (employeesRes.data.data || []).forEach((emp) => {
-// //           if (!enrichedEmployeesMap.has(emp.employee_id)) {
-// //             enrichedEmployeesMap.set(emp.employee_id, {
-// //               ...emp,
-// //               plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
-// //             });
-// //           } else {
-// //             console.warn(`Duplicate employee_id found: ${emp.employee_id}`);
-// //           }
-// //         });
-// //         const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
-// //         setEmployees(enrichedEmployees);
-// //         setAdvances(advancesRes.data.data || []);
-// //         setOvertimeRecords(overtimeRes.data.data || []);
-// //         setBonusRecords(bonusRes.data.data || []);
-
-// //         const lopDataPromises = enrichedEmployees.map((emp) =>
-// //           calculateLOPEffect(emp.employee_id)
-// //             .then((result) => ({
-// //               employeeId: emp.employee_id,
-// //               lopData: result,
-// //             }))
-// //             .catch((err) => {
-// //               console.warn(`LOP fetch failed for ${emp.employee_id}:`, err);
-// //               return {
-// //                 employeeId: emp.employee_id,
-// //                 lopData: {
-// //                   currentMonth: { days: 0, value: "0.00", currency: "INR" },
-// //                   deferred: { days: 0, value: "0.00", currency: "INR" },
-// //                   nextMonth: { days: 0, value: "0.00", currency: "INR" },
-// //                   yearly: { days: 0, value: "0.00", currency: "INR" },
-// //                 },
-// //               };
-// //             })
-// //         );
-
-// //         const lopDataResults = await Promise.all(lopDataPromises);
-// //         const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
-// //           acc[employeeId] = lopData;
-// //           return acc;
-// //         }, {});
-// //         setEmployeeLopData(lopDataMap);
-
-// //         const incentiveDataPromises = enrichedEmployees.map((emp) =>
-// //           calculateIncentives(emp.employee_id)
-// //             .then((result) => ({
-// //               employeeId: emp.employee_id,
-// //               incentiveData: result,
-// //             }))
-// //             .catch((err) => {
-// //               console.warn(`Incentive fetch failed for ${emp.employee_id}:`, err);
-// //               return {
-// //                 employeeId: emp.employee_id,
-// //                 incentiveData: {
-// //                   ctcIncentive: { value: "0.00", currency: "INR" },
-// //                   salesIncentive: { value: "0.00", currency: "INR" },
-// //                   totalIncentive: { value: "0.00", currency: "INR" },
-// //                 },
-// //               };
-// //             })
-// //         );
-
-// //         const incentiveDataResults = await Promise.all(incentiveDataPromises);
-// //         const incentiveDataMap = incentiveDataResults.reduce(
-// //           (acc, { employeeId, incentiveData }) => {
-// //             if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
-// //               acc[employeeId] = incentiveData;
-// //             }
-// //             return acc;
-// //           },
-// //           {}
-// //         );
-// //         setEmployeeIncentiveData(incentiveDataMap);
-
-// //       } catch (error) {
-// //         console.error("Fetch error:", error);
-// //       } finally {
-// //         setIsLoading(false);
-// //       }
-// //     };
-
-// //     fetchSalaryBreakupData();
-// //   }, []);
-
-// //   const filteredEmployees = (employees || []).filter(
-// //     (emp) =>
-// //       emp.employee_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-// //       emp.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-// //   );
-
-// //   const downloadExcel = () => {
-// //     if (filteredEmployees.length === 0) return;
-
-// //     const headers = [
-// //       'ID',
-// //       'Name',
-// //       'Annual CTC',
-// //       'Basic Salary',
-// //       'HRA',
-// //       'LTA',
-// //       'Other Allow.',
-// //       'Incentives',
-// //       'Overtime',
-// //       'Bonus',
-// //       'Advance Rec.',
-// //       'Emp. PF',
-// //       'Employer PF',
-// //       'ESIC',
-// //       'Gratuity',
-// //       'Prof. Tax',
-// //       'Income Tax',
-// //       'Insurance',
-// //       'LOP Days',
-// //       'LOP Ded.',
-// //       'Gross Salary',
-// //       'Net Salary'
-// //     ];
-
-// //     const rows = filteredEmployees.map((emp) => {
-// //       const salaryDetails = calculateSalaryDetails(
-// //         emp.ctc,
-// //         emp.plan_data,
-// //         emp.employee_id,
-// //         overtimeRecords || [],
-// //         bonusRecords || [],
-// //         advances || [],
-// //         employeeIncentiveData || {}
-// //       );
-// //       const lopData =
-// //         employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-// //           currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //           deferred: { days: 0, value: '0.00', currency: 'INR' },
-// //           nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //           yearly: { days: 0, value: '0.00', currency: 'INR' },
-// //         } : {
-// //           currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //           deferred: { days: 0, value: '0.00', currency: 'INR' },
-// //           nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //           yearly: { days: 0, value: '0.00', currency: 'INR' },
-// //         };
-
-// //       // Calculate incentive for this employee
-// //       const empId = String(emp.employee_id).toUpperCase();
-// //       const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-// //       const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-// //       const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-
-// //       const netSalary = salaryDetails
-// //         ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-// //         : 0;
-
-// //       return [
-// //         emp.employee_id,
-// //         emp.full_name,
-// //         emp.ctc ? parseFloat(emp.ctc) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.hra) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0,
-// //         incentiveValue,
-// //         salaryDetails ? parseFloat(salaryDetails.overtimePay) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.bonusPay) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.employeePF) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.employerPF) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.esic) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.gratuity) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.tds) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.insurance) : 0,
-// //         lopData ? lopData.currentMonth.days : 0,
-// //         lopData ? parseFloat(lopData.currentMonth.value || 0) : 0,
-// //         salaryDetails ? parseFloat(salaryDetails.grossSalary) : 0,
-// //         netSalary > 0 ? netSalary : 0
-// //       ];
-// //     });
-
-// //     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-// //     // Optional: Adjust column widths
-// //     const colWidths = [
-// //       { wch: 8 }, // ID
-// //       { wch: 15 }, // Name
-// //       { wch: 12 }, // Annual CTC
-// //       { wch: 12 }, // Basic Salary
-// //       { wch: 10 }, // HRA
-// //       { wch: 8 }, // LTA
-// //       { wch: 12 }, // Other Allow.
-// //       { wch: 10 }, // Incentives
-// //       { wch: 10 }, // Overtime
-// //       { wch: 8 }, // Bonus
-// //       { wch: 12 }, // Advance Rec.
-// //       { wch: 10 }, // Emp. PF
-// //       { wch: 12 }, // Employer PF
-// //       { wch: 8 }, // ESIC
-// //       { wch: 10 }, // Gratuity
-// //       { wch: 12 }, // Prof. Tax
-// //       { wch: 10 }, // Income Tax
-// //       { wch: 10 }, // Insurance
-// //       { wch: 8 }, // LOP Days
-// //       { wch: 10 }, // LOP Ded.
-// //       { wch: 12 }, // Gross Salary
-// //       { wch: 12 }, // Net Salary
-// //     ];
-// //     ws['!cols'] = colWidths;
-
-// //     const wb = XLSX.utils.book_new();
-// //     XLSX.utils.book_append_sheet(wb, ws, "Salary Details");
-
-// //     XLSX.writeFile(wb, 'salary-details.xlsx');
-// //   };
-
-// //   const renderTableRows = (employeesToRender) => (
-// //     <tbody className="sd-table-body">
-// //       {employeesToRender.map((emp) => {
-// //         const salaryDetails = calculateSalaryDetails(
-// //           emp.ctc,
-// //           emp.plan_data,
-// //           emp.employee_id,
-// //           overtimeRecords || [],
-// //           bonusRecords || [],
-// //           advances || [],
-// //           employeeIncentiveData || {}
-// //         );
-// //         const lopData =
-// //           employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-// //             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //             deferred: { days: 0, value: '0.00', currency: 'INR' },
-// //             nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //             yearly: { days: 0, value: '0.00', currency: 'INR' },
-// //           } : {
-// //             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //             deferred: { days: 0, value: '0.00', currency: 'INR' },
-// //             nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-// //             yearly: { days: 0, value: '0.00', currency: 'INR' },
-// //           };
-
-// //         // Calculate incentive for this employee
-// //         const empId = String(emp.employee_id).toUpperCase();
-// //         const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-// //         const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-// //         const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-
-// //         const netSalary = salaryDetails
-// //           ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-// //           : 0;
-// //         return (
-// //           <tr key={emp.employee_id}>
-// //             <td className="sd-table-cell sd-align-left sd-id-column">{emp.employee_id}</td>
-// //             <td className="sd-table-cell sd-align-left sd-name-column">{emp.full_name}</td>
-// //             <td className="sd-table-cell sd-align-right">
-// //               {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.basicSalary).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.hra).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.ltaAllowance).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.otherAllowances).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// //               {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.overtimePay).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.bonusPay).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.advanceRecovery).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.employeePF).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.esic).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.gratuity).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.professionalTax).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.tds).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.insurance).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {lopData ? lopData.currentMonth.days : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-// //               {lopData ? `₹${parseFloat(lopData.currentMonth.value || 0).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// //               {salaryDetails ? `₹${parseFloat(salaryDetails.grossSalary).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //             <td className="sd-table-cell sd-align-right sd-scrollable">
-// //               {netSalary > 0 ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
-// //             </td>
-// //           </tr>
-// //         );
-// //       })}
-// //     </tbody>
-// //   );
-
-// //   if (isLoading) {
-// //     return <div className="sd-loading">Loading...</div>; // Simple loading state
-// //   }
-
-// //   return (
-// //     <div className="sd-container">
-// //       <div className="sd-header">
-// //         <div className="sd-header-title">Employee Salary Overview</div> {/* No back button, as per request */}
-// //         <button className="sd-proceed-button" onClick={downloadExcel}>
-// //           Proceed
-// //         </button>
-// //       </div>
-// //       <div className="sd-search-container">
-// //         <input
-// //           type="text"
-// //           className="sd-search-input"
-// //           placeholder="Search by ID or Name"
-// //           value={searchQuery}
-// //           onChange={(e) => setSearchQuery(e.target.value)}
-// //         />
-// //       </div>
-// //       {filteredEmployees.length > 0 ? (
-// //         <div className="sd-table-section">
-// //           <div className="sd-table-container">
-// //             <div className="sd-table-wrapper">
-// //               <table className="sd-table" style={{ minWidth: '1800px', tableLayout: 'auto' }}>
-// //                 <thead>
-// //                   <tr>
-// //                     <th className="sd-table-header sd-align-left sd-id-column">ID</th>
-// //                     <th className="sd-table-header sd-align-left sd-name-column">Name</th>
-// //                     <th className="sd-table-header sd-align-right">Annual CTC</th>
-// //                     <th className="sd-table-header sd-align-right">Basic Salary</th>
-// //                     <th className="sd-table-header sd-align-right">HRA</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable">LTA</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable">Other Allow.</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable">Incentives</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable">Overtime</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable">Bonus</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Advance Rec.</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Emp. PF</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Employer PF</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">ESIC</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Gratuity</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Prof. Tax</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Income Tax</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Insurance</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Days</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Ded.</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable">Gross Salary</th>
-// //                     <th className="sd-table-header sd-align-right sd-scrollable">Net Salary</th>
-// //                   </tr>
-// //                 </thead>
-// //                 {renderTableRows(filteredEmployees)}
-// //               </table>
-// //             </div>
-// //           </div>
-// //           <div className="sd-footer">
-// //             <button className="sd-proceed-button" onClick={downloadExcel}>
-// //               Proceed
-// //             </button>
-// //           </div>
-// //         </div>
-// //       ) : (
-// //         <p className="sd-no-data">No employees found</p>
-// //       )}
-// //     </div>
-// //   );
-// // };
-
-// // export default SalaryDetails;
-// import React, { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import * as XLSX from 'xlsx';
-// import './SalaryDetails.css'; // Assuming a corresponding CSS file; adjust path if needed
-// import {
-//   calculateSalaryDetails,
-// } from "../../../utils/SalaryCalculations.js"; // Adjust path if needed
-// import { calculateLOPEffect } from "../../../utils/lopCalculations.js"; // Adjust path if needed
-// import { calculateIncentives } from "../../../utils/IncentiveUtils.js"; // Adjust path if needed
-
-// const SalaryDetails = () => {
-//   const [employees, setEmployees] = useState([]);
-//   const [advances, setAdvances] = useState([]);
-//   const [overtimeRecords, setOvertimeRecords] = useState([]);
-//   const [bonusRecords, setBonusRecords] = useState([]);
-//   const [employeeLopData, setEmployeeLopData] = useState({});
-//   const [employeeIncentiveData, setEmployeeIncentiveData] = useState({});
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [searchQuery, setSearchQuery] = useState(""); // Internal state for search
-
-//   const API_KEY = process.env.REACT_APP_API_KEY;
-//   const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
-//   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
-
-//   useEffect(() => {
-//     const fetchSalaryBreakupData = async () => {
-//       console.log("Environment Variables:", {
-//         API_KEY: process.env.REACT_APP_API_KEY,
-//         BASE_URL: process.env.REACT_APP_BACKEND_URL,
-//         meId,
-//       });
-
-//       if (!process.env.REACT_APP_API_KEY || !meId) {
-//         console.error("Missing credentials: API_KEY or meId");
-//         setIsLoading(false);
-//         return;
-//       }
-
-//       const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-//       console.log("Fetching data with headers:", headers);
-
-//       try {
-//         setIsLoading(true);
-//         const [
-//           compensationsRes,
-//           employeesRes,
-//           advancesRes,
-//           overtimeRes,
-//           bonusRes,
-//         ] = await Promise.all([
-//           axios.get(`${BASE_URL}/api/compensations/list`, { headers }).catch(err => {
-//             console.error("Error fetching compensations/list:", err);
-//             throw err;
-//           }),
-//           axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }).catch(err => {
-//             console.error("Error fetching compensation/assigned:", err);
-//             throw err;
-//           }),
-//           axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers }).catch(err => {
-//             console.error("Error fetching compensation/advance-details:", err);
-//             throw err;
-//           }),
-//           axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }).catch(err => {
-//             console.error("Error fetching compensation/overtime-status-summary:", err);
-//             throw err;
-//           }),
-//           axios.get(`${BASE_URL}/api/compensation/bonus-list`, { headers }).catch(err => {
-//             console.error("Error fetching compensation/bonus-list:", err);
-//             throw err;
-//           }),
-//         ]);
-
-//         console.log("API Responses:", {
-//           compensations: compensationsRes.data,
-//           employees: employeesRes.data,
-//           advances: advancesRes.data,
-//           overtime: overtimeRes.data,
-//           bonus: bonusRes.data,
-//         });
-
-//         const compensationMap = new Map();
-//         (compensationsRes.data.data || []).forEach((comp) => {
-//           compensationMap.set(comp.compensation_plan_name, comp.plan_data);
-//         });
-
-//         const enrichedEmployeesMap = new Map();
-//         (employeesRes.data.data || []).forEach((emp) => {
-//           if (!enrichedEmployeesMap.has(emp.employee_id)) {
-//             enrichedEmployeesMap.set(emp.employee_id, {
-//               ...emp,
-//               plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
-//             });
-//           } else {
-//             console.warn(`Duplicate employee_id found: ${emp.employee_id}`);
-//           }
-//         });
-//         const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
-//         setEmployees(enrichedEmployees);
-//         setAdvances(advancesRes.data.data || []);
-//         setOvertimeRecords(overtimeRes.data.data || []);
-//         setBonusRecords(bonusRes.data.data || []);
-
-//         const lopDataPromises = enrichedEmployees.map((emp) =>
-//           calculateLOPEffect(emp.employee_id)
-//             .then((result) => ({
-//               employeeId: emp.employee_id,
-//               lopData: result,
-//             }))
-//             .catch((err) => {
-//               console.warn(`LOP fetch failed for ${emp.employee_id}:`, err);
-//               return {
-//                 employeeId: emp.employee_id,
-//                 lopData: {
-//                   currentMonth: { days: 0, value: "0.00", currency: "INR" },
-//                   deferred: { days: 0, value: "0.00", currency: "INR" },
-//                   nextMonth: { days: 0, value: "0.00", currency: "INR" },
-//                   yearly: { days: 0, value: "0.00", currency: "INR" },
-//                 },
-//               };
-//             })
-//         );
-
-//         const lopDataResults = await Promise.all(lopDataPromises);
-//         const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
-//           acc[employeeId] = lopData;
-//           return acc;
-//         }, {});
-//         setEmployeeLopData(lopDataMap);
-
-//         const incentiveDataPromises = enrichedEmployees.map((emp) =>
-//           calculateIncentives(emp.employee_id)
-//             .then((result) => ({
-//               employeeId: emp.employee_id,
-//               incentiveData: result,
-//             }))
-//             .catch((err) => {
-//               console.warn(`Incentive fetch failed for ${emp.employee_id}:`, err);
-//               return {
-//                 employeeId: emp.employee_id,
-//                 incentiveData: {
-//                   ctcIncentive: { value: "0.00", currency: "INR" },
-//                   salesIncentive: { value: "0.00", currency: "INR" },
-//                   totalIncentive: { value: "0.00", currency: "INR" },
-//                 },
-//               };
-//             })
-//         );
-
-//         const incentiveDataResults = await Promise.all(incentiveDataPromises);
-//         const incentiveDataMap = incentiveDataResults.reduce(
-//           (acc, { employeeId, incentiveData }) => {
-//             if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
-//               acc[employeeId] = incentiveData;
-//             }
-//             return acc;
-//           },
-//           {}
-//         );
-//         setEmployeeIncentiveData(incentiveDataMap);
-
-//       } catch (error) {
-//         console.error("Fetch error:", error);
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     fetchSalaryBreakupData();
-//   }, []);
-
-//   const filteredEmployees = (employees || []).filter(
-//     (emp) =>
-//       emp.employee_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       emp.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-//   );
-
-//   const downloadExcel = () => {
-//     if (filteredEmployees.length === 0) return;
-
-//     const headers = [
-//       'ID',
-//       'Name',
-//       'Annual CTC',
-//       'Basic Salary',
-//       'HRA',
-//       'LTA',
-//       'Other Allow.',
-//       'Incentives',
-//       'Overtime',
-//       'Bonus',
-//       'Advance Rec.',
-//       'Emp. PF',
-//       'Employer PF',
-//       'ESIC',
-//       'Gratuity',
-//       'Prof. Tax',
-//       'Income Tax',
-//       'Insurance',
-//       'LOP Days',
-//       'LOP Ded.',
-//       'Gross Salary',
-//       'Net Salary'
-//     ];
-
-//     const rows = filteredEmployees.map((emp) => {
-//       const salaryDetails = calculateSalaryDetails(
-//         emp.ctc,
-//         emp.plan_data,
-//         emp.employee_id,
-//         overtimeRecords || [],
-//         bonusRecords || [],
-//         advances || [],
-//         employeeIncentiveData || {}
-//       );
-//       const lopData =
-//         employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-//           currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-//           deferred: { days: 0, value: '0.00', currency: 'INR' },
-//           nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-//           yearly: { days: 0, value: '0.00', currency: 'INR' },
-//         } : {
-//           currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-//           deferred: { days: 0, value: '0.00', currency: 'INR' },
-//           nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-//           yearly: { days: 0, value: '0.00', currency: 'INR' },
-//         };
-
-//       // Calculate incentive for this employee
-//       const empId = String(emp.employee_id).toUpperCase();
-//       const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-//       const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-//       const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-
-//       const netSalary = salaryDetails
-//         ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-//         : 0;
-
-//       return [
-//         emp.employee_id,
-//         emp.full_name,
-//         emp.ctc ? parseFloat(emp.ctc) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.hra) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0,
-//         incentiveValue,
-//         salaryDetails ? parseFloat(salaryDetails.overtimePay) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.bonusPay) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.employeePF) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.employerPF) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.esic) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.gratuity) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.tds) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.insurance) : 0,
-//         lopData ? lopData.currentMonth.days : 0,
-//         lopData ? parseFloat(lopData.currentMonth.value || 0) : 0,
-//         salaryDetails ? parseFloat(salaryDetails.grossSalary) : 0,
-//         netSalary > 0 ? netSalary : 0
-//       ];
-//     });
-
-//     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-//     // Optional: Adjust column widths
-//     const colWidths = [
-//       { wch: 8 }, // ID
-//       { wch: 15 }, // Name
-//       { wch: 12 }, // Annual CTC
-//       { wch: 12 }, // Basic Salary
-//       { wch: 10 }, // HRA
-//       { wch: 8 }, // LTA
-//       { wch: 12 }, // Other Allow.
-//       { wch: 10 }, // Incentives
-//       { wch: 10 }, // Overtime
-//       { wch: 8 }, // Bonus
-//       { wch: 12 }, // Advance Rec.
-//       { wch: 10 }, // Emp. PF
-//       { wch: 12 }, // Employer PF
-//       { wch: 8 }, // ESIC
-//       { wch: 10 }, // Gratuity
-//       { wch: 12 }, // Prof. Tax
-//       { wch: 10 }, // Income Tax
-//       { wch: 10 }, // Insurance
-//       { wch: 8 }, // LOP Days
-//       { wch: 10 }, // LOP Ded.
-//       { wch: 12 }, // Gross Salary
-//       { wch: 12 }, // Net Salary
-//     ];
-//     ws['!cols'] = colWidths;
-
-//     const wb = XLSX.utils.book_new();
-//     XLSX.utils.book_append_sheet(wb, ws, "Salary Details");
-
-//     XLSX.writeFile(wb, 'salary-details.xlsx');
-//   };
-
-//   const renderTableRows = (employeesToRender) => (
-//     <tbody className="sd-table-body">
-//       {employeesToRender.map((emp) => {
-//         const salaryDetails = calculateSalaryDetails(
-//           emp.ctc,
-//           emp.plan_data,
-//           emp.employee_id,
-//           overtimeRecords || [],
-//           bonusRecords || [],
-//           advances || [],
-//           employeeIncentiveData || {}
-//         );
-//         const lopData =
-//           employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-//             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-//             deferred: { days: 0, value: '0.00', currency: 'INR' },
-//             nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-//             yearly: { days: 0, value: '0.00', currency: 'INR' },
-//           } : {
-//             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-//             deferred: { days: 0, value: '0.00', currency: 'INR' },
-//             nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-//             yearly: { days: 0, value: '0.00', currency: 'INR' },
-//           };
-
-//         // Calculate incentive for this employee
-//         const empId = String(emp.employee_id).toUpperCase();
-//         const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-//         const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-//         const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
-
-//         const netSalary = salaryDetails
-//           ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-//           : 0;
-//         return (
-//           <tr key={emp.employee_id}>
-//             <td className="sd-table-cell sd-align-left sd-id-column">{emp.employee_id}</td>
-//             <td className="sd-table-cell sd-align-left sd-name-column">{emp.full_name}</td>
-//             <td className="sd-table-cell sd-align-right">
-//               {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.basicSalary).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.hra).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.ltaAllowance).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.otherAllowances).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable">
-//               {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.overtimePay).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.bonusPay).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.advanceRecovery).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.employeePF).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.esic).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.gratuity).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.professionalTax).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.tds).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.insurance).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {lopData ? lopData.currentMonth.days : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable sd-deduction">
-//               {lopData ? `₹${parseFloat(lopData.currentMonth.value || 0).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable">
-//               {salaryDetails ? `₹${parseFloat(salaryDetails.grossSalary).toLocaleString()}` : 'N/A'}
-//             </td>
-//             <td className="sd-table-cell sd-align-right sd-scrollable">
-//               {netSalary > 0 ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
-//             </td>
-//           </tr>
-//         );
-//       })}
-//     </tbody>
-//   );
-
-//   if (isLoading) {
-//     return <div className="sd-loading">Loading...</div>; // Simple loading state
-//   }
-
-//   return (
-//     <div className="sd-container">
-//       <div className="sd-header">
-//         <div className="sd-header-title">Employee Salary Overview</div> {/* No back button, as per request */}
-//         <button className="sd-proceed-button" onClick={downloadExcel}>
-//           Proceed
-//         </button>
-//       </div>
-//       <div className="sd-search-container">
-//         <input
-//           type="text"
-//           className="sd-search-input"
-//           placeholder="Search by ID or Name"
-//           value={searchQuery}
-//           onChange={(e) => setSearchQuery(e.target.value)}
-//         />
-//       </div>
-//       {filteredEmployees.length > 0 ? (
-//         <div className="sd-table-section">
-//           <div className="sd-table-container">
-//             <div className="sd-table-wrapper">
-//               <table className="sd-table" style={{ minWidth: '750px', tableLayout: 'fixed' }}>
-//                 <thead>
-//                   <tr>
-//                     <th className="sd-table-header sd-align-left sd-id-column">ID</th>
-//                     <th className="sd-table-header sd-align-left sd-name-column">Name</th>
-//                     <th className="sd-table-header sd-align-right">Annual CTC</th>
-//                     <th className="sd-table-header sd-align-right">Basic Salary</th>
-//                     <th className="sd-table-header sd-align-right">HRA</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable">LTA</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable">Other Allow.</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable">Incentives</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable">Overtime</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable">Bonus</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Advance Rec.</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Emp. PF</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Employer PF</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">ESIC</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Gratuity</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Prof. Tax</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Income Tax</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">Insurance</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Days</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable sd-deduction">LOP Ded.</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable">Gross Salary</th>
-//                     <th className="sd-table-header sd-align-right sd-scrollable">Net Salary</th>
-//                   </tr>
-//                 </thead>
-//                 {renderTableRows(filteredEmployees)}
-//               </table>
-//             </div>
-//           </div>
-//           <div className="sd-footer">
-//             <button className="sd-proceed-button" onClick={downloadExcel}>
-//               Proceed
-//             </button>
-//           </div>
-//         </div>
-//       ) : (
-//         <p className="sd-no-data">No employees found</p>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default SalaryDetails;
-
-
-/////////////<----------------------------->
-
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -1797,6 +5,7 @@ import * as XLSX from 'xlsx';
 import './SalaryDetails.css'; // Assuming a corresponding CSS file; adjust path if needed
 import {
   calculateSalaryDetails,
+  parseWorkDate,
 } from "../../../utils/SalaryCalculations.js"; // Adjust path if needed
 import { calculateLOPEffect } from "../../../utils/lopCalculations.js"; // Adjust path if needed
 import { calculateIncentives } from "../../../utils/IncentiveUtils.js"; // Adjust path if needed
@@ -1944,8 +153,9 @@ const SalaryDetails = () => {
         const incentiveDataResults = await Promise.all(incentiveDataPromises);
         const incentiveDataMap = incentiveDataResults.reduce(
           (acc, { employeeId, incentiveData }) => {
-            if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
-              acc[employeeId] = incentiveData;
+            const key = String(employeeId).toUpperCase();
+            if (!acc[key] || parseFloat(incentiveData.totalIncentive.value) > 0) {
+              acc[key] = incentiveData;
             }
             return acc;
           },
@@ -2014,6 +224,15 @@ const SalaryDetails = () => {
   const downloadExcel = (employeesToExport = filteredEmployees) => {
     if (employeesToExport.length === 0) return;
 
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonthNum = currentDate.getMonth() + 1;
+    const currentMonthStr = String(currentMonthNum).padStart(2, '0');
+    const currentYm = `${currentYear}-${currentMonthStr}`;
+    const lastMonthIndex = currentMonthNum - 2;
+    const startWorkDate = new Date(currentYear, lastMonthIndex, 25);
+    const endWorkDate = new Date(currentYear, currentMonthNum - 1, 25);
+
     const headers = [
       'ID',
       'Name',
@@ -2024,6 +243,7 @@ const SalaryDetails = () => {
       'Other Allowances',
       'Incentives',
       'Overtime',
+      'Statutory Bonus',
       'Bonus',
       'Advance Recovery',
       'Employee PF',
@@ -2047,7 +267,8 @@ const SalaryDetails = () => {
         overtimeRecords || [],
         bonusRecords || [],
         advances || [],
-        employeeIncentiveData || {}
+        employeeIncentiveData || {},
+        employeeLopData
       );
       const lopData =
         employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
@@ -2062,38 +283,96 @@ const SalaryDetails = () => {
           yearly: { days: 0, value: '0.00', currency: 'INR' },
         };
 
+      const lopDays = lopData.yearly ? lopData.yearly.days : 0;
+      const lopDeduction = parseFloat(lopData.yearly ? lopData.yearly.value : '0');
+
       // Calculate incentive for this employee
       const empId = String(emp.employee_id).toUpperCase();
-      const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-      const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-      const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
+      const incentiveObj = employeeIncentiveData[empId];
+      let incentiveValue = 0;
+      if (incentiveObj && incentiveObj.incentives) {
+        const currentMonthIncentives = incentiveObj.incentives.filter((inc) => inc.applicable_month === currentYm);
+        incentiveValue = currentMonthIncentives.reduce((sum, inc) => sum + parseFloat(inc.value || 0), 0);
+      }
 
-      const netSalary = salaryDetails
-        ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-        : 0;
+      // Calculate overtime for this employee
+      const employeeOvertime = overtimeRecords.filter((ot) => {
+        const workDate = parseWorkDate(ot.work_date);
+        const createdDate = parseWorkDate(ot.created_at);
+        return (
+          ot.employee_id === emp.employee_id &&
+          ot.status === 'Approved' &&
+          workDate &&
+          workDate >= startWorkDate &&
+          workDate <= endWorkDate &&
+          createdDate &&
+          createdDate.getFullYear() === currentYear &&
+          String(createdDate.getMonth() + 1).padStart(2, '0') === currentMonthStr
+        );
+      });
+
+      let totalOvertimePay = 0;
+      if (employeeOvertime.length > 0) {
+        totalOvertimePay = employeeOvertime.reduce((sum, ot) => {
+          const hours = parseFloat(ot.extra_hours);
+          let rate = parseFloat(ot.rate);
+          if (isNaN(rate) || rate <= 0) {
+            if (
+              emp.plan_data.isOvertimePay &&
+              emp.plan_data.overtimePayAmount &&
+              !isNaN(parseFloat(emp.plan_data.overtimePayAmount))
+            ) {
+              rate = parseFloat(emp.plan_data.overtimePayAmount);
+            } else {
+              rate = 500; // Fallback default rate
+            }
+          }
+          return isNaN(hours) || hours <= 0 ? sum : sum + (hours * rate);
+        }, 0);
+      }
+
+      // Compute gross and net
+      const basicSalary = salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0;
+      const hra = salaryDetails ? parseFloat(salaryDetails.hra) : 0;
+      const ltaAllowance = salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0;
+      const otherAllowances = salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0;
+      const statutoryBonus = salaryDetails ? parseFloat(salaryDetails.statutoryBonus) : 0;
+      const recordBonusPay = salaryDetails ? parseFloat(salaryDetails.recordBonusPay) : 0;
+      const grossSalary = basicSalary + hra + ltaAllowance + otherAllowances + statutoryBonus + recordBonusPay + incentiveValue + totalOvertimePay;
+
+      const advanceRecovery = salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0;
+      const employeePF = salaryDetails ? parseFloat(salaryDetails.employeePF) : 0;
+      const esic = salaryDetails ? parseFloat(salaryDetails.esic) : 0;
+      const gratuity = salaryDetails ? parseFloat(salaryDetails.gratuity) : 0;
+      const professionalTax = salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0;
+      const tds = salaryDetails ? parseFloat(salaryDetails.tds) : 0;
+      const insurance = salaryDetails ? parseFloat(salaryDetails.insurance) : 0;
+      const totalDeductions = advanceRecovery + employeePF + esic + gratuity + professionalTax + tds + insurance + lopDeduction;
+      const netSalary = grossSalary - totalDeductions;
 
       return [
         emp.employee_id,
         emp.full_name,
         emp.ctc ? parseFloat(emp.ctc) : 0,
-        salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0,
-        salaryDetails ? parseFloat(salaryDetails.hra) : 0,
-        salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0,
-        salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0,
+        basicSalary,
+        hra,
+        ltaAllowance,
+        otherAllowances,
         incentiveValue,
-        salaryDetails ? parseFloat(salaryDetails.overtimePay) : 0,
-        salaryDetails ? parseFloat(salaryDetails.bonusPay) : 0,
-        salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0,
-        salaryDetails ? parseFloat(salaryDetails.employeePF) : 0,
+        totalOvertimePay,
+        statutoryBonus,
+        recordBonusPay,
+        advanceRecovery,
+        employeePF,
         salaryDetails ? parseFloat(salaryDetails.employerPF) : 0,
-        salaryDetails ? parseFloat(salaryDetails.esic) : 0,
-        salaryDetails ? parseFloat(salaryDetails.gratuity) : 0,
-        salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0,
-        salaryDetails ? parseFloat(salaryDetails.tds) : 0,
-        salaryDetails ? parseFloat(salaryDetails.insurance) : 0,
-        lopData ? lopData.currentMonth.days : 0,
-        lopData ? parseFloat(lopData.currentMonth.value || 0) : 0,
-        salaryDetails ? parseFloat(salaryDetails.grossSalary) : 0,
+        esic,
+        gratuity,
+        professionalTax,
+        tds,
+        insurance,
+        lopDays,
+        lopDeduction,
+        grossSalary,
         netSalary > 0 ? netSalary : 0
       ];
     });
@@ -2111,6 +390,7 @@ const SalaryDetails = () => {
       { wch: 12 }, // Other Allowances
       { wch: 10 }, // Incentives
       { wch: 10 }, // Overtime
+      { wch: 8 }, // Statutory Bonus
       { wch: 8 }, // Bonus
       { wch: 12 }, // Advance Recovery
       { wch: 10 }, // Employee PF
@@ -2140,225 +420,369 @@ const SalaryDetails = () => {
     setShowPreviewModal(false);
   };
 
-  const renderTableRows = (employeesToRender) => (
-    <tbody className="sd-table-body">
-      {employeesToRender.map((emp) => {
-        const salaryDetails = calculateSalaryDetails(
-          emp.ctc,
-          emp.plan_data,
-          emp.employee_id,
-          overtimeRecords || [],
-          bonusRecords || [],
-          advances || [],
-          employeeIncentiveData || {}
-        );
-        const lopData =
-          employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-            currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-            deferred: { days: 0, value: '0.00', currency: 'INR' },
-            nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-            yearly: { days: 0, value: '0.00', currency: 'INR' },
-          } : {
-            currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-            deferred: { days: 0, value: '0.00', currency: 'INR' },
-            nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-            yearly: { days: 0, value: '0.00', currency: 'INR' },
-          };
+  const renderTableRows = (employeesToRender) => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonthNum = currentDate.getMonth() + 1;
+    const currentMonthStr = String(currentMonthNum).padStart(2, '0');
+    const currentYm = `${currentYear}-${currentMonthStr}`;
+    const lastMonthIndex = currentMonthNum - 2;
+    const startWorkDate = new Date(currentYear, lastMonthIndex, 25);
+    const endWorkDate = new Date(currentYear, currentMonthNum - 1, 25);
 
-        // Calculate incentive for this employee
-        const empId = String(emp.employee_id).toUpperCase();
-        const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-        const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-        const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
+    return (
+      <tbody className="sd-table-body">
+        {employeesToRender.map((emp) => {
+          const salaryDetails = calculateSalaryDetails(
+            emp.ctc,
+            emp.plan_data,
+            emp.employee_id,
+            overtimeRecords || [],
+            bonusRecords || [],
+            advances || [],
+            employeeIncentiveData || {},
+            employeeLopData
+          );
+          const lopData =
+            employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
+              currentMonth: { days: 0, value: '0.00', currency: 'INR' },
+              deferred: { days: 0, value: '0.00', currency: 'INR' },
+              nextMonth: { days: 0, value: '0.00', currency: 'INR' },
+              yearly: { days: 0, value: '0.00', currency: 'INR' },
+            } : {
+              currentMonth: { days: 0, value: '0.00', currency: 'INR' },
+              deferred: { days: 0, value: '0.00', currency: 'INR' },
+              nextMonth: { days: 0, value: '0.00', currency: 'INR' },
+              yearly: { days: 0, value: '0.00', currency: 'INR' },
+            };
 
-        const netSalary = salaryDetails
-          ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-          : 0;
+          const lopDays = lopData.yearly ? lopData.yearly.days : 0;
+          const lopDeduction = parseFloat(lopData.yearly ? lopData.yearly.value : '0');
 
-        const isSelected = selectedEmployees.has(emp.employee_id);
+          // Calculate incentive for this employee
+          const empId = String(emp.employee_id).toUpperCase();
+          const incentiveObj = employeeIncentiveData[empId];
+          let incentiveValue = 0;
+          if (incentiveObj && incentiveObj.incentives) {
+            const currentMonthIncentives = incentiveObj.incentives.filter((inc) => inc.applicable_month === currentYm);
+            incentiveValue = currentMonthIncentives.reduce((sum, inc) => sum + parseFloat(inc.value || 0), 0);
+          }
 
-        return (
-          <tr key={emp.employee_id}>
-            <td className="sd-table-cell sd-align-center sd-select-column">
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => handleRowSelect(emp.employee_id)}
-              />
-            </td>
-            <td className="sd-table-cell sd-align-left sd-id-column">{emp.employee_id}</td>
-            <td className="sd-table-cell sd-align-left sd-name-column">{emp.full_name}</td>
-            <td className="sd-table-cell sd-align-right">
-              {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.basicSalary).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.hra).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.ltaAllowance).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.otherAllowances).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.overtimePay).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.bonusPay).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.advanceRecovery).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.employeePF).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.esic).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.gratuity).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.professionalTax).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.tds).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.insurance).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {lopData ? lopData.currentMonth.days : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right sd-deduction">
-              {lopData ? `₹${parseFloat(lopData.currentMonth.value || 0).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.grossSalary).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-table-cell sd-align-right">
-              {netSalary > 0 ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  );
+          // Calculate overtime for this employee
+          const employeeOvertime = overtimeRecords.filter((ot) => {
+            const workDate = parseWorkDate(ot.work_date);
+            const createdDate = parseWorkDate(ot.created_at);
+            return (
+              ot.employee_id === emp.employee_id &&
+              ot.status === 'Approved' &&
+              workDate &&
+              workDate >= startWorkDate &&
+              workDate <= endWorkDate &&
+              createdDate &&
+              createdDate.getFullYear() === currentYear &&
+              String(createdDate.getMonth() + 1).padStart(2, '0') === currentMonthStr
+            );
+          });
+
+          let totalOvertimePay = 0;
+          if (employeeOvertime.length > 0) {
+            totalOvertimePay = employeeOvertime.reduce((sum, ot) => {
+              const hours = parseFloat(ot.extra_hours);
+              let rate = parseFloat(ot.rate);
+              if (isNaN(rate) || rate <= 0) {
+                if (
+                  emp.plan_data.isOvertimePay &&
+                  emp.plan_data.overtimePayAmount &&
+                  !isNaN(parseFloat(emp.plan_data.overtimePayAmount))
+                ) {
+                  rate = parseFloat(emp.plan_data.overtimePayAmount);
+                } else {
+                  rate = 500; // Fallback default rate
+                }
+              }
+              return isNaN(hours) || hours <= 0 ? sum : sum + (hours * rate);
+            }, 0);
+          }
+
+          // Compute gross and net
+          const basicSalary = salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0;
+          const hra = salaryDetails ? parseFloat(salaryDetails.hra) : 0;
+          const ltaAllowance = salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0;
+          const otherAllowances = salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0;
+          const statutoryBonus = salaryDetails ? parseFloat(salaryDetails.statutoryBonus) : 0;
+          const recordBonusPay = salaryDetails ? parseFloat(salaryDetails.recordBonusPay) : 0;
+          const grossSalary = basicSalary + hra + ltaAllowance + otherAllowances + statutoryBonus + recordBonusPay + incentiveValue + totalOvertimePay;
+
+          const advanceRecovery = salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0;
+          const employeePF = salaryDetails ? parseFloat(salaryDetails.employeePF) : 0;
+          const esic = salaryDetails ? parseFloat(salaryDetails.esic) : 0;
+          const gratuity = salaryDetails ? parseFloat(salaryDetails.gratuity) : 0;
+          const professionalTax = salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0;
+          const tds = salaryDetails ? parseFloat(salaryDetails.tds) : 0;
+          const insurance = salaryDetails ? parseFloat(salaryDetails.insurance) : 0;
+          const totalDeductions = advanceRecovery + employeePF + esic + gratuity + professionalTax + tds + insurance + lopDeduction;
+          const netSalary = grossSalary - totalDeductions;
+
+          const isSelected = selectedEmployees.has(emp.employee_id);
+
+          return (
+            <tr key={emp.employee_id}>
+              <td className="sd-table-cell sd-align-center sd-select-column">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => handleRowSelect(emp.employee_id)}
+                />
+              </td>
+              <td className="sd-table-cell sd-align-left sd-id-column">{emp.employee_id}</td>
+              <td className="sd-table-cell sd-align-left sd-name-column">{emp.full_name}</td>
+              <td className="sd-table-cell sd-align-right">
+                {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {basicSalary > 0 ? `₹${basicSalary.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {hra > 0 ? `₹${hra.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {ltaAllowance > 0 ? `₹${ltaAllowance.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {otherAllowances > 0 ? `₹${otherAllowances.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {totalOvertimePay > 0 ? `₹${totalOvertimePay.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {statutoryBonus > 0 ? `₹${statutoryBonus.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {recordBonusPay > 0 ? `₹${recordBonusPay.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {advanceRecovery > 0 ? `₹${advanceRecovery.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {employeePF > 0 ? `₹${employeePF.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {esic > 0 ? `₹${esic.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {gratuity > 0 ? `₹${gratuity.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {professionalTax > 0 ? `₹${professionalTax.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {tds > 0 ? `₹${tds.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {insurance > 0 ? `₹${insurance.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {lopDays}
+              </td>
+              <td className="sd-table-cell sd-align-right sd-deduction">
+                {lopDeduction > 0 ? `₹${lopDeduction.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {grossSalary > 0 ? `₹${grossSalary.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-table-cell sd-align-right">
+                {netSalary > 0 ? `₹${netSalary.toLocaleString()}` : 'N/A'}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    );
+  };
 
   // Render preview table rows (similar to main, but no checkboxes)
-  const renderPreviewTableRows = (employeesToRender) => (
-    <tbody>
-      {employeesToRender.map((emp) => {
-        const salaryDetails = calculateSalaryDetails(
-          emp.ctc,
-          emp.plan_data,
-          emp.employee_id,
-          overtimeRecords || [],
-          bonusRecords || [],
-          advances || [],
-          employeeIncentiveData || {}
-        );
-        const lopData =
-          employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
-            currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-            deferred: { days: 0, value: '0.00', currency: 'INR' },
-            nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-            yearly: { days: 0, value: '0.00', currency: 'INR' },
-          } : {
-            currentMonth: { days: 0, value: '0.00', currency: 'INR' },
-            deferred: { days: 0, value: '0.00', currency: 'INR' },
-            nextMonth: { days: 0, value: '0.00', currency: 'INR' },
-            yearly: { days: 0, value: '0.00', currency: 'INR' },
-          };
+  const renderPreviewTableRows = (employeesToRender) => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonthNum = currentDate.getMonth() + 1;
+    const currentMonthStr = String(currentMonthNum).padStart(2, '0');
+    const currentYm = `${currentYear}-${currentMonthStr}`;
+    const lastMonthIndex = currentMonthNum - 2;
+    const startWorkDate = new Date(currentYear, lastMonthIndex, 25);
+    const endWorkDate = new Date(currentYear, currentMonthNum - 1, 25);
 
-        // Calculate incentive for this employee
-        const empId = String(emp.employee_id).toUpperCase();
-        const matchedKey = employeeIncentiveData ? Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId) : null;
-        const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
-        const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
+    return (
+      <tbody>
+        {employeesToRender.map((emp) => {
+          const salaryDetails = calculateSalaryDetails(
+            emp.ctc,
+            emp.plan_data,
+            emp.employee_id,
+            overtimeRecords || [],
+            bonusRecords || [],
+            advances || [],
+            employeeIncentiveData || {},
+            employeeLopData
+          );
+          const lopData =
+            employeeLopData && emp.employee_id ? employeeLopData[emp.employee_id] || {
+              currentMonth: { days: 0, value: '0.00', currency: 'INR' },
+              deferred: { days: 0, value: '0.00', currency: 'INR' },
+              nextMonth: { days: 0, value: '0.00', currency: 'INR' },
+              yearly: { days: 0, value: '0.00', currency: 'INR' },
+            } : {
+              currentMonth: { days: 0, value: '0.00', currency: 'INR' },
+              deferred: { days: 0, value: '0.00', currency: 'INR' },
+              nextMonth: { days: 0, value: '0.00', currency: 'INR' },
+              yearly: { days: 0, value: '0.00', currency: 'INR' },
+            };
 
-        const netSalary = salaryDetails
-          ? salaryDetails.netSalary + incentiveValue - (parseFloat(lopData.currentMonth.value || 0))
-          : 0;
+          const lopDays = lopData.yearly ? lopData.yearly.days : 0;
+          const lopDeduction = parseFloat(lopData.yearly ? lopData.yearly.value : '0');
 
-        return (
-          <tr key={emp.employee_id}>
-            <td className="sd-preview-table-cell">{emp.employee_id}</td>
-            <td className="sd-preview-table-cell">{emp.full_name}</td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.basicSalary).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.hra).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.ltaAllowance).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.otherAllowances).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.overtimePay).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.bonusPay).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.advanceRecovery).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.employeePF).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.esic).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.gratuity).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.professionalTax).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.tds).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.insurance).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {lopData ? lopData.currentMonth.days : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right sd-deduction">
-              {lopData ? `₹${parseFloat(lopData.currentMonth.value || 0).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {salaryDetails ? `₹${parseFloat(salaryDetails.grossSalary).toLocaleString()}` : 'N/A'}
-            </td>
-            <td className="sd-preview-table-cell sd-align-right">
-              {netSalary > 0 ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  );
+          // Calculate incentive for this employee
+          const empId = String(emp.employee_id).toUpperCase();
+          const incentiveObj = employeeIncentiveData[empId];
+          let incentiveValue = 0;
+          if (incentiveObj && incentiveObj.incentives) {
+            const currentMonthIncentives = incentiveObj.incentives.filter((inc) => inc.applicable_month === currentYm);
+            incentiveValue = currentMonthIncentives.reduce((sum, inc) => sum + parseFloat(inc.value || 0), 0);
+          }
+
+          // Calculate overtime for this employee
+          const employeeOvertime = overtimeRecords.filter((ot) => {
+            const workDate = parseWorkDate(ot.work_date);
+            const createdDate = parseWorkDate(ot.created_at);
+            return (
+              ot.employee_id === emp.employee_id &&
+              ot.status === 'Approved' &&
+              workDate &&
+              workDate >= startWorkDate &&
+              workDate <= endWorkDate &&
+              createdDate &&
+              createdDate.getFullYear() === currentYear &&
+              String(createdDate.getMonth() + 1).padStart(2, '0') === currentMonthStr
+            );
+          });
+
+          let totalOvertimePay = 0;
+          if (employeeOvertime.length > 0) {
+            totalOvertimePay = employeeOvertime.reduce((sum, ot) => {
+              const hours = parseFloat(ot.extra_hours);
+              let rate = parseFloat(ot.rate);
+              if (isNaN(rate) || rate <= 0) {
+                if (
+                  emp.plan_data.isOvertimePay &&
+                  emp.plan_data.overtimePayAmount &&
+                  !isNaN(parseFloat(emp.plan_data.overtimePayAmount))
+                ) {
+                  rate = parseFloat(emp.plan_data.overtimePayAmount);
+                } else {
+                  rate = 500; // Fallback default rate
+                }
+              }
+              return isNaN(hours) || hours <= 0 ? sum : sum + (hours * rate);
+            }, 0);
+          }
+
+          // Compute gross and net
+          const basicSalary = salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0;
+          const hra = salaryDetails ? parseFloat(salaryDetails.hra) : 0;
+          const ltaAllowance = salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0;
+          const otherAllowances = salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0;
+          const statutoryBonus = salaryDetails ? parseFloat(salaryDetails.statutoryBonus) : 0;
+          const recordBonusPay = salaryDetails ? parseFloat(salaryDetails.recordBonusPay) : 0;
+          const grossSalary = basicSalary + hra + ltaAllowance + otherAllowances + statutoryBonus + recordBonusPay + incentiveValue + totalOvertimePay;
+
+          const advanceRecovery = salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0;
+          const employeePF = salaryDetails ? parseFloat(salaryDetails.employeePF) : 0;
+          const esic = salaryDetails ? parseFloat(salaryDetails.esic) : 0;
+          const gratuity = salaryDetails ? parseFloat(salaryDetails.gratuity) : 0;
+          const professionalTax = salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0;
+          const tds = salaryDetails ? parseFloat(salaryDetails.tds) : 0;
+          const insurance = salaryDetails ? parseFloat(salaryDetails.insurance) : 0;
+          const totalDeductions = advanceRecovery + employeePF + esic + gratuity + professionalTax + tds + insurance + lopDeduction;
+          const netSalary = grossSalary - totalDeductions;
+
+          return (
+            <tr key={emp.employee_id}>
+              <td className="sd-preview-table-cell">{emp.employee_id}</td>
+              <td className="sd-preview-table-cell">{emp.full_name}</td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {basicSalary > 0 ? `₹${basicSalary.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {hra > 0 ? `₹${hra.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {ltaAllowance > 0 ? `₹${ltaAllowance.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {otherAllowances > 0 ? `₹${otherAllowances.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {totalOvertimePay > 0 ? `₹${totalOvertimePay.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {statutoryBonus > 0 ? `₹${statutoryBonus.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {recordBonusPay > 0 ? `₹${recordBonusPay.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {advanceRecovery > 0 ? `₹${advanceRecovery.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {employeePF > 0 ? `₹${employeePF.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {salaryDetails ? `₹${parseFloat(salaryDetails.employerPF).toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {esic > 0 ? `₹${esic.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {gratuity > 0 ? `₹${gratuity.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {professionalTax > 0 ? `₹${professionalTax.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {tds > 0 ? `₹${tds.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {insurance > 0 ? `₹${insurance.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {lopDays}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right sd-deduction">
+                {lopDeduction > 0 ? `₹${lopDeduction.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {grossSalary > 0 ? `₹${grossSalary.toLocaleString()}` : 'N/A'}
+              </td>
+              <td className="sd-preview-table-cell sd-align-right">
+                {netSalary > 0 ? `₹${netSalary.toLocaleString()}` : 'N/A'}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    );
+  };
 
   if (isLoading) {
     return <div className="sd-loading">Loading...</div>; // Simple loading state
@@ -2406,6 +830,7 @@ const SalaryDetails = () => {
                     <th className="sd-table-header sd-align-right">Other Allowances</th>
                     <th className="sd-table-header sd-align-right">Incentives</th>
                     <th className="sd-table-header sd-align-right">Overtime</th>
+                    <th className="sd-table-header sd-align-right">Statutory Bonus</th>
                     <th className="sd-table-header sd-align-right">Bonus</th>
                     <th className="sd-table-header sd-align-right sd-deduction">Advance Recovery</th>
                     <th className="sd-table-header sd-align-right sd-deduction">Employee PF</th>
@@ -2457,6 +882,7 @@ const SalaryDetails = () => {
                     <th className="sd-align-right">Other Allowances</th>
                     <th className="sd-align-right">Incentives</th>
                     <th className="sd-align-right">Overtime</th>
+                    <th className="sd-align-right">Statutory Bonus</th>
                     <th className="sd-align-right">Bonus</th>
                     <th className="sd-align-right sd-deduction">Advance Recovery</th>
                     <th className="sd-align-right sd-deduction">Employee PF</th>

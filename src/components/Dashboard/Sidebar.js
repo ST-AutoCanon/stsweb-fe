@@ -35,7 +35,7 @@ import SupervisorPlanViewer from "../SupervisorPlanViewer/SupervisorPlanViewer";
 import TaskManagementEmployee from "../TaskManagementEmployee/EmpTaskManagement";
 import TaskManagement from "../TaskManagement/TaskManagement";
 import Report from "../Report/ReportPanel";
-
+import TaskManagementAdmin from "../TaskManagementAdmin/TaskManagementAdmin";
 const Sidebar = () => {
   const { setActiveContent } = useContext(ContentContext);
   const [menuItems, setMenuItems] = useState([]);
@@ -117,7 +117,9 @@ const Sidebar = () => {
       case "/report":
         setActiveContent(<Report />);
         break;
-
+case "/TaskManagementAdmin":
+        setActiveContent(<TaskManagementAdmin/>);
+        break;
       case "/employeeDetails":
         setActiveContent(<EmployeeDetails />);
         break;
