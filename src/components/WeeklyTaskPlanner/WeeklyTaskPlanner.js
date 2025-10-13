@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
@@ -116,21 +115,16 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const taskDateObj = new Date(taskDate);
     taskDateObj.setHours(0, 0, 0, 0);
     const diffDays = (today - taskDateObj) / (1000 * 3600 * 24);
-    // Allow edits for:
-    // 1. Current day and future (diffDays <= 0)
-    // 2. Past tasks within freezeDays (0 < diffDays <= freezeDays)
-    // Freeze tasks before freezeDays (diffDays > freezeDays)
     const editable = diffDays <= 0 || (diffDays > 0 && diffDays <= freezeDays);
     console.log(`Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`);
     return editable;
   };
   const getTaskDateStyle = (dateStr) => {
     const [day, month] = dateStr.split(" ");
-    const year = new Date().getFullYear();
+    const year = 2025; // Use hardcoded year to match currentDate
     const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
     const taskDate = new Date(year, monthIndex, parseInt(day));
     taskDate.setHours(0, 0, 0, 0);
-    // Check if the date is within an approved leave range
     const isApprovedLeave = approvedLeaves.some(leave => {
       const startDate = new Date(leave.start_date);
       const endDate = new Date(leave.end_date);
@@ -177,10 +171,8 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     setError(null);
     setNoTasks(false);
     try {
-      // Fetch freeze days
-      console.log('Fetching freeze days from API...');
       const configResponse = await withRetry(() =>
-        axios.get(`http://localhost:5000/api/config`, {
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config`, {
           headers: {
             "x-employee-id": employeeId,
             "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
@@ -212,7 +204,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           }
         }
       }
-      // Fetch holidays
       const holidaysUrl = `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`;
       console.log("Fetching holidays from:", holidaysUrl);
       const holidaysRes = await withRetry(() =>
@@ -229,7 +220,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         : [];
       setHolidays(holidayData.length > 0 ? holidayData : ['2025-12-25']);
       console.log("Holidays:", holidayData);
-      // Fetch approved leaves
       const leavesUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
       console.log("Fetching leaves from:", leavesUrl);
       const leavesRes = await withRetry(() =>
@@ -245,7 +235,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         : [];
       setApprovedLeaves(approvedLeavesData);
       console.log("Approved Leaves:", approvedLeavesData);
-      // Fetch projects
       const projectsUrl = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`;
       console.log("Fetching projects from:", projectsUrl);
       const projectsRes = await withRetry(() =>
@@ -262,7 +251,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         newProjects[project.id] = project.project;
       });
       setProjects(newProjects);
-      // Fetch tasks
       const tasksUrl = `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/employee/${employeeId}`;
       console.log("Fetching tasks from:", tasksUrl);
       const tasksRes = await withRetry(() =>
@@ -570,7 +558,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
       });
       const [day, monthName] = replacementData.date.split(" ");
-      const year = new Date().getFullYear();
+      const year = 2025; // Use hardcoded year to match currentDate
       const month = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
       const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const newTask = {
@@ -708,7 +696,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           setTasksData((prev) => {
             const newData = [...prev];
             const dayIndex = newData.findIndex((d) => d.date === date);
-            console.log("Day знания Index:", dayIndex, "Date:", date, "Task:", newTask);
+            console.log("Day Index:", dayIndex, "Date:", date, "Task:", newTask);
             if (dayIndex > -1) {
               newData[dayIndex] = {
                 ...newData[dayIndex],
@@ -890,16 +878,24 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </div>
                           {dropdownOpen[index] && (
                             <div className="dropdown-list">
-                              {weekDates.map((date) => (
-                                <label key={date} className="checkbox-label">
-                                  <input
-                                    type="checkbox"
-                                    checked={task.dates.includes(date)}
-                                    onChange={() => handleAssignChange(index, "dates", date)}
-                                  />
-                                  {date}
-                                </label>
-                              ))}
+                              {weekDates.map((date) => {
+                                const dateStyle = getTaskDateStyle(date);
+                                return (
+                                  <label key={date} className="checkbox-label">
+                                    <input
+                                      type="checkbox"
+                                      checked={task.dates.includes(date)}
+                                      onChange={() => handleAssignChange(index, "dates", date)}
+                                    />
+                                    {date}
+                                    {dateStyle.tooltip !== date && (
+                                      <span className={`date-status ${dateStyle.className}`}>
+                                        {dateStyle.tooltip}
+                                      </span>
+                                    )}
+                                  </label>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -919,12 +915,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                         </select>
                       </div>
                       <div className="form-group-task">
-                        <label>Task </label>
+                        <label>Task</label>
                         <input
                           type="text"
                           value={task.taskName}
                           onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
-                          placeholder="Enter task "
+                          placeholder="Enter task"
                         />
                       </div>
                     </div>
