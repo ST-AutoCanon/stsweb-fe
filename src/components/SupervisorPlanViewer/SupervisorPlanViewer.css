@@ -407,3 +407,37 @@
   background-color: #d3d3d3; /* Darker gray background */
   color: #666; /* Darker text color */
 }
+.supervisor-plan-task-frozen {
+  background-color: rgba(200, 200, 200, 0.5);
+}
+.supervisor-plan-task-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.supervisor-plan-task-date.supervisor-plan-task-date-leave {
+  background-color: #f5f501;
+  color: white;
+}
+.supervisor-plan-task-date.supervisor-plan-task-date-holiday {
+  background-color: #ff9800;
+  color: white;
+}
+.supervisor-plan-task-date.supervisor-plan-task-date-sunday {
+  background-color: #3770ecff;
+  color: white;
+}
+.supervisor-plan-task-date.supervisor-plan-task-date-regular {
+  background-color: transparent;
+  color: #333;
+}
+@media (max-width: 768px) {
+  .supervisor-plan-task-date {
+    font-size: 12px;
+    padding: 2px 4px;
+  }
+}
