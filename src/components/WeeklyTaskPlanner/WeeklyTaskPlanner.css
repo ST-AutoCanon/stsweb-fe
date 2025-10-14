@@ -1176,3 +1176,90 @@
     border-radius: 4px;
   }
 }
+
+/* Existing styles assumed to be unchanged unless specified */
+.day-date {
+  font-size: 14px;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.day-date-leave {
+  background-color: #dc3545;
+  color: white;
+}
+
+.day-date-holiday {
+  background-color: #ff9800;
+  color: white;
+}
+
+.day-date-sunday {
+  background-color: #6c757d;
+  color: white;
+}
+
+.day-date-regular {
+  color: #333;
+}
+
+.date-status {
+  margin-left: 8px;
+  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.date-status.day-date-leave {
+  background-color: #dc3545;
+  color: white;
+}
+
+.date-status.day-date-holiday {
+  background-color: #ff9800;
+  color: white;
+}
+
+.date-status.day-date-sunday {
+  background-color: #6c757d;
+  color: white;
+}
+
+.multi-select-dropdown {
+  position: relative;
+}
+
+.dropdown-header-task {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+}
+
+.checkbox-label input {
+  margin-right: 8px;
+}
+
+

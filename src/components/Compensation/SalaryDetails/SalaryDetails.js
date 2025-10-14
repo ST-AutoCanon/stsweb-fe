@@ -794,9 +794,7 @@ const SalaryDetails = () => {
     <div className="sd-container">
       <div className="sd-header">
         <div className="sd-header-title">Employee Salary Overview</div> {/* No back button, as per request */}
-        <button className="sd-proceed-button" onClick={handleProceed}>
-          Proceed
-        </button>
+        
       </div>
       <div className="sd-search-container">
         <input

@@ -1,8 +1,7 @@
 
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { getISOWeek, startOfISOWeek, endOfISOWeek, format } from 'date-fns';
+import { getISOWeek, startOfISOWeek, endOfISOWeek, format, parseISO, addDays } from 'date-fns';
 import Modal from '../Modal/Modal';
 import './SupervisorPlanViewerAdmin.css';
 
@@ -423,8 +422,6 @@ const SupervisorPlanViewerAdmin = () => {
           parent_task_id: task.task_id,
         };
 
-        console.log('New task data:', newTaskData);
-
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
           newTaskData,
@@ -468,7 +465,6 @@ const SupervisorPlanViewerAdmin = () => {
             setSelectedWeekId(newTaskWeek);
           }
           if (newTask.employee_id !== selectedEmployee) {
-            console.log(`Switching selectedEmployee to ${newTask.employee_id} for project fetch`);
             setSelectedEmployee(newTask.employee_id);
           }
         }
@@ -487,6 +483,7 @@ const SupervisorPlanViewerAdmin = () => {
         showAlert('Task updated successfully');
       }
 
+      // Refresh tasks
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
         {
@@ -515,8 +512,6 @@ const SupervisorPlanViewerAdmin = () => {
         : err.code === 'ECONNABORTED'
         ? 'Request timed out: Unable to connect to server'
         : `Network error: ${err.message}`;
-      console.error(`Error updating task ${taskId}:`, errorMessage);
-      setError(`Failed to update task: ${errorMessage}`);
       showAlert(`Failed to update task: ${errorMessage}`);
     }
   };
@@ -588,6 +583,15 @@ const SupervisorPlanViewerAdmin = () => {
     return { className: 'supervisor-plan-task-date supervisor-plan-task-date-regular', tooltip: formatDate(dateString) };
   };
 
+  const getReviewStatusColor = (status) => {
+    switch (status) {
+      case 'approved': return '#28a745'; // Green
+      case 'struck': return '#ffc107'; // Amber
+      case 'suspended_review': return '#dc3545'; // Red
+      default: return '#6c757d'; // Gray
+    }
+  };
+
   const weekIds = [...new Set(tasks.map(task => task.week_id))].sort((a, b) => a - b);
   const currentWeekIndex = weekIds.indexOf(selectedWeekId);
 
@@ -603,13 +607,48 @@ const SupervisorPlanViewerAdmin = () => {
     }
   };
 
-  const filteredTasks = selectedEmployee && selectedWeekId !== null
-    ? tasks.filter(task => task.employee_id === selectedEmployee && task.week_id === selectedWeekId)
-    : [];
-
   const filteredEmployees = employees.filter(emp =>
     emp.employee_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Generate week days
+  const generateWeekDays = () => {
+    if (!selectedWeekId) return [];
+    const currentYear = new Date().getFullYear();
+    const weekStartDate = startOfISOWeek(new Date(currentYear, 0, 1));
+    const adjustedStart = addDays(weekStartDate, (selectedWeekId - 1) * 7);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = addDays(adjustedStart, i);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const dateDisplay = format(date, 'MMM d');
+      days.push({ dateStr, dateDisplay });
+    }
+    return days;
+  };
+
+  const weekDays = generateWeekDays();
+
+  // Group tasks by date
+  const getTasksByDate = () => {
+    const tasksByDate = {};
+    weekDays.forEach(({ dateStr }) => {
+      tasksByDate[dateStr] = [];
+    });
+    if (selectedEmployee && selectedWeekId) {
+      tasks.forEach(task => {
+        if (task.employee_id === selectedEmployee && task.week_id === selectedWeekId) {
+          const taskDateStr = format(parseISO(task.task_date), 'yyyy-MM-dd');
+          if (tasksByDate[taskDateStr]) {
+            tasksByDate[taskDateStr].push(task);
+          }
+        }
+      });
+    }
+    return tasksByDate;
+  };
+
+  const tasksByDate = getTasksByDate();
 
   if (!supervisorId) {
     return (
@@ -632,14 +671,8 @@ const SupervisorPlanViewerAdmin = () => {
         <p>{alertModal.message}</p>
       </Modal>
       {configModal.isVisible && (
-        <div
-          className="supervisor-plan-admin-modal-overlay"
-          onClick={() => setConfigModal({ ...configModal, isVisible: false })}
-        >
-          <form
-            className="supervisor-plan-admin-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="supervisor-plan-admin-modal-overlay" onClick={() => setConfigModal({ ...configModal, isVisible: false })}>
+          <form className="supervisor-plan-admin-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="supervisor-plan-admin-modal-title">Update Freeze Days</h3>
             <div className="supervisor-plan-admin-config-modal-content">
               <div className="supervisor-plan-admin-config-input-group">
@@ -650,7 +683,6 @@ const SupervisorPlanViewerAdmin = () => {
                     min="0"
                     value={configModal.freezeDaysSupervisor}
                     onChange={(e) => setConfigModal({ ...configModal, freezeDaysSupervisor: e.target.value })}
-                    placeholder="Enter freeze days for supervisors"
                     disabled={loadingConfig}
                     className="supervisor-plan-admin-config-input"
                   />
@@ -662,7 +694,6 @@ const SupervisorPlanViewerAdmin = () => {
                     min="0"
                     value={configModal.freezeDaysEmployee}
                     onChange={(e) => setConfigModal({ ...configModal, freezeDaysEmployee: e.target.value })}
-                    placeholder="Enter freeze days for employees"
                     disabled={loadingConfig}
                     className="supervisor-plan-admin-config-input"
                   />
@@ -670,20 +701,10 @@ const SupervisorPlanViewerAdmin = () => {
               </div>
             </div>
             <div className="supervisor-plan-admin-modal-buttons">
-              <button
-                type="button"
-                className="supervisor-plan-admin-modal-button supervisor-plan-admin-modal-button-cancel"
-                onClick={() => setConfigModal({ ...configModal, isVisible: false })}
-                disabled={loadingConfig}
-              >
+              <button type="button" className="supervisor-plan-admin-modal-button supervisor-plan-admin-modal-button-cancel" onClick={() => setConfigModal({ ...configModal, isVisible: false })} disabled={loadingConfig}>
                 Cancel
               </button>
-              <button
-                type="button"
-                className="supervisor-plan-admin-modal-button supervisor-plan-admin-modal-button-save"
-                onClick={updateConfig}
-                disabled={loadingConfig}
-              >
+              <button type="button" className="supervisor-plan-admin-modal-button supervisor-plan-admin-modal-button-save" onClick={updateConfig} disabled={loadingConfig}>
                 Save
               </button>
             </div>
@@ -755,149 +776,163 @@ const SupervisorPlanViewerAdmin = () => {
               </button>
             </div>
             <div className="supervisor-plan-admin-tasks-container">
-              {filteredTasks.length === 0 ? (
-                <p>No tasks for {selectedEmployee} in week {formatWeekId(selectedWeekId)}.</p>
-              ) : (
-                filteredTasks.map((task) => {
-                  const dateStyle = getTaskDateStyle(task.task_date, task.employee_id);
-                  return (
-                    <div key={task.task_id} className="supervisor-plan-admin-task-card">
-                      <div className="supervisor-plan-admin-task-header">
-                        <div className="supervisor-plan-admin-task-title">
-                          {task.sup_review_status === 'struck' ? (
-                            <>
-                              <span style={{ textDecoration: 'line-through', color: '#a0a0a0' }}>
-                                {task.task_name}
-                              </span>
-                              {task.replacement_task && (
-                                <span style={{ color: '#007bff', marginLeft: '8px' }}>
-                                  → {task.replacement_task}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            task.task_name
-                          )}
-                        </div>
-                        <div className="supervisor-plan-admin-task-meta">
-                          {task.sup_review_status !== 'pending' && (
-                            <span className="supervisor-plan-admin-status-icon">
-                              {task.sup_review_status === 'approved' && '✅'}
-                              {task.sup_review_status === 'struck' && '📝'}
-                              {task.sup_review_status === 'suspended_review' && '⛔'}
-                            </span>
-                          )}
-                          <span className={dateStyle.className} title={dateStyle.tooltip}>
-                            {formatDate(task.task_date)}
-                          </span>
-                          <div className="supervisor-plan-admin-project-circle-wrapper">
-                            <span className="supervisor-plan-admin-project-circle">{task.project_id || 'N/A'}</span>
-                            <div className="supervisor-plan-admin-tooltip">{task.project_name || 'Unknown'}</div>
-                          </div>
-                          <div className="supervisor-plan-admin-status-dot-wrapper">
-                            <span
-                              className="supervisor-plan-admin-status-dot"
-                              style={{ backgroundColor: statusColor(task.emp_status) }}
-                            ></span>
-                            <div className="supervisor-plan-admin-tooltip">
-                              {statusLabel(task.emp_status)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="supervisor-plan-admin-task-body">
-                        <p><strong>Emp-Update:</strong> {task.emp_comment || '-'}</p>
-                      </div>
-                      <div className="supervisor-plan-admin-edit-section">
-                        <label>
-                          Project:
-                          <select
-                            value={task.project_id || ''}
-                            onChange={(e) => updateTaskField(task.task_id, 'project', e.target.value)}
-                          >
-                            <option value="">Select Project</option>
-                            {Object.entries(projects).map(([id, name]) => (
-                              <option key={id} value={id}>
-                                {id} - {name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          Update:
-                          <select
-                            value={task.sup_status || 'incomplete'}
-                            onChange={(e) => updateTaskField(task.task_id, 'sup_status', e.target.value)}
-                          >
-                            <option value="completed">Completed</option>
-                            <option value="add on">Add On</option>
-                            <option value="re-work">Re-work</option>
-                            <option value="incomplete">Incomplete</option>
-                          </select>
-                        </label>
-                        <label>
-                          Feedback:
-                          <input
-                            type="text"
-                            value={task.sup_comment || ''}
-                            onChange={(e) => updateTaskField(task.task_id, 'sup_comment', e.target.value)}
-                            placeholder="Add comment"
-                          />
-                        </label>
-                        {task.sup_review_status === 'pending' && (
-                          <label>
-                            Review:
-                            <select
-                              value={task.sup_review_status || 'pending'}
-                              style={{ color: statusColor(task.sup_review_status) }}
-                              onChange={(e) => updateTaskField(task.task_id, 'sup_review_status', e.target.value)}
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="approved">Approved</option>
-                              <option value="struck">Update task</option>
-                              <option value="suspended_review">Suspended</option>
-                            </select>
-                          </label>
-                        )}
-                        {task.sup_review_status === 'struck' && (
-                          <label>
-                            Updated task:
-                            <input
-                              type="text"
-                              value={task.replacement_task || ''}
-                              onChange={(e) => updateTaskField(task.task_id, 'replacement_task', e.target.value)}
-                              placeholder="Enter updated task"
-                            />
-                          </label>
-                        )}
-                        {task.sup_review_status !== 'pending' && (
-                          <label>
-                            Rating:
-                            <div className="supervisor-plan-admin-star-rating">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <span
-                                  key={star}
-                                  className={`supervisor-plan-admin-star ${task.star_rating >= star ? 'filled' : ''}`}
-                                  onClick={() => updateTaskField(task.task_id, 'star_rating', star)}
-                                  style={{ cursor: 'pointer' }}
-                                >
-                                  ★
-                                </span>
-                              ))}
-                            </div>
-                          </label>
-                        )}
-                        <button
-                          className="supervisor-plan-admin-update-task-button"
-                          onClick={() => saveTaskField(task.task_id)}
-                        >
-                          Update
-                        </button>
-                      </div>
+              {weekDays.map(({ dateStr, dateDisplay }) => {
+                const dayTasks = tasksByDate[dateStr] || [];
+                const sampleTaskForStyle = dayTasks[0] || { task_date: dateStr, employee_id: selectedEmployee };
+                const dateStyle = getTaskDateStyle(sampleTaskForStyle.task_date, selectedEmployee);
+                return (
+                  <div key={dateStr} className="supervisor-plan-admin-day-group">
+                    <div className="supervisor-plan-admin-day-header">
+                      <span className={dateStyle.className} title={dateStyle.tooltip}>
+                        {dateDisplay}
+                      </span>
                     </div>
-                  );
-                })
-              )}
+                    {dayTasks.length === 0 ? (
+                      <p className="supervisor-plan-admin-no-tasks">No tasks assigned for this day.</p>
+                    ) : (
+                      dayTasks.map((task) => {
+                        const taskDateStyle = getTaskDateStyle(task.task_date, task.employee_id);
+                        return (
+                          <div key={task.task_id} className="supervisor-plan-admin-task-card">
+                            <div className="supervisor-plan-admin-task-header">
+                              <div className="supervisor-plan-admin-task-title">
+                                {task.sup_review_status === 'struck' ? (
+                                  <>
+                                    <span style={{ textDecoration: 'line-through', color: '#a0a0a0' }}>
+                                      {task.task_name}
+                                    </span>
+                                    {task.replacement_task && (
+                                      <span style={{ color: '#007bff', marginLeft: '8px' }}>
+                                        → {task.replacement_task}
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  task.task_name
+                                )}
+                              </div>
+                              <div className="supervisor-plan-admin-task-meta">
+                                {task.sup_review_status !== 'pending' && (
+                                  <span className="supervisor-plan-status-icon">
+                               {task.sup_review_status === 'approved' && '✅'}
+                               {task.sup_review_status === 'struck' && '📝'}
+                               {task.sup_review_status === 'suspended_review' && '⛔'}
+                            </span>
+                                )}
+                                <span className={taskDateStyle.className} title={taskDateStyle.tooltip}>
+                                  {formatDate(task.task_date)}
+                                </span>
+                                <div className="supervisor-plan-admin-project-circle-wrapper">
+                                  <span className="supervisor-plan-admin-project-circle">{task.project_id || 'N/A'}</span>
+                                  <div className="supervisor-plan-admin-tooltip">{task.project_name || 'Unknown'}</div>
+                                </div>
+                                <div className="supervisor-plan-admin-status-dot-wrapper">
+                                  <span
+                                    className="supervisor-plan-admin-status-dot"
+                                    style={{ backgroundColor: statusColor(task.emp_status) }}
+                                  ></span>
+                                  <div className="supervisor-plan-admin-tooltip">
+                                    {statusLabel(task.emp_status)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="supervisor-plan-admin-task-body">
+                              <p><strong>Emp-Update:</strong> {task.emp_comment || '-'}</p>
+                            </div>
+                            <div className="supervisor-plan-admin-edit-section">
+                              <label>
+                                Project:
+                                <select
+                                  value={task.project_id || ''}
+                                  onChange={(e) => updateTaskField(task.task_id, 'project', e.target.value)}
+                                >
+                                  <option value="">Select Project</option>
+                                  {Object.entries(projects).map(([id, name]) => (
+                                    <option key={id} value={id}>
+                                      {id} - {name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                Update:
+                                <select
+                                  value={task.sup_status || 'incomplete'}
+                                  onChange={(e) => updateTaskField(task.task_id, 'sup_status', e.target.value)}
+                                >
+                                  <option value="completed">Completed</option>
+                                  <option value="add on">Add On</option>
+                                  <option value="re-work">Re-work</option>
+                                  <option value="incomplete">Incomplete</option>
+                                </select>
+                              </label>
+                              <label>
+                                Feedback:
+                                <input
+                                  type="text"
+                                  value={task.sup_comment || ''}
+                                  onChange={(e) => updateTaskField(task.task_id, 'sup_comment', e.target.value)}
+                                  placeholder="Add comment"
+                                />
+                              </label>
+                              {task.sup_review_status === 'pending' && (
+                                <label>
+                                  Review:
+                                  <select
+                                    value={task.sup_review_status || 'pending'}
+                                    style={{ color: getReviewStatusColor(task.sup_review_status) }}
+                                    onChange={(e) => updateTaskField(task.task_id, 'sup_review_status', e.target.value)}
+                                  >
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="struck">Update task</option>
+                                    <option value="suspended_review">Suspended</option>
+                                  </select>
+                                </label>
+                              )}
+                              {task.sup_review_status === 'struck' && (
+                                <label>
+                                  Updated task:
+                                  <input
+                                    type="text"
+                                    value={task.replacement_task || ''}
+                                    onChange={(e) => updateTaskField(task.task_id, 'replacement_task', e.target.value)}
+                                    placeholder="Enter updated task"
+                                  />
+                                </label>
+                              )}
+                              {task.sup_review_status !== 'pending' && (
+                                <label>
+                                  Rating:
+                                  <div className="supervisor-plan-admin-star-rating">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <span
+                                        key={star}
+                                        className={`supervisor-plan-admin-star ${task.star_rating >= star ? 'filled' : ''}`}
+                                        onClick={() => updateTaskField(task.task_id, 'star_rating', star)}
+                                        style={{ cursor: 'pointer' }}
+                                      >
+                                        ★
+                                      </span>
+                                    ))}
+                                  </div>
+                                </label>
+                              )}
+                              <button
+                                className="supervisor-plan-admin-update-task-button"
+                                onClick={() => saveTaskField(task.task_id)}
+                              >
+                                Update
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
