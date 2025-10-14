@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
@@ -313,6 +314,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
+    if (task.sup_review_status === "suspended_review") {
+      showAlert("This task is suspended and cannot be updated.");
+      return;
+    }
 
     if (editingTask === task.task_id) {
       // Already editing this task -> close (toggle off)
@@ -328,6 +333,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     if (userRole !== "supervisor") return;
     if (!isTaskEditable(task.task_date)) {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      return;
+    }
+    if (task.sup_review_status === "suspended_review") {
+      showAlert("This task is suspended and cannot be updated.");
       return;
     }
 
@@ -348,6 +357,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      return;
+    }
+    if (task.sup_review_status === "suspended_review") {
+      showAlert("This task is suspended and cannot be updated.");
       return;
     }
     try {
@@ -399,8 +412,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
+    if (task.sup_review_status === "suspended_review") {
+      showAlert("This task is suspended and cannot be updated.");
+      return;
+    }
     try {
-      const updatedTask = {
+      const updateData = {
         project_id: task.project_id,
         project_name: task.project_name,
         task_name: task.task_name,
@@ -413,9 +430,84 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: task.star_rating,
         replacement_task: task.replacement_task,
       };
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, updatedTask, {
-        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-      });
+
+      if (supFormData.supStatus === 're-work') {
+        const taskDate = new Date(task.task_date || new Date());
+        if (isNaN(taskDate.getTime())) taskDate = new Date();
+        taskDate.setHours(0, 0, 0, 0);
+        const nextDay = new Date(taskDate);
+        nextDay.setDate(taskDate.getDate() + 1);
+        const nextDayString = nextDay.toLocaleDateString('en-CA');
+        if (!isTaskEditable(nextDayString)) {
+          showAlert(`Cannot create new task: Next day is before the ${freezeDays}-day editable period.`);
+          return;
+        }
+        const nextDayWeekId = getISOWeekNumber(nextDay);
+
+        const newTaskName = task.replacement_task || task.task_name;
+
+        const newTaskData = {
+          week_id: nextDayWeekId,
+          task_date: nextDayString,
+          project_id: task.project_id,
+          project_name: task.project_name,
+          task_name: newTaskName,
+          employee_id: task.employee_id,
+          emp_status: 'not started',
+          sup_status: 'incomplete',
+          emp_comment: null,
+          sup_comment: null,
+          sup_review_status: 'pending',
+          star_rating: 0,
+          parent_task_id: task.task_id,
+        };
+
+        const response = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
+          newTaskData,
+          { headers: { 'x-api-key': process.env.REACT_APP_API_KEY || "abc123xyz" }, timeout: 10000 }
+        );
+
+        updateData.sup_status = 're-work';
+        await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
+          updateData,
+          { headers: { 'x-api-key': process.env.REACT_APP_API_KEY || "abc123xyz" }, timeout: 10000 }
+        );
+
+        showAlert(response.data.message || 'New task created successfully');
+        if (response.data.newTask) {
+          const newTask = {
+            ...response.data.newTask,
+            employee_name: 'Unknown',
+            employee_id: response.data.newTask.employee_id?.trim().toUpperCase(),
+            emp_status: response.data.newTask.emp_status || 'not started',
+          };
+          setTasksData((prev) => {
+            const newData = [...prev];
+            const dayIndex = newData.findIndex((d) => d.date === formatDateRange(new Date(nextDayString), new Date(nextDayString)));
+            if (dayIndex > -1) {
+              newData[dayIndex] = {
+                ...newData[dayIndex],
+                tasks: [...newData[dayIndex].tasks, newTask],
+              };
+            }
+            return newData;
+          });
+          const newTaskWeek = newTask.week_id;
+          if (newTaskWeek && newTaskWeek !== weekId) {
+            // Update week offset if necessary
+            const newOffset = weekOffset + (newTaskWeek - weekId);
+            setWeekOffset(newOffset);
+          }
+        }
+      } else {
+        await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, updateData, {
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+        });
+        showAlert('Task updated successfully');
+      }
+
       setTasksData((prev) =>
         prev.map((day) => ({
           ...day,
@@ -456,6 +548,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      return;
+    }
+    if (task.sup_review_status === "suspended_review") {
+      showAlert("This task is suspended and cannot be updated.");
       return;
     }
     try {
@@ -518,6 +614,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
+    if (task.sup_review_status === "suspended_review") {
+      showAlert("This task is suspended and cannot be updated.");
+      return;
+    }
     try {
       await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
         ...task,
@@ -559,6 +659,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const task = tasksData[dayIndex].tasks[taskIndex];
       if (!isTaskEditable(task.task_date)) {
         showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+        return;
+      }
+      if (task.sup_review_status === "suspended_review") {
+        showAlert("This task is suspended and cannot be updated.");
         return;
       }
       const updatedTask = {
@@ -1037,9 +1141,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               <div className="tasks-list">
                 {visibleTasks.map((task) => {
                   const editable = isTaskEditable(task.task_date);
-                  console.log(`Rendering task ${task.task_id}: date=${task.task_date}, editable=${editable}, class=${!editable ? 'task-frozen' : ''}`);
+                  const isFrozen = task.sup_review_status === "suspended_review";
+                  const effectiveEditable = editable && !isFrozen;
+                  console.log(`Rendering task ${task.task_id}: date=${task.task_date}, editable=${editable}, frozen=${isFrozen}, effectiveEditable=${effectiveEditable}, class=${!effectiveEditable ? 'task-frozen' : ''}`);
                   return (
-                    <div key={task.task_id} className={`task-row ${!editable ? 'task-frozen' : ''}`}>
+                    <div key={task.task_id} className={`task-row ${!effectiveEditable ? 'task-frozen' : ''}`}>
                       <div className="task-name">
                         {task.sup_review_status === "struck" ? (
                           <>
@@ -1086,7 +1192,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </>
                         )}
                         {userRole === "supervisor" && supReviewMode && task.sup_review_status === "pending" && (
-                          <div className="review-action-icons" style={{ opacity: editable ? 1 : 0.5 }}>
+                          <div className="review-action-icons" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
                             <svg
                               className="action-icon approve"
                               onClick={() => handleApprove(task.task_id)}
@@ -1096,7 +1202,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               fill="none"
                               stroke="green"
                               strokeWidth="2"
-                              style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                              style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
                             >
                               <path d="M20 6L9 17l-5-5" />
                             </svg>
@@ -1109,7 +1215,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               fill="none"
                               stroke="red"
                               strokeWidth="2"
-                              style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                              style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
                             >
                               <path d="M18 6L6 18" />
                             </svg>
@@ -1122,7 +1228,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               fill="none"
                               stroke="orange"
                               strokeWidth="2"
-                              style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                              style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
                             >
                               <circle cx="12" cy="12" r="10" />
                               <line x1="15" y1="9" x2="9" y2="15" />
@@ -1131,7 +1237,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </div>
                         )}
                       </div>
-                      <div className="update-section" style={{ opacity: editable ? 1 : 0.5 }}>
+                      <div className="update-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
                         {editingTask === task.task_id && userRole === "employee" && (
                           <div className="edit-popup">
                             <div className="checkbox-group">
@@ -1145,7 +1251,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                     onChange={(e) =>
                                       setFormData({ ...formData, status: e.target.value })
                                     }
-                                    disabled={!editable}
+                                    disabled={!effectiveEditable}
                                   />
                                   {statusLabels[status] || status}
                                 </label>
@@ -1159,20 +1265,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                 setFormData({ ...formData, comment: e.target.value })
                               }
                               className="edit-comment-input"
-                              disabled={!editable}
+                              disabled={!effectiveEditable}
                             />
                             <div className="edit-actions">
                               <button
                                 onClick={handleCancelEdit}
                                 className="cancel-button"
-                                disabled={!editable}
+                                disabled={!effectiveEditable}
                               >
                                 Cancel
                               </button>
                               <button
                                 onClick={() => handleSave(task.task_id)}
                                 className="edit-save-button"
-                                disabled={!editable}
+                                disabled={!effectiveEditable}
                               >
                                 Save
                               </button>
@@ -1197,7 +1303,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                 fill="none"
                                 stroke="#007bff"
                                 strokeWidth="2"
-                                style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                                style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
                               >
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -1206,7 +1312,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </div>
                         </div>
                       </div>
-                      <div className="supervisor-section" style={{ opacity: editable ? 1 : 0.5 }}>
+                      <div className="supervisor-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
                         {userRole === "supervisor" && supReviewMode && editingSupStatus === task.task_id ? (
                           <div className="edit-section">
                             <div className="checkbox-group">
@@ -1220,7 +1326,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                     onChange={(e) =>
                                       setSupFormData({ ...supFormData, supStatus: e.target.value })
                                     }
-                                    disabled={!editable}
+                                    disabled={!effectiveEditable}
                                   />
                                   {statusLabels[status] || status}
                                 </label>
@@ -1234,20 +1340,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                 setSupFormData({ ...supFormData, supComment: e.target.value })
                               }
                               className="edit-comment-input"
-                              disabled={!editable}
+                              disabled={!effectiveEditable}
                             />
                             <div className="edit-actions">
                               <button
                                 onClick={handleSupStatusCancel}
                                 className="cancel-button"
-                                disabled={!editable}
+                                disabled={!effectiveEditable}
                               >
                                 Cancel
                               </button>
                               <button
                                 onClick={() => handleSupStatusSave(task.task_id)}
                                 className="edit-save-button"
-                                disabled={!editable}
+                                disabled={!effectiveEditable}
                               >
                                 Save
                               </button>
@@ -1272,7 +1378,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                   fill="none"
                                   stroke="#007bff"
                                   strokeWidth="2"
-                                  style={{ cursor: editable ? 'pointer' : 'not-allowed' }}
+                                  style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
                                 >
                                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />

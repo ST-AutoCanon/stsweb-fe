@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getISOWeek, startOfISOWeek, endOfISOWeek, format, parseISO, addDays } from 'date-fns';
@@ -31,6 +32,7 @@ const SupervisorPlanViewerAdmin = () => {
     freezeDaysEmployee: '',
   });
   const [loadingConfig, setLoadingConfig] = useState(false);
+  const [pendingReviewChanges, setPendingReviewChanges] = useState({});
 
   const showAlert = (message) => {
     setAlertModal({ isVisible: true, message });
@@ -376,6 +378,18 @@ const SupervisorPlanViewerAdmin = () => {
     );
   };
 
+  const handleReviewChange = (taskId, value) => {
+    if (value === 'pending') {
+      setPendingReviewChanges((prev) => {
+        const newPrev = { ...prev };
+        delete newPrev[taskId];
+        return newPrev;
+      });
+    } else {
+      setPendingReviewChanges((prev) => ({ ...prev, [taskId]: value }));
+    }
+  };
+
   const saveTaskField = async (taskId) => {
     const task = tasks.find((t) => t.task_id === taskId);
     if (!task) {
@@ -384,11 +398,17 @@ const SupervisorPlanViewerAdmin = () => {
       return;
     }
 
+    if (task.sup_review_status === 'suspended_review') {
+      showAlert('This task is suspended and cannot be updated.');
+      return;
+    }
+
     try {
+      const effectiveReviewStatus = pendingReviewChanges[taskId] || task.sup_review_status;
       const updateData = {
         sup_status: task.sup_status || 'incomplete',
         sup_comment: task.sup_comment || '',
-        sup_review_status: task.sup_review_status || 'pending',
+        sup_review_status: effectiveReviewStatus || 'pending',
         replacement_task: task.replacement_task || null,
         star_rating: task.star_rating || 0,
         project_id: task.project_id,
@@ -406,12 +426,14 @@ const SupervisorPlanViewerAdmin = () => {
         const nextDayString = nextDay.toLocaleDateString('en-CA');
         const nextDayWeekId = getWeekIdForDate(nextDay);
 
+        const newTaskName = task.replacement_task || task.task_name;
+
         const newTaskData = {
           week_id: nextDayWeekId,
           task_date: nextDayString,
           project_id: task.project_id,
           project_name: task.project_name,
-          task_name: task.task_name,
+          task_name: newTaskName,
           employee_id: task.employee_id,
           emp_status: 'not started',
           sup_status: 'incomplete',
@@ -482,6 +504,13 @@ const SupervisorPlanViewerAdmin = () => {
         );
         showAlert('Task updated successfully');
       }
+
+      // Clear pending review change
+      setPendingReviewChanges((prev) => {
+        const newPrev = { ...prev };
+        delete newPrev[taskId];
+        return newPrev;
+      });
 
       // Refresh tasks
       const res = await axios.get(
@@ -792,11 +821,14 @@ const SupervisorPlanViewerAdmin = () => {
                     ) : (
                       dayTasks.map((task) => {
                         const taskDateStyle = getTaskDateStyle(task.task_date, task.employee_id);
+                        const effectiveReviewStatus = pendingReviewChanges[task.task_id] || task.sup_review_status;
+                        const isFrozen = task.sup_review_status === 'suspended_review';
+                        const showReviewSelect = task.sup_review_status === 'pending' && !pendingReviewChanges[task.task_id];
                         return (
-                          <div key={task.task_id} className="supervisor-plan-admin-task-card">
+                          <div key={task.task_id} className={`supervisor-plan-admin-task-card ${isFrozen ? 'supervisor-plan-admin-task-frozen' : ''}`}>
                             <div className="supervisor-plan-admin-task-header">
                               <div className="supervisor-plan-admin-task-title">
-                                {task.sup_review_status === 'struck' ? (
+                                {effectiveReviewStatus === 'struck' ? (
                                   <>
                                     <span style={{ textDecoration: 'line-through', color: '#a0a0a0' }}>
                                       {task.task_name}
@@ -812,12 +844,12 @@ const SupervisorPlanViewerAdmin = () => {
                                 )}
                               </div>
                               <div className="supervisor-plan-admin-task-meta">
-                                {task.sup_review_status !== 'pending' && (
+                                {effectiveReviewStatus !== 'pending' && (
                                   <span className="supervisor-plan-status-icon">
-                               {task.sup_review_status === 'approved' && '✅'}
-                               {task.sup_review_status === 'struck' && '📝'}
-                               {task.sup_review_status === 'suspended_review' && '⛔'}
-                            </span>
+                                    {effectiveReviewStatus === 'approved' && '✅'}
+                                    {effectiveReviewStatus === 'struck' && '📝'}
+                                    {effectiveReviewStatus === 'suspended_review' && '⛔'}
+                                  </span>
                                 )}
                                 <span className={taskDateStyle.className} title={taskDateStyle.tooltip}>
                                   {formatDate(task.task_date)}
@@ -840,12 +872,18 @@ const SupervisorPlanViewerAdmin = () => {
                             <div className="supervisor-plan-admin-task-body">
                               <p><strong>Emp-Update:</strong> {task.emp_comment || '-'}</p>
                             </div>
-                            <div className="supervisor-plan-admin-edit-section">
+                            {isFrozen && (
+                              <div className="supervisor-plan-admin-frozen-message">
+                                This task is suspended and frozen. No edits allowed.
+                              </div>
+                            )}
+                            <div className={`supervisor-plan-admin-edit-section ${isFrozen ? 'supervisor-plan-admin-edit-section-disabled' : ''}`}>
                               <label>
                                 Project:
                                 <select
                                   value={task.project_id || ''}
                                   onChange={(e) => updateTaskField(task.task_id, 'project', e.target.value)}
+                                  disabled={isFrozen}
                                 >
                                   <option value="">Select Project</option>
                                   {Object.entries(projects).map(([id, name]) => (
@@ -860,6 +898,7 @@ const SupervisorPlanViewerAdmin = () => {
                                 <select
                                   value={task.sup_status || 'incomplete'}
                                   onChange={(e) => updateTaskField(task.task_id, 'sup_status', e.target.value)}
+                                  disabled={isFrozen}
                                 >
                                   <option value="completed">Completed</option>
                                   <option value="add on">Add On</option>
@@ -874,15 +913,17 @@ const SupervisorPlanViewerAdmin = () => {
                                   value={task.sup_comment || ''}
                                   onChange={(e) => updateTaskField(task.task_id, 'sup_comment', e.target.value)}
                                   placeholder="Add comment"
+                                  disabled={isFrozen}
                                 />
                               </label>
-                              {task.sup_review_status === 'pending' && (
+                              {showReviewSelect && (
                                 <label>
                                   Review:
                                   <select
                                     value={task.sup_review_status || 'pending'}
                                     style={{ color: getReviewStatusColor(task.sup_review_status) }}
-                                    onChange={(e) => updateTaskField(task.task_id, 'sup_review_status', e.target.value)}
+                                    onChange={(e) => handleReviewChange(task.task_id, e.target.value)}
+                                    disabled={isFrozen}
                                   >
                                     <option value="pending">Pending</option>
                                     <option value="approved">Approved</option>
@@ -891,7 +932,7 @@ const SupervisorPlanViewerAdmin = () => {
                                   </select>
                                 </label>
                               )}
-                              {task.sup_review_status === 'struck' && (
+                              {effectiveReviewStatus === 'struck' && (
                                 <label>
                                   Updated task:
                                   <input
@@ -899,10 +940,11 @@ const SupervisorPlanViewerAdmin = () => {
                                     value={task.replacement_task || ''}
                                     onChange={(e) => updateTaskField(task.task_id, 'replacement_task', e.target.value)}
                                     placeholder="Enter updated task"
+                                    disabled={isFrozen}
                                   />
                                 </label>
                               )}
-                              {task.sup_review_status !== 'pending' && (
+                              {effectiveReviewStatus !== 'pending' && (
                                 <label>
                                   Rating:
                                   <div className="supervisor-plan-admin-star-rating">
@@ -910,8 +952,8 @@ const SupervisorPlanViewerAdmin = () => {
                                       <span
                                         key={star}
                                         className={`supervisor-plan-admin-star ${task.star_rating >= star ? 'filled' : ''}`}
-                                        onClick={() => updateTaskField(task.task_id, 'star_rating', star)}
-                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => !isFrozen && updateTaskField(task.task_id, 'star_rating', star)}
+                                        style={{ cursor: isFrozen ? 'not-allowed' : 'pointer' }}
                                       >
                                         ★
                                       </span>
@@ -922,6 +964,7 @@ const SupervisorPlanViewerAdmin = () => {
                               <button
                                 className="supervisor-plan-admin-update-task-button"
                                 onClick={() => saveTaskField(task.task_id)}
+                                disabled={isFrozen}
                               >
                                 Update
                               </button>
