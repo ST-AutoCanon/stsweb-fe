@@ -743,19 +743,7 @@ if (salaryPeriods.length === 0) {
       showAlert('Compensation created successfully!');
     }
     // Save working days if applicable
-    if (formData.isDefaultWorkingDays) {
-      const workingDaysResponse = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/working-days`,
-        {
-          compensation_plan_id: isEditing ? editingCompensationId : response.data.data.id,
-          ...formData.defaultWorkingDays,
-        },
-        { headers }
-      );
-      if (!workingDaysResponse.data.success) {
-        throw new Error('Failed to save working days');
-      }
-    }
+    
     togglePopup();
     fetchCompensations();
   } catch (error) {
@@ -1453,87 +1441,84 @@ const handleInputChange = (field, value) => {
     return value === defaultValue;
   };
 
-  const shouldDisplayField = (key, value, formData) => {
-    const excludedFields = [
-      'pfEmployeeText',
-      'pfEmployerText',
-      'esicEmployeeText',
-      'insuranceEmployeeText',
-      'recordBonusPay',
-      'recordBonusPayYearly',
-      'bonusPay'
-    ];
-    if (excludedFields.includes(key)) {
-      return false;
-    }
+ const shouldDisplayField = (key, value, formData) => {
+  const excludedFields = [
+    'pfEmployeeText',
+    'pfEmployerText',
+    'esicEmployeeText',
+    'insuranceEmployeeText',
+    'recordBonusPay',
+    'recordBonusPayYearly',
+    'bonusPay'
+  ];
+  if (excludedFields.includes(key)) {
+    return false;
+  }
+    
     if (isDefaultValue(key, value)) {
       return false;
     }
     const fieldEnableMap = {
-      overtimePayAmount: 'isOvertimePay',
-      overtimePayUnits: 'isOvertimePay',
-      isDefaultWorkingDays: true,
-      defaultWorkingDays: 'isDefaultWorkingDays',
-      basicSalary: 'isBasicSalary',
-      basicSalaryAmount: 'isBasicSalary',
-      houseRentAllowance: 'isHouseRentAllowance',
-      houseRentAllowanceAmount: 'isHouseRentAllowance',
-      ltaAllowance: 'isLtaAllowance',
-      ltaAllowanceAmount: 'isLtaAllowance',
-      otherAllowance: 'isOtherAllowance',
-      otherAllowanceAmount: 'isOtherAllowance',
-      variablePay: 'isVariablePay',
-      variablePayAmount: 'isVariablePay',
-      statutoryBonusPercentage: 'isStatutoryBonus',
-      statutoryBonusAmount: 'isStatutoryBonus',
-      incentives: 'isIncentives',
-      incentivesAmount: 'isIncentives',
-      professionalTax: 'isProfessionalTax',
-      professionalTaxAmount: 'isProfessionalTax',
-      pfEmployeePercentage: 'isPFEmployee',
-      pfEmployeeAmount: 'isPFEmployee',
-      pfEmployerPercentage: 'isPFEmployer',
-      pfEmployerAmount: 'isPFEmployer',
-      esicEmployeePercentage: 'isESICEmployee',
-      esicEmployeeAmount: 'isESICEmployee',
-      insuranceEmployeePercentage: 'isInsuranceEmployee',
-      insuranceEmployeeAmount: 'isInsuranceEmployee',
-      gratuityPercentage: 'isGratuityApplicable',
-      gratuityAmount: 'isGratuityApplicable',
-      basicSalary: 'isBasicSalary',
-      hra: 'isHouseRentAllowance',
-      ltaAllowance: 'isLtaAllowance',
-      otherAllowances: 'isOtherAllowance',
-      variablePay: 'isVariablePay',
-      statutoryBonus: 'isStatutoryBonus',
-      incentives: 'isIncentives',
-      professionalTax: 'isProfessionalTax',
-      employeePF: 'isPFEmployee',
-      employerPF: 'isPFEmployer',
-      esic: 'isESICEmployee',
-      insurance: 'isInsuranceEmployee',
-      gratuity: 'isGratuityApplicable',
-      overtimePay: 'isOvertimePay',
-      tds: 'isTDSApplicable',
-      grossSalary: true,
-      netSalary: true,
-      advanceRecovery: true
-    };
+    overtimePayAmount: 'isOvertimePay',
+    overtimePayUnits: 'isOvertimePay',
+    isDefaultWorkingDays: true,
+    defaultWorkingDays: 'isDefaultWorkingDays',
+    basicSalary: 'isBasicSalary',
+    basicSalaryAmount: 'isBasicSalary',
+    houseRentAllowance: 'isHouseRentAllowance',
+    houseRentAllowanceAmount: 'isHouseRentAllowance',
+    ltaAllowance: 'isLtaAllowance',
+    ltaAllowanceAmount: 'isLtaAllowance',
+    otherAllowance: 'isOtherAllowance',
+    otherAllowanceAmount: 'isOtherAllowance',
+    variablePay: 'isVariablePay',
+    variablePayAmount: 'isVariablePay',
+    statutoryBonusPercentage: 'isStatutoryBonus',
+    statutoryBonusAmount: 'isStatutoryBonus',
+    incentives: 'isIncentives',
+    incentivesAmount: 'isIncentives',
+    professionalTax: 'isProfessionalTax',
+    professionalTaxAmount: 'isProfessionalTax',
+    pfEmployeePercentage: 'isPFEmployee',
+    pfEmployeeAmount: 'isPFEmployee',
+    pfEmployerPercentage: 'isPFEmployer',
+    pfEmployerAmount: 'isPFEmployer',
+    esicEmployeePercentage: 'isESICEmployee',
+    esicEmployeeAmount: 'isESICEmployee',
+    insuranceEmployeePercentage: 'isInsuranceEmployee',
+    insuranceEmployeeAmount: 'isInsuranceEmployee',
+    gratuityPercentage: 'isGratuityApplicable',
+    gratuityAmount: 'isGratuityApplicable',
+    basicSalary: 'isBasicSalary',
+    hra: 'isHouseRentAllowance',
+    ltaAllowance: 'isLtaAllowance',
+    otherAllowances: 'isOtherAllowance',
+    variablePay: 'isVariablePay',
+    statutoryBonus: 'isStatutoryBonus',
+    incentives: 'isIncentives',
+    professionalTax: 'isProfessionalTax',
+    employeePF: 'isPFEmployee',
+    employerPF: 'isPFEmployer',
+    esic: 'isESICEmployee',
+    insurance: 'isInsuranceEmployee',
+    gratuity: 'isGratuityApplicable',
+    overtimePay: 'isOvertimePay',
+    tds: 'isTDSApplicable',
+    grossSalary: true,
+    netSalary: true,
+    advanceRecovery: true,
+    defaultWorkingHours: 'isDefaultWorkingHours',
+    tdsSlabs: 'isTDSApplicable'
+  };
     const enableField = fieldEnableMap[key];
-    if (enableField) {
-      if (enableField === true) {
-        if (typeof value === 'object' && value !== null) {
-          return true;
-        }
-        return typeof value === 'number' ? value !== 0 : value !== '';
-      }
-      if (formData[enableField]) {
-        if (typeof value === 'object' && value !== null) {
-          return true;
-        }
-        return typeof value === 'number' ? value !== 0 : value !== '';
-      }
+  if (enableField) {
+    if (enableField === true) {
+      return true; // Always show fields like isDefaultWorkingDays
     }
+    if (formData[enableField]) {
+      return true; // Show if the enable flag is true (even if value is default/empty)
+    }
+  }
     const typeDependentFields = {
       pfEmployeePercentage: { typeField: 'pfEmployeeType', showWhen: 'percentage', enableField: 'isPFEmployee' },
       pfEmployeeAmount: { typeField: 'pfEmployeeType', showWhen: 'amount', enableField: 'isPFEmployee' },
@@ -2162,35 +2147,96 @@ const handleInputChange = (field, value) => {
       ]
     }
   ];
+  // Add this new helper function
+const formatStatus = (status) => {
+  switch (status) {
+    case 'fullDay': return 'Full Day';
+    case 'halfDay': return 'Half Day';
+    case 'weekOff': return 'Week Off';
+    default: return status;
+  }
+};
   const renderViewCompensationTable = (compensationData) => {
   const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC;
-  const fieldOrder = [
-    'isBasicSalary',
-    'basicSalary',
-    'basicSalaryAmount',
-    'basicSalaryType',
-    'isHouseRentAllowance',
-    'houseRentAllowance',
-    'houseRentAllowanceAmount',
-    'houseRentAllowanceType',
-    'isLtaAllowance',
-    'ltaAllowance',
-    'ltaAllowanceAmount',
-    'ltaAllowanceType',
-    'isOtherAllowance',
-    'otherAllowance',
-    'otherAllowanceAmount',
-    'otherAllowanceType',
-    'isPFEmployee',
-    'pfEmployeePercentage',
-    'pfEmployeeAmount',
-    'pfEmployeeType',
-    'isPFEmployer',
-    'pfEmployerPercentage',
-    'pfEmployerAmount',
-    'pfEmployerType',
-    // ... other fields
-  ];
+ // Replace the existing fieldOrder array with this:
+const fieldOrder = [
+  'compensationPlanName',
+  'isDefaultWorkingHours',
+  'defaultWorkingHours',
+  'isDefaultWorkingDays',
+  'defaultWorkingDays',
+  'isTDSApplicable',
+  'tdsSlabs',
+  'isBasicSalary',
+  'basicSalary',
+  'basicSalaryAmount',
+  'basicSalaryType',
+  'isHouseRentAllowance',
+  'houseRentAllowance',
+  'houseRentAllowanceAmount',
+  'houseRentAllowanceType',
+  'isLtaAllowance',
+  'ltaAllowance',
+  'ltaAllowanceAmount',
+  'ltaAllowanceType',
+  'isOtherAllowance',
+  'otherAllowance',
+  'otherAllowanceAmount',
+  'otherAllowanceType',
+  'isPFApplicable',
+  'pfCalculationBase',
+  'isPFEmployee',
+  'pfEmployeePercentage',
+  'pfEmployeeAmount',
+  'pfEmployeeType',
+  'pfEmployeeIncludeInCtc',
+  'isPFEmployer',
+  'pfEmployerPercentage',
+  'pfEmployerAmount',
+  'pfEmployerType',
+  'pfEmployerIncludeInCtc',
+  'isMedicalApplicable',
+  'medicalCalculationBase',
+  'isESICEmployee',
+  'esicEmployeePercentage',
+  'esicEmployeeAmount',
+  'esicEmployeeType',
+  'esicEmployeeIncludeInCtc',
+  'isInsuranceEmployee',
+  'insuranceEmployeePercentage',
+  'insuranceEmployeeAmount',
+  'insuranceEmployeeType',
+  'insuranceEmployeeIncludeInCtc',
+  'isGratuityApplicable',
+  'gratuityPercentage',
+  'gratuityAmount',
+  'gratuityType',
+  'gratuityIncludeInCtc',
+  'isProfessionalTax',
+  'professionalTax',
+  'professionalTaxAmount',
+  'professionalTaxType',
+  'professionalTaxIncludeInCtc',
+  'isVariablePay',
+  'variablePay',
+  'variablePayAmount',
+  'variablePayType',
+  'variablePayIncludeInCtc',
+  'isStatutoryBonus',
+  'statutoryBonusPercentage',
+  'statutoryBonusAmount',
+  'statutoryBonusType',
+  'statutoryBonusIncludeInCtc',
+  'isIncentives',
+  'incentives',
+  'incentivesAmount',
+  'incentivesType',
+  'incentivesIncludeInCtc',
+  'isOvertimePay',
+  'overtimePayType',
+  'overtimePayAmount',
+  'overtimePayUnits'
+];
 
   const typeFieldMap = {
     basicSalary: { typeField: 'basicSalaryType', percentageField: 'basicSalary' },
@@ -2221,22 +2267,22 @@ const handleInputChange = (field, value) => {
 
           if (typeof value === 'boolean') {
             displayValue = value ? 'Yes' : 'No';
-          } else if (typeof value === 'object' && value !== null) {
-            if (Array.isArray(value)) {
-              displayValue = value.length > 0 ? (
-                value.map((slab, i) => (
-                  <div key={i}>
-                    From: {slab.from}, To: {slab.to}, %: {slab.percentage}
-                  </div>
-                ))
-              ) : (
-                '-'
-              );
-            } else {
-              displayValue = Object.entries(value).map(([day, status]) => (
-                <div key={day}>{`${day}: ${status}`}</div>
-              ));
-            }
+         } else if (typeof value === 'object' && value !== null) {
+  if (Array.isArray(value)) {
+    displayValue = value.length > 0 ? (
+      value.map((slab, i) => (
+        <div key={i}>
+          From: {slab.from}, To: {slab.to}, %: {slab.percentage}
+        </div>
+      ))
+    ) : (
+      '-'
+    );
+  } else {
+    displayValue = Object.entries(value).map(([day, status]) => (
+      <div key={day}>{`${day}: ${formatStatus(status)}`}</div>
+    ));
+  }
           } else if (value !== '' && value !== undefined) {
             if (isNaN(value)) {
               displayValue = value;
@@ -2566,10 +2612,10 @@ const handleInputChange = (field, value) => {
     let displayValue = '';
 
     if (field.label === "Default Working Days") {
-      displayValue = Object.entries(field.values).map(([day, status]) => (
-        <div key={day}>{`${day}: ${status}`}</div>
-      ));
-    } else if (field.label === "TDS Slabs") {
+  displayValue = Object.entries(field.values).map(([day, status]) => (
+    <div key={day}>{`${day}: ${formatStatus(status)}`}</div>
+  ));
+} else if (field.label === "TDS Slabs") {
       displayValue = field.values.Slabs.length > 0 ? (
         field.values.Slabs.map((slab, i) => (
           <div key={i}>

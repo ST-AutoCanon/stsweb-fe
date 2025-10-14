@@ -1,3 +1,4 @@
+
 .supervisor-plan-admin-wrapper {
   display: flex;
   min-height: 100vh;
@@ -570,3 +571,60 @@
   border: 1px solid #ccc;
   font-size: 11px;
 }
+.supervisor-plan-admin-tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between day groups */
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.supervisor-plan-admin-day-group {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.supervisor-plan-admin-day-header {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+.supervisor-plan-admin-no-tasks {
+  color: #999;
+  font-style: italic;
+  margin: 5px 0;
+  font-size: 13px;
+}
+
+/* Space between tasks in the same day */
+.supervisor-plan-admin-day-group > .supervisor-plan-admin-task-card {
+  margin-bottom: 15px;
+}
+.supervisor-plan-admin-day-group > .supervisor-plan-admin-task-card:last-child {
+  margin-bottom: 0;
+}
+
+/* Ensure task cards have margin/gap */
+.supervisor-plan-admin-task-card {
+  background: #fff;
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #eee;
+}
+
+/* Date styles (copy from non-admin, prefix if needed) */
+.supervisor-plan-task-date {
+  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+.supervisor-plan-task-date-leave { background: #ffeb3b; }
+.supervisor-plan-task-date-holiday { background: #ff9800; color: white; }
+.supervisor-plan-task-date-sunday { background: #2196f3; color: white; }
+.supervisor-plan-task-date-regular { background: transparent; }

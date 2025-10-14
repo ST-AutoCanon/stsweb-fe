@@ -313,8 +313,16 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
-    setEditingTask(task.task_id);
-    setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
+
+    if (editingTask === task.task_id) {
+      // Already editing this task -> close (toggle off)
+      setEditingTask(null);
+      setFormData({ taskName: "", status: "", comment: "" });
+    } else {
+      // Start editing this task
+      setEditingTask(task.task_id);
+      setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
+    }
   };
   const handleSupStatusEditClick = (task) => {
     if (userRole !== "supervisor") return;
@@ -322,8 +330,16 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
       return;
     }
-    setEditingSupStatus(task.task_id);
-    setSupFormData({ supStatus: task.sup_status || "incomplete", supComment: task.sup_comment || "" });
+
+    if (editingSupStatus === task.task_id) {
+      // Already editing -> close
+      setEditingSupStatus(null);
+      setSupFormData({ supStatus: "", supComment: "" });
+    } else {
+      // Start editing
+      setEditingSupStatus(task.task_id);
+      setSupFormData({ supStatus: task.sup_status || "incomplete", supComment: task.sup_comment || "" });
+    }
   };
   const handleSave = async (taskId) => {
     if (userRole !== "employee") return;
@@ -362,10 +378,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         }))
       );
       showAlert("Task updated successfully!");
-      setEditingTask(null);
     } catch (err) {
       showAlert(`Failed to update task: ${err.message}`);
       console.error(err);
+    } finally {
+      setEditingTask(null); // Close popup after save/fail
+      setFormData({ taskName: "", status: "", comment: "" });
     }
   };
   const handleCancelEdit = () => {
@@ -409,10 +427,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         }))
       );
       showAlert("Supervisor status updated successfully!");
-      setEditingSupStatus(null);
     } catch (err) {
       showAlert(`Failed to update supervisor status: ${err.message}`);
       console.error(err);
+     } finally {
+      setEditingSupStatus(null); // Close after save/fail
+      setSupFormData({ supStatus: "", supComment: "" });
     }
   };
   const handleSupStatusCancel = () => {
