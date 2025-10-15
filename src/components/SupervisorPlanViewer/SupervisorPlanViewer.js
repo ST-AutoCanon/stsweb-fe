@@ -165,8 +165,8 @@ const SupervisorPlanViewer = () => {
     const fetchFreezeDays = async () => {
       try {
         console.log('Fetching freeze days from API...');
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config`,
-
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/config`,
           { headers: { 'x-employee-id': supervisorId, 'x-api-key': process.env.REACT_APP_API_KEY || '' }, timeout: 10000 }
         );
         console.log('Config API response:', JSON.stringify(response.data, null, 2));
