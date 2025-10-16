@@ -1,17 +1,31 @@
-
-
 import React from "react";
 import "./AdvanceModal.css";
+import { format, addMonths, startOfMonth, isAfter, isBefore } from "date-fns"; // Add date-fns for date handling
 
 const AdvanceModal = ({
   advanceModal,
   setAdvanceModal,
   handleAdvanceSubmit,
   isLoading,
-  getAvailableMonths,
-  threeMonthsSalary, // New prop
+  getAvailableMonths, // Note: We'll enhance or replace this logic inline if needed
+  threeMonthsSalary,
 }) => {
-  const availableMonths = getAvailableMonths();
+  // Enhanced logic: Generate months from current month to +24 months (2 years ahead)
+  // Replaces or overrides getAvailableMonths() to ensure correct order and range
+  const generateAvailableMonths = () => {
+    const today = new Date();
+    const currentMonthStart = startOfMonth(today); // Normalize to start of month
+    const months = [];
+    for (let i = 0; i < 25; i++) { // 0 = current, up to 24 = 2 years ahead
+      const monthDate = addMonths(currentMonthStart, i);
+      const value = format(monthDate, 'yyyy-MM'); // ISO format for value (e.g., 2025-10)
+      const label = format(monthDate, 'MMMM yyyy'); // Human-readable: October 2025
+      months.push({ value, label });
+    }
+    return months;
+  };
+
+  const availableMonths = generateAvailableMonths(); // Use new logic
 
   return (
     <div className="am-modal-overlay">

@@ -395,36 +395,36 @@ const remainingPercentage = useMemo(() => {
                 <option value="amount">Fixed Amount</option>
               </select>
               {formData[typeField] === 'percentage' ? (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <input
-                      type="number"
-                      placeholder="Percentage"
-                      value={formData[percentageField] || ''}
-                      onChange={(e) => handleInputChange(percentageField, e.target.value)}
-                      className="compensation-percentage-input"
-                      required={required}
-                    />
-                    {allowancePercentageFields.some((f) => f.field === percentageField) && (
-                      <span
-                        className="remaining-note"
-                        style={{ marginLeft: '10px', color: remainingPercentage < -0.01 ? 'red' : remainingPercentage > 0.01 ? 'orange' : 'green' }}
-                      >
-                        {remainingPercentage < -0.01
-                          ? `Exceeds by ${Math.abs(remainingPercentage).toFixed(2)}%`
-                          : remainingPercentage > 0.01
-                          ? `${remainingPercentage.toFixed(2)}% remaining`
-                          : '100% allocated'}
-                      </span>
-                    )}
-                  </div>
-                  {errors[percentageField] && (
-                    <span style={{ color: 'red', fontSize: '12px', marginTop: '5px' }}>
-                      {errors[percentageField]}
-                    </span>
-                  )}
-                </div>
-              ) : (
+  <div className="basic-salary-percentage-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="compensation-input-group basic-salary-group" style={{ display: 'flex', alignItems: 'center' }}>
+      <input
+        type="number"
+        placeholder="Percentage"
+        value={formData[percentageField] || ''}
+        onChange={(e) => handleInputChange(percentageField, e.target.value)}
+        className="compensation-percentage-input"
+        required={required}
+      />
+      {allowancePercentageFields.some((f) => f.field === percentageField) && (
+        <span
+          className="remaining-note"
+          style={{ marginLeft: '10px', color: remainingPercentage < -0.01 ? 'red' : remainingPercentage > 0.01 ? 'orange' : 'green' }}
+        >
+          {remainingPercentage < -0.01
+            ? `Exceeds by ${Math.abs(remainingPercentage).toFixed(2)}%`
+            : remainingPercentage > 0.01
+            ? `${remainingPercentage.toFixed(2)}% remaining`
+            : '100% allocated'}
+        </span>
+      )}
+    </div>
+    {errors[percentageField] && (
+      <span className="error-span" style={{ color: 'red', fontSize: '12px' /* Remove marginTop */ }}>
+        {errors[percentageField]}
+      </span>
+    )}
+  </div>
+) : (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <input
@@ -1555,99 +1555,100 @@ const handleInputChange = (field, value) => {
   };
 
   const getPlanValue = (calcField, formData) => {
-    const mapping = salaryFieldToFormDataMap[calcField];
-    if (!mapping) return { value: '-', basis: 'N/A' };
-    const { enable, amount, percentage, type, units, default: defaultConfig } = mapping;
-    if (['grossSalary', 'netSalary', 'advanceRecovery', 'bonusPay', 'lopDeduction'].includes(calcField)) {
-      return { value: 'N/A', basis: calcField === 'grossSalary' ? 'Sum of components' : calcField === 'netSalary' ? 'Gross minus deductions' : 'Records' };
-    }
-    if (calcField === 'overtimePay') {
-      const typeValue = formData[type] || defaultConfig?.type || 'hourly';
-      const amountValue = formData[amount] || '0';
-      const unitsValue = formData[units] || '0';
-      const unitLabel = typeValue === 'hourly' ? 'hour' : typeValue === 'daily' ? 'day' : 'unit';
-      if (amountValue && amountValue !== '0') {
-        return {
-          value: `₹${parseFloat(amountValue).toLocaleString('en-IN')} / ${unitLabel}${unitsValue !== '0' ? ` (${unitsValue} ${unitLabel}${parseInt(unitsValue) !== 1 ? 's' : ''})` : ''}`,
-          basis: 'Overtime Records'
-        };
-      }
+  const mapping = salaryFieldToFormDataMap[calcField];
+  if (!mapping) return { value: '-', basis: 'N/A' };
+  const { enable, amount, percentage, type, units, default: defaultConfig } = mapping;
+  if (['grossSalary', 'netSalary', 'advanceRecovery', 'bonusPay', 'lopDeduction'].includes(calcField)) {
+    return { value: 'N/A', basis: calcField === 'grossSalary' ? 'Sum of components' : calcField === 'netSalary' ? 'Gross minus deductions' : 'Records' };
+  }
+  if (calcField === 'overtimePay') {
+    const typeValue = formData[type] || defaultConfig?.type || 'hourly';
+    const amountValue = formData[amount] || '0';
+    const unitsValue = formData[units] || '0';
+    const unitLabel = typeValue === 'hourly' ? 'hour' : typeValue === 'daily' ? 'day' : 'unit';
+    if (amountValue && amountValue !== '0') {
       return {
-        value: defaultConfig ? `${defaultConfig.amount}/${typeValue} (default)` : '-',
+        value: `₹${parseFloat(amountValue).toLocaleString('en-IN')} / ${unitLabel}${unitsValue !== '0' ? ` (${unitsValue} ${unitLabel}${parseInt(unitsValue) !== 1 ? 's' : ''})` : ''}`,
         basis: 'Overtime Records'
       };
     }
-    if (calcField === 'employeePF' && formData.pfEmployeeText) {
+    return {
+      value: defaultConfig ? `${defaultConfig.amount}/${typeValue} (default)` : '-',
+      basis: 'Overtime Records'
+    };
+  }
+  if (calcField === 'employeePF' && formData.pfEmployeeText) {
+    return {
+      value: formData.pfEmployeeText !== 'Not Applicable' ? formData.pfEmployeeText : '0%',
+      basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+    };
+  }
+  if (calcField === 'employerPF' && formData.pfEmployerText) {
+    return {
+      value: formData.pfEmployerText !== 'Not Applicable' ? formData.pfEmployerText : '0%',
+      basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+    };
+  }
+  if (calcField === 'esic' && formData.esicEmployeeText) {
+    return {
+      value: formData.esicEmployeeText !== 'Not Applicable' ? formData.esicEmployeeText : '0%',
+      basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+    };
+  }
+  if (calcField === 'insurance' && formData.insuranceEmployeeText) {
+    return {
+      value: formData.insuranceEmployeeText !== 'Not Applicable' ? formData.insuranceEmployeeText : '0%',
+      basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+    };
+  }
+  let basis = 'N/A';
+  // Updated: LTA Allowance now uses CTC basis (moved out of Basic Salary group)
+  if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'ltaAllowance'].includes(calcField)) {  // Added 'ltaAllowance' here
+    basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)';  // Use 'Annual' if LTA is yearly
+  } else if (['hra', 'gratuity'].includes(calcField)) {  // Removed 'ltaAllowance' from here
+    basis = 'Basic Salary';
+  } else if (calcField === 'incentives') {
+    basis = 'Incentive Data';
+  } else if (calcField === 'tds') {
+    basis = 'CTC (Annual)';
+  }
+  if (enable && formData[enable]) {
+    const typeValue = formData[type] || defaultConfig?.type || 'percentage';
+    const valueField = typeValue === 'percentage' ? percentage : amount;
+    const value = formData[valueField];
+    if (value && !isDefaultValue(valueField, value)) {
       return {
-        value: formData.pfEmployeeText !== 'Not Applicable' ? formData.pfEmployeeText : '0%',
-        basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-      };
-    }
-    if (calcField === 'employerPF' && formData.pfEmployerText) {
-      return {
-        value: formData.pfEmployerText !== 'Not Applicable' ? formData.pfEmployerText : '0%',
-        basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-      };
-    }
-    if (calcField === 'esic' && formData.esicEmployeeText) {
-      return {
-        value: formData.esicEmployeeText !== 'Not Applicable' ? formData.esicEmployeeText : '0%',
-        basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-      };
-    }
-    if (calcField === 'insurance' && formData.insuranceEmployeeText) {
-      return {
-        value: formData.insuranceEmployeeText !== 'Not Applicable' ? formData.insuranceEmployeeText : '0%',
-        basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-      };
-    }
-    let basis = 'N/A';
-    if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'professionalTax'].includes(calcField)) {
-      basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)';
-    } else if (['hra', 'ltaAllowance', 'gratuity'].includes(calcField)) {
-      basis = 'Basic Salary';
-    } else if (calcField === 'incentives') {
-      basis = 'Incentive Data';
-    } else if (calcField === 'tds') {
-      basis = 'CTC (Annual)';
-    }
-    if (enable && formData[enable]) {
-      const typeValue = formData[type] || defaultConfig?.type || 'percentage';
-      const valueField = typeValue === 'percentage' ? percentage : amount;
-      const value = formData[valueField];
-      if (value && !isDefaultValue(valueField, value)) {
-        return {
-          value: typeValue === 'percentage'
-            ? `${parseFloat(value)}%`
-            : `₹${parseFloat(value).toLocaleString('en-IN')}`,
-          basis
-        };
-      }
-      if (typeValue === 'percentage' && !value && formData[amount]) {
-        return {
-          value: `₹${parseFloat(formData[amount]).toLocaleString('en-IN')}`,
-          basis
-        };
-      }
-      if (typeValue === 'amount' && !value && formData[percentage]) {
-        return {
-          value: `${parseFloat(formData[percentage])}%`,
-          basis
-        };
-      }
-    }
-    if (defaultConfig) {
-      const { percentage, amount, type } = defaultConfig;
-      const defaultValue = type === 'percentage' ? percentage : amount;
-      return {
-        value: defaultValue === 'fill'
-          ? 'Fill remaining (default)'
-          : `${defaultValue}${type === 'percentage' ? '%' : ''} (default)`,
+        value: typeValue === 'percentage'
+          ? `${parseFloat(value)}%`
+          : `₹${parseFloat(value).toLocaleString('en-IN')}`,
         basis
       };
     }
-    return { value: '-', basis: 'N/A' };
-  };
+    if (typeValue === 'percentage' && !value && formData[amount]) {
+      return {
+        value: `₹${parseFloat(formData[amount]).toLocaleString('en-IN')}`,
+        basis
+      };
+    }
+    if (typeValue === 'amount' && !value && formData[percentage]) {
+      return {
+        value: `${parseFloat(formData[percentage])}%`,
+        basis
+      };
+    }
+  }
+  if (defaultConfig) {
+    const { percentage, amount, type } = defaultConfig;
+    const defaultValue = type === 'percentage' ? percentage : amount;
+    return {
+      value: defaultValue === 'fill'
+        ? 'Fill remaining (default)'
+        : `${defaultValue}${type === 'percentage' ? '%' : ''} (default)`,
+      basis
+    };
+  }
+  return { value: '-', basis: 'N/A' };
+};
 
   const handleStepChange = (step) => {
     const newStep = Math.max(1, Math.min(step, categories.length));
@@ -1928,7 +1929,7 @@ const handleInputChange = (field, value) => {
         },
         min: 30,
         max: 60,
-        message: 'Basic Salary percentage must be between 30% and 50%.'
+        message: 'Basic Salary percentage must be between 30% and 60%.'
       }
     },
     {
