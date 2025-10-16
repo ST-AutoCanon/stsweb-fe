@@ -442,7 +442,7 @@ compensation-select-incentives{
   color: gray;
   margin-left: 10px; /* Space to the right of the input */
   line-height: 34px; /* Match input height for vertical alignment */
-  white-space: nowrap; /* Prevent text wrapping */
+   /* Prevent text wrapping */
 }
 
 .compensation-button-container {
@@ -803,6 +803,39 @@ compensation-select-incentives{
 
 .create-header-row {
   background: #f9fafb;
+}
+/* Update CSS to prevent layout shift specifically for Basic Salary */
+.compensation-input-group.basic-salary-group {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; /* Align to top to avoid stretch from error */
+  gap: 10px;
+  position: relative; /* Anchor for absolute error */
+  padding-bottom: 0px; /* Reserve space for error message to prevent push/shift */
+}
+
+/* Input consistency */
+.compensation-input-group.basic-salary-group input.compensation-percentage-input {
+  margin: 0;
+  height: 34px;
+  box-sizing: border-box;
+}
+
+/* Remaining note */
+.compensation-input-group.basic-salary-group .remaining-note {
+  margin: 0;
+  line-height: 34px;
+  align-self: center;
+}
+
+/* Error message - absolute to not affect flow */
+.basic-salary-percentage-wrapper .error-span {
+  position: absolute;
+  bottom: 0; /* Place in reserved space */
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 @media (max-width: 768px) {
