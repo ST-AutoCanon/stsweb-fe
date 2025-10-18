@@ -1,4 +1,3 @@
-
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -54,17 +53,16 @@ function generatePayslipPDF(payrollData, selectedDate, bankDetails, attendance, 
   }
 
   // Format net salary and ensure it's a valid number
-  // Format net salary and ensure it's a valid number
-const netSalary = parseFloat(payrollData.net_salary) || 0;
-const formattedNetSalary = netSalary.toFixed(0);
-console.log("netSalary:", netSalary, "formattedNetSalary:", formattedNetSalary); // Debug log
-if (isNaN(netSalary) || netSalary < 0) {
-  console.error("Invalid net salary:", payrollData.net_salary);
-  alert("Invalid net salary provided. Please check the input data.");
-  return null;
-}
-const netSalaryWords = convertNumberToWords(parseInt(formattedNetSalary));
-console.log("netSalaryWords:", netSalaryWords); // Debug log
+  const netSalary = parseFloat(payrollData["Net Salary"]) || 0;
+  const formattedNetSalary = netSalary.toFixed(0);
+  console.log("netSalary:", netSalary, "formattedNetSalary:", formattedNetSalary); // Debug log
+  if (isNaN(netSalary) || netSalary < 0) {
+    console.error("Invalid net salary:", payrollData["Net Salary"]);
+    alert("Invalid net salary provided. Please check the input data.");
+    return null;
+  }
+  const netSalaryWords = convertNumberToWords(parseInt(formattedNetSalary));
+  console.log("netSalaryWords:", netSalaryWords); // Debug log
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth(); // 210mm for A4
@@ -102,62 +100,53 @@ console.log("netSalaryWords:", netSalaryWords); // Debug log
   doc.setFontSize(10).setFont("helvetica", "bold");
   // Left side
   doc.text("Employee Name:", 20, 75);
-  doc.setFont("helvetica", "normal").text(`${(payrollData.employee_name || "N/A").toUpperCase().substring(0, 30)}`, 60, 75);
+  doc.setFont("helvetica", "normal").text(`${(payrollData.Name || "N/A").toUpperCase().substring(0, 30)}`, 60, 75);
   doc.setFont("helvetica", "bold").text("Gender:", 20, 82);
   doc.setFont("helvetica", "normal").text(`${(employeeDetails.gender || "N/A").toUpperCase()}`, 60, 82);
   doc.setFont("helvetica", "bold").text("Date of Joining:", 20, 89);
-  doc.setFont("helvetica", "normal").text(`${payrollData.joining_date || "N/A"}`, 60, 89);
+  doc.setFont("helvetica", "normal").text(`${employeeDetails.joining_date || "N/A"}`, 60, 89);
   doc.setFont("helvetica", "bold").text("No. of Working Days:", 20, 96);
   doc.setFont("helvetica", "normal").text(`${attendance.total_working_days || "N/A"}`, 60, 96);
-  doc.setFont("helvetica", "bold").text("UAN No:", 20, 103);
-  doc.setFont("helvetica", "normal").text(`${payrollData.uin_number || "N/A"}`, 60, 103);
+  doc.setFont("helvetica", "bold").text("Annual CTC:", 20, 103);
+  doc.setFont("helvetica", "normal").text(`${payrollData["Annual CTC"] || "N/A"}`, 60, 103);
   doc.setFont("helvetica", "bold").text("ESI Number:", 20, 110);
   doc.setFont("helvetica", "normal").text(`${bankDetails.esi_number || "N/A"}`, 60, 110);
 
   // Right side
-  // Right side (shifted two more steps right)
-doc.setFont("helvetica", "bold").text("Employee ID:", 125, 75);
-doc.setFont("helvetica", "normal").text(`${payrollData.employee_id || "N/A"}`, 155, 75);
+  doc.setFont("helvetica", "bold").text("Employee ID:", 125, 75);
+  doc.setFont("helvetica", "normal").text(`${payrollData.ID || "N/A"}`, 155, 75);
 
-doc.setFont("helvetica", "bold").text("Designation:", 125, 82);
-doc.setFont("helvetica", "normal").text(`${(payrollData.designation || "N/A").toUpperCase().substring(0, 30)}`, 155, 82);
+  doc.setFont("helvetica", "bold").text("Designation:", 125, 82);
+  doc.setFont("helvetica", "normal").text(`${(employeeDetails.designation || "N/A").toUpperCase().substring(0, 30)}`, 155, 82);
 
-doc.setFont("helvetica", "bold").text("Account No:", 125, 89);
-doc.setFont("helvetica", "normal").text(`${bankDetails.account_number || "N/A"} (${bankDetails.bank_name || "N/A"})`, 155, 89);
+  doc.setFont("helvetica", "bold").text("Account No:", 125, 89);
+  doc.setFont("helvetica", "normal").text(`${bankDetails.account_number || "N/A"} (${bankDetails.bank_name || "N/A"})`, 155, 89);
 
-doc.setFont("helvetica", "bold").text("Leaves Taken:", 125, 96);
-doc.setFont("helvetica", "normal").text(`${attendance.leave_count || "0"}`, 155, 96);
+  doc.setFont("helvetica", "bold").text("LOP Days:", 125, 96);
+  doc.setFont("helvetica", "normal").text(`${attendance.lop_days || attendance.leave_count || "0"}`, 155, 96);
 
-doc.setFont("helvetica", "bold").text("PAN Number:", 125, 103);
-doc.setFont("helvetica", "normal").text(`${employeeDetails.pan_number || "N/A"}`, 155, 103);
+  doc.setFont("helvetica", "bold").text("PAN Number:", 125, 103);
+  doc.setFont("helvetica", "normal").text(`${employeeDetails.pan_number || "N/A"}`, 155, 103);
 
-doc.setFont("helvetica", "bold").text("PF Number:", 125, 110);
-doc.setFont("helvetica", "normal").text(`${bankDetails.pf_number || "N/A"}`, 155, 110);
+  doc.setFont("helvetica", "bold").text("PF Number:", 125, 110);
+  doc.setFont("helvetica", "normal").text(`${bankDetails.pf_number || "N/A"}`, 155, 110);
 
 
   // Earnings and Deductions Table
-  const earningsRows = [
-    ["Basic", `${parseFloat(payrollData.basic_salary || 0).toFixed(2)}`, "PF", `${parseFloat(payrollData.pf || 0).toFixed(2)}`],
-    ["HRA", `${parseFloat(payrollData.hra )}`, "ESI/Insurance", `${parseFloat(payrollData.insurance || 0).toFixed(2)}`],
-    ["Other Allowance", `${parseFloat(payrollData.allowance || 0).toFixed(2)}`, "Professional Tax", `${parseFloat(payrollData.pt || 0).toFixed(2)}`],
-  ];
+  const deductions = ["Advance Recovery", "Employee PF", "ESIC", "Gratuity", "Professional Tax", "Income Tax", "Insurance", "LOP Deduction"];
+  const totalDeductions = deductions.reduce((sum, key) => sum + (parseFloat(payrollData[key] || 0)), 0);
 
-  if (payrollData.special_allowance && payrollData.special_allowance != 0) {
-    earningsRows.push(["Bonus", `${parseFloat(payrollData.special_allowance).toFixed(2)}`, "", ""]);
-  }
-  if (payrollData.rnrbonus && payrollData.rnrbonus != 0) {
-    earningsRows.push(["Rewards And Recognition", `${parseFloat(payrollData.rnrbonus).toFixed(2)}`, "", ""]);
-  }
-  if (payrollData.advance_taken && payrollData.advance_taken != 0) {
-    earningsRows.push(["", "", "Advance Taken", `${parseFloat(payrollData.advance_taken).toFixed(2)}`]);
-  }
-  if (payrollData.advance_recovery && payrollData.advance_recovery != 0) {
-    earningsRows.push(["", "", "Advance Recovery", `${parseFloat(payrollData.advance_recovery).toFixed(2)}`]);
-  }
-  earningsRows.push(
-    ["", "", "TDS", `${parseFloat(payrollData.tds || 0).toFixed(2)}`],
-    ["Gross Earnings", `${parseFloat(payrollData.total_earnings || 0).toFixed(2)}`, "Total Deductions", `${parseFloat(payrollData.total_deductions || 0).toFixed(2)}`]
-  );
+  const earningsRows = [
+    ["Basic Salary", `${parseFloat(payrollData["Basic Salary"] || 0).toFixed(2)}`, "Advance Recovery", `${parseFloat(payrollData["Advance Recovery"] || 0).toFixed(2)}`],
+    ["HRA", `${parseFloat(payrollData["HRA"] || 0).toFixed(2)}`, "Employee PF", `${parseFloat(payrollData["Employee PF"] || 0).toFixed(2)}`],
+    ["LTA", `${parseFloat(payrollData["LTA"] || 0).toFixed(2)}`, "ESIC", `${parseFloat(payrollData["ESIC"] || 0).toFixed(2)}`],
+    ["Other Allowances", `${parseFloat(payrollData["Other Allowances"] || 0).toFixed(2)}`, "Gratuity", `${parseFloat(payrollData["Gratuity"] || 0).toFixed(2)}`],
+    ["Incentives", `${parseFloat(payrollData["Incentives"] || 0).toFixed(2)}`, "Professional Tax", `${parseFloat(payrollData["Professional Tax"] || 0).toFixed(2)}`],
+    ["Overtime", `${parseFloat(payrollData["Overtime"] || 0).toFixed(2)}`, "Income Tax", `${parseFloat(payrollData["Income Tax"] || 0).toFixed(2)}`],
+    ["Statutory Bonus", `${parseFloat(payrollData["Statutory Bonus"] || 0).toFixed(2)}`, "Insurance", `${parseFloat(payrollData["Insurance"] || 0).toFixed(2)}`],
+    ["Bonus", `${parseFloat(payrollData["Bonus"] || 0).toFixed(2)}`, "LOP Deduction", `${parseFloat(payrollData["LOP Deduction"] || 0).toFixed(2)}`],
+    ["Gross Salary", `${parseFloat(payrollData["Gross Salary"] || 0).toFixed(2)}`, "Total Deductions", `${totalDeductions.toFixed(2)}`]
+  ];
 
   autoTable(doc, {
     startY: 115,
@@ -174,25 +163,6 @@ doc.setFont("helvetica", "normal").text(`${bankDetails.pf_number || "N/A"}`, 155
     },
     margin: { left: margin, right: margin },
   });
-
-  // Advance Table (if applicable)
-  if (payrollData.advance_taken || payrollData.advance_recovery) {
-    const advanceRows = [
-      ["Advance Taken", `${parseFloat(payrollData.salary_advance || 0).toFixed(2)}`],
-      ["Advance Recovery", `${parseFloat(payrollData.advance_recovery || 0).toFixed(2)}`],
-    ];
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 4,
-      body: advanceRows,
-      theme: "grid",
-      styles: { fontSize: 9, fontStyle: "bold", lineColor: [0, 0, 0], lineWidth: 0.3, overflow: "linebreak" },
-      columnStyles: {
-        0: { cellWidth: 50 },
-        1: { cellWidth: 140, halign: "right" },
-      },
-      margin: { left: margin },
-    });
-  }
 
   // Net Salary Table
   autoTable(doc, {
@@ -215,7 +185,7 @@ doc.setFont("helvetica", "normal").text(`${bankDetails.pf_number || "N/A"}`, 155
 
   // Return Blob for preview or save for download
   if (download) {
-    doc.save(`Payslip_${payrollData.employee_id || "unknown"}.pdf`);
+    doc.save(`Payslip_${payrollData.ID || "unknown"}.pdf`);
     return null;
   } else {
     return doc.output("blob");

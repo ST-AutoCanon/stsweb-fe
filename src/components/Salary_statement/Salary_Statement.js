@@ -1,4 +1,3 @@
-
 import * as XLSX from "xlsx";
 import axios from "axios";
 import "./Salary_Statement.css";
@@ -57,8 +56,8 @@ const Salary_Statement = () => {
       setFilteredData(tableData);
       return;
     }
-    const employeeIdIndex = tableHeaders.indexOf("Employee ID");
-    const employeeNameIndex = tableHeaders.indexOf("Employee Name");
+    const employeeIdIndex = tableHeaders.indexOf("ID");
+    const employeeNameIndex = tableHeaders.indexOf("Name");
     const filtered = tableData.filter((row) =>
       row.some((cell, index) => {
         const cellValue = cell.toString().toLowerCase();
@@ -151,9 +150,9 @@ const Salary_Statement = () => {
       const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       rows.forEach((row, index) => {
         console.log(`Row ${index + 1}:`);
-        console.log("PT raw value:", row["PT"], "| Type:", typeof row["PT"]);
-        console.log("ESI raw value:", row["ESI"], "| Type:", typeof row["ESI"]);
-        console.log("TDS raw value:", row["TDS"], "| Type:", typeof row["TDS"]);
+        console.log("Professional Tax raw value:", row["Professional Tax"], "| Type:", typeof row["Professional Tax"]);
+        console.log("ESIC raw value:", row["ESIC"], "| Type:", typeof row["ESIC"]);
+        console.log("Income Tax raw value:", row["Income Tax"], "| Type:", typeof row["Income Tax"]);
       });
       const cleanKeys = (obj) => {
         const cleaned = {};
@@ -165,18 +164,11 @@ const Salary_Statement = () => {
       };
       const parsedRows = rows.map((row) => {
         const cleaned = cleanKeys(row);
-        const rawDate = cleaned["Joining Date"];
-        console.log("🔍 Raw Joining Date:", rawDate, "| Type:", typeof rawDate);
-        const joiningDate = convertExcelDate(rawDate);
         return {
           ...cleaned,
-          "Joining Date": joiningDate,
-          PT: cleaned["PT"] ?? 0,
-          ESI: cleaned["ESI"] ?? 0,
-          TDS: cleaned["TDS"] ?? 0,
-          "Advance recovery": cleaned["Advance recovery"] ?? 0,
-          "Total Deductions": cleaned["Total Deductions"] ?? 0,
+          "Advance Recovery": cleaned["Advance Recovery"] ?? 0,
           "Net Salary": cleaned["Net Salary"] ?? 0,
+          "Gross Salary": cleaned["Gross Salary"] ?? 0,
         };
       });
       if (!jsonData || jsonData.length === 0) {
@@ -250,24 +242,29 @@ const Salary_Statement = () => {
   const detectColumnTypes = (headers) => {
     return headers.map((header) => {
       const h = header.toLowerCase().trim();
-      if (h === "joining date") return "date";
       if (
         [
-          "uin number",
+          "annual ctc",
           "basic salary",
           "hra",
-          "allowance",
-          "special allowance",
-          "rnr/bonus",
-          "total",
-          "salary advance",
-          "pf",
-          "esi",
-          "pt",
+          "lta",
+          "other allowances",
+          "incentives",
+          "overtime",
+          "statutory bonus",
+          "bonus",
           "advance recovery",
-          "tds",
-          "total deductions",
-          "net payable",
+          "employee pf",
+          "employer pf",
+          "esic",
+          "gratuity",
+          "professional tax",
+          "income tax",
+          "insurance",
+          "lop deduction",
+          "gross salary",
+          "net salary",
+          "lop days"
         ].includes(h)
       ) {
         return "number";
@@ -294,14 +291,14 @@ const Salary_Statement = () => {
         let formattedCell = cell;
         const columnName = headers[colIndex];
 
-        if (columnName === "Employee ID") {
+        if (columnName === "ID") {
           const empIdPattern = /^STS\d{3}$/;
           if (!empIdPattern.test(cell)) {
             isInvalid = true;
           }
         }
 
-        if (["Employee Name", "Department", "Designation"].includes(columnName)) {
+        if (["Name"].includes(columnName)) {
           const namePattern = /^[A-Za-z\s.]+$/;
           if (!namePattern.test(cell) || cell.trim() === "") {
             isInvalid = true;
@@ -310,23 +307,27 @@ const Salary_Statement = () => {
 
         if (
           [
-            "UIN Number",
+            "Annual CTC",
             "Basic Salary",
             "HRA",
-            "Allowance",
-            "Special Allowance",
-            "RNR/Bonus",
-            "Total",
-            "Salary Advance",
-            "Total Earnings",
-            "PF",
+            "LTA",
+            "Other Allowances",
+            "Incentives",
+            "Overtime",
+            "Statutory Bonus",
+            "Bonus",
+            "Advance Recovery",
+            "Employee PF",
+            "Employer PF",
+            "ESIC",
+            "Gratuity",
+            "Professional Tax",
+            "Income Tax",
             "Insurance",
-            "PT",
-            "ESI",
-            "Advance recovery",
-            "TDS",
-            "Total Deductions",
+            "LOP Deduction",
+            "Gross Salary",
             "Net Salary",
+            "LOP Days"
           ].includes(columnName)
         ) {
           if (isNaN(cell) || cell === "") {
@@ -334,28 +335,8 @@ const Salary_Statement = () => {
           }
         }
 
-        if (columnName === "Joining Date") {
-          const originalValue = cell;
-          formattedCell = convertExcelDate(cell);
-          console.log("📅 Debug: Checking Date Validation", {
-            original: originalValue,
-            formatted: formattedCell,
-          });
-          if (!formattedCell || !/^\d{4}-\d{2}-\d{2}$/.test(formattedCell)) {
-            isInvalid = true;
-          } else {
-            row[colIndex] = formattedCell;
-          }
-        }
-
         if (prevData[rowIndex]) {
           let prevCell = prevData[rowIndex][colIndex];
-          if (
-            columnName === "Joining Date" &&
-            !/^\d{4}-\d{2}-\d{2}$/.test(prevCell)
-          ) {
-            prevCell = convertExcelDate(prevCell);
-          }
           if (prevCell !== formattedCell) {
             isUpdated = true;
           }
@@ -615,12 +596,12 @@ const Salary_Statement = () => {
     }
   }, [selectedMonth, selectedYear]);
 
-  const fetchSalaryData = async () => {
-    console.log("Fetching Salary Data for:", selectedMonth, selectedYear);
+  const fetchSalaryData = async (month, yr) => {
+    console.log("Fetching Salary Data for:", month, yr);
     try {
       const apiUrl = `${
         process.env.REACT_APP_BACKEND_URL
-      }/api/salary-statement/${selectedMonth.toLowerCase()}/${year}`;
+      }/api/salary-statement/${month.toLowerCase()}/${yr}`;
       console.log("API Request URL:", apiUrl);
       const response = await axios.get(apiUrl, { headers });
       console.log("Full API Response:", response.data);
