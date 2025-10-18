@@ -1,5 +1,5 @@
 /* General container for the weekly planner */
-.weekly-task-planner {
+.week-task-weekly-task-planner {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -10,14 +10,14 @@
 }
 
 /* Planner header */
-.planner-header {
+.week-task-planner-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.planner-header h2 {
+.week-task-planner-header h2 {
   font-size: 20px;
   font-weight: 600;
   color: #111827;
@@ -27,14 +27,14 @@
 }
 
 /* Week ID styling */
-.week-id {
+.week-task-week-id {
   font-size: 16px;
   font-style: italic;
   color: #4b5563;
 }
 
 /* Week navigation container */
-.week-navigation {
+.week-task-week-navigation {
   display: flex;
   align-items: center;
   gap: 12px; /* Increased gap for better spacing */
@@ -42,7 +42,7 @@
 }
 
 /* Navigation button */
-.nav-button-task {
+.week-task-nav-button-task {
   background: #218838; /* Softer blue for modern look */
   color: #fff;
   border: none;
@@ -58,13 +58,13 @@
   transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 
-.nav-button:hover:not(:disabled) {
+.week-task-nav-button:hover:not(:disabled) {
   background: #218838; /* Darker blue on hover */
   transform: translateY(-1px); /* Slight lift effect */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.nav-button:disabled {
+.week-task-nav-button:disabled {
   background: #9ca3af; /* Light gray for disabled */
   cursor: not-allowed;
   opacity: 0.7;
@@ -73,18 +73,18 @@
 }
 
 /* Navigation icon */
-.nav-icon {
+.week-task-nav-icon {
   width: 16px;
   height: 16px;
 }
 
 /* Decorative dots between buttons */
-.nav-dots {
+.week-task-nav-dots {
   display: flex;
   gap: 6px;
 }
 
-.dot {
+.week-task-dot {
   width: 6px;
   height: 6px;
   background: #6b7280; /* Gray dots for subtle decoration */
@@ -93,13 +93,13 @@
 }
 
 /* Header buttons */
-.header-buttons {
+.week-task-header-buttons {
   display: flex;
   gap: 10px;
 }
 
 /* Assign task button */
-.assign-task-button {
+.week-task-assign-task-button {
   background: #218838;
   color: #fff;
   border: none;
@@ -110,12 +110,12 @@
   transition: background-color 0.2s ease;
 }
 
-.assign-task-button:hover {
+.week-task-assign-task-button:hover {
   background: #218838;
 }
 
 /* Review button (visible only to supervisors) */
-.review-button {
+.week-task-review-button {
   background: #28a745;
   color: #fff;
   border: none;
@@ -126,12 +126,12 @@
   transition: background-color 0.2s ease;
 }
 
-.review-button:hover {
+.week-task-review-button:hover {
   background: #218838;
 }
 
 /* Exit review button (visible only to supervisors) */
-.exit-review-button {
+.week-task-exit-review-button {
   background: #6b7280;
   color: #fff;
   border: none;
@@ -139,15 +139,15 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
-.exit-review-button:hover {
+.week-task-exit-review-button:hover {
   background: #4b5563;
 }
 
 /* Assign task form modal */
-.assign-form-modal {
+.week-task-assign-form-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -161,7 +161,7 @@
   padding: 10px;
 }
 
-.assign-form-empdriven {
+.week-task-assign-form-empdriven {
   background: #ffffff;
   padding: 0 0 15px 0;
   border-radius: 8px;
@@ -172,13 +172,13 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.edit-actions {
+.week-task-edit-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
 }
 
-.edit-actions .cancel-button {
+.week-task-edit-actions .week-task-cancel-button {
   color: white;
   padding: 5px 10px;
   border: none;
@@ -186,7 +186,7 @@
   cursor: pointer;
 }
 
-.edit-actions .edit-save-button {
+.week-task-edit-actions .week-task-edit-save-button {
   background-color: #28a745;
   color: white;
   padding: 5px 10px;
@@ -196,7 +196,7 @@
 }
 
 /* Form header */
-.form-header {
+.week-task-form-header {
   background: #3067bb; /* Blue header like screenshot */
   color: #fff;
   padding: 10px 15px;
@@ -207,14 +207,14 @@
   border-top-right-radius: 8px;
 }
 
-.form-header h3,
-.form-header h4 {
+.week-task-form-header h3,
+.week-task-form-header h4 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
 }
 
-.close-button {
+.week-task-close-button {
   background: none;
   border: none;
   color: #fff;
@@ -224,23 +224,23 @@
   line-height: 1;
 }
 
-.close-button:hover {
+.week-task-close-button:hover {
   color: #ccc;
 }
 
 /* Empty state */
-.empty-state {
+.week-task-empty-state {
   text-align: center;
   padding: 20px 10px;
   color: #6b7280;
 }
 
-.empty-state p {
+.week-task-empty-state p {
   margin-bottom: 10px;
   font-size: 14px;
 }
 
-.add-first-task-button {
+.week-task-add-first-task-button {
   background: #218838;
   color: #fff;
   border: none;
@@ -251,12 +251,12 @@
   transition: background-color 0.2s;
 }
 
-.add-first-task-button:hover {
+.week-task-add-first-task-button:hover {
   background: #218838;
 }
 
 /* Tasks form container */
-.tasks-form-container {
+.week-task-tasks-form-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -265,7 +265,7 @@
 }
 
 /* Task form row */
-.task-form-row {
+.week-task-task-form-row {
   background: #f8fafc;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
@@ -273,20 +273,20 @@
 }
 
 /* Form row header */
-.form-row-header {
+.week-task-form-row-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.form-row-header h4 {
+.week-task-form-row-header h4 {
   font-size: 16px;
   color: #111827;
   margin: 0;
 }
 
-.remove-task-button {
+.week-task-remove-task-button {
   background: #dc3545;
   color: #fff;
   border: none;
@@ -301,12 +301,12 @@
   transition: background-color 0.2s;
 }
 
-.remove-task-button:hover {
+.week-task-remove-task-button:hover {
   background: #c82333;
 }
 
 /* Form grid */
-.form-grid {
+.week-task-form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
@@ -314,20 +314,20 @@
 }
 
 /* Form group */
-.form-group-task {
+.week-task-form-group-task {
   display: flex;
   flex-direction: column;
 }
 
-.form-group-task label {
+.week-task-form-group-task label {
   font-size: 12px;
   font-weight: 500;
   color: #374151;
   margin-bottom: 4px;
 }
 
-.form-group-task input,
-.form-group-task select {
+.week-task-form-group-task input,
+.week-task-form-group-task select {
   padding: 6px;
   font-size: 12px;
   border: 1px solid #d1d5db;
@@ -338,22 +338,22 @@
   background: #f0f0f0; /* Light gray like screenshot */
 }
 
-.form-group-task input:focus,
-.form-group-task select:focus {
+.week-task-form-group-task input:focus,
+.week-task-form-group-task select:focus {
   outline: none;
   border-color: #218838;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 /* Checkbox group */
-.checkbox-group {
+.week-task-checkbox-group {
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   gap: 8px;
 }
 
 /* Checkbox label */
-.checkbox-label {
+.week-task-checkbox-label {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -367,7 +367,7 @@
 }
 
 /* Checkbox input */
-.checkbox-label input[type="checkbox"] {
+.week-task-checkbox-label input[type="checkbox"] {
   width: 12px;
   height: 12px;
   margin: 0;
@@ -377,12 +377,12 @@
 }
 
 /* Hover effect for checkboxes */
-.checkbox-label input[type="checkbox"]:hover {
+.week-task-checkbox-label input[type="checkbox"]:hover {
   outline: 1px solid #218838;
 }
 
 /* Multi-select dropdown */
-.multi-select-dropdown {
+.week-task-multi-select-dropdown {
   position: relative;
   width: 100%;
   min-width: 220px;
@@ -392,7 +392,7 @@
 }
 
 /* Dropdown header */
-.dropdown-header-task {
+.week-task-dropdown-header-task {
   border: 1px solid #d1d5db;
   border-radius: 4px;
   padding: 6px 8px;
@@ -409,7 +409,7 @@
 }
 
 /* Dropdown list */
-.dropdown-list {
+.week-task-dropdown-list {
   position: absolute;
   top: 100%;
   left: 0;
@@ -428,7 +428,7 @@
 }
 
 /* Action buttons */
-.add-task-button {
+.week-task-add-task-button {
   background: #218838;
   color: #fff;
   border: none;
@@ -441,11 +441,11 @@
   margin: 10px 0;
 }
 
-.add-task-button:hover {
+.week-task-add-task-button:hover {
   background: #218838;
 }
 
-.form-actions {
+.week-task-form-actions {
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -454,7 +454,7 @@
   border-top: 1px solid #e5e7eb;
 }
 
-.save-button {
+.week-task-save-button {
   background: #28a745; /* Green like screenshot */
   color: #fff;
   border: none;
@@ -462,14 +462,14 @@
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
-.save-button:hover {
+.week-task-save-button:hover {
   background: #218838;
 }
 
-.cancel-button {
+.week-task-cancel-button {
   background: #6b7280;
   color: #fff;
   border: none;
@@ -477,42 +477,42 @@
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
-.cancel-button:hover {
+.week-task-cancel-button:hover {
   background: #4b5563;
 }
 
 /* Review icons in task name */
-.review-status-icon {
+.week-task-review-status-icon {
   margin-left: 8px;
   font-size: 14px;
   font-weight: bold;
 }
 
-.task-name.struck {
+.week-task-task-name.week-task-struck {
   text-decoration: line-through;
   opacity: 0.6;
 }
 
-.review-action-icons {
+.week-task-review-action-icons {
   display: flex;
   gap: 5px;
   margin-left: 10px;
 }
 
-.action-icon {
+.week-task-action-icon {
   cursor: pointer;
   transition: stroke 0.2s ease;
 }
 
-.action-icon:hover {
+.week-task-action-icon:hover {
   stroke: darken(stroke, 10%);
 }
 
 /* Replacement modal (visible only to supervisors) */
-.replacement-modal {
+.week-task-replacement-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -526,7 +526,7 @@
   padding: 20px;
 }
 
-.replacement-form {
+.week-task-replacement-form {
   background: #ffffff;
   padding: 0 0 20px 0;
   border-radius: 8px;
@@ -535,7 +535,7 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.replacement-form .form-grid {
+.week-task-replacement-form .week-task-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -543,18 +543,18 @@
   padding: 0 20px;
 }
 
-.replacement-form .form-group-task {
+.week-task-replacement-form .week-task-form-group-task {
   display: flex;
   flex-direction: column;
 }
 
-.replacement-form .form-group-task label {
+.week-task-replacement-form .week-task-form-group-task label {
   font-size: 14px;
   margin-bottom: 5px;
 }
 
-.replacement-form .form-group-task input,
-.replacement-form .form-group-task select {
+.week-task-replacement-form .week-task-form-group-task input,
+.week-task-replacement-form .week-task-form-group-task select {
   padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
@@ -562,7 +562,7 @@
 }
 
 /* Day card styling */
-.day-card {
+.week-task-day-card {
   display: flex;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -572,7 +572,7 @@
 }
 
 /* Left column (date and projects) */
-.day-left-column {
+.week-task-day-left-column {
   background: #f8fafc;
   border-right: 1px solid #e5e7eb;
   padding: 16px;
@@ -585,8 +585,8 @@
 }
 
 /* Date header */
-.day-date {
-  font-size: 16px;
+.week-task-day-date {
+  /* font-size: 16px; */
   font-weight: 600;
   color: #111827;
   text-align: center;
@@ -596,34 +596,34 @@
 }
 
 /* Date-specific classes */
-.day-date.day-date-leave {
+.week-task-day-date.week-task-day-date-leave {
   background-color: #F5F501;
   color: white;
   padding: 2px 6px;
   border-radius: 4px;
 }
 
-.day-date.day-date-holiday {
+.week-task-day-date.week-task-day-date-holiday {
   background-color: #ff9800;
   color: white;
   padding: 2px 6px;
   border-radius: 4px;
 }
 
-.day-date.day-date-sunday {
+.week-task-day-date.week-task-day-date-sunday {
   background-color: #3770ecff;
   color: white;
   padding: 2px 6px;
   border-radius: 4px;
 }
 
-.day-date.day-date-regular {
+.week-task-day-date.week-task-day-date-regular {
   background-color: transparent;
   color: #333;
 }
 
 /* Projects column */
-.projects-column {
+.week-task-projects-column {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -631,14 +631,14 @@
 }
 
 /* Circle container for project and task ID circles */
-.circle-container {
+.week-task-circle-container {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
 /* Project circle */
-.project-circle {
+.week-task-project-circle {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -652,7 +652,7 @@
 }
 
 /* Task ID circle */
-.task-id-circle {
+.week-task-task-id-circle {
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -666,7 +666,7 @@
 }
 
 /* Task ID in task name */
-.task-id {
+.week-task-task-id {
   font-size: 12px;
   font-style: italic;
   color: #4b5563;
@@ -674,14 +674,14 @@
 }
 
 /* Tasks section (right side) */
-.tasks-section {
+.week-task-tasks-section {
   flex: 1;
   padding: 16px;
   position: relative; /* Ensure popups can position within this */
 }
 
 /* Task header row */
-.tasks-header {
+.week-task-tasks-header {
   display: grid;
   grid-template-columns: 1fr 200px 200px;
   gap: 10px;
@@ -694,21 +694,21 @@
 }
 
 /* Header labels */
-.header-task,
-.header-employee,
-.header-supervisor {
+.week-task-header-task,
+.week-task-header-employee,
+.week-task-header-supervisor {
   padding-left: 8px;
 }
 
 /* Tasks list container */
-.tasks-list {
+.week-task-tasks-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 /* Individual task row */
-.task-row {
+.week-task-task-row {
   display: grid;
   grid-template-columns: 1fr 200px 200px;
   gap: 10px;
@@ -720,12 +720,12 @@
   transition: box-shadow 0.2s ease;
 }
 
-.task-row:hover {
+.week-task-task-row:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Task name */
-.task-name {
+.week-task-task-name {
   font-weight: 600;
   font-size: 13px;
   color: #111827;
@@ -740,7 +740,7 @@
   cursor: pointer;
 }
 
-.task-row:hover .task-name {
+.week-task-task-row:hover .week-task-task-name {
   max-width: none; /* Remove width constraint on hover */
   white-space: normal; /* Allow text to wrap */
   overflow: visible; /* Show full text */
@@ -748,8 +748,8 @@
 }
 
 /* Employee and Supervisor update sections */
-.update-section,
-.supervisor-section {
+.week-task-update-section,
+.week-task-supervisor-section {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -757,7 +757,7 @@
 }
 
 /* Status container (for dots and edit icon) */
-.status-container {
+.week-task-status-container {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -765,7 +765,7 @@
 }
 
 /* Status dots wrapper */
-.status-dots {
+.week-task-status-dots {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -773,7 +773,7 @@
 }
 
 /* Comment text */
-.comment {
+.week-task-comment {
   font-size: 12px;
   color: #6b7280;
   white-space: nowrap;
@@ -784,7 +784,7 @@
   cursor: pointer;
 }
 
-.status-container:hover .comment {
+.week-task-status-container:hover .week-task-comment {
   max-width: none;
   white-space: normal;
   overflow: visible;
@@ -792,7 +792,7 @@
 }
 
 /* Status dot */
-.status-dot {
+.week-task-status-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -802,28 +802,28 @@
 }
 
 /* Edit icon */
-.edit-icon {
+.week-task-edit-icon {
   cursor: pointer;
   flex-shrink: 0;
 }
 
-.edit-icon:hover {
+.week-task-edit-icon:hover {
   stroke: #218838;
 }
 
 /* Expand/Collapse icon */
-.expand-icon-task {
+.week-task-expand-icon-task {
   cursor: pointer;
   display: block;
   margin: 10px auto 0;
 }
 
-.expand-icon-task:hover {
+.week-task-expand-icon-task:hover {
   stroke: #218838;
 }
 
 /* Edit section (when updating task) */
-.edit-section {
+.week-task-edit-section {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -839,7 +839,7 @@
 }
 
 /* Edit form inputs and select */
-.edit-task-input {
+.week-task-edit-task-input {
   padding: 5px 6px;
   font-size: 11px;
   border: 1px solid #d1d5db;
@@ -848,7 +848,7 @@
   box-sizing: border-box;
 }
 
-.edit-status-select {
+.week-task-edit-status-select {
   padding: 5px 6px;
   font-size: 11px;
   border: 1px solid #d1d5db;
@@ -857,7 +857,7 @@
   box-sizing: border-box;
 }
 
-.edit-comment-input {
+.week-task-edit-comment-input {
   padding: 5px 6px;
   font-size: 11px;
   border: 1px solid #d1d5db;
@@ -866,16 +866,16 @@
   box-sizing: border-box;
 }
 
-.edit-task-input:focus,
-.edit-status-select:focus,
-.edit-comment-input:focus {
+.week-task-edit-task-input:focus,
+.week-task-edit-status-select:focus,
+.week-task-edit-comment-input:focus {
   outline: none;
   border-color: #218838;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
 /* Save button */
-.edit-save-button {
+.week-task-edit-save-button {
   background: #28a745;
   color: #fff;
   border: none;
@@ -886,12 +886,12 @@
   flex-shrink: 0;
 }
 
-.edit-save-button:hover {
+.week-task-edit-save-button:hover {
   background: #218838;
 }
 
-/* Edit popup */
-.edit-popup {
+/* Edit popup - Base desktop style (simple, as before) */
+.week-task-edit-popup {
   position: absolute;
   top: 100%; /* Position below the edit icon */
   right: 0; /* Align to the right of the status-container */
@@ -905,17 +905,17 @@
   flex-direction: column;
   gap: 8px;
   min-width: 200px;
-  max-width: 250px; /* Prevent popup from being too wide */
+/* Prevent popup from being too wide */
   transform: translateY(5px); /* Small offset for better alignment */
 }
 
 /* Ensure popups stay within bounds */
-.tasks-section {
+.week-task-tasks-section {
   overflow: visible; /* Allow popups to extend outside */
 }
 
 /* Alert modal */
-.alert-modal {
+.week-task-alert-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -928,7 +928,7 @@
   z-index: 1002;
 }
 
-.alert-content {
+.week-task-alert-content {
   background: #fff;
   padding: 20px;
   border-radius: 8px;
@@ -937,13 +937,13 @@
   max-width: 300px;
 }
 
-.alert-content p {
+.week-task-alert-content p {
   margin-bottom: 10px;
   color: #111827;
   font-size: 14px;
 }
 
-.alert-content button {
+.week-task-alert-content button {
   background: #218838;
   color: #fff;
   border: none;
@@ -953,46 +953,46 @@
   font-size: 14px;
 }
 
-.alert-content button:hover {
+.week-task-alert-content button:hover {
   background: #218838;
 }
 
-/* Mobile design (≤ 768px) */
+/* Mobile design (≤ 768px) - Keep simple like desktop, no fancy enhancements except for edit popup as requested */
 @media (max-width: 768px) {
-  /* Main layout adjustments */
-  .weekly-task-planner {
+  /* Main layout adjustments - keep similar to desktop but stack for small screens */
+  .week-task-weekly-task-planner {
     padding: 10px;
     gap: 15px;
   }
 
-  .planner-header {
+  .week-task-planner-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
 
-  .planner-header h2 {
+  .week-task-planner-header h2 {
     font-size: 18px;
   }
 
-  .week-navigation {
+  .week-task-week-navigation {
     justify-content: space-between;
     width: 100%;
     gap: 6px;
   }
 
-  .nav-button-task {
+  .week-task-nav-button-task {
     width: 30px;
     height: 30px;
     padding: 6px;
   }
 
-  .nav-icon {
+  .week-task-nav-icon {
     width: 14px;
     height: 14px;
   }
 
-  .header-buttons {
+  .week-task-header-buttons {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -1000,72 +1000,79 @@
     gap: 8px;
   }
 
-  .assign-task-button,
-  .review-button,
-  .exit-review-button {
+  .week-task-assign-task-button,
+  .week-task-review-button,
+  .week-task-exit-review-button {
     width: 48%;
     padding: 10px;
     font-size: 13px;
   }
 
-  /* Day Card layout */
-  .day-card {
+  /* Day Card layout - stack columns */
+  .week-task-day-card {
     flex-direction: column;
-    border-radius: 10px;
+    border-radius: 8px; /* Match desktop */
     overflow: hidden;
   }
 
-  .day-left-column {
+  .week-task-day-left-column {
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #e5e7eb;
-    padding: 10px 15px;
+    padding: 16px; /* Match desktop padding */
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px; /* Adjust for stacked layout */
+    background: #f8fafc;
+    gap: 20px; /* Match desktop */
   }
 
-  .day-date {
-    font-size: 14px;
+  .week-task-day-date {
+    font-size: 16px; /* Match desktop */
   }
 
-  .projects-column {
+  .week-task-projects-column {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 14px; /* Match desktop */
+    align-items: center;
   }
 
-  .project-circle,
-  .task-id-circle {
-    width: 26px;
-    height: 26px;
-    font-size: 10px;
+  .week-task-project-circle,
+  .week-task-task-id-circle {
+    width: 28px; /* Match desktop */
+    height: 28px;
+    font-size: 11px; /* Match desktop */
   }
 
-  /* Tasks section (right part) */
-  .tasks-section {
-    padding: 10px;
+  /* Tasks section */
+  .week-task-tasks-section {
+    padding: 16px; /* Match desktop */
   }
 
-  .tasks-header {
-    display: none; /* Hide table header on mobile for cleaner look */
+  .week-task-tasks-header {
+    display: none; /* Hide header on mobile as in original, but styling matches if shown */
   }
 
-  .tasks-list {
-    gap: 10px;
+  .week-task-tasks-list {
+    gap: 8px; /* Match desktop */
   }
 
-  /* Each task as a card block */
-  .task-row {
+  /* Task row - stack for mobile */
+  .week-task-task-row {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    padding: 10px;
+    padding: 8px; /* Match desktop */
     font-size: 13px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #fff; /* Match desktop */
   }
 
-  .task-name {
+  .week-task-task-name {
     font-size: 13px;
     font-weight: 600;
     max-width: 100%;
@@ -1074,196 +1081,439 @@
     text-overflow: clip;
   }
 
-  /* Employee & Supervisor info stacked */
-  .update-section,
-  .supervisor-section {
+  /* Update sections */
+  .week-task-update-section,
+  .week-task-supervisor-section {
     width: 100%;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px; /* Match desktop */
+    flex-direction: row;
+    align-items: center;
   }
 
-  .comment {
-    max-width: 100%;
+  .week-task-comment {
+    max-width: 70%;
     white-space: normal;
+    font-size: 12px; /* Match desktop */
+    color: #6b7280;
   }
 
-  /* Form and modal refinements */
-  .assign-form-empdriven,
-  .replacement-form {
-    width: 95%;
-    padding: 10px 0 15px 0;
-    max-height: 85vh;
+  .week-task-status-container {
+    gap: 6px; /* Match desktop */
   }
 
-  .form-header {
-    flex-direction: column;
+  .week-task-status-dots {
     gap: 6px;
-    text-align: center;
+    margin-left: auto;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
+  .week-task-status-dot {
+    width: 10px; /* Match desktop */
+    height: 10px;
   }
 
-  .form-actions {
+  .week-task-edit-icon {
+    /* Keep desktop size, but ensure touch-friendly if needed */
+  }
+
+  /* Assign Task Form Modal - Make identical to desktop in style */
+  .week-task-assign-form-modal {
+    padding: 10px; /* Match desktop */
+  }
+
+  .week-task-assign-form-empdriven {
+    background: #ffffff; /* Match */
+    padding: 0 0 15px 0;
+    border-radius: 8px;
+    /* width: 95%; */
+    max-width: 800px;
+    max-height: 80vh;
+    margin-left: -20px;
+    /* overflow-y: auto; */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Match */
+  }
+
+  .week-task-form-header {
+    background: #3067bb; /* Exact match */
+    color: #fff;
+    padding: 10px 15px; /* Match */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+
+  .week-task-form-header h3,
+  .week-task-form-header h4 {
+    margin: 0;
+    font-size: 18px; /* Match */
+    font-weight: 600;
+  }
+
+  .week-task-close-button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px; /* Match */
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .week-task-close-button:hover {
+    color: #ccc; /* Match */
+  }
+
+  .week-task-tasks-form-container {
+    display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px; /* Match */
+    margin-top: 10px;
+    padding: 0 15px; /* Match */
   }
 
-  .multi-select-dropdown,
-  .dropdown-header-task,
-  .dropdown-list {
-    width: 100%;
-    min-width: unset;
+  .week-task-task-form-row {
+    background: #f8fafc; /* Match */
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px; /* Match */
   }
 
-  .checkbox-group {
+  .week-task-form-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px; /* Match */
+  }
+
+  .week-task-form-row-header h4 {
+    font-size: 16px; /* Match */
+    color: #111827;
+    margin: 0;
+  }
+
+  .week-task-remove-task-button {
+    background: #dc3545; /* Match */
+    color: #fff;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .week-task-remove-task-button:hover {
+    background: #c82333; /* Match */
+  }
+
+  .week-task-form-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Stack columns for mobile */
+    gap: 12px; /* Match */
+    margin-bottom: 12px;
+  }
+
+  .week-task-form-group-task {
+    display: flex;
     flex-direction: column;
   }
 
-  .checkbox-label {
+  .week-task-form-group-task label {
+    font-size: 12px; /* Match */
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 4px;
+  }
+
+  .week-task-form-group-task input,
+  .week-task-form-group-task select {
+    padding: 6px; /* Match */
     font-size: 12px;
-    white-space: normal;
-  }
-
-  /* Edit section compact view */
-  .edit-section {
-    flex-direction: column;
-    gap: 6px;
-    align-items: stretch;
-  }
-
-  .edit-task-input,
-  .edit-status-select,
-  .edit-comment-input {
-    width: 100%;
-    font-size: 12px;
-  }
-
-  .edit-save-button {
-    width: 100%;
-    padding: 6px 0;
-  }
-
-  /* Edit popup */
-  .edit-popup {
-    left: 0;
-    right: 0;
-    width: 95%;
-    max-width: 95%;
-    transform: translateY(5px);
-  }
-
-  /* Alerts */
-  .alert-content {
-    width: 90%;
-    padding: 15px;
-  }
-
-  /* Smaller dots & icons */
-  .dot {
-    width: 5px;
-    height: 5px;
-  }
-
-  /* Date-specific classes for mobile */
-  .day-date.day-date-leave,
-  .day-date.day-date-holiday,
-  .day-date.day-date-sunday,
-  .day-date.day-date-regular {
-    padding: 2px 6px;
+    border: 1px solid #d1d5db;
     border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    background: #f0f0f0; /* Match */
+  }
+
+  .week-task-form-group-task input:focus,
+  .week-task-form-group-task select:focus {
+    outline: none;
+    border-color: #218838; /* Match */
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+
+  .week-task-checkbox-group {
+    display: flex;
+    /* flex-wrap: wrap; */
+    gap: 8px Match;
+    }
+
+  .week-task-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .week-task-checkbox-label input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+    margin: 0;
+    transform: scale(0.9);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .week-task-multi-select-dropdown {
+    position: relative;
+    width: 100%;
+    min-width: unset; /* Adjust for mobile */
+    max-width: unset;
+    font-size: 13px;
+  }
+
+  .week-task-dropdown-header-task {
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+
+  .week-task-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    z-index: 10;
+    padding: 4px 0;
+  }
+
+  .week-task-add-task-button {
+    background: #218838; /* Match */
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: background-color 0.2s;
+    margin: 10px 0;
+    width: 100%; /* Full width for mobile touch */
+  }
+
+  .week-task-add-task-button:hover {
+    background: #218838;
+  }
+
+  .week-task-form-actions {
+    /* display: flex; */
+    gap: 80px; /* Match */
+    justify-content: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    margin: 10px;
+    border-top: 1px solid #e5e7eb;
+    flex-direction: row; /* Stack buttons for mobile */
+  }
+
+  .week-task-save-button {
+    background: #28a745; /* Match */
+   
+  }
+
+  .week-task-save-button:hover {
+    background: #218838;
+  }
+
+  .week-task-cancel-button {
+    background: #6b7280; /* Match */
+    /* flex: 1; */
+  }
+
+  .week-task-cancel-button:hover {
+    background: #4b5563;
+  }
+
+  /* Edit section - keep simple like desktop */
+  .week-task-edit-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    background: #f1f5f9;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    z-index: 10;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: space-between;
+  }
+
+  .week-task-edit-task-input {
+    padding: 5px 6px;
+    font-size: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    flex: 1 1 30%;
+    box-sizing: border-box;
+  }
+
+  .week-task-edit-status-select {
+    padding: 5px 6px;
+    font-size: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    flex: 1 1 25%;
+    box-sizing: border-box;
+  }
+
+  .week-task-edit-comment-input {
+    padding: 5px 6px;
+    font-size: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    flex: 1 1 35%;
+    box-sizing: border-box;
+  }
+
+  .week-task-edit-task-input:focus,
+  .week-task-edit-status-select:focus,
+  .week-task-edit-comment-input:focus {
+    outline: none;
+    border-color: #218838;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  }
+
+  .week-task-edit-save-button {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .week-task-edit-save-button:hover {
+    background: #218838;
+  }
+
+  /* Edit popup - Enhanced on mobile as requested (using the fancy design from your example) */
+  .week-task-edit-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 300px;
+    border-radius: 16px;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+  }
+  
+  .week-task-edit-popup h4 {
+    margin: 0 0 16px 0;
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f3f4f6;
+  }
+  
+  .week-task-edit-popup input,
+  .week-task-edit-popup select,
+  .week-task-edit-popup textarea {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fafbff;
+  }
+  
+  .week-task-edit-popup input:focus,
+  .week-task-edit-popup select:focus,
+  .week-task-edit-popup textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    background: #ffffff;
+  }
+
+  /* Alert modal */
+  .week-task-alert-content {
+    max-width: 90%;
+    padding: 20px;
+  }
+
+  /* Other elements like dots, icons - scale slightly if needed but keep styles */
+  .week-task-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  /* Date classes - keep colors */
+  .week-task-day-date.week-task-day-date-leave {
+    background-color: #F5F501;
+    color: black;
+  }
+
+  .week-task-day-date.week-task-day-date-holiday {
+    background-color: #ff9800;
+    color: white;
+  }
+
+  .week-task-day-date.week-task-day-date-sunday {
+    background-color: #3770ecff;
+    color: white;
+  }
+
+  .week-task-day-date.week-task-day-date-regular {
+    background-color: transparent;
+    color: #333;
+  }
+
+  /* Dropdown adjustments for mobile */
+  .week-task-dropdown-list {
+    max-height: 150px;
+  }
+
+  /* Status dot tooltips if needed */
+  .week-task-status-dot {
+    width: 10px;
+    height: 10px;
   }
 }
-
-/* Existing styles assumed to be unchanged unless specified */
-.day-date {
-  font-size: 14px;
-  padding: 2px 5px;
-  border-radius: 3px;
-}
-
-.day-date-leave {
-  background-color: #F5F501;
-  color: white;
-}
-
-.day-date-holiday {
-  background-color: #ff9800;
-  color: white;
-}
-
-.day-date-sunday {
-  background-color: #6c757d;
-  color: white;
-}
-
-.day-date-regular {
-  color: #333;
-}
-
-.date-status {
-  margin-left: 8px;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 3px;
-}
-
-.date-status.day-date-leave {
-  background-color: #F5F501;
-  color: white;
-}
-
-.date-status.day-date-holiday {
-  background-color: #ff9800;
-  color: white;
-}
-
-.date-status.day-date-sunday {
-  background-color: #6c757d;
-  color: white;
-}
-
-.multi-select-dropdown {
-  position: relative;
-}
-
-.dropdown-header-task {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dropdown-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  z-index: 10;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-}
-
-.checkbox-label input {
-  margin-right: 8px;
-}
-
-
-
-
-/* Ensure other existing styles remain intact */
-

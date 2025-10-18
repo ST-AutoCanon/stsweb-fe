@@ -732,12 +732,7 @@
   background-color: #28a745;
   transform: translateY(-1px);
 }
-
-@media (max-width: 1024px) {
-  .task-board {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+/* ... Existing CSS remains unchanged ... */
 
 @media (max-width: 640px) {
   .task-board {
@@ -748,11 +743,41 @@
     padding: 15px;
   }
   .task-tab-header {
-    flex-direction: column;
+    flex-direction: row; /* Row for left-right layout */
+    overflow-x: auto;
+    white-space: nowrap;
+    border-bottom: none;
+    gap: 8px;
+    padding: 8px 0;
+    scroll-snap-type: x mandatory;
   }
   .task-tab-btn {
-    width: 100%;
+    flex: 1;
+    min-width: 48%;
     text-align: center;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin: 0;
+    scroll-snap-align: center;
+    background-color: #f3f4f6; /* Default background for inactive */
+    color: #6b7280; /* Default text color */
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .task-tab-btn.task-active {
+    background-color: #28a745; /* Active background (green) */
+    color: #ffffff; /* Active text color: white */
+    border-color: #28a745; /* Match border to background */
+    font-weight: 600;
+  }
+  .task-tab-btn:hover {
+    background-color: #e5e7eb;
+    color: #374151;
+  }
+  .task-tab-btn.task-active:hover {
+    background-color: #218838; /* Slightly darker green on hover for active */
+    color: #ffffff;
   }
   .assign-task-modal .form-row {
     flex-direction: column;
@@ -761,23 +786,16 @@
   .assign-task-modal .half-width {
     width: 100%;
   }
+
+  /* Hide scrollbar */
+  .task-tab-header::-webkit-scrollbar {
+    display: none;
+  }
+  .task-tab-header {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
-/* Add this to the existing TaskManagement.css */
-.task-employee-name {
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* Add this to the existing TaskManagement.css */
-.task-employee-id {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* ... Rest of the CSS ... */
+

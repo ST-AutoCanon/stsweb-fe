@@ -2665,39 +2665,45 @@ const fieldOrder = [
 </tbody>
                   </table>
                 </div>
-                {salaryDetails && (
-                  <div className="create-preview-right">
-                    <h3>Calculated Salary (Monthly)</h3>
-                    <table className="create-compensation-preview-table">
-                      <thead>
-                        <tr className="create-header-row">
-                          <th>Component</th>
-                          <th>Amount (₹)</th>
-                          <th>Plan Value</th>
-                        </tr>
-                      </thead>
-     <tbody>
-  {salaryDetails &&
-    Object.entries(salaryDetails)
-      .filter(([key, value]) => shouldDisplayField(key, value, formData))
-      .map(([key, value]) => {
-        const { value: planValue, basis } = getPlanValue(key, formData);
-        return (
-          <tr key={key}>
-            <td>{formatFieldName(key)}</td>
-            <td>
-              {typeof value === 'number'
-                ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                : value}
-            </td>
-            <td>{planValue} {basis !== 'N/A' ? `(Based on ${basis})` : ''}</td>
-          </tr>
-        );
-      })}
-</tbody>
-                    </table>
-                  </div>
-                )}
+               {salaryDetails && (
+  <div className="create-preview-right">
+    <h3>Calculated Salary (Monthly)</h3>
+    <table className="create-compensation-preview-table">
+      <thead>
+        <tr className="create-header-row">
+          <th>Component</th>
+          <th>Amount (₹)</th>
+          <th>Plan Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(salaryDetails)
+          .filter(([key, value]) => shouldDisplayField(key, value, formData))
+          .map(([key, value]) => {
+            const totalCTC = parseFloat(ctcInput) || DEFAULT_CTC;
+            const { value: planValue, basis } = getPlanValue(key, formData);
+            let finalPlanValue = planValue;
+            if (key === 'tds' && typeof value === 'number' && value > 0) {
+              const annualTds = value * 12;
+              const effectivePct = ((annualTds / totalCTC) * 100).toFixed(2);
+              finalPlanValue = `Slab-based (${effectivePct}%)`;
+            }
+            return (
+              <tr key={key}>
+                <td>{formatFieldName(key)}</td>
+                <td>
+                  {typeof value === 'number'
+                    ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : value}
+                </td>
+                <td>{finalPlanValue} {basis !== 'N/A' ? `(Based on ${basis})` : ''}</td>
+              </tr>
+            );
+          })}
+      </tbody>
+    </table>
+  </div>
+)}
               </div>
             </div>
           </div>

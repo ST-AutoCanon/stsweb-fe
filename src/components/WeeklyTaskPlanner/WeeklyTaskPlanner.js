@@ -1,4 +1,6 @@
-
+///////////////////////////////
+////////////////////
+////////////////////////
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -141,22 +143,22 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     });
     if (isApprovedLeave) {
       return {
-        className: 'day-date day-date-leave',
+        className: 'week-task-day-date week-task-day-date-leave',
         tooltip: 'Leave'
       };
     } else if (isHoliday) {
       return {
-        className: 'day-date day-date-holiday',
+        className: 'week-task-day-date week-task-day-date-holiday',
         tooltip: 'Holiday'
       };
     } else if (isSunday) {
       return {
-        className: 'day-date day-date-sunday',
+        className: 'week-task-day-date week-task-day-date-sunday',
         tooltip: 'Sunday'
       };
     }
     return {
-      className: 'day-date day-date-regular',
+      className: 'week-task-day-date week-task-day-date-regular',
       tooltip: dateStr
     };
   };
@@ -879,22 +881,22 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     suspended_review: "⛔",
   };
   return (
-    <div className="weekly-task-planner">
-      <div className="planner-header">
+    <div className="week-task-weekly-task-planner">
+      <div className="week-task-planner-header">
         <h2>
           Weekly Task Planner{" "}
-          <span className="week-id">
+          <span className="week-task-week-id">
             Week {weekId}: {dateRange}
           </span>
-          <div className="week-navigation">
+          <div className="week-task-week-navigation">
             <button
               onClick={handlePreviousWeek}
-              className="nav-button-task"
+              className="week-task-nav-button-task"
               disabled={weekOffset <= -3}
               title={weekOffset <= -3 ? "Cannot view earlier than Week 36" : "Previous Week"}
             >
               <svg
-                className="nav-icon"
+                className="week-task-nav-icon"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
@@ -905,19 +907,19 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <div className="nav-dots">
-              <span className="dot"></span>
-              <span className="dot"></span>
-              <span className="dot"></span>
+            <div className="week-task-nav-dots">
+              <span className="week-task-dot"></span>
+              <span className="week-task-dot"></span>
+              <span className="week-task-dot"></span>
             </div>
             <button
               onClick={handleNextWeek}
-              className="nav-button-task"
+              className="week-task-nav-button-task"
               disabled={weekOffset >= 3}
               title={weekOffset >= 3 ? "Cannot view beyond Week 42" : "Next Week"}
             >
               <svg
-                className="nav-icon"
+                className="week-task-nav-icon"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
@@ -930,17 +932,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             </button>
           </div>
         </h2>
-        <div className="header-buttons">
-          <button className="assign-task-button" onClick={handleAssignClick}>
+        <div className="week-task-header-buttons">
+          <button className="week-task-assign-task-button" onClick={handleAssignClick}>
             Assign New Tasks
           </button>
           {userRole === "supervisor" && !supReviewMode && (
-            <button className="review-button" onClick={handleEnterReview}>
+            <button className="week-task-review-button" onClick={handleEnterReview}>
               Supervisor Review
             </button>
           )}
           {userRole === "supervisor" && supReviewMode && (
-            <button className="exit-review-button" onClick={handleExitReview}>
+            <button className="week-task-exit-review-button" onClick={handleExitReview}>
               Exit Review
             </button>
           )}
@@ -961,38 +963,38 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         </div>
       )}
       {showAssignForm && (
-        <div className="assign-form-modal">
-          <div className="assign-form-empdriven">
-            <div className="form-header">
+        <div className="week-task-assign-form-modal">
+          <div className="week-task-assign-form-empdriven">
+            <div className="week-task-form-header">
               <h3>Assign New Tasks</h3>
-              <button className="close-button" onClick={handleAssignCancel}>×</button>
+              <button className="week-task-close-button" onClick={handleAssignCancel}>×</button>
             </div>
             {assignTasks.length === 0 && (
-              <div className="empty-state">
-                <button onClick={handleAddTask} className="add-first-task-button">
+              <div className="week-task-empty-state">
+                <button onClick={handleAddTask} className="week-task-add-first-task-button">
                   Add Task
                 </button>
               </div>
             )}
             {assignTasks.length > 0 && (
-              <div className="tasks-form-container">
+              <div className="week-task-tasks-form-container">
                 {assignTasks.map((task, index) => (
-                  <div key={index} className="task-form-row">
-                    <div className="form-row-header">
+                  <div key={index} className="week-task-task-form-row">
+                    <div className="week-task-form-row-header">
                       <h4>Task {index + 1}</h4>
                       <button
                         onClick={() => handleRemoveTask(index)}
-                        className="remove-task-button"
+                        className="week-task-remove-task-button"
                       >
                         ×
                       </button>
                     </div>
-                    <div className="form-grid">
-                      <div className="form-group-task">
+                    <div className="week-task-form-grid">
+                      <div className="week-task-form-group-task">
                         <label>Dates</label>
-                        <div className="multi-select-dropdown">
+                        <div className="week-task-multi-select-dropdown">
                           <div
-                            className="dropdown-header-task"
+                            className="week-task-dropdown-header-task"
                             onClick={() => toggleDropdown(index)}
                           >
                             {task.dates.length > 0
@@ -1001,11 +1003,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                             <span className="arrow">{dropdownOpen[index] ? "▲" : "▼"}</span>
                           </div>
                           {dropdownOpen[index] && (
-                            <div className="dropdown-list">
+                            <div className="week-task-dropdown-list">
                               {weekDates.map((date) => {
                                 const dateStyle = getTaskDateStyle(date);
                                 return (
-                                  <label key={date} className="checkbox-label">
+                                  <label key={date} className="week-task-checkbox-label">
                                     <input
                                       type="checkbox"
                                       checked={task.dates.includes(date)}
@@ -1013,7 +1015,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                     />
                                     {date}
                                     {dateStyle.tooltip !== date && (
-                                      <span className={`date-status ${dateStyle.className}`}>
+                                      <span className={`week-task-date-status ${dateStyle.className}`}>
                                         {dateStyle.tooltip}
                                       </span>
                                     )}
@@ -1024,7 +1026,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           )}
                         </div>
                       </div>
-                      <div className="form-group-task">
+                      <div className="week-task-form-group-task">
                         <label>Project</label>
                         <select
                           value={task.projectId}
@@ -1038,7 +1040,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           ))}
                         </select>
                       </div>
-                      <div className="form-group-task">
+                      <div className="week-task-form-group-task">
                         <label>Task</label>
                         <input
                           type="text"
@@ -1050,31 +1052,34 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                     </div>
                   </div>
                 ))}
-                <button onClick={handleAddTask} className="add-task-button">
+                <button onClick={handleAddTask} className="week-task-add-task-button">
                   + Add Another Task
                 </button>
               </div>
             )}
-            <div className="form-actions">
-              <button onClick={handleAssignSubmit} className="save-button">
+            <div className="week-task-form-actions">
+              {/* <button onClick={handleAssignSubmit} className="week-task-save-button">
                 Save All Tasks
-              </button>
-              <button onClick={handleAssignCancel} className="cancel-button">
+              </button> */}
+              <button onClick={handleAssignCancel} className="week-task-cancel-button">
                 Cancel
+              </button>
+              <button onClick={handleAssignSubmit} className="week-task-save-button">
+                Save All Tasks
               </button>
             </div>
           </div>
         </div>
       )}
       {userRole === "supervisor" && strikeTaskId && (
-        <div className="replacement-modal">
-          <div className="replacement-form">
-            <div className="form-header">
+        <div className="week-task-replacement-modal">
+          <div className="week-task-replacement-form">
+            <div className="week-task-form-header">
               <h4>Replace Struck Task</h4>
-              <button className="close-button" onClick={() => setStrikeTaskId(null)}>×</button>
+              <button className="week-task-close-button" onClick={() => setStrikeTaskId(null)}>×</button>
             </div>
-            <div className="form-grid">
-              <div className="form-group-task">
+            <div className="week-task-form-grid">
+              <div className="week-task-form-group-task">
                 <label>Project</label>
                 <select
                   value={replacementData.projectId}
@@ -1088,7 +1093,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                   ))}
                 </select>
               </div>
-              <div className="form-group-task">
+              <div className="week-task-form-group-task">
                 <label>Task Name</label>
                 <input
                   type="text"
@@ -1098,11 +1103,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                 />
               </div>
             </div>
-            <div className="form-actions">
-              <button onClick={handleAddReplacement} className="save-button">
+            <div className="week-task-form-actions">
+              <button onClick={handleAddReplacement} className="week-task-save-button">
                 Add Replacement
               </button>
-              <button onClick={() => setStrikeTaskId(null)} className="cancel-button">
+              <button onClick={() => setStrikeTaskId(null)} className="week-task-cancel-button">
                 Cancel
               </button>
             </div>
@@ -1114,39 +1119,39 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         const visibleTasks = isExpanded ? day.tasks : day.tasks.slice(0, 3);
         const dateStyle = getTaskDateStyle(day.date);
         return (
-          <div key={day.date} className="day-card">
-            <div className="day-left-column">
+          <div key={day.date} className="week-task-day-card">
+            <div className="week-task-day-left-column">
               <span className={dateStyle.className} title={dateStyle.tooltip}>
                 {day.date}
               </span>
-              <div className="projects-column">
+              <div className="week-task-projects-column">
                 {visibleTasks.map((task) => (
-                  <div key={task.task_id} className="circle-container">
-                    <div className="project-circle" title={task.project_name}>
+                  <div key={task.task_id} className="week-task-circle-container">
+                    <div className="week-task-project-circle" title={task.project_name}>
                       {task.project_id}
                     </div>
-                    <div className="task-id-circle" title={`Task ID: ${task.task_id}`}>
+                    <div className="week-task-task-id-circle" title={`Task ID: ${task.task_id}`}>
                       {task.task_id}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="tasks-section">
-              <div className="tasks-header">
-                <div className="header-task">Tasks</div>
-                <div className="header-employee">Employee Update</div>
-                <div className="header-supervisor">Supervisor Feedback</div>
+            <div className="week-task-tasks-section">
+              <div className="week-task-tasks-header">
+                <div className="week-task-header-task">Tasks</div>
+                <div className="week-task-header-employee">Employee Update</div>
+                <div className="week-task-header-supervisor">Supervisor Feedback</div>
               </div>
-              <div className="tasks-list">
+              <div className="week-task-tasks-list">
                 {visibleTasks.map((task) => {
                   const editable = isTaskEditable(task.task_date);
                   const isFrozen = task.sup_review_status === "suspended_review";
                   const effectiveEditable = editable && !isFrozen;
                   console.log(`Rendering task ${task.task_id}: date=${task.task_date}, editable=${editable}, frozen=${isFrozen}, effectiveEditable=${effectiveEditable}, class=${!effectiveEditable ? 'task-frozen' : ''}`);
                   return (
-                    <div key={task.task_id} className={`task-row ${!effectiveEditable ? 'task-frozen' : ''}`}>
-                      <div className="task-name">
+                    <div key={task.task_id} className={`week-task-task-row ${!effectiveEditable ? 'task-frozen' : ''}`}>
+                      <div className="week-task-task-name">
                         {task.sup_review_status === "struck" ? (
                           <>
                             <span style={{ textDecoration: "line-through", color: "#a0a0a0" }}>
@@ -1155,7 +1160,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                             {task.replacement_task && (
                               <span style={{ color: "#007bff", marginLeft: "10px", display: "inline-flex", alignItems: "center" }}>
                                 <span
-                                  className={`review-status-icon ${task.sup_review_status}`}
+                                  className={`week-task-review-status-icon ${task.sup_review_status}`}
                                   style={{ color: reviewColors[task.sup_review_status], marginRight: "5px" }}
                                   title={
                                     task.sup_review_status === "approved"
@@ -1176,7 +1181,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                             {task.task_name}
                             {task.sup_review_status !== "pending" && (
                               <span
-                                className={`review-status-icon ${task.sup_review_status}`}
+                                className={`week-task-review-status-icon ${task.sup_review_status}`}
                                 style={{ color: reviewColors[task.sup_review_status] }}
                                 title={
                                   task.sup_review_status === "approved"
@@ -1192,9 +1197,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </>
                         )}
                         {userRole === "supervisor" && supReviewMode && task.sup_review_status === "pending" && (
-                          <div className="review-action-icons" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
+                          <div className="week-task-review-action-icons" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
                             <svg
-                              className="action-icon approve"
+                              className="week-task-action-icon approve"
                               onClick={() => handleApprove(task.task_id)}
                               width="16"
                               height="16"
@@ -1207,7 +1212,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               <path d="M20 6L9 17l-5-5" />
                             </svg>
                             <svg
-                              className="action-icon strike"
+                              className="week-task-action-icon strike"
                               onClick={() => handleStrike(task.task_id, day.date)}
                               width="16"
                               height="16"
@@ -1220,7 +1225,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               <path d="M18 6L6 18" />
                             </svg>
                             <svg
-                              className="action-icon suspend"
+                              className="week-task-action-icon suspend"
                               onClick={() => handleSuspendReview(task.task_id)}
                               width="16"
                               height="16"
@@ -1237,12 +1242,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </div>
                         )}
                       </div>
-                      <div className="update-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
+                      <div className="week-task-update-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
                         {editingTask === task.task_id && userRole === "employee" && (
-                          <div className="edit-popup">
-                            <div className="checkbox-group">
+                          <div className="week-task-edit-popup">
+                            <div className="week-task-checkbox-group">
                               {["completed", "not started", "working"].map((status) => (
-                                <label key={status} className="checkbox-label">
+                                <label key={status} className="week-task-checkbox-label">
                                   <input
                                     type="radio"
                                     name="emp-status"
@@ -1264,20 +1269,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               onChange={(e) =>
                                 setFormData({ ...formData, comment: e.target.value })
                               }
-                              className="edit-comment-input"
+                              className="week-task-edit-comment-input"
                               disabled={!effectiveEditable}
                             />
-                            <div className="edit-actions">
+                            <div className="week-task-edit-actions">
                               <button
                                 onClick={handleCancelEdit}
-                                className="cancel-button"
+                                className="week-task-cancel-button"
                                 disabled={!effectiveEditable}
                               >
                                 Cancel
                               </button>
                               <button
                                 onClick={() => handleSave(task.task_id)}
-                                className="edit-save-button"
+                                className="week-task-edit-save-button"
                                 disabled={!effectiveEditable}
                               >
                                 Save
@@ -1285,17 +1290,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                             </div>
                           </div>
                         )}
-                        <div className="status-container">
-                          <span className="comment">{task.emp_comment || "N/A"}</span>
-                          <div className="status-dots">
+                        <div className="week-task-status-container">
+                          <span className="week-task-comment">{task.emp_comment || "N/A"}</span>
+                          <div className="week-task-status-dots">
                             <span
-                              className="status-dot"
+                              className="week-task-status-dot"
                               style={{ backgroundColor: statusColors[task.emp_status] || "#888" }}
                               title={statusLabels[task.emp_status] || task.emp_status}
                             ></span>
                             {userRole === "employee" && (
                               <svg
-                                className="edit-icon"
+                                className="week-task-edit-icon"
                                 onClick={() => handleEditClick(task)}
                                 width="16"
                                 height="16"
@@ -1312,12 +1317,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           </div>
                         </div>
                       </div>
-                      <div className="supervisor-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
+                      <div className="week-task-supervisor-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
                         {userRole === "supervisor" && supReviewMode && editingSupStatus === task.task_id ? (
-                          <div className="edit-section">
-                            <div className="checkbox-group">
+                          <div className="week-task-edit-section">
+                            <div className="week-task-checkbox-group">
                               {["completed", "add on", "re-work", "incomplete"].map((status) => (
-                                <label key={status} className="checkbox-label">
+                                <label key={status} className="week-task-checkbox-label">
                                   <input
                                     type="radio"
                                     name="sup-status"
@@ -1339,20 +1344,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               onChange={(e) =>
                                 setSupFormData({ ...supFormData, supComment: e.target.value })
                               }
-                              className="edit-comment-input"
+                              className="week-task-edit-comment-input"
                               disabled={!effectiveEditable}
                             />
-                            <div className="edit-actions">
+                            <div className="week-task-edit-actions">
                               <button
                                 onClick={handleSupStatusCancel}
-                                className="cancel-button"
+                                className="week-task-cancel-button"
                                 disabled={!effectiveEditable}
                               >
                                 Cancel
                               </button>
                               <button
                                 onClick={() => handleSupStatusSave(task.task_id)}
-                                className="edit-save-button"
+                                className="week-task-edit-save-button"
                                 disabled={!effectiveEditable}
                               >
                                 Save
@@ -1360,17 +1365,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                             </div>
                           </div>
                         ) : (
-                          <div className="status-container">
-                            <span className="comment">{task.sup_comment || "N/A"}</span>
-                            <div className="status-dots">
+                          <div className="week-task-status-container">
+                            <span className="week-task-comment">{task.sup_comment || "N/A"}</span>
+                            <div className="week-task-status-dots">
                               <span
-                                className="status-dot"
+                                className="week-task-status-dot"
                                 style={{ backgroundColor: statusColors[task.sup_status] || "#888" }}
                                 title={statusLabels[task.sup_status] || task.sup_status}
                               ></span>
                               {userRole === "supervisor" && supReviewMode && (
                                 <svg
-                                  className="edit-icon"
+                                  className="week-task-edit-icon"
                                   onClick={() => handleSupStatusEditClick(task)}
                                   width="16"
                                   height="16"
@@ -1394,7 +1399,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               </div>
               {day.tasks.length > 3 && (
                 <svg
-                  className="expand-icon-task"
+                  className="week-task-expand-icon-task"
                   onClick={() => toggleExpand(day.date)}
                   width="20"
                   height="20"

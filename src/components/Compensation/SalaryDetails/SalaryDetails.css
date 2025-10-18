@@ -33,9 +33,10 @@
   margin-bottom: 20px;
   width: 100%;
   max-width: 200px;
+  margin-left:-30px;
 }
 
-.sd-search-input {
+/* .sd-search-input {
   width: 100%;
   padding: 10px 15px;
   border: 1px solid #ced4da;
@@ -43,7 +44,7 @@
   font-size: 16px;
   outline: none;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
+} */
 
 .sd-search-input:focus {
   border-color: #80bdff;
@@ -314,10 +315,19 @@
   color: #333;
 }
 
+/* Right controls wrapper */
+.sd-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Search container (now inside info bar, right-aligned) */
 .sd-info-bar .sd-search-container {
   width: auto;
   max-width: 300px; /* Adjust as needed */
+  margin-right:30px;
+  margin-top:20px;
 }
 
 .sd-info-bar .sd-search-input {
@@ -326,6 +336,7 @@
   border: 1px solid #ced4da;
   border-radius: 6px;
   font-size: 14px;
+  
 }
 
 /* Preview modal overlay */

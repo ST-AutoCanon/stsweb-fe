@@ -1,10 +1,10 @@
-.emp-task-board-container {
+.emp-task-board-container-1 {
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding: 20px;
   max-width: 1400px;
-  margin: 0 auto;
+  margin-top: 20px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -368,7 +368,7 @@
 }
 
 .emp-task-edit-progress-btn svg {
-  stroke: #6b7280;
+  stroke: #6b8072;
   transition: stroke 0.2s ease;
 }
 
@@ -650,26 +650,262 @@
   background-color: #28a745;
   transform: translateY(-1px);
 }
-
-@media (max-width: 1024px) {
-  .emp-task-board {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+/* ... Existing CSS (including desktop and tablet rules) remains unchanged ... */
 
 @media (max-width: 640px) {
+  .emp-task-board-container-1 {
+    padding: 10px;
+    gap: 15px;
+  }
+
+  .emp-task-board-header h2 {
+    font-size: 1.3rem;
+  }
+
   .emp-task-board {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
+
+  .emp-task-column-header {
+    padding: 10px 12px;
+    font-size: 1rem;
+  }
+
+  .emp-task-count-badge {
+    padding: 3px 8px;
+    font-size: 0.8rem;
+  }
+
+  .emp-task-list {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .emp-task-card {
+    min-height: 140px;
+    padding: 10px;
+  }
+
+  .emp-task-title {
+    font-size: 0.95rem;
+  }
+
+  .emp-task-id-chip {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+
+  .emp-task-progress-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .emp-task-percentage {
+    font-size: 9px;
+  }
+
+  .emp-task-dates {
+    font-size: 0.8rem;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .emp-task-date-group {
+    gap: 1px;
+  }
+
+  .emp-task-date-label {
+    font-size: 0.7rem;
+  }
+
+  .emp-task-date-pill {
+    min-width: 70px;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+  }
+
+  .emp-task-message-icon {
+    font-size: 1.1rem;
+  }
+
+  .emp-section-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    margin-right: 8px;
+  }
+
   .emp-task-details {
     width: 95%;
     padding: 15px;
+    max-height: 90vh;
   }
-  .emp-task-tab-header {
+
+  .emp-task-details-header {
+    padding-bottom: 10px;
+  }
+
+  .emp-task-details-title {
+    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .emp-task-pill {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+
+  .emp-task-close-btn {
+    font-size: 1.2rem;
+  }
+
+  .emp-task-details-meta {
+    gap: 12px;
+  }
+
+  .emp-task-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .emp-task-status-line {
+    font-size: 0.9rem;
+  }
+
+  .emp-task-label {
+    margin-right: 0;
+    margin-bottom: 4px;
+  }
+
+  .emp-task-progress-editor {
+    padding: 12px;
+  }
+
+  .emp-task-slider-container {
+    gap: 10px;
+  }
+
+  .emp-task-slider-value {
+    font-size: 0.85rem;
+    min-width: 40px;
+  }
+
+  .emp-task-status-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .emp-task-status-select {
+    max-width: none;
+    width: 100%;
+  }
+
+  .emp-task-editor-actions {
     flex-direction: column;
   }
-  .emp-task-tab-btn {
+
+  .emp-task-save-btn,
+  .emp-task-cancel-btn {
     width: 100%;
+    padding: 10px;
+  }
+
+  .emp-task-dates-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .emp-task-description p {
+    font-size: 0.85rem;
+  }
+
+  .emp-task-tab-header {
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-bottom: none;
+    margin-bottom: 10px;
+    gap: 8px; /* Added gap for better spacing between tabs */
+    padding: 8px 0;
+    scroll-snap-type: x mandatory;
+  }
+
+  .emp-task-tab-btn {
+    min-width: 100px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border-bottom: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px 6px 0 0;
+    margin-right: 5px;
+    flex: 1; /* Make tabs equal width for left-right fit */
+    min-width: 48%; /* Ensure two tabs fit side-by-side */
     text-align: center;
+    background-color: #f3f4f6; /* Default inactive background */
+    color: #6b7280; /* Default inactive text */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    scroll-snap-align: center;
+  }
+
+  .emp-task-tab-btn.emp-task-active {
+    background-color: #28a745; /* Green background for active tab */
+    color: white; /* White text for active */
+    border-color: #28a745; /* Match border to green */
+    font-weight: 600;
+  }
+
+  .emp-task-tab-btn:hover {
+    background-color: #e5e7eb;
+    color: #374151;
+  }
+
+  .emp-task-tab-btn.emp-task-active:hover {
+    background-color: #218838; /* Darker green on hover for active */
+    color: white;
+  }
+
+  .emp-task-messages {
+    max-height: 200px;
+    gap: 8px;
+  }
+
+  .emp-task-message {
+    padding: 8px;
+    max-width: 85%;
+    font-size: 0.85rem;
+  }
+
+  .emp-task-message-content {
+    font-size: 0.85rem;
+  }
+
+  .emp-task-message-meta {
+    font-size: 0.7rem;
+  }
+
+  .emp-task-chat-input {
+    flex-direction: column;
+  }
+
+  .emp-task-chat-input input {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .emp-task-chat-input button {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* Hide scrollbar for clean look */
+  .emp-task-tab-header::-webkit-scrollbar {
+    display: none;
+  }
+  .emp-task-tab-header {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
+

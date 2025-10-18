@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./OvertimeDetails.css";
@@ -13,36 +11,32 @@ const OvertimeDetails = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [assignedCompensationData, setAssignedCompensationData] = useState([]);
 
-
   const fetchAssignedCompensation = async () => {
-  try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
-      {
-        headers: {
-          "x-api-key": API_KEY,
-          "x-employee-id": meId,
-        },
-      }
-    );
-
-    // Flatten assigned_data for easy lookup by employee_id
-    const compensationMap = {};
-    response.data.data.forEach((plan) => {
-      plan.assigned_data.forEach((emp) => {
-        compensationMap[emp.employee_id] = plan.plan_data?.overtimePayAmount || 0;
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
+        {
+          headers: {
+            "x-api-key": API_KEY,
+            "x-employee-id": meId,
+          },
+        }
+      );
+      const compensationMap = {};
+      response.data.data.forEach((plan) => {
+        plan.assigned_data.forEach((emp) => {
+          compensationMap[emp.employee_id] = plan.plan_data?.overtimePayAmount || 0;
+        });
       });
-    });
+      setAssignedCompensationData(compensationMap);
+    } catch (error) {
+      console.error("Error fetching assigned compensation:", error);
+    }
+  };
 
-    setAssignedCompensationData(compensationMap);
-  } catch (error) {
-    console.error("Error fetching assigned compensation:", error);
-  }
-};
-
-useEffect(() => {
-  fetchAssignedCompensation();
-}, []);
+  useEffect(() => {
+    fetchAssignedCompensation();
+  }, []);
 
   const [aprilPendingPopup, setAprilPendingPopup] = useState({
     isVisible: false,
@@ -50,6 +44,7 @@ useEffect(() => {
     showDetails: false,
     data: [],
   });
+
   const [monthOptions, setMonthOptions] = useState([]);
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
@@ -68,34 +63,7 @@ useEffect(() => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  const getDateRange = (type) => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-
-    let startDate, endDate;
-
-    if (type === "current") {
-      startDate = new Date(currentYear, currentMonth - 1, 25);
-      endDate = new Date(currentYear, currentMonth, 25);
-    } else if (type === "last") {
-      startDate = new Date(currentYear, currentMonth - 2, 25);
-      endDate = new Date(currentYear, currentMonth - 1, 25);
-    } else if (type === "twoMonthsAgo") {
-      startDate = new Date(currentYear, currentMonth - 3, 25);
-      endDate = new Date(currentYear, currentMonth - 2, 25);
-    } else if (type === "april") {
-      startDate = new Date(currentYear, currentMonth - 4, 25);
-      endDate = new Date(currentYear, currentMonth - 3, 25);
-    }
-
-    const range = {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
-    };
-    console.log(`getDateRange(${type}): ${range.startDate} to ${range.endDate}`);
-    return range;
-  };
+  // Removed getDateRange (backend handles)
 
   const getMonthName = (offset) => {
     const date = new Date();
@@ -126,10 +94,10 @@ useEffect(() => {
     }
   };
 
-  const fetchData = async (startDate, endDate) => {
+  const fetchData = async (period) => {
     try {
       setIsLoading(true);
-      console.log(`Fetching overtime data for ${startDate} to ${endDate}`);
+      console.log(`Fetching overtime data for period: ${period}`);
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours`,
         {
@@ -138,34 +106,35 @@ useEffect(() => {
             "x-employee-id": meId,
           },
           params: {
-            startDate,
-            endDate,
+            period,
           },
         }
       );
-
       console.log("Overtime API Response:", response.data);
-
       const data = Array.isArray(response.data.data) ? response.data.data : [];
       console.log("Overtime Raw API Data:", data);
-
       if (data.length === 0) {
-        console.warn("No overtime records returned from API for the given date range");
+        console.warn("No overtime records returned from API for the given period");
       }
-
       const uniqueData = Array.from(
         new Map(data.map((item) => [item.punch_id, item])).values()
       );
-
       const formattedData = uniqueData.map((item) => {
-        const hours = parseFloat(item.extra_hours) || 0;
+        console.log(`Raw item for punch_id ${item.punch_id}:`, item);
+        
+        const rawHours = parseFloat(item.hours);
+        const hours = rawHours || 0;
         const employeeInfo = employeeProjectData.find((emp) => emp.employee_id === item.employee_id) || {};
+        
+        if (hours <= 0) {
+          console.warn(`Invalid hours (${hours}) for punch_id ${item.punch_id}: Check punchin/punchout times`);
+        }
         if (hours > 24) {
-          console.warn(`Unusually high extra_hours for punch_id ${item.punch_id}: ${hours}`);
+          console.warn(`Unusually high total hours for punch_id ${item.punch_id}: ${hours}`);
         }
         return {
           id: item.punch_id,
-          employee_id: item.employee_id, // Preserve original employee_id
+          employee_id: item.employee_id,
           date: new Date(item.work_date).toISOString().split("T")[0],
           name: employeeInfo.employee_name || item.employee_id,
           hours: Math.min(hours, 24),
@@ -175,8 +144,7 @@ useEffect(() => {
           comments: item.comments || "",
           status: item.status || "Pending",
         };
-      });
-
+      }).filter(item => item.hours > 0);
       console.log("Overtime Formatted Data:", formattedData);
       setOvertimeData(formattedData);
       setSelectedRows([]);
@@ -193,8 +161,8 @@ useEffect(() => {
   };
 
   const checkAprilPending = async () => {
-    const { startDate, endDate } = getDateRange("april");
     try {
+      console.log("Checking April pending records");
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours`,
         {
@@ -203,25 +171,29 @@ useEffect(() => {
             "x-employee-id": meId,
           },
           params: {
-            startDate,
-            endDate,
+            period: "april",
           },
         }
       );
-
       const data = Array.isArray(response.data.data) ? response.data.data : [];
       const pendingData = data.filter((item) => item.status === "Pending" || !item.status);
       console.log(`April pending records: ${pendingData.length}`);
-
       const formattedData = pendingData.map((item) => {
-        const hours = parseFloat(item.extra_hours) || 0;
+        console.log(`Raw April item for punch_id ${item.punch_id}:`, item);
+        
+        const rawHours = parseFloat(item.hours) || 0;
+        const hours = rawHours;
         const employeeInfo = employeeProjectData.find((emp) => emp.employee_id === item.employee_id) || {};
+        
+        if (hours <= 0) {
+          console.warn(`Invalid April hours (${hours}) for punch_id ${item.punch_id}`);
+        }
         if (hours > 24) {
-          console.warn(`Unusually high extra_hours for punch_id ${item.punch_id}: ${hours}`);
+          console.warn(`Unusually high total hours for punch_id ${item.punch_id}: ${hours}`);
         }
         return {
           id: item.punch_id,
-          employee_id: item.employee_id, // Preserve original employee_id
+          employee_id: item.employee_id,
           date: new Date(item.work_date).toISOString().split("T")[0],
           name: employeeInfo.employee_name || item.employee_id,
           hours: Math.min(hours, 24),
@@ -231,12 +203,11 @@ useEffect(() => {
           comments: item.comments || "",
           status: item.status || "Pending",
         };
-      });
-
+      }).filter(item => item.hours > 0);
       if (pendingData.length > 0 && !sessionStorage.getItem("aprilPopupShown")) {
         setAprilPendingPopup({
           isVisible: true,
-          pendingCount: pendingData.length,
+          pendingCount: formattedData.length,
           showDetails: false,
           data: formattedData,
         });
@@ -247,18 +218,17 @@ useEffect(() => {
     }
   };
 
- const handleInputChange = (id, field, value, isAprilPopup = false) => {
-  if (field !== "comments" && field !== "rate") return; // allow comments and rate edits
-  const updateFn = (prev) =>
-    prev.map((row) => (row.id === id ? { ...row, [field]: field === "rate" ? parseFloat(value) : value } : row));
-  
-  if (isAprilPopup) {
-    setAprilPendingPopup((prev) => ({ ...prev, data: updateFn(prev.data) }));
-  } else {
-    setOvertimeData(updateFn);
-  }
-};
-
+  const handleInputChange = (id, field, value, isAprilPopup = false) => {
+    if (field !== "comments" && field !== "rate") return;
+    const updateFn = (prev) =>
+      prev.map((row) => (row.id === id ? { ...row, [field]: field === "rate" ? parseFloat(value) : value } : row));
+ 
+    if (isAprilPopup) {
+      setAprilPendingPopup((prev) => ({ ...prev, data: updateFn(prev.data) }));
+    } else {
+      setOvertimeData(updateFn);
+    }
+  };
 
   const handleCheckboxChange = (id) => {
     setSelectedRows((prevSelected) => {
@@ -289,7 +259,6 @@ useEffect(() => {
     try {
       setIsLoading(true);
       const fullUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/overtime-bulk`;
-
       let payload;
       if (isBulk || isApril) {
         let selectedData;
@@ -300,10 +269,8 @@ useEffect(() => {
             .map((row) => ({
               punch_id: row.id,
               work_date: row.date,
-              employee_id: row.employee_id, // Use original employee_id
-              extra_hours: row.hours,
-                  rate: parseFloat(row.rate) || 0, // updated rate
-
+              employee_id: row.employee_id,
+              extra_hours: Math.max(0, row.hours - 10),
               rate: parseFloat(row.rate) || 0,
               project: row.project || "",
               supervisor: row.supervisor || "",
@@ -317,8 +284,8 @@ useEffect(() => {
             .map((row) => ({
               punch_id: row.id,
               work_date: row.date,
-              employee_id: row.employee_id, // Use original employee_id
-              extra_hours: row.hours,
+              employee_id: row.employee_id,
+              extra_hours: Math.max(0, row.hours - 10),
               rate: parseFloat(row.rate) || 0,
               project: row.project || "",
               supervisor: row.supervisor || "",
@@ -326,11 +293,9 @@ useEffect(() => {
               status: status,
             }));
         }
-
         if (selectedData.length === 0) {
           throw new Error("No pending rows selected for approval/rejection.");
         }
-
         payload = { data: selectedData };
       } else {
         const row = overtimeData.find((row) => row.id === punchId);
@@ -340,13 +305,12 @@ useEffect(() => {
         if (row.status !== "Pending") {
           throw new Error(`Cannot change status of row with status: ${row.status}`);
         }
-
         payload = {
           data: [{
             punch_id: row.id,
             work_date: row.date,
-            employee_id: row.employee_id, // Use original employee_id
-            extra_hours: row.hours,
+            employee_id: row.employee_id,
+            extra_hours: Math.max(0, row.hours - 10),
             rate: parseFloat(row.rate) || 0,
             project: row.project || "",
             supervisor: row.supervisor || "",
@@ -355,7 +319,6 @@ useEffect(() => {
           }],
         };
       }
-
       await axios.post(fullUrl, payload, {
         headers: {
           "x-api-key": API_KEY,
@@ -363,9 +326,7 @@ useEffect(() => {
           "Content-Type": "application/json",
         },
       });
-
-      showAlert(`Overtime record(s) ${status.toLowerCase()} successfully`, "Success");
-
+      showAlert(`Hours record(s) ${status.toLowerCase()} successfully`, "Success");
       if (isApril) {
         setAprilPendingPopup((prev) => ({
           ...prev,
@@ -390,8 +351,7 @@ useEffect(() => {
         );
         setSelectedRows([]);
         setSelectAll(false);
-        const { startDate, endDate } = getDateRange(selectedMonth);
-        await fetchData(startDate, endDate);
+        await fetchData(selectedMonth);  // Refetch with period
       }
     } catch (error) {
       console.error("Error updating overtime status:", error);
@@ -408,6 +368,7 @@ useEffect(() => {
   const handleRejectSelected = () => handleStatusChange(null, "Rejected", true);
   const handleAprilApprove = () => handleStatusChange(null, "Approved", true, true);
   const handleAprilReject = () => handleStatusChange(null, "Rejected", true, true);
+
   const handleViewDetails = () => {
     setAprilPendingPopup((prev) => ({ ...prev, showDetails: true }));
   };
@@ -432,14 +393,14 @@ useEffect(() => {
   }, [overtimeData, selectedRows]);
 
   useEffect(() => {
-    const { startDate, endDate } = getDateRange(selectedMonth);
-    fetchData(startDate, endDate);
+    fetchData(selectedMonth);
   }, [selectedMonth, employeeProjectData]);
 
   useEffect(() => {
     checkAprilPending();
   }, [employeeProjectData]);
 
+  // Rest of JSX unchanged (table, modals, etc.)
   return (
     <div className="otd-overtime-container">
       <h2 className="otd-title">Overtime Details</h2>
@@ -490,7 +451,7 @@ useEffect(() => {
                 </th>
                 <th className="otd-table-header">Date</th>
                 <th className="otd-table-header">Employee Name</th>
-                <th className="otd-table-header">Extra Hours</th>
+                <th className="otd-table-header">Total Hours</th>
                 <th className="otd-table-header">Rate</th>
                 <th className="otd-table-header">Project</th>
                 <th className="otd-table-header">Supervisor</th>
@@ -514,19 +475,20 @@ useEffect(() => {
                     </td>
                     <td className="otd-table-cell otd-date-cell">{row.date}</td>
                     <td className="otd-table-cell">{row.name}</td>
-                    <td className="otd-table-cell">{row.hours}</td>
-<td className="otd-table-cell">
-  {row.status === "Pending" ? (
-    <input
-      type="number"
-      value={row.rate || assignedCompensationData[row.employee_id] || 0}
-      onChange={(e) => handleInputChange(row.id, "rate", e.target.value)}
-      className="otd-input"
-    />
-  ) : (
-    row.rate.toFixed(2)
-  )}
-</td>
+                    <td className="otd-table-cell">{row.hours.toFixed(2)}</td>
+                    <td className="otd-table-cell">
+                      {row.status === "Pending" ? (
+                        <input
+                          type="number"
+                          value={row.rate || assignedCompensationData[row.employee_id] || 0}
+                          onChange={(e) => handleInputChange(row.id, "rate", e.target.value)}
+                          className="otd-input"
+                          step="0.01"
+                        />
+                      ) : (
+                        row.rate.toFixed(2)
+                      )}
+                    </td>
                     <td className="otd-table-cell" title={row.project?.length > 20 || row.project?.includes(",") ? row.project : ""}>
                       <span className="otd-text-ellipsis">{row.project}</span>
                     </td>
@@ -554,7 +516,6 @@ useEffect(() => {
                               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                             />
                           </svg>
-
                         </button>
                         <button
                           onClick={() => handleStatusChange(row.id, "Rejected")}
@@ -608,7 +569,7 @@ useEffect(() => {
                     <tr>
                       <th className="otd-table-header">Date</th>
                       <th className="otd-table-header">Employee Name</th>
-                      <th className="otd-table-header">Extra Hours</th>
+                      <th className="otd-table-header">Total Hours</th>
                       <th className="otd-table-header">Rate</th>
                       <th className="otd-table-header">Project</th>
                       <th className="otd-table-header">Supervisor</th>
@@ -623,7 +584,7 @@ useEffect(() => {
                         <tr key={row.id} className="otd-table-row">
                           <td className="otd-table-cell otd-date-cell">{row.date}</td>
                           <td className="otd-table-cell">{row.name}</td>
-                          <td className="otd-table-cell">{row.hours}</td>
+                          <td className="otd-table-cell">{row.hours.toFixed(2)}</td>
                           <td className="otd-table-cell">{row.rate.toFixed(2)}</td>
                           <td className="otd-table-cell" title={row.project?.length > 20 || row.project?.includes(",") ? row.project : ""}>
                             <span className="otd-text-ellipsis">{row.project}</span>
@@ -684,14 +645,14 @@ useEffect(() => {
               <button
                 onClick={handleAprilApprove}
                 className="otd-april-approve-button"
-                disabled={isLoading}
+                disabled={isLoading || aprilPendingPopup.data.filter(r => r.status === "Pending").length === 0}
               >
                 Approve All
               </button>
               <button
                 onClick={handleAprilReject}
                 className="otd-april-reject-button"
-                disabled={isLoading}
+                disabled={isLoading || aprilPendingPopup.data.filter(r => r.status === "Pending").length === 0}
               >
                 Reject All
               </button>

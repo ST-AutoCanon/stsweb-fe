@@ -570,6 +570,7 @@ const SupervisorPlanViewer = () => {
       >
         <p>{alertModal.message}</p>
       </Modal>
+      
       <div className="supervisor-plan-employee-list">
         <h3>Employees</h3>
         <input
