@@ -1,5 +1,4 @@
 
-
 import React, { useMemo, useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -422,7 +421,7 @@ const EmpTaskManagement = () => {
   }
 
   return (
-    <div className="emp-task-board-container">
+    <div className="emp-task-board-container-1">
       <div className="emp-task-sections">
         <button
           className={`emp-section-btn ${activeSection === "Tasks" ? "emp-active" : ""}`}

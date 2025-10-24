@@ -67,24 +67,25 @@
   border-bottom: 2px solid #ddd;
 }
 
+.header-row th:nth-child(7) {
+  width: 100px;
+}
+
+.employee-table td:nth-child(7) {
+  width: 100px;
+}
+
 .employee-table td {
   padding: 12px;
   border-bottom: 1px solid #ddd;
 }
 
-.employee-view-btn {
-  display: flex;
-  align-items: center;
-  padding: 6px 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
+.rate-input {
+  width: 80px;
+  padding: 4px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  cursor: pointer;
-}
-
-.employee-view-btn:hover {
-  background-color: #0056b3;
+  font-size: 14px;
 }
 
 .action-buttons {
@@ -142,66 +143,6 @@
   color: #dc3545;
   font-weight: bold; 
 }*/
-
-.employee-popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.employee-popup-box {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.employee-popup-close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.employee-popup-title {
-  margin: 0 0 20px;
-  font-size: 24px;
-  text-align: center;
-}
-
-.employee-details-container {
-  margin-top: 20px;
-}
-
-.details-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.details-label {
-  font-weight: bold;
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
-  width: 40%;
-}
-
-.details-value {
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
-}
 
 .error-message {
   color: red;

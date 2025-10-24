@@ -1,7 +1,3 @@
-///////////////////////////////
-////////////////////
-////////////////////////
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
@@ -320,13 +316,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert("This task is suspended and cannot be updated.");
       return;
     }
-
     if (editingTask === task.task_id) {
-      // Already editing this task -> close (toggle off)
       setEditingTask(null);
       setFormData({ taskName: "", status: "", comment: "" });
     } else {
-      // Start editing this task
       setEditingTask(task.task_id);
       setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
     }
@@ -341,13 +334,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert("This task is suspended and cannot be updated.");
       return;
     }
-
     if (editingSupStatus === task.task_id) {
-      // Already editing -> close
       setEditingSupStatus(null);
       setSupFormData({ supStatus: "", supComment: "" });
     } else {
-      // Start editing
       setEditingSupStatus(task.task_id);
       setSupFormData({ supStatus: task.sup_status || "incomplete", supComment: task.sup_comment || "" });
     }
@@ -397,7 +387,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert(`Failed to update task: ${err.message}`);
       console.error(err);
     } finally {
-      setEditingTask(null); // Close popup after save/fail
+      setEditingTask(null);
       setFormData({ taskName: "", status: "", comment: "" });
     }
   };
@@ -432,7 +422,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: task.star_rating,
         replacement_task: task.replacement_task,
       };
-
       if (supFormData.supStatus === 're-work') {
         const taskDate = new Date(task.task_date || new Date());
         if (isNaN(taskDate.getTime())) taskDate = new Date();
@@ -445,9 +434,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           return;
         }
         const nextDayWeekId = getISOWeekNumber(nextDay);
-
         const newTaskName = task.replacement_task || task.task_name;
-
         const newTaskData = {
           week_id: nextDayWeekId,
           task_date: nextDayString,
@@ -463,20 +450,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           star_rating: 0,
           parent_task_id: task.task_id,
         };
-
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
           newTaskData,
           { headers: { 'x-api-key': process.env.REACT_APP_API_KEY || "abc123xyz" }, timeout: 10000 }
         );
-
         updateData.sup_status = 're-work';
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
           updateData,
           { headers: { 'x-api-key': process.env.REACT_APP_API_KEY || "abc123xyz" }, timeout: 10000 }
         );
-
         showAlert(response.data.message || 'New task created successfully');
         if (response.data.newTask) {
           const newTask = {
@@ -498,7 +482,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           });
           const newTaskWeek = newTask.week_id;
           if (newTaskWeek && newTaskWeek !== weekId) {
-            // Update week offset if necessary
             const newOffset = weekOffset + (newTaskWeek - weekId);
             setWeekOffset(newOffset);
           }
@@ -509,7 +492,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         });
         showAlert('Task updated successfully');
       }
-
       setTasksData((prev) =>
         prev.map((day) => ({
           ...day,
@@ -524,8 +506,8 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     } catch (err) {
       showAlert(`Failed to update supervisor status: ${err.message}`);
       console.error(err);
-     } finally {
-      setEditingSupStatus(null); // Close after save/fail
+    } finally {
+      setEditingSupStatus(null);
       setSupFormData({ supStatus: "", supComment: "" });
     }
   };
@@ -684,7 +666,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
       });
       const [day, monthName] = replacementData.date.split(" ");
-      const year = 2025; // Use hardcoded year to match currentDate
+      const year = 2025;
       const month = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
       const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const newTask = {
@@ -734,7 +716,14 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
   const handleAssignClick = () => {
     setShowAssignForm(true);
-    setAssignTasks([]);
+    setAssignTasks([
+      {
+        dates: [],
+        projectId: "",
+        projectName: "",
+        taskName: "",
+      },
+    ]);
     setDropdownOpen({});
   };
   const handleAddTask = () => {
@@ -749,7 +738,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     ]);
   };
   const handleRemoveTask = (index) => {
-    setAssignTasks((prev) => prev.filter((_, i) => i !== index));
+    setAssignTasks((prev) => {
+      if (prev.length <= 1) return prev; // Prevent removing the last task
+      const newTasks = prev.filter((_, i) => i !== index);
+      return newTasks;
+    });
     setDropdownOpen((prev) => {
       const newState = { ...prev };
       delete newState[index];
@@ -969,98 +962,87 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               <h3>Assign New Tasks</h3>
               <button className="week-task-close-button" onClick={handleAssignCancel}>×</button>
             </div>
-            {assignTasks.length === 0 && (
-              <div className="week-task-empty-state">
-                <button onClick={handleAddTask} className="week-task-add-first-task-button">
-                  Add Task
-                </button>
-              </div>
-            )}
-            {assignTasks.length > 0 && (
-              <div className="week-task-tasks-form-container">
-                {assignTasks.map((task, index) => (
-                  <div key={index} className="week-task-task-form-row">
-                    <div className="week-task-form-row-header">
-                      <h4>Task {index + 1}</h4>
-                      <button
-                        onClick={() => handleRemoveTask(index)}
-                        className="week-task-remove-task-button"
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <div className="week-task-form-grid">
-                      <div className="week-task-form-group-task">
-                        <label>Dates</label>
-                        <div className="week-task-multi-select-dropdown">
-                          <div
-                            className="week-task-dropdown-header-task"
-                            onClick={() => toggleDropdown(index)}
-                          >
-                            {task.dates.length > 0
-                              ? task.dates.join(", ")
-                              : "-- Select Dates --"}
-                            <span className="arrow">{dropdownOpen[index] ? "▲" : "▼"}</span>
-                          </div>
-                          {dropdownOpen[index] && (
-                            <div className="week-task-dropdown-list">
-                              {weekDates.map((date) => {
-                                const dateStyle = getTaskDateStyle(date);
-                                return (
-                                  <label key={date} className="week-task-checkbox-label">
-                                    <input
-                                      type="checkbox"
-                                      checked={task.dates.includes(date)}
-                                      onChange={() => handleAssignChange(index, "dates", date)}
-                                    />
-                                    {date}
-                                    {dateStyle.tooltip !== date && (
-                                      <span className={`week-task-date-status ${dateStyle.className}`}>
-                                        {dateStyle.tooltip}
-                                      </span>
-                                    )}
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="week-task-form-group-task">
-                        <label>Project</label>
-                        <select
-                          value={task.projectId}
-                          onChange={handleProjectSelect(index)}
+            <div className="week-task-tasks-form-container">
+              {assignTasks.map((task, index) => (
+                <div key={index} className="week-task-task-form-row">
+                  <div className="week-task-form-row-header">
+                    <h4>Task {index + 1}</h4>
+                    <button
+                      onClick={() => handleRemoveTask(index)}
+                      className="week-task-remove-task-button"
+                      disabled={assignTasks.length === 1}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="week-task-form-grid">
+                    <div className="week-task-form-group-task">
+                      <label>Dates</label>
+                      <div className="week-task-multi-select-dropdown">
+                        <div
+                          className="week-task-dropdown-header-task"
+                          onClick={() => toggleDropdown(index)}
                         >
-                          <option value="">Select Project</option>
-                          {Object.entries(projects).map(([id, name]) => (
-                            <option key={id} value={id}>
-                              {id} - {name}
-                            </option>
-                          ))}
-                        </select>
+                          {task.dates.length > 0
+                            ? task.dates.join(", ")
+                            : "-- Select Dates --"}
+                          <span className="arrow">{dropdownOpen[index] ? "▲" : "▼"}</span>
+                        </div>
+                        {dropdownOpen[index] && (
+                          <div className="week-task-dropdown-list">
+                            {weekDates.map((date) => {
+                              const dateStyle = getTaskDateStyle(date);
+                              return (
+                                <label key={date} className="week-task-checkbox-label">
+                                  <input
+                                    type="checkbox"
+                                    checked={task.dates.includes(date)}
+                                    onChange={() => handleAssignChange(index, "dates", date)}
+                                  />
+                                  {date}
+                                  {dateStyle.tooltip !== date && (
+                                    <span className={`week-task-date-status ${dateStyle.className}`}>
+                                      {dateStyle.tooltip}
+                                    </span>
+                                  )}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                      <div className="week-task-form-group-task">
-                        <label>Task</label>
-                        <input
-                          type="text"
-                          value={task.taskName}
-                          onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
-                          placeholder="Enter task"
-                        />
-                      </div>
+                    </div>
+                    <div className="week-task-form-group-task">
+                      <label>Project</label>
+                      <select
+                        value={task.projectId}
+                        onChange={handleProjectSelect(index)}
+                      >
+                        <option value="">Select Project</option>
+                        {Object.entries(projects).map(([id, name]) => (
+                          <option key={id} value={id}>
+                            {id} - {name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="week-task-form-group-task">
+                      <label>Task</label>
+                      <input
+                        type="text"
+                        value={task.taskName}
+                        onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
+                        placeholder="Enter task"
+                      />
                     </div>
                   </div>
-                ))}
-                <button onClick={handleAddTask} className="week-task-add-task-button">
-                  + Add Another Task
-                </button>
-              </div>
-            )}
+                </div>
+              ))}
+              <button onClick={handleAddTask} className="week-task-add-task-button">
+                + Add Another Task
+              </button>
+            </div>
             <div className="week-task-form-actions">
-              {/* <button onClick={handleAssignSubmit} className="week-task-save-button">
-                Save All Tasks
-              </button> */}
               <button onClick={handleAssignCancel} className="week-task-cancel-button">
                 Cancel
               </button>

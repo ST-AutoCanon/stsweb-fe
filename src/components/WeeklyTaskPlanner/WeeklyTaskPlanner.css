@@ -706,22 +706,24 @@
   flex-direction: column;
   gap: 8px;
 }
-
 /* Individual task row */
 .week-task-task-row {
   display: grid;
-  grid-template-columns: 1fr 200px 200px;
+  grid-template-columns: 1fr 200px 200px; /* Maintain fixed widths for employee and supervisor columns */
   gap: 10px;
-  align-items: center;
+  align-items: start; /* Align items to top to handle varying heights */
   padding: 8px;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
   background: #fff;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, min-height 0.3s ease;
+  min-height: 40px; /* Minimum height for consistency */
 }
 
+/* Hover effect on the entire row */
 .week-task-task-row:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  min-height: auto; /* Allow row to expand vertically */
 }
 
 /* Task name */
@@ -734,36 +736,61 @@
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
-  /* max-width: 200px; */
-   /* Constrain width to prevent overflow */
-  transition: max-width 0.3s ease; /* Smooth transition for width */
+  max-width: 100%; /* Constrain to column width */
+  cursor: pointer;
+  padding-right: 8px; /* Prevent overlap with icons */
+}
+
+/* Employee and Supervisor comments */
+.week-task-comment {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%; /* Constrain to column width */
   cursor: pointer;
 }
 
-.week-task-task-row:hover .week-task-task-name {
-  max-width: none; /* Remove width constraint on hover */
+/* On hover of the row, allow text to wrap but constrain width */
+.week-task-task-row:hover .week-task-task-name,
+.week-task-task-row:hover .week-task-comment {
   white-space: normal; /* Allow text to wrap */
   overflow: visible; /* Show full text */
   text-overflow: clip; /* Remove ellipsis */
+  max-width: 100%; /* Keep within column bounds */
+  word-break: break-word; /* Break long words to prevent overflow */
 }
 
-/* Employee and Supervisor update sections */
+/* Ensure status container and sections align properly */
 .week-task-update-section,
 .week-task-supervisor-section {
   display: flex;
   align-items: center;
   gap: 6px;
-  position: relative; /* Ensure popups position relative to this */
+  position: relative;
+  min-height: 30px; /* Consistent height for alignment */
+  max-width: 100%; /* Prevent overflow beyond column */
+  flex-wrap: wrap; /* Allow wrapping within the section */
 }
 
-/* Status container (for dots and edit icon) */
+/* Status container */
 .week-task-status-container {
   display: flex;
   align-items: center;
   gap: 6px;
   width: 100%;
+  flex-wrap: wrap; /* Allow wrapping for long comments */
 }
 
+/* Tasks section (ensure it doesn't overflow) */
+.week-task-tasks-section {
+  flex: 1;
+  padding: 16px;
+  position: relative;
+  overflow: visible; /* Allow popups to extend outside */
+  max-width: 100%; /* Prevent section from growing too wide */
+}
 /* Status dots wrapper */
 .week-task-status-dots {
   display: flex;
@@ -1059,48 +1086,50 @@
     gap: 8px; /* Match desktop */
   }
 
-  /* Task row - stack for mobile */
+ /* Mobile adjustments */
+@media (max-width: 768px) {
   .week-task-task-row {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    padding: 8px; /* Match desktop */
-    font-size: 13px;
+    padding: 8px;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
-    background: #fff; /* Match desktop */
+    background: #fff;
+    min-height: auto; /* Allow dynamic height */
   }
 
-  .week-task-task-name {
-    font-size: 13px;
-    font-weight: 600;
+  .week-task-task-name,
+  .week-task-comment {
     max-width: 100%;
-    white-space: normal;
+    white-space: normal; /* Always wrap on mobile */
     overflow: visible;
     text-overflow: clip;
+    word-break: break-word; /* Break long words */
   }
 
-  /* Update sections */
   .week-task-update-section,
   .week-task-supervisor-section {
     width: 100%;
     justify-content: space-between;
-    gap: 6px; /* Match desktop */
+    gap: 6px;
     flex-direction: row;
     align-items: center;
+    flex-wrap: wrap;
+    max-width: 100%; /* Prevent overflow */
   }
 
-  .week-task-comment {
-    max-width: 70%;
+  /* No hover effects on mobile since text is already fully visible */
+  .week-task-task-row:hover .week-task-task-name,
+  .week-task-task-row:hover .week-task-comment {
     white-space: normal;
-    font-size: 12px; /* Match desktop */
-    color: #6b7280;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: 100%;
+    word-break: break-word;
   }
-
-  .week-task-status-container {
-    gap: 6px; /* Match desktop */
-  }
+}
 
   .week-task-status-dots {
     gap: 6px;
