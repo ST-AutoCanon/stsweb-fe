@@ -570,7 +570,7 @@ const SupervisorPlanViewer = () => {
       >
         <p>{alertModal.message}</p>
       </Modal>
-      
+     
       <div className="supervisor-plan-employee-list">
         <h3>Employees</h3>
         <input
@@ -627,7 +627,7 @@ const SupervisorPlanViewer = () => {
               </button>
             </div>
             <div className="supervisor-plan-tasks-container">
-            
+           
 
               {weekDays.map(({ dateStr, dateDisplay }) => {
   const dayTasks = tasksByDate[dateStr] || [];

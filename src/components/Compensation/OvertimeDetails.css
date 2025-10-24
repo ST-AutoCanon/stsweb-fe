@@ -11,6 +11,12 @@
   margin-bottom: 20px;
   color: #333;
 }
+.otd-no-records {
+  color: gray;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
 
 .otd-month-selector {
   display: flex;
