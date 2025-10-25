@@ -37,6 +37,7 @@ const Salary_Statement = () => {
   const [tableHeaders, setTableHeaders] = useState([]);
   const [prevTableData, setPrevTableData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
   const filterSalaryData = (e) => {
     const searchValue = e.target.value.toLowerCase();
@@ -397,7 +398,7 @@ const Salary_Statement = () => {
 
   const handleUpload = async () => {
   console.log("📂 handleUpload() called. File:", file?.name);
-  if (!file) {
+  if (!file || excelData.length === 0) {
     setError("❌ Please select a valid file to upload!");
     setTableData([]);
     setSelectedMonthYearData([]);
@@ -426,21 +427,46 @@ const Salary_Statement = () => {
   }
 
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-    console.log("📤 Sending FormData with file:", file.name);
+    // Process the excelData to match the backend expected format
+    const fullSalaryData = excelData.map((row) => ({
+      employee_id: row["ID"] || "",
+      full_name: row["Name"] || "",
+      annual_ctc: parseFloat(row["Annual CTC"] || 0),
+      basic_salary: parseFloat(row["Basic Salary"] || 0),
+      hra: parseFloat(row["HRA"] || 0),
+      lta: parseFloat(row["LTA"] || 0),
+      other_allowances: parseFloat(row["Other Allowances"] || 0),
+      incentives: parseFloat(row["Incentives"] || 0),
+      overtime: parseFloat(row["Overtime"] || 0),
+      statutory_bonus: parseFloat(row["Statutory Bonus"] || 0),
+      bonus: parseFloat(row["Bonus"] || 0),
+      advance_recovery: parseFloat(row["Advance Recovery"] || 0),
+      employee_pf: parseFloat(row["Employee PF"] || 0),
+      employer_pf: parseFloat(row["Employer PF"] || 0),
+      esic: parseFloat(row["ESIC"] || 0),
+      gratuity: parseFloat(row["Gratuity"] || 0),
+      professional_tax: parseFloat(row["Professional Tax"] || 0),
+      income_tax: parseFloat(row["Income Tax"] || 0),
+      insurance: parseFloat(row["Insurance"] || 0),
+      lop_days: parseInt(row["LOP Days"] || 0),
+      lop_deduction: parseFloat(row["LOP Deduction"] || 0),
+      gross_salary: parseFloat(row["Gross Salary"] || 0),
+      net_salary: parseFloat(row["Net Salary"] || 0) > 0 ? parseFloat(row["Net Salary"] || 0) : 0,
+    })).filter((item) => item.employee_id && item.full_name); // Filter out invalid rows
+
+    console.log("📤 Sending fullSalaryData:", fullSalaryData);
 
     const response = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/salary/upload`,
-      formData,
-      { headers: { ...headers, "Content-Type": "multipart/form-data" } }
+      `${BASE_URL}/api/salary-details/save`,
+      { salaryData: fullSalaryData },
+      { headers }
     );
     console.log("📥 Backend Response:", response.data);
 
-    if (response.data.message) {
+    if (response.data.success) {
       console.log("✅ Success: Data uploaded successfully");
-      // Handle success response with message
-      const successMessage = response.data.message;
+      // Handle success response
+      const successMessage = `Data saved successfully in table: ${response.data.tableName}`;
       setError(""); // Clear any previous error
       showAlert(successMessage, "Upload Successful");
       setIsFileUploaded(true);
@@ -455,19 +481,14 @@ const Salary_Statement = () => {
       setExcelData([]);
       setPrevTableData([]);
       setShowNote(true);
-    } else if (response.data.error) {
-      console.log("❌ Failure: Backend returned an error");
-      const errorMsg = response.data.error;
-      setError(`❌ Upload failed: ${errorMsg}`);
-      showAlert(`❌ Upload failed: ${errorMsg}`, "Upload Error");
     } else {
-      console.log("❌ Unexpected response structure");
-      const errorMsg = "Unexpected response from server";
+      console.log("❌ Failure: Backend returned an error");
+      const errorMsg = response.data.error || "Unknown error";
       setError(`❌ Upload failed: ${errorMsg}`);
       showAlert(`❌ Upload failed: ${errorMsg}`, "Upload Error");
     }
   } catch (error) {
-    console.error("❌ Error uploading file:", error);
+    console.error("❌ Error uploading data:", error);
     const errorMsg =
       error.response?.data?.error ||
       error.response?.data?.message ||

@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
 import Modal from "../Modal/Modal";
 
 const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
-  const [weekOffset, setWeekOffset] = useState(0); // Start at current week
+  const [weekOffset, setWeekOffset] = useState(0);
   const currentDate = new Date(2025, 9, 13); // October 13, 2025
   const dayOfWeek = currentDate.getDay();
-  const offset = (dayOfWeek + 6) % 7; // Adjust to Monday as week start
+  const offset = (dayOfWeek + 6) % 7;
   const startDate = new Date(currentDate);
   startDate.setDate(currentDate.getDate() - offset + weekOffset * 7);
-  // Calculate end date of the week
   const endDate = new Date(startDate);
   endDate.setDate(startDate.getDate() + 6);
-  // Format dates for display
   const formatDateRange = (start, end) => {
     const startDay = start.getDate();
     const startMonth = start.toLocaleString('default', { month: 'short' });
@@ -73,6 +72,68 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [freezeDays, setFreezeDays] = useState(0);
+  const [mobileTooltip, setMobileTooltip] = useState({
+    isVisible: false,
+    content: '',
+    position: { x: 0, y: 0 },
+    dotId: null,
+  });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  const tooltipRef = useRef(null);
+
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      console.log('Window width:', window.innerWidth);
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle click/touch outside to close tooltip
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isMobile && mobileTooltip.isVisible && tooltipRef.current && !tooltipRef.current.contains(e.target)) {
+        console.log('Closing tooltip due to outside click');
+        setMobileTooltip({ isVisible: false, content: '', position: { x: 0, y: 0 }, dotId: null });
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [mobileTooltip.isVisible, isMobile]);
+
+  // Handle tooltip click/touch for all elements
+  const handleTooltipClick = (e, content, dotId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isMobile) {
+      console.log('Not mobile view, ignoring click for tooltip');
+      return;
+    }
+    console.log('Tooltip element clicked:', { content, dotId });
+    const rect = e.target.getBoundingClientRect();
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+    const tooltipX = rect.left + rect.width / 2 + scrollX;
+    const tooltipY = rect.top - 40 + scrollY;
+    setMobileTooltip((prev) => {
+      const newState = {
+        isVisible: prev.dotId === dotId ? false : true,
+        content: content,
+        position: { x: tooltipX, y: tooltipY },
+        dotId: prev.dotId === dotId ? null : dotId,
+      };
+      console.log('New tooltip state:', newState);
+      return newState;
+    });
+  };
+
   // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
@@ -97,7 +158,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     }
   };
   const formatDateIST = (date) => {
-    const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
+    const istOffset = 5.5 * 60 * 60 * 1000;
     const istDate = new Date(date.getTime() + istOffset);
     const year = istDate.getUTCFullYear();
     const month = String(istDate.getUTCMonth() + 1).padStart(2, "0");
@@ -120,7 +181,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
   const getTaskDateStyle = (dateStr) => {
     const [day, month] = dateStr.split(" ");
-    const year = 2025; // Use hardcoded year to match currentDate
+    const year = 2025;
     const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
     const taskDate = new Date(year, monthIndex, parseInt(day));
     taskDate.setHours(0, 0, 0, 0);
@@ -412,11 +473,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const updateData = {
         project_id: task.project_id,
         project_name: task.project_name,
-        task_name: task.task_name,
-        emp_status: task.emp_status,
-        emp_comment: task.emp_comment,
-        sup_status: supFormData.supStatus || "incomplete",
-        sup_comment: supFormData.supComment,
+        task_name: formData.taskName,
+        emp_status: formData.status,
+        emp_comment: formData.comment,
+        sup_status: task.sup_status || "incomplete",
+        sup_comment: task.sup_comment,
         sup_review_status: task.sup_review_status,
         employee_id: task.employee_id,
         star_rating: task.star_rating,
@@ -715,6 +776,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     }
   };
   const handleAssignClick = () => {
+    console.log("Assign New Tasks button clicked, setting showAssignForm to true");
     setShowAssignForm(true);
     setAssignTasks([
       {
@@ -739,7 +801,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
   const handleRemoveTask = (index) => {
     setAssignTasks((prev) => {
-      if (prev.length <= 1) return prev; // Prevent removing the last task
+      if (prev.length <= 1) return prev;
       const newTasks = prev.filter((_, i) => i !== index);
       return newTasks;
     });
@@ -778,6 +840,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     );
   };
   const handleAssignSubmit = async () => {
+    console.log("Submitting assign tasks:", assignTasks);
     const validTasks = assignTasks.filter(
       (task) => task.projectId && task.taskName && task.dates.length > 0
     );
@@ -843,6 +906,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     }
   };
   const handleAssignCancel = () => {
+    console.log("Cancel assign form, resetting state");
     setShowAssignForm(false);
     setAssignTasks([]);
     setDropdownOpen({});
@@ -873,6 +937,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     struck: "✗",
     suspended_review: "⛔",
   };
+
   return (
     <div className="week-task-weekly-task-planner">
       <div className="week-task-planner-header">
@@ -926,7 +991,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           </div>
         </h2>
         <div className="week-task-header-buttons">
-          <button className="week-task-assign-task-button" onClick={handleAssignClick}>
+          <button
+            className="week-task-assign-task-button"
+            onClick={() => {
+              console.log("Assign New Tasks button clicked");
+              handleAssignClick();
+            }}
+          >
             Assign New Tasks
           </button>
           {userRole === "supervisor" && !supReviewMode && (
@@ -952,7 +1023,21 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       )}
       {!loading && !error && noTasks && (
         <div className="no-tasks-message">
-          No tasks available in this Week {weekId}: {dateRange}.{" "}
+          No tasks available in this Week {weekId}: {dateRange}.
+        </div>
+      )}
+      {mobileTooltip.isVisible && (
+        <div
+          ref={tooltipRef}
+          className="week-task-mobile-tooltip"
+          style={{
+            top: `${mobileTooltip.position.y}px`,
+            left: `${mobileTooltip.position.x}px`,
+            position: 'absolute',
+            zIndex: 1000,
+          }}
+        >
+          {mobileTooltip.content}
         </div>
       )}
       {showAssignForm && (
@@ -1103,16 +1188,34 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         return (
           <div key={day.date} className="week-task-day-card">
             <div className="week-task-day-left-column">
-              <span className={dateStyle.className} title={dateStyle.tooltip}>
+              <span
+                className={dateStyle.className}
+                title={isMobile ? '' : dateStyle.tooltip}
+                onClick={(e) => handleTooltipClick(e, dateStyle.tooltip, `date-${day.date}`)}
+                onTouchStart={(e) => handleTooltipClick(e, dateStyle.tooltip, `date-${day.date}`)}
+                style={{ cursor: isMobile ? 'pointer' : 'default' }}
+              >
                 {day.date}
               </span>
               <div className="week-task-projects-column">
                 {visibleTasks.map((task) => (
                   <div key={task.task_id} className="week-task-circle-container">
-                    <div className="week-task-project-circle" title={task.project_name}>
+                    <div
+                      className="week-task-project-circle"
+                      title={isMobile ? '' : task.project_name}
+                      onClick={(e) => handleTooltipClick(e, task.project_name, `project-${task.task_id}`)}
+                      onTouchStart={(e) => handleTooltipClick(e, task.project_name, `project-${task.task_id}`)}
+                      style={{ cursor: isMobile ? 'pointer' : 'default' }}
+                    >
                       {task.project_id}
                     </div>
-                    <div className="week-task-task-id-circle" title={`Task ID: ${task.task_id}`}>
+                    <div
+                      className="week-task-task-id-circle"
+                      title={isMobile ? '' : `Task ID: ${task.task_id}`}
+                      onClick={(e) => handleTooltipClick(e, `Task ID: ${task.task_id}`, `task-${task.task_id}`)}
+                      onTouchStart={(e) => handleTooltipClick(e, `Task ID: ${task.task_id}`, `task-${task.task_id}`)}
+                      style={{ cursor: isMobile ? 'pointer' : 'default' }}
+                    >
                       {task.task_id}
                     </div>
                   </div>
@@ -1171,7 +1274,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                     : task.sup_review_status === "struck"
                                     ? "Struck"
                                     : "Suspended"
-                                }
+                                  }
                               >
                                 {reviewIcons[task.sup_review_status]}
                               </span>
@@ -1277,8 +1380,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           <div className="week-task-status-dots">
                             <span
                               className="week-task-status-dot"
-                              style={{ backgroundColor: statusColors[task.emp_status] || "#888" }}
-                              title={statusLabels[task.emp_status] || task.emp_status}
+                              style={{
+                                backgroundColor: statusColors[task.emp_status] || "#888",
+                                cursor: isMobile ? 'pointer' : 'default',
+                              }}
+                              title={isMobile ? '' : (statusLabels[task.emp_status] || task.emp_status)}
+                              onClick={(e) => handleTooltipClick(e, statusLabels[task.emp_status] || task.emp_status, `emp-${task.task_id}`)}
+                              onTouchStart={(e) => handleTooltipClick(e, statusLabels[task.emp_status] || task.emp_status, `emp-${task.task_id}`)}
                             ></span>
                             {userRole === "employee" && (
                               <svg
@@ -1352,8 +1460,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                             <div className="week-task-status-dots">
                               <span
                                 className="week-task-status-dot"
-                                style={{ backgroundColor: statusColors[task.sup_status] || "#888" }}
-                                title={statusLabels[task.sup_status] || task.sup_status}
+                                style={{
+                                  backgroundColor: statusColors[task.sup_status] || "#888",
+                                  cursor: isMobile ? 'pointer' : 'default',
+                                }}
+                                title={isMobile ? '' : (statusLabels[task.sup_status] || task.sup_status)}
+                                onClick={(e) => handleTooltipClick(e, statusLabels[task.sup_status] || task.sup_status, `sup-${task.task_id}`)}
+                                onTouchStart={(e) => handleTooltipClick(e, statusLabels[task.sup_status] || task.sup_status, `sup-${task.task_id}`)}
                               ></span>
                               {userRole === "supervisor" && supReviewMode && (
                                 <svg

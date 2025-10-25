@@ -366,7 +366,7 @@
   background-color: white;
   border-radius: 8px;
   width: 95%;
-  max-width: 1200px;
+  max-width: 800px; /* Increased to match table min-width for horizontal scroll */
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -411,13 +411,14 @@
 /* Preview table wrapper */
 .sd-preview-table-wrapper {
   flex: 1;
-  overflow: auto;
+  overflow: auto; /* Ensure both axes scroll */
+  width: 100%; /* Explicit width for horizontal scroll */
   max-height: calc(90vh - 140px);
 }
 
 .sd-preview-table {
   width: 100%;
-  min-width: 1400px; /* Adjusted to match main table */
+  min-width: 600px; /* Adjusted to match main table */
   border-collapse: collapse;
   font-size: 12px;
   table-layout: auto;
@@ -431,7 +432,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 70px; /* Compact min-width to match */
+  min-width: 10px; /* Compact min-width to match */
 }
 
 .sd-preview-table th {
@@ -463,6 +464,7 @@
   padding: 20px;
   border-top: 1px solid #dee2e6;
   background-color: #f8f9fa;
+  gap: 10px; /* Space between buttons */
 }
 
 /* Download button in preview */
@@ -486,23 +488,89 @@
   background-color: #004085;
 }
 
+/* Save button */
+.sd-save-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.sd-save-button:hover {
+  background-color: #218838;
+}
+
+/* PDF button */
+.sd-pdf-button {
+  background-color: #6f42c1;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.sd-pdf-button:hover {
+  background-color: #5a32a3;
+}
+
+/* Bank Report button */
+.sd-bank-button {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.sd-bank-button:hover {
+  background-color: #138496;
+}
+
 /* Responsive for preview on small screens */
 @media (max-width: 768px) {
   .sd-preview-content {
     width: 100%;
     height: 100%;
     border-radius: 0;
+    max-width: none; /* Allow full width on mobile */
   }
 
   .sd-preview-table {
     font-size: 10px;
-    min-width: 900px;
+    min-width: 100px;
   }
 
   .sd-preview-table th,
   .sd-preview-table-cell {
     padding: 6px 4px;
     min-width: 60px;
+  }
+
+  .sd-preview-footer {
+    flex-direction: column; /* Stack buttons on small screens */
+    gap: 10px;
+  }
+
+  .sd-download-button,
+  .sd-save-button,
+  .sd-pdf-button,
+  .sd-bank-button {
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
   }
 }
 
@@ -527,4 +595,22 @@
 .sd-table td:not(.sd-sticky-col),
 .sd-table th:not(.sd-sticky-col) {
   padding-left: 12px; /* Extra space to avoid visual clash */
+}
+
+/* Custom scrollbar for preview table */
+.sd-preview-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.sd-preview-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sd-preview-table-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.sd-preview-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
