@@ -1,4 +1,3 @@
-
 import * as XLSX from "xlsx";
 import axios from "axios";
 import "./Salary_Statement.css";
@@ -38,6 +37,7 @@ const Salary_Statement = () => {
   const [tableHeaders, setTableHeaders] = useState([]);
   const [prevTableData, setPrevTableData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
   const filterSalaryData = (e) => {
     const searchValue = e.target.value.toLowerCase();
@@ -57,8 +57,8 @@ const Salary_Statement = () => {
       setFilteredData(tableData);
       return;
     }
-    const employeeIdIndex = tableHeaders.indexOf("Employee ID");
-    const employeeNameIndex = tableHeaders.indexOf("Employee Name");
+    const employeeIdIndex = tableHeaders.indexOf("ID");
+    const employeeNameIndex = tableHeaders.indexOf("Name");
     const filtered = tableData.filter((row) =>
       row.some((cell, index) => {
         const cellValue = cell.toString().toLowerCase();
@@ -151,9 +151,9 @@ const Salary_Statement = () => {
       const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       rows.forEach((row, index) => {
         console.log(`Row ${index + 1}:`);
-        console.log("PT raw value:", row["PT"], "| Type:", typeof row["PT"]);
-        console.log("ESI raw value:", row["ESI"], "| Type:", typeof row["ESI"]);
-        console.log("TDS raw value:", row["TDS"], "| Type:", typeof row["TDS"]);
+        console.log("Professional Tax raw value:", row["Professional Tax"], "| Type:", typeof row["Professional Tax"]);
+        console.log("ESIC raw value:", row["ESIC"], "| Type:", typeof row["ESIC"]);
+        console.log("Income Tax raw value:", row["Income Tax"], "| Type:", typeof row["Income Tax"]);
       });
       const cleanKeys = (obj) => {
         const cleaned = {};
@@ -165,18 +165,11 @@ const Salary_Statement = () => {
       };
       const parsedRows = rows.map((row) => {
         const cleaned = cleanKeys(row);
-        const rawDate = cleaned["Joining Date"];
-        console.log("🔍 Raw Joining Date:", rawDate, "| Type:", typeof rawDate);
-        const joiningDate = convertExcelDate(rawDate);
         return {
           ...cleaned,
-          "Joining Date": joiningDate,
-          PT: cleaned["PT"] ?? 0,
-          ESI: cleaned["ESI"] ?? 0,
-          TDS: cleaned["TDS"] ?? 0,
-          "Advance recovery": cleaned["Advance recovery"] ?? 0,
-          "Total Deductions": cleaned["Total Deductions"] ?? 0,
+          "Advance Recovery": cleaned["Advance Recovery"] ?? 0,
           "Net Salary": cleaned["Net Salary"] ?? 0,
+          "Gross Salary": cleaned["Gross Salary"] ?? 0,
         };
       });
       if (!jsonData || jsonData.length === 0) {
@@ -250,24 +243,29 @@ const Salary_Statement = () => {
   const detectColumnTypes = (headers) => {
     return headers.map((header) => {
       const h = header.toLowerCase().trim();
-      if (h === "joining date") return "date";
       if (
         [
-          "uin number",
+          "annual ctc",
           "basic salary",
           "hra",
-          "allowance",
-          "special allowance",
-          "rnr/bonus",
-          "total",
-          "salary advance",
-          "pf",
-          "esi",
-          "pt",
+          "lta",
+          "other allowances",
+          "incentives",
+          "overtime",
+          "statutory bonus",
+          "bonus",
           "advance recovery",
-          "tds",
-          "total deductions",
-          "net payable",
+          "employee pf",
+          "employer pf",
+          "esic",
+          "gratuity",
+          "professional tax",
+          "income tax",
+          "insurance",
+          "lop deduction",
+          "gross salary",
+          "net salary",
+          "lop days"
         ].includes(h)
       ) {
         return "number";
@@ -294,14 +292,14 @@ const Salary_Statement = () => {
         let formattedCell = cell;
         const columnName = headers[colIndex];
 
-        if (columnName === "Employee ID") {
+        if (columnName === "ID") {
           const empIdPattern = /^STS\d{3}$/;
           if (!empIdPattern.test(cell)) {
             isInvalid = true;
           }
         }
 
-        if (["Employee Name", "Department", "Designation"].includes(columnName)) {
+        if (["Name"].includes(columnName)) {
           const namePattern = /^[A-Za-z\s.]+$/;
           if (!namePattern.test(cell) || cell.trim() === "") {
             isInvalid = true;
@@ -310,23 +308,27 @@ const Salary_Statement = () => {
 
         if (
           [
-            "UIN Number",
+            "Annual CTC",
             "Basic Salary",
             "HRA",
-            "Allowance",
-            "Special Allowance",
-            "RNR/Bonus",
-            "Total",
-            "Salary Advance",
-            "Total Earnings",
-            "PF",
+            "LTA",
+            "Other Allowances",
+            "Incentives",
+            "Overtime",
+            "Statutory Bonus",
+            "Bonus",
+            "Advance Recovery",
+            "Employee PF",
+            "Employer PF",
+            "ESIC",
+            "Gratuity",
+            "Professional Tax",
+            "Income Tax",
             "Insurance",
-            "PT",
-            "ESI",
-            "Advance recovery",
-            "TDS",
-            "Total Deductions",
+            "LOP Deduction",
+            "Gross Salary",
             "Net Salary",
+            "LOP Days"
           ].includes(columnName)
         ) {
           if (isNaN(cell) || cell === "") {
@@ -334,28 +336,8 @@ const Salary_Statement = () => {
           }
         }
 
-        if (columnName === "Joining Date") {
-          const originalValue = cell;
-          formattedCell = convertExcelDate(cell);
-          console.log("📅 Debug: Checking Date Validation", {
-            original: originalValue,
-            formatted: formattedCell,
-          });
-          if (!formattedCell || !/^\d{4}-\d{2}-\d{2}$/.test(formattedCell)) {
-            isInvalid = true;
-          } else {
-            row[colIndex] = formattedCell;
-          }
-        }
-
         if (prevData[rowIndex]) {
           let prevCell = prevData[rowIndex][colIndex];
-          if (
-            columnName === "Joining Date" &&
-            !/^\d{4}-\d{2}-\d{2}$/.test(prevCell)
-          ) {
-            prevCell = convertExcelDate(prevCell);
-          }
           if (prevCell !== formattedCell) {
             isUpdated = true;
           }
@@ -416,7 +398,7 @@ const Salary_Statement = () => {
 
   const handleUpload = async () => {
   console.log("📂 handleUpload() called. File:", file?.name);
-  if (!file) {
+  if (!file || excelData.length === 0) {
     setError("❌ Please select a valid file to upload!");
     setTableData([]);
     setSelectedMonthYearData([]);
@@ -445,21 +427,46 @@ const Salary_Statement = () => {
   }
 
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-    console.log("📤 Sending FormData with file:", file.name);
+    // Process the excelData to match the backend expected format
+    const fullSalaryData = excelData.map((row) => ({
+      employee_id: row["ID"] || "",
+      full_name: row["Name"] || "",
+      annual_ctc: parseFloat(row["Annual CTC"] || 0),
+      basic_salary: parseFloat(row["Basic Salary"] || 0),
+      hra: parseFloat(row["HRA"] || 0),
+      lta: parseFloat(row["LTA"] || 0),
+      other_allowances: parseFloat(row["Other Allowances"] || 0),
+      incentives: parseFloat(row["Incentives"] || 0),
+      overtime: parseFloat(row["Overtime"] || 0),
+      statutory_bonus: parseFloat(row["Statutory Bonus"] || 0),
+      bonus: parseFloat(row["Bonus"] || 0),
+      advance_recovery: parseFloat(row["Advance Recovery"] || 0),
+      employee_pf: parseFloat(row["Employee PF"] || 0),
+      employer_pf: parseFloat(row["Employer PF"] || 0),
+      esic: parseFloat(row["ESIC"] || 0),
+      gratuity: parseFloat(row["Gratuity"] || 0),
+      professional_tax: parseFloat(row["Professional Tax"] || 0),
+      income_tax: parseFloat(row["Income Tax"] || 0),
+      insurance: parseFloat(row["Insurance"] || 0),
+      lop_days: parseInt(row["LOP Days"] || 0),
+      lop_deduction: parseFloat(row["LOP Deduction"] || 0),
+      gross_salary: parseFloat(row["Gross Salary"] || 0),
+      net_salary: parseFloat(row["Net Salary"] || 0) > 0 ? parseFloat(row["Net Salary"] || 0) : 0,
+    })).filter((item) => item.employee_id && item.full_name); // Filter out invalid rows
+
+    console.log("📤 Sending fullSalaryData:", fullSalaryData);
 
     const response = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/salary/upload`,
-      formData,
-      { headers: { ...headers, "Content-Type": "multipart/form-data" } }
+      `${BASE_URL}/api/salary-details/save`,
+      { salaryData: fullSalaryData },
+      { headers }
     );
     console.log("📥 Backend Response:", response.data);
 
-    if (response.data.message) {
+    if (response.data.success) {
       console.log("✅ Success: Data uploaded successfully");
-      // Handle success response with message
-      const successMessage = response.data.message;
+      // Handle success response
+      const successMessage = `Data saved successfully in table: ${response.data.tableName}`;
       setError(""); // Clear any previous error
       showAlert(successMessage, "Upload Successful");
       setIsFileUploaded(true);
@@ -474,19 +481,14 @@ const Salary_Statement = () => {
       setExcelData([]);
       setPrevTableData([]);
       setShowNote(true);
-    } else if (response.data.error) {
-      console.log("❌ Failure: Backend returned an error");
-      const errorMsg = response.data.error;
-      setError(`❌ Upload failed: ${errorMsg}`);
-      showAlert(`❌ Upload failed: ${errorMsg}`, "Upload Error");
     } else {
-      console.log("❌ Unexpected response structure");
-      const errorMsg = "Unexpected response from server";
+      console.log("❌ Failure: Backend returned an error");
+      const errorMsg = response.data.error || "Unknown error";
       setError(`❌ Upload failed: ${errorMsg}`);
       showAlert(`❌ Upload failed: ${errorMsg}`, "Upload Error");
     }
   } catch (error) {
-    console.error("❌ Error uploading file:", error);
+    console.error("❌ Error uploading data:", error);
     const errorMsg =
       error.response?.data?.error ||
       error.response?.data?.message ||
@@ -615,12 +617,12 @@ const Salary_Statement = () => {
     }
   }, [selectedMonth, selectedYear]);
 
-  const fetchSalaryData = async () => {
-    console.log("Fetching Salary Data for:", selectedMonth, selectedYear);
+  const fetchSalaryData = async (month, yr) => {
+    console.log("Fetching Salary Data for:", month, yr);
     try {
       const apiUrl = `${
         process.env.REACT_APP_BACKEND_URL
-      }/api/salary-statement/${selectedMonth.toLowerCase()}/${year}`;
+      }/api/salary-statement/${month.toLowerCase()}/${yr}`;
       console.log("API Request URL:", apiUrl);
       const response = await axios.get(apiUrl, { headers });
       console.log("Full API Response:", response.data);

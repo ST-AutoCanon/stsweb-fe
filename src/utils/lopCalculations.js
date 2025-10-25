@@ -8,9 +8,9 @@ const fetchLOPData = async (employeeId) => {
   try {
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
     const [currentMonthResponse, deferredResponse, nextMonthResponse] = await Promise.all([
-      axios.get('http://localhost:5000/api/lop/current-month-lop', { headers }),
-      axios.get('http://localhost:5000/api/lop/deferred-lop', { headers }),
-      axios.get('http://localhost:5000/api/lop/next-month-lop', { headers })
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/current-month-lop`, { headers }),
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/deferred-lop`, { headers }).catch(() => ({ data: { data: [] } })),
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/next-month-lop`, { headers }).catch(() => ({ data: { data: [] } }))
     ]);
 
     console.log(`Raw LOP API responses for ${employeeId}:`, {
@@ -62,9 +62,14 @@ export const calculateLOPEffect = async (employeeId) => {
     
     // Fetch employee CTC
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-    const employeeResponse = await axios.get(`http://localhost:5000/api/compensation/assigned`, { headers });
+    const [employeeResponse, workingDaysResponse] = await Promise.all([
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`, { headers }),
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/compensation/working-days`, { headers })
+    ]);
+
     const employee = employeeResponse.data.data.find(emp => emp.employee_id.toUpperCase() === employeeId.toUpperCase());
-    
+    const workingDays = workingDaysResponse.data.success ? parseInt(workingDaysResponse.data.data.totalWorkingDays) : 22; // Fallback to 22 if API fails
+
     if (!employee || !employee.ctc) {
       console.warn(`No valid employee or CTC found for ${employeeId}`);
       return {
@@ -76,10 +81,9 @@ export const calculateLOPEffect = async (employeeId) => {
     }
 
     const monthlyCTC = parseFloat(employee.ctc) / 12;
-    const workingDays = 22; // Adjust as per your logic
     const lopPerDay = monthlyCTC / workingDays;
 
-    console.log(`CTC for ${employeeId}:`, { monthlyCTC, lopPerDay, ctc: employee.ctc });
+    console.log(`CTC and Working Days for ${employeeId}:`, { monthlyCTC, lopPerDay, ctc: employee.ctc, workingDays });
 
     // Current month LOP
     const currentMonth = currentMonthLOP.length > 0 ? {

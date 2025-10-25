@@ -1,6 +1,8 @@
 
 
 
+
+
 import React from 'react';
 import './AllDetailsView.css';
 
@@ -11,6 +13,7 @@ const AllDetailsView = ({
   handleBackToMain,
   calculateSalaryDetails,
   employeeLopData,
+  employeeIncentiveData,
   overtimeRecords,
   bonusRecords,
   advances,
@@ -62,6 +65,7 @@ const AllDetailsView = ({
                   <th className="esd-table-header esd-align-right">HRA</th>
                   <th className="esd-table-header esd-align-right esd-scrollable">LTA</th>
                   <th className="esd-table-header esd-align-right esd-scrollable">Other Allow.</th>
+                  <th className="esd-table-header esd-align-right esd-scrollable">Incentives</th>
                   <th className="esd-table-header esd-align-right esd-scrollable">Overtime</th>
                   <th className="esd-table-header esd-align-right esd-scrollable">Bonus</th>
                   <th className="esd-table-header esd-align-right esd-scrollable esd-deduction">Advance Rec.</th>
@@ -86,7 +90,8 @@ const AllDetailsView = ({
                     emp.employee_id,
                     overtimeRecords,
                     bonusRecords,
-                    advances
+                    advances,
+                    employeeIncentiveData
                   );
                   const lopData =
                     employeeLopData[emp.employee_id] || {
@@ -95,8 +100,15 @@ const AllDetailsView = ({
                       nextMonth: { days: 0, value: '0.00', currency: 'INR' },
                       yearly: { days: 0, value: '0.00', currency: 'INR' },
                     };
+
+                  // Calculate incentive for this employee
+                  const empId = String(emp.employee_id).toUpperCase();
+                  const matchedKey = Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId);
+                  const incentiveObj = matchedKey ? employeeIncentiveData[matchedKey] : null;
+                  const incentiveValue = incentiveObj?.totalIncentive ? parseFloat(incentiveObj.totalIncentive.value) || 0 : 0;
+
                   const netSalary = salaryDetails
-                    ? salaryDetails.netSalary - (lopData ? parseFloat(lopData.currentMonth.value || 0) : 0)
+                    ? salaryDetails.netSalary + incentiveValue - (lopData ? parseFloat(lopData.currentMonth.value || 0) : 0)
                     : 0;
                   return (
                     <tr key={emp.employee_id}>
@@ -116,6 +128,9 @@ const AllDetailsView = ({
                       </td>
                       <td className="esd-table-cell esd-align-right esd-scrollable">
                         {salaryDetails ? `₹${parseFloat(salaryDetails.otherAllowances).toLocaleString()}` : 'N/A'}
+                      </td>
+                      <td className="esd-table-cell esd-align-right esd-scrollable">
+                        {incentiveValue > 0 ? `₹${incentiveValue.toLocaleString()}` : 'N/A'}
                       </td>
                       <td className="esd-table-cell esd-align-right esd-scrollable">
                         {salaryDetails ? `₹${parseFloat(salaryDetails.overtimePay).toLocaleString()}` : 'N/A'}
@@ -157,7 +172,7 @@ const AllDetailsView = ({
                         {salaryDetails ? `₹${parseFloat(salaryDetails.grossSalary).toLocaleString()}` : 'N/A'}
                       </td>
                       <td className="esd-table-cell esd-align-right esd-scrollable">
-                        {salaryDetails ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
+                        {netSalary > 0 ? `₹${parseFloat(netSalary).toLocaleString()}` : 'N/A'}
                       </td>
                     </tr>
                   );

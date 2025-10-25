@@ -1,16 +1,17 @@
 
 
-
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
 import debounce from "lodash/debounce";
 import Header from "./Header/Header.js";
 import TotalsContainer from "./TotalsContainer/TotalsContainer.js";
 import EmployeeTable from "./EmployeeTable/EmployeeTable.js";
+import SalaryDetails from "./SalaryDetails/SalaryDetails.js"; // NEW: Import SalaryDetails
 import AllDetailsView from "./AllDetailsView/AllDetailsView.js";
 import NoPlanDetails from "./NoPlanDetails/NoPlanDetails.js";
 import BonusModal from "./BonusModal/BonusModal.js";
 import AdvanceModal from "./AdvanceModal/AdvanceModal.js";
+import IncentivesModal from "./incentivesModal/incentivesModal.js"; // 🔹 Add import
 import AssignModal from "./AssignModal/AssignModal.js";
 import MessageModal from "../Modal/Modal";
 import "./SalaryBreakupMain.css";
@@ -18,9 +19,9 @@ import {
   calculateSalaryDetails,
   calculateTotals,
   getMonthlySalary,
-  parseApplicableMonth,
 } from "../../utils/SalaryCalculations.js";
 import { calculateLOPEffect } from "../../utils/lopCalculations.js";
+import { calculateIncentives } from "../../utils/IncentiveUtils.js";
 
 const SalaryBreakupMain = () => {
   const [employees, setEmployees] = useState([]);
@@ -29,9 +30,11 @@ const SalaryBreakupMain = () => {
   const [overtimeRecords, setOvertimeRecords] = useState([]);
   const [bonusRecords, setBonusRecords] = useState([]);
   const [employeeLopData, setEmployeeLopData] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [employeeIncentiveData, setEmployeeIncentiveData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("yearly");
   const [menuOpen, setMenuOpen] = useState(false);
+
   const [bonusModal, setBonusModal] = useState({
     isVisible: false,
     percentageCtc: "",
@@ -42,6 +45,7 @@ const SalaryBreakupMain = () => {
     selectedOption: "",
     error: "",
   });
+
   const [advanceModal, setAdvanceModal] = useState({
     isVisible: false,
     employeeId: null,
@@ -50,14 +54,27 @@ const SalaryBreakupMain = () => {
     recoveryMonths: "",
     applicableMonth: "",
     error: "",
-    threeMonthsSalary: 0, // Initialize for AdvanceModal
+    threeMonthsSalary: 0,
   });
+
+  const [incentivesModal, setIncentivesModal] = useState({ // 🔹 Add state
+    isVisible: false,
+    employeeId: null,
+    fullName: "",
+    incentiveType: "ctc",
+    ctcPercentage: "",
+    salesAmount: "",
+    applicableMonth: "",
+    error: "",
+  });
+
   const [messageModal, setMessageModal] = useState({
     isVisible: false,
     title: "",
     message: "",
     isError: false,
   });
+
   const [assignModal, setAssignModal] = useState({
     isVisible: false,
     employeeId: null,
@@ -66,7 +83,14 @@ const SalaryBreakupMain = () => {
     selectedCompensation: "",
     error: "",
   });
-  const [viewMode, setViewMode] = useState("main"); // Reverted to "main"
+// NEW: Handler to switch to SalaryDetails view
+const handleViewSalaryDetails = () => {
+  setViewMode("salaryDetails"); // NEW: Switch to new view mode
+  setSearchQuery(""); // NEW: Reset search
+  setCurrentPage(1); // NEW: Reset pagination if needed
+  setMenuOpen(false); // NEW: Close menu if open
+};
+  const [viewMode, setViewMode] = useState("main");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,8 +99,12 @@ const SalaryBreakupMain = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const tableRef = useRef(null);
   const rowsPerPage = 7;
-  const API_KEY = process.env.REACT_APP_API_KEY;
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+
+    const API_KEY = process.env.REACT_APP_API_KEY;
+
+  const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
+  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}")
+    .employeeId;
 
   const debouncedSetSearchTerm = useCallback(
     debounce((value) => setSearchTerm(value), 300),
@@ -114,92 +142,18 @@ const SalaryBreakupMain = () => {
     });
   };
 
-  const openNoPlanModal = () => {
-    setViewMode("noPlanDetails");
-    setSearchTerm("");
-    setMenuOpen(false);
-  };
-
-  const openMessageModal = (title, message, isError = false) => {
-    setMessageModal({
+  const openIncentiveModal = (employeeId, fullName) => { // 🔹 Add handler
+    setIncentivesModal({
       isVisible: true,
-      title,
-      message,
-      isError,
+      employeeId,
+      fullName,
+      incentiveType: "ctc",
+      ctcPercentage: "",
+      salesAmount: "",
+      applicableMonth: "",
+      error: "",
     });
   };
-
-  const openAssignModal = async (employeeId, fullName) => {
-    setIsLoading(true);
-    try {
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`;
-      const response = await axios.get(url, {
-        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
-      });
-      if (response.data.success) {
-        const validCompensations = Array.isArray(response.data.data)
-          ? response.data.data.filter(
-              (comp) =>
-                comp &&
-                typeof comp.compensation_plan_name === "string" &&
-                comp.id &&
-                !isNaN(parseInt(comp.id))
-            )
-          : [];
-        if (validCompensations.length === 0) {
-          throw new Error("No valid compensation plans available to assign.");
-        }
-        setAssignModal({
-          isVisible: true,
-          employeeId,
-          fullName,
-          compensationList: validCompensations,
-          selectedCompensation: "",
-          error: "",
-        });
-      } else {
-        throw new Error(response.data.message || "Failed to fetch compensations");
-      }
-    } catch (error) {
-      openMessageModal(
-        "Error",
-        `Failed to fetch compensations: ${error.message || "Network error"}`,
-        true
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleViewAllDetails = () => {
-    setViewMode("allDetails");
-    setSearchQuery("");
-    setCurrentPage(1);
-    setMenuOpen(false);
-  };
-
-  const handleViewSingleEmployee = (employee) => {
-    setSelectedEmployee(employee);
-    setShowDetailsTab(true);
-    if (tableRef.current) {
-      setTableHeight(tableRef.current.offsetHeight);
-    }
-  };
-
-  const handleCloseDetailsTab = () => {
-    setShowDetailsTab(false);
-    setSelectedEmployee(null);
-  };
-
-  const handleBackToMain = () => {
-    setViewMode("main");
-    setSelectedEmployee(null);
-    setSearchQuery("");
-    setCurrentPage(1);
-    setShowDetailsTab(false);
-    setSearchTerm("");
-  };
-
   const handleBonusSubmit = async () => {
     const {
       percentageCtc,
@@ -210,6 +164,8 @@ const SalaryBreakupMain = () => {
       selectedOption,
     } = bonusModal;
     const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+
+    // Existing validations
     if (!selectedOption) {
       setBonusModal({ ...bonusModal, error: "Please select one bonus option." });
       return;
@@ -249,16 +205,58 @@ const SalaryBreakupMain = () => {
       setBonusModal({ ...bonusModal, error: "Please enter a valid year." });
       return;
     }
+
     const applicableMonth = `${selectedYear}-${selectedMonth.padStart(2, "0")}`;
+
+    // Check for existing bonus for the same month
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${BASE_URL}/api/compensation/bonus-list`, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+      });
+      if (response.data.success) {
+        const existingBonus = response.data.data.find(
+          (bonus) => bonus.applicable_month === applicableMonth
+        );
+        if (existingBonus) {
+          const bonusType =
+            existingBonus.percentage_ctc ? `${existingBonus.percentage_ctc}% CTC` :
+            existingBonus.percentage_monthly_salary ? `${existingBonus.percentage_monthly_salary / 100} months' salary` :
+            `₹${existingBonus.fixed_amount} fixed`;
+          setBonusModal({
+            ...bonusModal,
+            error: `A bonus of ${bonusType} already exists for ${applicableMonth}. Multiple bonuses for the same month are not allowed.`,
+          });
+          return;
+        }
+      } else {
+        setBonusModal({
+          ...bonusModal,
+          error: "Failed to verify existing bonuses.",
+        });
+        return;
+      }
+    } catch (error) {
+      setBonusModal({
+        ...bonusModal,
+        error: error.response?.data?.error || "Network error while checking existing bonuses.",
+      });
+      return;
+    } finally {
+      setIsLoading(false);
+    }
+
+    // Proceed with bonus submission
     const payload = {
       percentageCtc: selectedOption === "percentageCtc" ? parseFloat(percentageCtc) : null,
       percentageMonthlySalary: selectedOption === "monthlySalaryCount" ? parseFloat(monthlySalaryCount) * 100 : null,
       fixedAmount: selectedOption === "fixedAmount" ? parseFloat(fixedAmount) : null,
       applicableMonth,
     };
+
     try {
       setIsLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/add-bonus-bulk`;
+      const url = `${BASE_URL}/api/compensation/add-bonus-bulk`;
       const response = await axios.post(url, payload, {
         headers: {
           "x-api-key": API_KEY,
@@ -271,7 +269,7 @@ const SalaryBreakupMain = () => {
           `Bonus successfully added for ${selectedMonth} ${selectedYear}.`
         );
         const bonusResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/compensation/bonus-list`,
+          `${BASE_URL}/api/compensation/bonus-list`,
           {
             headers: {
               "x-api-key": API_KEY,
@@ -299,257 +297,553 @@ const SalaryBreakupMain = () => {
     }
   };
 
-  const handleAdvanceSubmit = async () => {
-    const { advanceAmount, recoveryMonths, employeeId, applicableMonth } = advanceModal;
-    if (!advanceAmount || parseFloat(advanceAmount) <= 0) {
-      setAdvanceModal({
-        ...advanceModal,
-        error: "Please enter a valid advance amount greater than 0.",
+const handleAssignSubmit = async () => {
+  const { selectedCompensation, employeeId, fullName } = assignModal;
+  if (!selectedCompensation) {
+    console.log("No compensation selected. Available compensation plans:", assignModal.compensationList);
+    setAssignModal({ ...assignModal, error: "Please select a compensation plan." });
+    return;
+  }
+  const compensation = assignModal.compensationList.find(
+    (comp) => String(comp.id) === selectedCompensation
+  );
+  if (!compensation || isNaN(parseInt(selectedCompensation))) {
+    console.log("Invalid compensation selected. Selected ID:", selectedCompensation, "Available plans:", assignModal.compensationList);
+    setAssignModal({
+      ...assignModal,
+      error: "Invalid compensation plan selected. Please select a valid plan.",
+    });
+    return;
+  }
+  try {
+    setIsLoading(true);
+    const url = `${BASE_URL}/api/compensation/assigned`;
+    const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
+    const response = await axios.get(url, { headers });
+    if (!response.data.success) {
+      throw new Error(response.data.message || "Failed to fetch assigned employees");
+    }
+    const assignedEmployees = Array.isArray(response.data.data) ? response.data.data : [];
+    const assignedEmployee = assignedEmployees.find((emp) => emp.employee_id === employeeId);
+    if (assignedEmployee) {
+      setAssignModal({
+        ...assignModal,
+        error: `${fullName} already has a compensation plan assigned: ${assignedEmployee.compensation_plan_name}`,
       });
+      return;
+    }
+    const assignUrl = `${BASE_URL}/api/compensation/assign`;
+    const payload = {
+      compensationId: parseInt(selectedCompensation),
+      compensationPlanName: compensation.compensation_plan_name,
+      employeeId: [employeeId],  // Array format (matches backend expectation)
+      assignedBy: meId,
+      assignedDate: new Date().toISOString().split("T")[0],
+      departmentIds: [],
+    };
+    const assignResponse = await axios.post(assignUrl, payload, { headers });
+    if (assignResponse.data.success) {
+      openMessageModal("Success", `Compensation assigned successfully to ${fullName}!`);
+      const compensationsResponse = await axios.get(
+        `${BASE_URL}/api/compensations/list`,
+        { headers }
+      );
+      const compensationMap = new Map();
+      if (compensationsResponse.data.success) {
+        compensationsResponse.data.data.forEach((comp) => {
+          compensationMap.set(comp.compensation_plan_name, comp.plan_data);
+        });
+      }
+      const employeesResponse = await axios.get(
+        `${BASE_URL}/api/compensation/assigned`,
+        { headers }
+      );
+      if (employeesResponse.data.success) {
+        const enrichedEmployees = employeesResponse.data.data.map((emp) => ({
+          ...emp,
+          plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
+        }));
+        setEmployees(enrichedEmployees || []);
+      }
+      const allEmployeesResponse = await axios.get(
+        `${BASE_URL}/api/employees/names`,
+        { headers }
+      );
+      if (allEmployeesResponse.data.success) {
+        setAllEmployees(allEmployeesResponse.data.data || []);
+      }
+      setAssignModal({ ...assignModal, isVisible: false });
+    } else {
+      throw new Error(assignResponse.data.message || "Assignment unsuccessful");
+    }
+  } catch (error) {
+    setAssignModal({
+      ...assignModal,
+      error: `Failed to assign compensation: ${error.response?.data?.message || error.message || "Network error"}`,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const handleAdvanceSubmit = async () => {
+    const { employeeId, advanceAmount, recoveryMonths, applicableMonth, threeMonthsSalary } = advanceModal;
+
+    // Validation checks
+    if (!employeeId) {
+      setAdvanceModal({ ...advanceModal, error: "Employee ID missing." });
+      return;
+    }
+    if (!advanceAmount || parseFloat(advanceAmount) <= 0) {
+      setAdvanceModal({ ...advanceModal, error: "Enter a valid advance amount." });
+      return;
+    }
+    if (parseFloat(advanceAmount) > threeMonthsSalary) {
+      setAdvanceModal({ ...advanceModal, error: "Advance cannot exceed three months' salary." });
       return;
     }
     if (!recoveryMonths || parseInt(recoveryMonths) <= 0) {
-      setAdvanceModal({
-        ...advanceModal,
-        error: "Please enter a valid number of iterations (greater than 0).",
-      });
+      setAdvanceModal({ ...advanceModal, error: "Enter valid recovery months." });
       return;
     }
     if (!applicableMonth) {
-      setAdvanceModal({ ...advanceModal, error: "Please select an applicable month." });
+      setAdvanceModal({ ...advanceModal, error: "Select applicable month." });
       return;
     }
-    const monthlySalary = getMonthlySalary(employeeId, employees);
-    const threeMonthsSalary = monthlySalary * 3;
-    if (parseFloat(advanceAmount) > threeMonthsSalary) {
+
+    // Check for existing advance for the same employee and month
+    const existingAdvance = advances.find(
+      (advance) =>
+        advance.employee_id === employeeId &&
+        advance.applicable_months === applicableMonth
+    );
+    if (existingAdvance) {
       setAdvanceModal({
         ...advanceModal,
-        error: `Advance amount (₹${parseFloat(advanceAmount).toLocaleString()}) cannot exceed three months' salary (₹${threeMonthsSalary.toLocaleString()}).`,
+        error: `An advance of ₹${existingAdvance.advance_amount} already exists for ${employeeId} in ${applicableMonth}. Multiple advances for the same month are not allowed.`,
       });
       return;
     }
-    const [year, month] = applicableMonth.split("-").map(Number);
-    const existingAdvances = advances.filter((adv) => {
-      if (!adv.applicable_months) return false;
-      const advDate = parseApplicableMonth(adv.applicable_months);
-      if (!advDate) return false;
-      const advYear = advDate.getFullYear();
-      const advMonth = advDate.getMonth() + 1;
-      const recoveryMonths = parseInt(adv.recovery_months);
-      const startMonth = advMonth;
-      const startYear = advYear;
-      let endYear = startYear;
-      let endMonth = startMonth + recoveryMonths - 1;
-      if (endMonth > 12) {
-        endYear += Math.floor((endMonth - 1) / 12);
-        endMonth = ((endMonth - 1) % 12) + 1;
-      }
-      const inputDate = new Date(year, month - 1);
-      const startDate = new Date(startYear, startMonth - 1);
-      const endDate = new Date(endYear, endMonth - 1);
-      return (
-        adv.employee_id === employeeId &&
-        (adv.applicable_months === applicableMonth ||
-          (inputDate >= startDate && inputDate <= endDate))
-      );
-    });
-    if (existingAdvances.length > 0) {
-      const activeAdvance = existingAdvances[0];
-      const advDate = parseApplicableMonth(activeAdvance.applicable_months);
-      const recoveryMonths = parseInt(activeAdvance.recovery_months);
-      const startMonth = advDate.getMonth() + 1;
-      const startYear = advDate.getFullYear();
-      let endMonth = startMonth + recoveryMonths - 1;
-      let endYear = startYear;
-      if (endMonth > 12) {
-        endYear += Math.floor((endMonth - 1) / 12);
-        endMonth = ((endMonth - 1) % 12) + 1;
-      }
-      const monthsLeft = (endYear - year) * 12 + (endMonth - month) + 1;
-      setAdvanceModal({
-        ...advanceModal,
-        error: `An active advance of ₹${parseFloat(activeAdvance.advance_amount).toLocaleString()} is already in progress for this employee starting ${activeAdvance.applicable_months}, with ${monthsLeft} iteration(s) left until ${new Date(endYear, endMonth - 1).toLocaleString("en-US", { month: "long", year: "numeric" })}. No new advance can be added until the current one is fully recovered.`,
-      });
-      return;
-    }
+
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/advance`;
-      const response = await axios.post(
-        url,
-        {
-          employeeId,
-          advanceAmount: parseFloat(advanceAmount),
-          recoveryMonths: parseInt(recoveryMonths),
-          applicableMonth,
-        },
-        {
-          headers: { "x-api-key": API_KEY, "x-employee-id": meId },
-        }
-      );
-      if (response.data.success) {
-        openMessageModal(
-          "Success",
-          `Advance of ₹${parseFloat(advanceAmount).toLocaleString()} added successfully for ${advanceModal.fullName}.`
-        );
-        const advancesResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/compensation/advance-details`,
-          {
-            headers: { "x-api-key": API_KEY, "x-employee-id": meId },
-          }
-        );
-        if (advancesResponse.data.success) {
-          setAdvances(advancesResponse.data.data || []);
-        }
-        setAdvanceModal({ ...advanceModal, isVisible: false });
+      const payload = {
+        employeeId,
+        advanceAmount,
+        recoveryMonths,
+        applicableMonth,
+      };
+
+      const response = await axios.post(`${BASE_URL}/api/compensation/advance`, payload, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId, "Content-Type": "application/json" },
+      });
+
+      if (response.data.success || response.data.message === "Advance added successfully") {
+        setAdvanceModal({
+          isVisible: false,
+          employeeId: null,
+          fullName: "",
+          advanceAmount: "",
+          recoveryMonths: "",
+          applicableMonth: "",
+          error: "",
+          threeMonthsSalary: 0,
+        });
+        openMessageModal("Success", "Advance added successfully!", false);
+        const advancesRes = await axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers: { "x-api-key": API_KEY, "x-employee-id": meId } });
+        setAdvances(advancesRes.data.data || []);
       } else {
         setAdvanceModal({
           ...advanceModal,
-          error: response.data.message || "Failed to add advance",
+          error: response.data.message || "Failed to add advance.",
         });
       }
     } catch (error) {
       setAdvanceModal({
         ...advanceModal,
-        error: error.response?.data?.message || error.message || "Network error",
+        error: error.response?.data?.message || "Network error.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAssignSubmit = async () => {
-    const { selectedCompensation, employeeId, fullName } = assignModal;
-    if (!selectedCompensation) {
-      console.log("No compensation selected. Available compensation plans:", assignModal.compensationList);
-      setAssignModal({ ...assignModal, error: "Please select a compensation plan." });
+
+  
+  
+  
+const convertToMonthYear = (monthYearStr) => {
+  console.log(`🔍 Input to convert: "${monthYearStr}"`);
+  if (!monthYearStr) return null;
+  
+  // Handle YYYY-MM format directly (common from selects)
+  if (/^\d{4}-\d{2}$/.test(monthYearStr)) {
+    const [year, month] = monthYearStr.split('-');
+    const monthNum = parseInt(month, 10);
+    if (monthNum >= 1 && monthNum <= 12 && parseInt(year, 10) >= 1900 && parseInt(year, 10) <= 2100) {
+      console.log(`🔄 Already valid YYYY-MM: "${monthYearStr}"`);
+      return monthYearStr;
+    }
+  }
+  
+  // Fallback: Parse "Month Year" (space-separated)
+  let parts = monthYearStr.split(" ");
+  if (parts.length === 2) {
+    const monthName = parts[0].trim().toLowerCase();
+    const yearStr = parts[1].trim();
+    const year = parseInt(yearStr, 10);
+    if (!isNaN(year) && year >= 1900 && year <= 2100) {
+      const monthMap = {
+        'january': 1, 'jan': 1, 'february': 2, 'feb': 2, 'march': 3, 'mar': 3, 'april': 4, 'apr': 4,
+        'may': 5, 'june': 6, 'jun': 6, 'july': 7, 'jul': 7, 'august': 8, 'aug': 8,
+        'september': 9, 'sept': 9, 'sep': 9, 'october': 10, 'oct': 10, 'november': 11, 'nov': 11,
+        'december': 12, 'dec': 12
+      };
+      const monthNum = monthMap[monthName];
+      if (monthNum) {
+        const monthStr = monthNum.toString().padStart(2, '0');
+        const result = `${year}-${monthStr}`;
+        console.log(`🔄 Converted name-based "${monthYearStr}" → "${result}"`);
+        return result;
+      }
+    }
+  }
+  
+  // Optional: Handle "Month-YYYY" (dash-separated name)
+  parts = monthYearStr.split("-");
+  if (parts.length === 2) {
+    const [monthName, yearStr] = parts.map(p => p.trim().toLowerCase());
+    const year = parseInt(yearStr, 10);
+    if (!isNaN(year) && year >= 1900 && year <= 2100) {
+      const monthMap = { /* same as above */ };
+      const monthNum = monthMap[monthName];
+      if (monthNum) {
+        const monthStr = monthNum.toString().padStart(2, '0');
+        const result = `${year}-${monthStr}`;
+        console.log(`🔄 Converted dash-name "${monthYearStr}" → "${result}"`);
+        return result;
+      }
+    }
+  }
+  
+  console.warn("Invalid format:", monthYearStr);
+  return null;
+};
+
+const handleIncentiveSubmit = async () => {
+    const { employeeId, incentiveType, ctcPercentage, salesAmount, applicableMonth } = incentivesModal;
+
+    // Existing validations
+    if (!employeeId) {
+      setIncentivesModal({ ...incentivesModal, error: "Employee ID missing." });
       return;
     }
-    const compensation = assignModal.compensationList.find(
-      (comp) => String(comp.id) === selectedCompensation
-    );
-    if (!compensation || isNaN(parseInt(selectedCompensation))) {
-      console.log("Invalid compensation selected. Selected ID:", selectedCompensation, "Available plans:", assignModal.compensationList);
-      setAssignModal({
-        ...assignModal,
-        error: "Invalid compensation plan selected. Please select a valid plan.",
-      });
+    if (!incentiveType) {
+      setIncentivesModal({ ...incentivesModal, error: "Select incentive type." });
       return;
     }
+    if (incentiveType === "ctc" && (!ctcPercentage || parseFloat(ctcPercentage) <= 0)) {
+      setIncentivesModal({ ...incentivesModal, error: "Enter a valid CTC percentage." });
+      return;
+    }
+    if (incentiveType === "sales" && (!salesAmount || parseFloat(salesAmount) <= 0)) {
+      setIncentivesModal({ ...incentivesModal, error: "Enter a valid sales amount." });
+      return;
+    }
+    if (!applicableMonth) {
+      setIncentivesModal({ ...incentivesModal, error: "Select applicable month." });
+      return;
+    }
+
+    const convertedApplicableMonth = convertToMonthYear(applicableMonth);
+    if (!convertedApplicableMonth) {
+      setIncentivesModal({ ...incentivesModal, error: "Invalid month selected. Check console." });
+      return;
+    }
+
+    // Fetch latest incentives to check for duplicates
     try {
       setIsLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`;
-      const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-      const response = await axios.get(url, { headers });
-      if (!response.data.success) {
-        throw new Error(response.data.message || "Failed to fetch assigned employees");
-      }
-      const assignedEmployees = Array.isArray(response.data.data) ? response.data.data : [];
-      const assignedEmployee = assignedEmployees.find((emp) => emp.employee_id === employeeId);
-      if (assignedEmployee) {
-        setAssignModal({
-          ...assignModal,
-          error: `${fullName} already has a compensation plan assigned: ${assignedEmployee.compensation_plan_name}`,
+      const response = await axios.get(`${BASE_URL}/api/incentives`, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+      });
+      if (response.data.success) {
+        const existingIncentive = response.data.data.find(
+          (incentive) =>
+            incentive.employee_id === employeeId &&
+            incentive.applicable_month === convertedApplicableMonth
+        );
+        if (existingIncentive) {
+          const amount = existingIncentive.incentive_type === "ctc"
+            ? `${existingIncentive.ctc_percentage}% CTC`
+            : `₹${existingIncentive.sales_amount} Sales`;
+          setIncentivesModal({
+            ...incentivesModal,
+            error: `An incentive of ${amount} already exists for ${employeeId} in ${convertedApplicableMonth}. Multiple incentives for the same month are not allowed.`,
+          });
+          return;
+        }
+      } else {
+        setIncentivesModal({
+          ...incentivesModal,
+          error: "Failed to verify existing incentives.",
         });
         return;
       }
-      const assignUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assign`;
+    } catch (error) {
+      setIncentivesModal({
+        ...incentivesModal,
+        error: error.response?.data?.message || "Network error while checking existing incentives.",
+      });
+      return;
+    } finally {
+      setIsLoading(false);
+    }
+
+    setIsLoading(true);
+    try {
       const payload = {
-        compensationId: parseInt(selectedCompensation),
-        compensationPlanName: compensation.compensation_plan_name,
-        employeeId: [employeeId],
-        assignedBy: meId,
-        assignedDate: new Date().toISOString().split("T")[0],
-        departmentIds: [],
+        employeeId,
+        incentiveType,
+        ctcPercentage: incentiveType === "ctc" ? ctcPercentage : null,
+        salesAmount: incentiveType === "sales" ? salesAmount : null,
+        applicableMonth: convertedApplicableMonth,
       };
-      const assignResponse = await axios.post(assignUrl, payload, { headers });
-      if (assignResponse.data.success) {
-        openMessageModal("Success", `Compensation assigned successfully to ${fullName}!`);
-        const compensationsResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`,
-          { headers }
-        );
-        const compensationMap = new Map();
-        if (compensationsResponse.data.success) {
-          compensationsResponse.data.data.forEach((comp) => {
-            compensationMap.set(comp.compensation_plan_name, comp.plan_data);
-          });
+
+      console.log("🔍 Payload to backend:", payload);
+
+      const response = await axios.post(`${BASE_URL}/api/incentives`, payload, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId, "Content-Type": "application/json" },
+      });
+
+      if (response.data.success || response.data.message === "Incentive added successfully") {
+        const targetEmployeeId = employeeId;
+        setIncentivesModal({
+          isVisible: false,
+          employeeId: null,
+          fullName: "",
+          incentiveType: "ctc",
+          ctcPercentage: "",
+          salesAmount: "",
+          applicableMonth: "",
+          error: "",
+        });
+        openMessageModal("Success", "Incentive added successfully!", false);
+        try {
+          const updatedIncentive = await calculateIncentives(targetEmployeeId);
+          setEmployeeIncentiveData(prev => ({ ...prev, [targetEmployeeId]: updatedIncentive }));
+          console.log(`🔄 Updated incentive for ${targetEmployeeId}:`, updatedIncentive);
+        } catch (err) {
+          console.warn("⚠️ Refetch incentive failed:", err);
         }
-        const employeesResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
-          { headers }
-        );
-        if (employeesResponse.data.success) {
-          const enrichedEmployees = employeesResponse.data.data.map((emp) => ({
-            ...emp,
-            plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
-          }));
-          setEmployees(enrichedEmployees || []);
-        }
-        const allEmployeesResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/employees/names`,
-          { headers }
-        );
-        if (allEmployeesResponse.data.success) {
-          setAllEmployees(allEmployeesResponse.data.data || []);
-        }
-        setAssignModal({ ...assignModal, isVisible: false });
       } else {
-        throw new Error(assignResponse.data.message || "Assignment unsuccessful");
+        setIncentivesModal({
+          ...incentivesModal,
+          error: response.data.message || "Failed to add incentive.",
+        });
       }
     } catch (error) {
-      setAssignModal({
-        ...assignModal,
-        error: `Failed to assign compensation: ${error.response?.data?.message || error.message || "Network error"}`,
+      setIncentivesModal({
+        ...incentivesModal,
+        error: error.response?.data?.message || "Network error.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+
+  const openNoPlanModal = () => {
+    setViewMode("noPlanDetails");
+    setSearchTerm("");
+    setMenuOpen(false);
+  };
+
+  const openMessageModal = (title, message, isError = false) => {
+    setMessageModal({
+      isVisible: true,
+      title,
+      message,
+      isError,
+    });
+  };
+
+  const openAssignModal = async (employeeId, fullName) => {
+    setIsLoading(true);
+    try {
+      const url = `${BASE_URL}/api/compensations/list`;
+      const response = await axios.get(url, {
+        headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+      });
+      if (response.data.success) {
+        const validCompensations = Array.isArray(response.data.data)
+          ? response.data.data.filter(
+              (comp) =>
+                comp &&
+                typeof comp.compensation_plan_name === "string" &&
+                comp.id &&
+                !isNaN(parseInt(comp.id))
+            )
+          : [];
+        if (validCompensations.length === 0) {
+          throw new Error("No valid compensation plans available to assign.");
+        }
+        setAssignModal({
+          isVisible: true,
+          employeeId,
+          fullName,
+          compensationList: validCompensations,
+          selectedCompensation: "",
+          error: "",
+        });
+      } else {
+        throw new Error(
+          response.data.message || "Failed to fetch compensations"
+        );
+      }
+    } catch (error) {
+      openMessageModal(
+        "Error",
+        `Failed to fetch compensations: ${error.message || "Network error"}`,
+        true
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleViewAllDetails = () => {
+    setViewMode("allDetails");
+    setSearchQuery("");
+    setCurrentPage(1);
+    setMenuOpen(false);
+  };
+
+  const handleViewSingleEmployee = (employee) => {
+    setSelectedEmployee(employee);
+    setShowDetailsTab(true);
+    if (tableRef.current) {
+      setTableHeight(tableRef.current.offsetHeight);
+    }
+  };
+
+  const handleCloseDetailsTab = () => {
+    setShowDetailsTab(false);
+    setSelectedEmployee(null);
+  };
+
+  const handleBackToMain = () => {
+    
+    setViewMode("main");
+    setSelectedEmployee(null);
+    setSearchQuery("");
+    setCurrentPage(1);
+    setShowDetailsTab(false);
+    setSearchTerm("");
+  };
+
   useEffect(() => {
-    const fetchSalaryBreakupData = async () => {
-      try {
-        setIsLoading(true);
-        setBonusRecords([]);
-        const baseUrl = process.env.REACT_APP_BACKEND_URL;
-        const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-        console.log("Fetching salary breakup data..."); // Debug log
-        const allEmployeesResponse = await axios.get(`${baseUrl}/api/employees/names`, { headers });
-        if (allEmployeesResponse.data.success) {
-          console.log("All employees:", allEmployeesResponse.data.data); // Debug log
-          setAllEmployees(allEmployeesResponse.data.data || []);
-        } else {
-          throw new Error(allEmployeesResponse.data.message || "Failed to fetch all employees");
-        }
-        const compensationsResponse = await axios.get(`${baseUrl}/api/compensations/list`, { headers });
-        const compensationMap = new Map();
-        if (compensationsResponse.data.success) {
-          console.log("Compensations:", compensationsResponse.data.data); // Debug log
-          compensationsResponse.data.data.forEach((comp) => {
-            compensationMap.set(comp.compensation_plan_name, comp.plan_data);
-          });
-        } else {
-          throw new Error(compensationsResponse.data.message || "Failed to fetch compensations");
-        }
-        const employeesResponse = await axios.get(`${baseUrl}/api/compensation/assigned`, { headers });
-        if (employeesResponse.data.success) {
-          const enrichedEmployees = employeesResponse.data.data.map((emp) => ({
+  const fetchSalaryBreakupData = async () => {
+    console.log("Environment Variables:", {
+      API_KEY: process.env.REACT_APP_API_KEY,
+      BASE_URL: process.env.REACT_APP_BACKEND_URL,
+      meId,
+    });
+
+    if (!process.env.REACT_APP_API_KEY || !meId) {
+      console.error("Missing credentials: API_KEY or meId");
+      openMessageModal(
+        "Error",
+        "Authentication credentials are missing. Please check environment variables or login status.",
+        true
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    const API_KEY = process.env.REACT_APP_API_KEY;
+    const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+
+    try {
+      setIsLoading(true);
+      const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
+      console.log("Fetching data with headers:", headers);
+
+      const [
+        allEmployeesRes,
+        compensationsRes,
+        employeesRes,
+        advancesRes,
+        overtimeRes,
+        bonusRes,
+      ] = await Promise.all([
+        axios.get(`${BASE_URL}/api/employees/names`, { headers }).catch(err => {
+          console.error("Error fetching employees/names:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensations/list`, { headers }).catch(err => {
+          console.error("Error fetching compensations/list:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }).catch(err => {
+          console.error("Error fetching compensation/assigned:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/advance-details`, { headers }).catch(err => {
+          console.error("Error fetching compensation/advance-details:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }).catch(err => {
+          console.error("Error fetching compensation/overtime-status-summary:", err);
+          throw err;
+        }),
+        axios.get(`${BASE_URL}/api/compensation/bonus-list`, { headers }).catch(err => {
+          console.error("Error fetching compensation/bonus-list:", err);
+          throw err;
+        }),
+      ]);
+
+      console.log("API Responses:", {
+        allEmployees: allEmployeesRes.data,
+        compensations: compensationsRes.data,
+        employees: employeesRes.data,
+        advances: advancesRes.data,
+        overtime: overtimeRes.data,
+        bonus: bonusRes.data,
+      });
+
+      setAllEmployees(allEmployeesRes.data.data || []);
+      const compensationMap = new Map();
+      (compensationsRes.data.data || []).forEach((comp) => {
+        compensationMap.set(comp.compensation_plan_name, comp.plan_data);
+      });
+
+      const enrichedEmployeesMap = new Map();
+      (employeesRes.data.data || []).forEach((emp) => {
+        if (!enrichedEmployeesMap.has(emp.employee_id)) {
+          enrichedEmployeesMap.set(emp.employee_id, {
             ...emp,
             plan_data: compensationMap.get(emp.compensation_plan_name) || emp.plan_data,
-          }));
-          console.log("Enriched employees:", enrichedEmployees); // Debug log
-          setEmployees(enrichedEmployees || []);
-          const lopDataPromises = enrichedEmployees.map((emp) =>
-            calculateLOPEffect(emp.employee_id).then((result) => ({
-              employeeId: emp.employee_id,
-              lopData: result || {
-                currentMonth: { days: 0, value: "0.00", currency: "INR" },
-                deferred: { days: 0, value: "0.00", currency: "INR" },
-                nextMonth: { days: 0, value: "0.00", currency: "INR" },
-                yearly: { days: 0, value: "0.00", currency: "INR" },
-              },
-            })).catch(() => ({
+          });
+        } else {
+          console.warn(`Duplicate employee_id found: ${emp.employee_id}`);
+        }
+      });
+      const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
+      setEmployees(enrichedEmployees);
+      setAdvances(advancesRes.data.data || []);
+      setOvertimeRecords(overtimeRes.data.data || []);
+      setBonusRecords(bonusRes.data.data || []);
+
+      const lopDataPromises = enrichedEmployees.map((emp) =>
+        calculateLOPEffect(emp.employee_id)
+          .then((result) => ({
+            employeeId: emp.employee_id,
+            lopData: result,
+          }))
+          .catch((err) => {
+            console.warn(`LOP fetch failed for ${emp.employee_id}:`, err);
+            return {
               employeeId: emp.employee_id,
               lopData: {
                 currentMonth: { days: 0, value: "0.00", currency: "INR" },
@@ -557,61 +851,63 @@ const SalaryBreakupMain = () => {
                 nextMonth: { days: 0, value: "0.00", currency: "INR" },
                 yearly: { days: 0, value: "0.00", currency: "INR" },
               },
-            }))
-          );
-          const lopDataResults = await Promise.all(lopDataPromises);
-          const lopDataMap = lopDataResults.reduce(
-            (acc, { employeeId, lopData }) => {
-              acc[employeeId] = lopData;
-              return acc;
-            },
-            {}
-          );
-          console.log("LOP data:", lopDataMap); // Debug log
-          setEmployeeLopData(lopDataMap);
-        } else {
-          throw new Error(employeesResponse.data.message || "Failed to fetch salary breakup data");
-        }
-        const advancesResponse = await axios.get(`${baseUrl}/api/compensation/advance-details`, { headers });
-        if (advancesResponse.data.success) {
-          console.log("Advances:", advancesResponse.data.data); // Debug log
-          setAdvances(advancesResponse.data.data || []);
-        }
-        const overtimeResponse = await axios.get(`${baseUrl}/api/compensation/overtime-details`, { headers });
-        if (overtimeResponse.data.success) {
-          console.log("Overtime records:", overtimeResponse.data.data); // Debug log
-          setOvertimeRecords(overtimeResponse.data.data || []);
-        }
-        const bonusResponse = await axios.get(`${baseUrl}/api/compensation/bonus-list`, { headers });
-        if (bonusResponse.data.success) {
-          console.log("Bonus records:", bonusResponse.data.data); // Debug log
-          setBonusRecords(bonusResponse.data.data || []);
-        }
-      } catch (error) {
-        console.error("Fetch error:", error); // Debug log
-        openMessageModal(
-          "Error",
-          `Failed to fetch data: ${error.response?.data?.message || error.message || "Network error"}`,
-          true
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (API_KEY && meId) {
-      fetchSalaryBreakupData();
-    } else {
-      console.error("Missing API_KEY or meId"); // Debug log
-      openMessageModal("Error", "Authentication credentials are missing.", true);
+            };
+          })
+      );
+
+      const lopDataResults = await Promise.all(lopDataPromises);
+      const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
+        acc[employeeId] = lopData;
+        return acc;
+      }, {});
+      setEmployeeLopData(lopDataMap);
+
+      const incentiveDataPromises = enrichedEmployees.map((emp) =>
+        calculateIncentives(emp.employee_id)
+          .then((result) => ({
+            employeeId: emp.employee_id,
+            incentiveData: result,
+          }))
+          .catch((err) => {
+            console.warn(`Incentive fetch failed for ${emp.employee_id}:`, err);
+            return {
+              employeeId: emp.employee_id,
+              incentiveData: {
+                ctcIncentive: { value: "0.00", currency: "INR" },
+                salesIncentive: { value: "0.00", currency: "INR" },
+                totalIncentive: { value: "0.00", currency: "INR" },
+              },
+            };
+          })
+      );
+
+      const incentiveDataResults = await Promise.all(incentiveDataPromises);
+      const incentiveDataMap = incentiveDataResults.reduce(
+        (acc, { employeeId, incentiveData }) => {
+          if (!acc[employeeId] || parseFloat(incentiveData.totalIncentive.value) > 0) {
+            acc[employeeId] = incentiveData;
+          }
+          return acc;
+        },
+        {}
+      );
+      setEmployeeIncentiveData(incentiveDataMap);
+
+    } catch (error) {
+      console.error("Fetch error:", error);
+      openMessageModal(
+        "Error",
+        `Failed to fetch data: ${error.message || "Network error"}`,
+        true
+      );
+    } finally {
       setIsLoading(false);
     }
-  }, [API_KEY, meId]);
+  };
 
-  useEffect(() => {
-    console.log("Current viewMode:", viewMode, "Employees length:", employees.length); // Debug log
-  }, [viewMode, employees]);
-
-  const totals = employees.length > 0
+  fetchSalaryBreakupData();
+}, []);
+  const totals = employees.length
     ? calculateTotals(employees, overtimeRecords, bonusRecords, advances)
     : {
         totalPayable: 0,
@@ -623,13 +919,21 @@ const SalaryBreakupMain = () => {
         totalEmployeePF: 0,
         totalEmployerPF: 0,
         totalInsurance: 0,
-        totalLopDeduction: 0,
       };
+
   const totalLopDeduction = employees.reduce((sum, emp) => {
     const lopData = employeeLopData[emp.employee_id];
     return sum + (lopData ? parseFloat(lopData.currentMonth.value || 0) : 0);
   }, 0);
   totals.totalLopDeduction = totalLopDeduction;
+
+  const employeesWithoutPlans = allEmployees.filter(
+    (emp) =>
+      !employees.some(
+        (assignedEmp) =>
+          String(assignedEmp.employee_id) === String(emp.employee_id)
+      )
+  );
 
   const getAvailableMonths = () => {
     const now = new Date();
@@ -640,127 +944,145 @@ const SalaryBreakupMain = () => {
     return [
       {
         value: `${currentYear}-${currentMonth.toString().padStart(2, "0")}`,
-        label: new Date(currentYear, currentMonth - 1).toLocaleString("en-US", {
-          month: "long",
-          year: "numeric",
-        }),
+        label: new Date(currentYear, currentMonth - 1).toLocaleString("en-US", { month: "long", year: "numeric" }),
       },
       {
         value: `${nextYear}-${nextMonth.toString().padStart(2, "0")}`,
-        label: new Date(nextYear, nextMonth - 1).toLocaleString("en-US", {
-          month: "long",
-          year: "numeric",
-        }),
+        label: new Date(nextYear, nextMonth - 1).toLocaleString("en-US", { month: "long", year: "numeric" }),
       },
     ];
   };
 
-  const employeesWithoutPlans = allEmployees.filter(
-    (emp) =>
-      !employees.some((assignedEmp) => String(assignedEmp.employee_id) === String(emp.employee_id))
-  );
-
   return (
     <div className="sb-main-container">
-      {viewMode === "main" && (
+      {isLoading ? (
+        <div className="sb-main-loading">Loading...</div>
+      ) : (
         <>
-          {isLoading ? (
-            <div className="sb-main-loading">Loading...</div>
-          ) : employees.length > 0 || allEmployees.length > 0 ? (
-            <div className="sb-main-table-container">
-              <Header
-                menuOpen={menuOpen}
-                toggleMenu={toggleMenu}
-                openNoPlanModal={openNoPlanModal}
-                openBonusModal={openBonusModal}
-                handleViewAllDetails={handleViewAllDetails}
-              />
-              <TotalsContainer totals={totals} totalLopDeduction={totalLopDeduction} />
-              <EmployeeTable
-                employees={employees}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                rowsPerPage={rowsPerPage}
-                tableRef={tableRef}
-                handleViewSingleEmployee={handleViewSingleEmployee}
-                openAdvanceModal={openAdvanceModal}
-                showDetailsTab={showDetailsTab}
-                selectedEmployee={selectedEmployee}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                tableHeight={tableHeight}
-                handleCloseDetailsTab={handleCloseDetailsTab}
-                calculateSalaryDetails={calculateSalaryDetails}
-                employeeLopData={employeeLopData}
-                overtimeRecords={overtimeRecords}
-                bonusRecords={bonusRecords}
-                advances={advances}
-              />
-            </div>
-          ) : (
-            <p>No employee data available</p>
+          {viewMode === "main" && (
+            <>
+              {(employees.length > 0 || allEmployees.length > 0) && (
+                <div className="sb-main-table-container">
+                  <Header
+                    menuOpen={menuOpen}
+                    toggleMenu={toggleMenu}
+                    openNoPlanModal={openNoPlanModal}
+                    openBonusModal={openBonusModal}
+                    handleViewAllDetails={handleViewAllDetails}
+                    handleViewSalaryDetails={handleViewSalaryDetails}
+                  />
+                  <TotalsContainer
+                    totals={totals}
+                    totalLopDeduction={totalLopDeduction}
+                  />
+                  <EmployeeTable
+                    employees={employees}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    rowsPerPage={rowsPerPage}
+                    tableRef={tableRef}
+                    handleViewSingleEmployee={handleViewSingleEmployee}
+                    openAdvanceModal={openAdvanceModal}
+                    openIncentiveModal={openIncentiveModal} // 🔹 Add prop
+                    showDetailsTab={showDetailsTab}
+                    selectedEmployee={selectedEmployee}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    tableHeight={tableHeight}
+                    handleCloseDetailsTab={handleCloseDetailsTab}
+                    calculateSalaryDetails={calculateSalaryDetails}
+                    employeeLopData={employeeLopData}
+                    employeeIncentiveData={employeeIncentiveData}
+                    overtimeRecords={overtimeRecords}
+                    bonusRecords={bonusRecords}
+                    advances={advances}
+                  />
+                  
+                </div>
+              )}
+            </>
+          )}
+          {viewMode === "salaryDetails" && ( // NEW: Conditional render for SalaryDetails
+  <SalaryDetails
+    employees={employees}
+    searchQuery={searchQuery}
+    setSearchQuery={setSearchQuery}
+    handleBackToMain={handleBackToMain}
+    calculateSalaryDetails={calculateSalaryDetails}
+    employeeLopData={employeeLopData}
+    employeeIncentiveData={employeeIncentiveData}
+    overtimeRecords={overtimeRecords}
+    bonusRecords={bonusRecords}
+    advances={advances}
+  />
+)}
+          {viewMode === "allDetails" && (
+            <AllDetailsView
+              employees={employees}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              handleBackToMain={handleBackToMain}
+              calculateSalaryDetails={calculateSalaryDetails}
+              employeeLopData={employeeLopData}
+              employeeIncentiveData={employeeIncentiveData}
+              overtimeRecords={overtimeRecords}
+              bonusRecords={bonusRecords}
+              advances={advances}
+            />
+          )}
+          {viewMode === "noPlanDetails" && (
+  <NoPlanDetails
+    allEmployees={allEmployees}                    // 🔧 Add this
+    employees={employees}                          // 🔧 Add this
+    searchTerm={searchTerm}                        // 🔧 Add this
+    debouncedSetSearchTerm={debouncedSetSearchTerm} // 🔧 Add this
+    handleBackToMain={handleBackToMain}            // ✅ Already passed
+    openAssignModal={openAssignModal}              // 🔧 Add this
+    isLoading={isLoading}                          // 🔧 Add this
+  />
+)}
+          {bonusModal.isVisible && (
+            <BonusModal bonusModal={bonusModal}
+             setBonusModal={setBonusModal}
+             handleBonusSubmit={handleBonusSubmit}  />
+            
+          )}
+          {advanceModal.isVisible && (
+            <AdvanceModal
+              advanceModal={advanceModal}
+              setAdvanceModal={setAdvanceModal}
+              handleAdvanceSubmit={handleAdvanceSubmit} // 🔹 Add prop
+              getAvailableMonths={getAvailableMonths}
+              isLoading={isLoading}
+              threeMonthsSalary={advanceModal.threeMonthsSalary} // 🔹 Add prop
+            />
+          )}
+          {incentivesModal.isVisible && ( // 🔹 Add modal
+            <IncentivesModal
+              incentivesModal={incentivesModal}
+              setIncentivesModal={setIncentivesModal}
+              handleIncentiveSubmit={handleIncentiveSubmit}
+              isLoading={isLoading}
+              getAvailableMonths={getAvailableMonths}
+            />
+          )}
+          {assignModal.isVisible && (
+            <AssignModal
+              assignModal={assignModal}
+              setAssignModal={setAssignModal}
+              handleAssignSubmit={handleAssignSubmit}
+            />
+            
+          )}
+          {messageModal.isVisible && (
+            <MessageModal
+              messageModal={messageModal}
+              setMessageModal={setMessageModal}
+            />
           )}
         </>
-      )}
-      {viewMode === "allDetails" && (
-        <AllDetailsView
-          employees={employees}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          handleBackToMain={handleBackToMain}
-          calculateSalaryDetails={calculateSalaryDetails}
-          employeeLopData={employeeLopData}
-          overtimeRecords={overtimeRecords}
-          bonusRecords={bonusRecords}
-          advances={advances}
-        />
-      )}
-      {viewMode === "noPlanDetails" && (
-        <NoPlanDetails
-          allEmployees={allEmployees}
-          employees={employees}
-          searchTerm={searchTerm}
-          debouncedSetSearchTerm={debouncedSetSearchTerm}
-          handleBackToMain={handleBackToMain}
-          openAssignModal={openAssignModal}
-          isLoading={isLoading}
-        />
-      )}
-      {bonusModal.isVisible && (
-        <BonusModal
-          bonusModal={bonusModal}
-          setBonusModal={setBonusModal}
-          handleBonusSubmit={handleBonusSubmit}
-          isLoading={isLoading}
-        />
-      )}
-      {advanceModal.isVisible && (
-        <AdvanceModal
-          advanceModal={advanceModal}
-          setAdvanceModal={setAdvanceModal}
-          handleAdvanceSubmit={handleAdvanceSubmit}
-          isLoading={isLoading}
-          getAvailableMonths={getAvailableMonths}
-          threeMonthsSalary={advanceModal.threeMonthsSalary}
-        />
-      )}
-      {assignModal.isVisible && (
-        <AssignModal
-          assignModal={assignModal}
-          setAssignModal={setAssignModal}
-          handleAssignSubmit={handleAssignSubmit}
-          isLoading={isLoading}
-        />
-      )}
-      {messageModal.isVisible && (
-        <MessageModal
-          title={messageModal.title}
-          message={messageModal.message}
-          isError={messageModal.isError}
-          onClose={() => setMessageModal({ isVisible: false, title: "", message: "", isError: false })}
-        />
       )}
     </div>
   );
