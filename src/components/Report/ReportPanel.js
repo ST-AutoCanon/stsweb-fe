@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// src/components/ReportPanel.jsx
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
   MdFileDownload,
@@ -8,131 +9,49 @@ import {
 } from "react-icons/md";
 import "./ReportPanel.css";
 import Modal from "../Modal/Modal";
+import EmployeeTypeahead from "./EmployeeTypeahead";
+import FieldsGrid from "./FieldsGrid";
+import Pagination from "./Pagination";
+import { getApiBase } from "./ReportUtils";
+import {
+  STATUS_OPTIONS,
+  SUB_OPTIONS,
+  MAX_DOWNLOAD_FIELDS,
+  PREVIEW_PAGE_SIZE,
+  MAX_RANGE_DAYS,
+} from "./ReportConstants";
 
-const STATUS_OPTIONS = {
-  leaves: ["All", "Pending", "Approved", "Rejected"],
-  reimbursements: [
-    "All",
-    "Pending",
-    "Approved",
-    "Rejected",
-    "Approved/Pending",
-    "Approved/paid",
-  ],
-  employees: ["All", "Active", "Inactive"],
-  assets: ["All", "In Use", "Assigned", "Returned", "Decommissioned"],
-  attendance: ["All", "Punch In", "Punch Out"],
-};
-
-const SUB_OPTIONS = {
-  leaves: [
-    { key: "leave_id", label: "Leave ID" },
-    { key: "employee_id", label: "Employee ID" },
-    { key: "employee_name", label: "Employee Name" },
-    { key: "department_name", label: "Department" },
-    { key: "leave_type", label: "Leave Type" },
-    { key: "start_date", label: "Start Date" },
-    { key: "end_date", label: "End Date" },
-    { key: "status", label: "Status" },
-    { key: "reason", label: "Reason" },
-    { key: "comments", label: "Comments" },
-    { key: "created_at", label: "Created At" },
-  ],
-  reimbursements: [
-    { key: "id", label: "Reimbursement ID" },
-    { key: "employee_id", label: "Employee ID" },
-    { key: "employee_name", label: "Employee Name" },
-    { key: "department_name", label: "Department" },
-    { key: "claim_title", label: "Title" },
-    { key: "claim_type", label: "Description / Purpose" },
-    { key: "date_range", label: "Date / Range" },
-    { key: "total_amount", label: "Total Amount" },
-    { key: "approval_status", label: "Approval Status" },
-    { key: "payment_status", label: "Payment Status" },
-    { key: "created_at", label: "Created At" },
-  ],
-  employees: [
-    { key: "employee_id", label: "Employee ID" },
-    { key: "name", label: "Name" },
-    { key: "first_name", label: "First Name" },
-    { key: "last_name", label: "Last Name" },
-    { key: "email", label: "Email" },
-    { key: "phone_number", label: "Phone" },
-    { key: "status", label: "Status" },
-    { key: "department_name", label: "Department" },
-    { key: "role", label: "Role" },
-    { key: "position", label: "Position" },
-    { key: "joining_date", label: "Joining Date" },
-    { key: "dob", label: "DOB" },
-    { key: "created_at", label: "Created At" },
-  ],
-  vendors: [
-    { key: "vendor_id", label: "vendor_id" },
-    { key: "company_name", label: "company_name" },
-    { key: "registered_address", label: "registered_address" },
-    { key: "city", label: "city" },
-    { key: "gst_number", label: "gst_number" },
-    { key: "pan_number", label: "pan_number" },
-    { key: "company_type", label: "company_type" },
-    { key: "contact1_mobile", label: "contact_mobile" },
-    { key: "contact1_email", label: "contact_email" },
-    { key: "bank_name", label: "bank_name" },
-    { key: "account_number", label: "account_number" },
-    { key: "product_category", label: "product_category" },
-    { key: "created_at", label: "created_at" },
-  ],
-  assets: [
-    { key: "asset_id", label: "asset_id" },
-    { key: "asset_code", label: "asset_code" },
-    { key: "asset_name", label: "asset_name" },
-    { key: "configuration", label: "configuration" },
-    { key: "category", label: "category" },
-    { key: "sub_category", label: "sub_category" },
-    { key: "assigned_to", label: "assigned_to" },
-    { key: "document_path", label: "document_path" },
-    { key: "valuation_date", label: "valuation_date" },
-    { key: "status", label: "status" },
-    { key: "count", label: "count" },
-    { key: "created_at", label: "created_at" },
-  ],
-  attendance: [
-    { key: "punch_id", label: "Punch ID" },
-    { key: "employee_id", label: "Employee ID" },
-    { key: "punch_status", label: "Status" },
-    { key: "punchin_time", label: "Punch In Time" },
-    { key: "punchin_device", label: "Punch In Device" },
-    { key: "punchin_location", label: "Punch In Location" },
-    { key: "punchout_time", label: "Punch Out Time" },
-    { key: "punchout_device", label: "Punch Out Device" },
-    { key: "punchout_location", label: "Punch Out Location" },
-    { key: "punchmode", label: "Punch Mode" },
-  ],
-};
-
-export default function Reportpanel() {
+export default function ReportPanel() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [component, setComponent] = useState("select");
   const [status, setStatus] = useState("All");
   const [statusOptions, setStatusOptions] = useState([]);
-  // separate flags so buttons don't block each other
   const [downloadingXlsx, setDownloadingXlsx] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");
-  const [previewData, setPreviewData] = useState([]);
+  const [previewRows, setPreviewRows] = useState([]);
   const [previewTotalRows, setPreviewTotalRows] = useState(null);
+  const [previewPage, setPreviewPage] = useState(1);
+  // server-provided friendly message for empty previews or error responses
+  const [previewMessage, setPreviewMessage] = useState("");
+
   const employeeId = localStorage.getItem("dashboardData");
+
+  const [filterEmployeeId, setFilterEmployeeId] = useState(null);
+  const [filterEmployeeName, setFilterEmployeeName] = useState("");
+  const [filterDepartmentId, setFilterDepartmentId] = useState(null);
+  const [isTypingSearch, setIsTypingSearch] = useState(false);
 
   const [availableFields, setAvailableFields] = useState([]);
   const [selectedFields, setSelectedFields] = useState([]);
 
-  // --- new constant: max allowed range in days (must match backend)
-  const MAX_RANGE_DAYS = 62; // roughly 2 months
+  const [departments, setDepartments] = useState([]);
+  const [deptLoading, setDeptLoading] = useState(false);
 
-  // centralized alert modal state (shared/common modal like Admin)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
@@ -140,7 +59,6 @@ export default function Reportpanel() {
   });
 
   const showAlert = (message, title = "") => {
-    // ensure preview closed when showing some alerts that might overlap (optional)
     setPreviewOpen(false);
     setTimeout(() => {
       setAlertModal({ isVisible: true, title: title || "", message });
@@ -149,27 +67,147 @@ export default function Reportpanel() {
   const closeAlert = () =>
     setAlertModal({ isVisible: false, title: "", message: "" });
 
+  // Helper: read a message from various axios error shapes (Blob/string/object)
+  const getErrorMessageFromAxiosError = useCallback(async (err) => {
+    try {
+      if (!err || !err.response) {
+        if (err && err.message) return err.message;
+        return "Unknown error from server";
+      }
+      const { status, data } = err.response;
+
+      // If server returned no body
+      if (data === null || typeof data === "undefined") {
+        return `Server responded with status ${status}`;
+      }
+
+      // If axios already parsed JSON (object)
+      if (typeof data === "object" && !(data instanceof Blob)) {
+        // Common fields to check
+        const candidate =
+          data.message || data.error || data.msg || data.detail || null;
+        if (candidate && typeof candidate === "string" && candidate.trim())
+          return candidate;
+        // fallback to JSON string (shortened)
+        try {
+          const s = JSON.stringify(data);
+          return s.length > 0 ? s : `Server responded with status ${status}`;
+        } catch (e) {
+          return `Server responded with status ${status}`;
+        }
+      }
+
+      // If server returned text or blob (e.g. responseType: 'blob' used)
+      // data could be a Blob or string
+      let text = null;
+      if (data instanceof Blob && typeof data.text === "function") {
+        text = await data.text();
+      } else if (typeof data === "string") {
+        text = data;
+      }
+
+      if (!text || !text.trim()) {
+        return `Server responded with status ${status}`;
+      }
+
+      // If text looks like JSON, parse it
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === "object") {
+          return (
+            parsed.message ||
+            parsed.error ||
+            parsed.msg ||
+            parsed.detail ||
+            JSON.stringify(parsed)
+          );
+        }
+      } catch (e) {
+        // not JSON — return raw text (trimmed, but limit length)
+        const t = text.trim();
+        return t.length > 500 ? t.slice(0, 500) + "..." : t;
+      }
+
+      return `Server responded with status ${status}`;
+    } catch (e) {
+      // fallback
+      return err && err.message ? err.message : "Server error";
+    }
+  }, []);
+
   useEffect(() => {
+    let mounted = true;
+    setDeptLoading(true);
+    const base = getApiBase();
+    axios
+      .get(`${base}/api/report/departments`, {
+        headers: {
+          "x-api-key": process.env.REACT_APP_API_KEY || "",
+          "x-employee-id": employeeId || "",
+          Accept: "application/json",
+        },
+      })
+      .then((res) => {
+        if (!mounted) return;
+        const data = res && res.data ? res.data : [];
+        let rows = [];
+        if (Array.isArray(data)) rows = data;
+        else if (Array.isArray(data.departments)) rows = data.departments;
+        else if (Array.isArray(data.results)) rows = data.results;
+        else if (Array.isArray(data.data)) rows = data.data;
+        else rows = [];
+        setDepartments(rows);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch departments:", err);
+        setDepartments([]);
+      })
+      .finally(() => {
+        if (mounted) setDeptLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [employeeId]);
+
+  useEffect(() => {
+    // When component changes we reset component-specific state.
+    // Also reset employee/department selection so changing component clears those filters.
     if (!component || component === "select") {
       setStatusOptions([]);
       setStatus("All");
       setAvailableFields([]);
       setSelectedFields([]);
       setPreviewOpen(false);
-      setPreviewData([]);
+      setPreviewRows([]);
       setPreviewError("");
+      setPreviewMessage("");
+
+      // Reset employee/department/typeahead state when no component is selected
+      setFilterEmployeeId(null);
+      setFilterEmployeeName("");
+      setFilterDepartmentId(null);
+      setIsTypingSearch(false);
       return;
     }
 
+    // When a real component is selected, populate fields/status and reset employee/department
     setStatusOptions(STATUS_OPTIONS[component] || ["All"]);
     setStatus("All");
-
     const subs = SUB_OPTIONS[component] || [];
     setAvailableFields(subs);
     setSelectedFields(subs.map((s) => s.key));
     setPreviewOpen(false);
-    setPreviewData([]);
+    setPreviewRows([]);
     setPreviewError("");
+    setPreviewMessage("");
+
+    // IMPORTANT: reset employee and department selection whenever component changes
+    // This ensures the component-specific filters do not leak across components.
+    setFilterEmployeeId(null);
+    setFilterEmployeeName("");
+    setFilterDepartmentId(null);
+    setIsTypingSearch(false);
   }, [component]);
 
   const presetRange = (days) => {
@@ -179,7 +217,6 @@ export default function Reportpanel() {
     setStartDate(start.toISOString().slice(0, 10));
     setEndDate(end.toISOString().slice(0, 10));
   };
-
   const thisMonth = () => {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -189,9 +226,7 @@ export default function Reportpanel() {
   };
 
   const validateDates = () => {
-    // If both empty, allow (backend will default to last 2 months)
     if (!startDate && !endDate) return true;
-
     if (startDate && endDate) {
       const s = new Date(startDate);
       const e = new Date(endDate);
@@ -199,7 +234,6 @@ export default function Reportpanel() {
         showAlert("Start date cannot be after End date.");
         return false;
       }
-      // compute inclusive days
       const diffMs = e.getTime() - s.getTime();
       const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
       if (days > MAX_RANGE_DAYS) {
@@ -210,47 +244,45 @@ export default function Reportpanel() {
       }
       return true;
     }
-
-    // If only one provided, require both (or clear both to default)
     showAlert(
       "Please provide both Start Date and End Date, or leave both empty to use the default last 2 months range."
     );
     return false;
   };
 
-  const toggleField = (key) => {
+  const toggleField = (key) =>
     setSelectedFields((prev) =>
       prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]
     );
-  };
-
   const selectAllFields = () => {
     if (!availableFields || availableFields.length === 0) return;
     setSelectedFields(availableFields.map((s) => s.key));
   };
-
-  const clearAllFields = () => {
-    setSelectedFields([]);
-  };
-
+  const clearAllFields = () => setSelectedFields([]);
   const allSelected =
     availableFields.length > 0 &&
     selectedFields.length === availableFields.length;
   const someSelected =
     selectedFields.length > 0 && selectedFields.length < availableFields.length;
 
+  const getEndpointForComponent = (comp) => {
+    if (!comp || comp === "select") return null;
+    if (comp === "tasks_supervisor") return "tasks/supervisor";
+    if (comp === "tasks_employee") return "tasks/employee";
+    return comp;
+  };
+
   const buildParams = ({ includeFormat = false, preview = false } = {}) => {
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
-
     const st =
       status === undefined || status === null ? "" : String(status).trim();
     params.append("status", st);
-
-    if (selectedFields && selectedFields.length > 0) {
+    if (selectedFields && selectedFields.length > 0)
       params.append("fields", selectedFields.join(","));
-    }
+    if (filterEmployeeId) params.append("employee_id", filterEmployeeId);
+    if (filterDepartmentId) params.append("department_id", filterDepartmentId);
     if (preview) params.append("preview", "true");
     if (includeFormat) params.append("format", "xlsx");
     return params.toString();
@@ -268,24 +300,40 @@ export default function Reportpanel() {
     return true;
   };
 
-  // unified download helper but uses separate flags
+  const ensureClientDownloadFieldLimit = (format) => {
+    if (!selectedFields || !Array.isArray(selectedFields)) return true;
+    const fmt = (format || "").toLowerCase();
+    if (
+      (fmt === "pdf" || fmt === "xlsx") &&
+      selectedFields.length > MAX_DOWNLOAD_FIELDS
+    ) {
+      showAlert(
+        `You have selected ${selectedFields.length} fields. Downloads (PDF/XLSX) are limited to ${MAX_DOWNLOAD_FIELDS} fields. Please reduce your selection or use Preview.`
+      );
+      return false;
+    }
+    return true;
+  };
+
   const download = async (format) => {
     if (!validateDates()) return;
     if (!validateSelection()) return;
-
+    if (!ensureClientDownloadFieldLimit(format)) return;
     const isPdf = format === "pdf";
-    // set only the relevant flag
     if (isPdf) setDownloadingPdf(true);
     else setDownloadingXlsx(true);
 
     try {
-      const base = process.env.REACT_APP_BACKEND_URL || "";
+      const base = getApiBase();
+      const endpoint = getEndpointForComponent(component);
+      if (!endpoint) {
+        showAlert("Invalid component selected");
+        return;
+      }
       const paramString = buildParams({ includeFormat: false, preview: false });
-      const url = `${base}/api/report/${component}?${paramString}${
+      const url = `${base}/api/report/${endpoint}?${paramString}${
         paramString ? "&" : ""
       }format=${encodeURIComponent(format)}`;
-
-      console.log("[ReportPanel] download URL:", url);
 
       let acceptHeader = "*/*";
       if (isPdf) acceptHeader = "application/pdf";
@@ -296,8 +344,8 @@ export default function Reportpanel() {
       const res = await axios.get(url, {
         responseType: "blob",
         headers: {
-          "x-api-key": process.env.REACT_APP_API_KEY,
-          "x-employee-id": employeeId,
+          "x-api-key": process.env.REACT_APP_API_KEY || "",
+          "x-employee-id": employeeId || "",
           Accept: acceptHeader,
         },
         timeout: 2 * 60 * 1000,
@@ -308,29 +356,32 @@ export default function Reportpanel() {
         contentType.includes("application/json") ||
         contentType.includes("text/plain");
       if (isJson) {
-        // Blob.text() is supported in modern browsers and simpler than FileReader
+        // server returned a JSON error instead of a file — read and show it
         let text = "";
         try {
           text = await res.data.text();
         } catch (e) {
           text = "(unable to read response body)";
         }
-        console.error("Server returned JSON/text instead of file:", text);
-        showAlert(
-          "Server returned an error instead of the file. Check console for details."
-        );
+        let parsedMsg = null;
+        try {
+          const parsed = JSON.parse(text || "{}");
+          parsedMsg = parsed.message || parsed.error || parsed.msg || text;
+        } catch (e) {
+          parsedMsg = text || `Server responded with status ${res.status}`;
+        }
+        console.error("Server returned JSON/text instead of file:", parsedMsg);
+        showAlert(parsedMsg);
         return;
       }
 
-      // determine filename (fallback to component_report.<ext>)
       let filename = `${component}_report.${isPdf ? "pdf" : "xlsx"}`;
       const disposition = res.headers["content-disposition"];
       if (disposition) {
-        const match = disposition.match(/filename="?([^\"]+)"?/);
+        const match = disposition.match(/filename="?([^"]+)"?/);
         if (match && match[1]) filename = match[1];
       }
 
-      // create download link
       const blob = new Blob([res.data], { type: res.headers["content-type"] });
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
@@ -341,30 +392,10 @@ export default function Reportpanel() {
       window.URL.revokeObjectURL(link.href);
     } catch (err) {
       console.error("Report download error:", err);
-      if (err.response) {
-        const msg =
-          (err.response.data && err.response.data.message) ||
-          `Server responded with status ${err.response.status}`;
-        console.error(
-          "Response status:",
-          err.response.status,
-          err.response.data
-        );
-        showAlert(msg);
-      } else if (err.request) {
-        console.error(
-          "No response received (possible network/CORS issue):",
-          err.request
-        );
-        showAlert(
-          "No response from server. Check network / CORS or backend availability."
-        );
-      } else {
-        console.error("Download setup error:", err.message);
-        showAlert("Failed to download report: " + err.message);
-      }
+      // Extract useful message from server (handles blob/json/text)
+      const msg = await getErrorMessageFromAxiosError(err);
+      showAlert(msg);
     } finally {
-      // always clear only the relevant flag
       if (isPdf) setDownloadingPdf(false);
       else setDownloadingXlsx(false);
     }
@@ -377,46 +408,64 @@ export default function Reportpanel() {
 
       setPreviewError("");
       setPreviewLoading(true);
-      setPreviewData([]);
+      setPreviewRows([]);
       setPreviewTotalRows(null);
+      setPreviewPage(1);
       setPreviewOpen(true);
+      setPreviewMessage("");
 
-      const base = process.env.REACT_APP_BACKEND_URL || "";
-      const url = `${base}/api/report/${component}?${buildParams({
+      const base = getApiBase();
+      const endpoint = getEndpointForComponent(component);
+      if (!endpoint) {
+        showAlert("Invalid component selected");
+        return;
+      }
+      const url = `${base}/api/report/${endpoint}?${buildParams({
         preview: true,
       })}`;
 
-      console.log("[ReportPanel] preview URL:", url);
-
       const res = await axios.get(url, {
         headers: {
-          "x-api-key": process.env.REACT_APP_API_KEY,
-          "x-employee-id": employeeId,
+          "x-api-key": process.env.REACT_APP_API_KEY || "",
+          "x-employee-id": employeeId || "",
           Accept: "application/json",
         },
       });
 
       let rows = [];
-      if (Array.isArray(res.data)) {
-        rows = res.data;
-      } else if (res.data && Array.isArray(res.data.rows)) {
+      let total = null;
+
+      if (res.data && Array.isArray(res.data.rows)) {
         rows = res.data.rows;
-        if (typeof res.data.totalRows === "number")
-          setPreviewTotalRows(res.data.totalRows);
+        total =
+          typeof res.data.totalRows === "number"
+            ? res.data.totalRows
+            : rows.length;
+      } else if (Array.isArray(res.data)) {
+        rows = res.data;
+        total = rows.length;
+      } else if (Array.isArray(res.data.results)) {
+        rows = res.data.results;
+        total =
+          typeof res.data.total === "number" ? res.data.total : rows.length;
       } else {
-        throw new Error(
-          "Preview endpoint did not return an array (expected JSON array or { rows: [...] })."
-        );
+        throw new Error("Preview endpoint returned unexpected shape.");
       }
 
       const MAX_PREVIEW_ROWS = 200;
-      setPreviewData(rows.slice(0, MAX_PREVIEW_ROWS));
-      setPreviewTotalRows((prev) => prev ?? rows.length);
+      setPreviewRows(rows.slice(0, MAX_PREVIEW_ROWS));
+      setPreviewTotalRows((prev) => prev ?? total ?? rows.length);
 
+      // prefer server-provided preview message when rows empty
       if (rows.length === 0) {
-        showAlert(
-          "No data available for the selected date range (max 2 months). Please change filters."
-        );
+        const serverMsg =
+          (res.data &&
+            typeof res.data.message === "string" &&
+            res.data.message) ||
+          "No data available for the selected date range (max 2 months). Please change filters.";
+        setPreviewMessage(serverMsg);
+      } else {
+        setPreviewMessage("");
       }
 
       if (rows.length > MAX_PREVIEW_ROWS) {
@@ -426,14 +475,14 @@ export default function Reportpanel() {
       }
     } catch (err) {
       console.error("Preview error:", err);
-      setPreviewError(
-        "Unable to fetch preview. Ensure your backend supports a JSON preview endpoint: " +
-          "`GET /api/report/{component}?...&preview=true` returning JSON (array or { rows: [...] }). " +
-          (err?.message || "")
-      );
-      setPreviewData([]);
-      // Also show a modal alert for preview-level failures
-      showAlert("Failed to fetch preview. Check console for details.");
+
+      // Try to get server message and show it inside the preview panel (not alert)
+      const msg = await getErrorMessageFromAxiosError(err);
+      setPreviewRows([]);
+      setPreviewTotalRows(0);
+      setPreviewMessage(msg);
+      setPreviewError("");
+      setPreviewOpen(true);
     } finally {
       setPreviewLoading(false);
     }
@@ -441,8 +490,44 @@ export default function Reportpanel() {
 
   const keyToLabel = {};
   availableFields.forEach((f) => (keyToLabel[f.key] = f.label));
-
   const componentIsSelected = component && component !== "select";
+
+  // Typeahead callbacks
+  const onTypeStart = useCallback((typing) => setIsTypingSearch(typing), []);
+  const onEmployeeSelect = useCallback((item) => {
+    setFilterEmployeeId(item.employee_id || item.id || null);
+    setFilterEmployeeName(item.employee_name || item.name || item.email || "");
+    if (item.department_id) setFilterDepartmentId(item.department_id);
+    setIsTypingSearch(false);
+  }, []);
+  const onEmployeeClear = useCallback(() => {
+    setFilterEmployeeId(null);
+    setFilterEmployeeName("");
+  }, []);
+  const onDepartmentChange = useCallback((ev) => {
+    const val = ev.target.value;
+    const v = val === "" ? null : val;
+    setFilterDepartmentId(v);
+    setFilterEmployeeId(null);
+    setFilterEmployeeName("");
+  }, []);
+  const onDepartmentSelectFromDropdown = useCallback((dept) => {
+    setFilterDepartmentId(dept ? String(dept.department_id) : null);
+    setFilterEmployeeId(null);
+    setFilterEmployeeName("");
+  }, []);
+
+  // pagination helpers
+  const totalPages = Math.max(
+    1,
+    Math.ceil((previewRows.length || 0) / PREVIEW_PAGE_SIZE)
+  );
+  const currentPage = Math.min(Math.max(1, previewPage), totalPages);
+  const currentPageData = previewRows.slice(
+    (currentPage - 1) * PREVIEW_PAGE_SIZE,
+    currentPage * PREVIEW_PAGE_SIZE
+  );
+  const goToPage = (p) => setPreviewPage(Math.min(Math.max(1, p), totalPages));
 
   return (
     <div className="rp-container">
@@ -453,7 +538,7 @@ export default function Reportpanel() {
             <h2>Reports</h2>
             <p className="rp-sub">
               Export Leaves, Reimbursements, Employees, Vendors, Assets,
-              Attendance — Excel and PDF
+              Attendance, Tasks — Excel and PDF
             </p>
           </div>
         </div>
@@ -463,7 +548,7 @@ export default function Reportpanel() {
         <div className="rp-row">
           <label className="rp-label">Component</label>
           <select
-            className="rp-select"
+            className="rep-select"
             value={component}
             onChange={(e) => setComponent(e.target.value)}
           >
@@ -476,6 +561,8 @@ export default function Reportpanel() {
             <option value="vendors">Vendors</option>
             <option value="assets">Assets</option>
             <option value="attendance">Attendance</option>
+            <option value="tasks_employee">Tasks (Employee Driven)</option>
+            <option value="tasks_supervisor">Tasks (Supervisor Driven)</option>
           </select>
         </div>
 
@@ -512,44 +599,41 @@ export default function Reportpanel() {
                   Choose a component to see fields
                 </span>
               )}
-
               {someSelected && componentIsSelected && (
                 <span className="rp-fields-selected-summary">
                   {selectedFields.length} selected
                 </span>
               )}
+              {componentIsSelected && (
+                <span
+                  className="rp-fields-limit-summary"
+                  style={{
+                    marginLeft: 12,
+                    color:
+                      selectedFields.length > MAX_DOWNLOAD_FIELDS
+                        ? "crimson"
+                        : "#666",
+                  }}
+                >
+                  {selectedFields.length} selected (max {MAX_DOWNLOAD_FIELDS}{" "}
+                  for downloads)
+                </span>
+              )}
             </div>
 
-            <div
-              className="rp-fields-grid"
-              aria-disabled={!componentIsSelected}
-            >
-              {availableFields.map((f) => {
-                const selected = selectedFields.includes(f.key);
-                return (
-                  <button
-                    key={f.key}
-                    type="button"
-                    className={`rp-field-chip ${selected ? "selected" : ""}`}
-                    onClick={() => toggleField(f.key)}
-                    role="checkbox"
-                    aria-checked={selected}
-                    title={f.label}
-                    disabled={!componentIsSelected}
-                  >
-                    <span className="rp-field-chip-label">{f.label}</span>
-                    {selected && <span className="rp-field-chip-check">✓</span>}
-                  </button>
-                );
-              })}
-            </div>
+            <FieldsGrid
+              availableFields={availableFields}
+              selectedFields={selectedFields}
+              toggleField={toggleField}
+              disabled={!componentIsSelected}
+            />
           </div>
         </div>
 
         <div className="rp-row">
           <label className="rp-label">Status</label>
           <select
-            className="rp-select"
+            className="rep-select"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             disabled={!componentIsSelected || !statusOptions.length}
@@ -566,7 +650,7 @@ export default function Reportpanel() {
           </select>
         </div>
 
-        <div className="rp-row rp-dates">
+        <div className="rp-row rp-dates rp-dates-4">
           <div className="rp-date-field">
             <label className="rp-label">Start Date</label>
             <div className="rp-input-with-icon">
@@ -590,13 +674,61 @@ export default function Reportpanel() {
               />
             </div>
           </div>
+
+          <div className="rp-date-field rp-typeahead-field">
+            <label className="rp-label">Employee Name</label>
+            <EmployeeTypeahead
+              onSelect={onEmployeeSelect}
+              onTyping={onTypeStart}
+              onClear={onEmployeeClear}
+              departmentId={filterDepartmentId}
+              limit={10}
+              selectedValue={filterEmployeeName}
+              isTyping={isTypingSearch}
+            />
+            <div className="rp-typeahead-subtext">
+              {filterEmployeeId ? (
+                <em>Filtering by employee id: {filterEmployeeId}</em>
+              ) : (
+                <em>Search by name or email</em>
+              )}
+            </div>
+          </div>
+
+          <div className="rp-date-field rp-typeahead-field">
+            <label className="rp-label">Department</label>
+            <div>
+              <select
+                className="rep-select"
+                value={filterDepartmentId || ""}
+                onChange={onDepartmentChange}
+                disabled={deptLoading}
+                aria-label="Select department"
+                style={{ width: "100%" }}
+              >
+                <option value="">All departments</option>
+                {departments.map((d) => {
+                  const id = d.department_id ?? d.id ?? d.departmentId ?? "";
+                  const name =
+                    d.department_name ?? d.name ?? d.departmentName ?? "";
+                  return (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  );
+                })}
+              </select>
+              {deptLoading && (
+                <div className="rp-typeahead-subtext">Loading departments…</div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="rp-presets">
           <button className="rp-chip" onClick={() => presetRange(7)}>
             Last 7 days
           </button>
-
           <button className="rp-chip" onClick={thisMonth}>
             This month
           </button>
@@ -605,14 +737,9 @@ export default function Reportpanel() {
             onClick={() => {
               setStartDate("");
               setEndDate("");
-              setStatus("All");
-              setSelectedFields([]);
-              setPreviewOpen(false);
-              setPreviewData([]);
-              setPreviewError("");
             }}
           >
-            Clear
+            Clear Dates
           </button>
         </div>
 
@@ -670,8 +797,9 @@ export default function Reportpanel() {
               className="rp-btn"
               onClick={() => {
                 setPreviewOpen(false);
-                setPreviewData([]);
+                setPreviewRows([]);
                 setPreviewError("");
+                setPreviewMessage("");
               }}
             >
               Close Preview
@@ -698,11 +826,8 @@ export default function Reportpanel() {
                 )}
                 {!previewLoading && previewTotalRows != null && (
                   <span className="rp-small-muted">
-                    Showing {previewData.length}
-                    {previewTotalRows && previewTotalRows > previewData.length
-                      ? ` of ${previewTotalRows}`
-                      : ""}{" "}
-                    rows
+                    Showing {currentPageData.length} of {previewTotalRows} rows
+                    — page {currentPage} of {totalPages}
                   </span>
                 )}
               </div>
@@ -714,13 +839,13 @@ export default function Reportpanel() {
               </div>
             )}
 
-            {!previewLoading && !previewError && previewData.length === 0 && (
+            {!previewLoading && !previewError && previewRows.length === 0 && (
               <div className="rp-preview-empty rp-small-muted">
-                No rows to preview with selected filters.
+                {previewMessage || "No rows to preview with selected filters."}
               </div>
             )}
 
-            {!previewLoading && previewData.length > 0 && (
+            {!previewLoading && previewRows.length > 0 && (
               <div className="rp-preview-table-wrap">
                 <table className="rp-preview-table">
                   <thead>
@@ -731,7 +856,7 @@ export default function Reportpanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {previewData.map((row, idx) => (
+                    {currentPageData.map((row, idx) => (
                       <tr key={idx}>
                         {selectedFields.map((k) => (
                           <td key={k + "-" + idx}>
@@ -746,13 +871,20 @@ export default function Reportpanel() {
                     ))}
                   </tbody>
                 </table>
+
+                {totalPages > 1 && (
+                  <Pagination
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    onPageChange={goToPage}
+                  />
+                )}
               </div>
             )}
           </div>
         )}
       </section>
 
-      {/* Common alert modal (re-uses the project's Modal component) */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

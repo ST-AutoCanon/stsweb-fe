@@ -1,4 +1,4 @@
-/* Base container */
+/* ---------- Base container ---------- */
 .rp-container {
   padding: 20px;
   max-width: 1100px;
@@ -6,9 +6,10 @@
   font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: #0f172a;
   z-index: 1000;
+  box-sizing: border-box;
 }
 
-/* Header */
+/* ---------- Header ---------- */
 .rp-header {
   display: flex;
   align-items: center;
@@ -33,7 +34,7 @@
   color: #475569;
 }
 
-/* Card */
+/* ---------- Card ---------- */
 .rp-card {
   background: #ffffff;
   border-radius: 10px;
@@ -41,14 +42,16 @@
   box-shadow: 0 6px 16px rgba(13, 18, 25, 0.06);
   border: 1px solid rgba(15, 23, 42, 0.04);
   width: 100%;
+  box-sizing: border-box;
 }
 
-/* Rows */
+/* ---------- Rows / Labels ---------- */
 .rp-row {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 14px;
+  flex-wrap: nowrap;
 }
 
 .rp-label {
@@ -58,7 +61,7 @@
   font-size: 14px;
 }
 
-/* Date fields arranged responsively */
+/* Dates area */
 .rp-dates {
   gap: 12px;
   flex-wrap: wrap;
@@ -67,9 +70,10 @@
 
 .rp-date-field {
   flex: 1 1 220px;
+  min-width: 160px;
 }
 
-/* Inputs */
+/* ---------- Inputs / Selects / Typeahead ---------- */
 .rp-input-with-icon {
   position: relative;
   display: flex;
@@ -78,34 +82,140 @@
   border: 1px solid #e6eef6;
   border-radius: 8px;
   padding: 6px 10px;
-  z-index: 999;
+  box-sizing: border-box;
+  height: 44px;
 }
 
 .rp-input-with-icon input[type="date"],
-.rp-select {
+.rep-select,
+.typeahead-input {
   border: none;
   background: transparent;
   font-size: 14px;
   padding: 8px 8px;
   outline: none;
   width: 100%;
+  box-sizing: border-box;
+  height: 100%;
 }
 
-.rp-icon {
-  color: #0f172a;
-  margin-right: 8px;
+/* Ensure input doesn't shrink when spinner or clear button appears */
+.typeahead-input {
+  padding-right: 36px; /* Reserve space for spinner/clear button */
+}
+
+/* Spinner for typeahead & buttons */
+.rp-spinner,
+.typeahead-spinner .rp-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(11, 18, 32, 0.12);
+  border-top-color: rgba(11, 18, 32, 0.7);
+  border-radius: 50%;
+  animation: rp-spin 0.9s linear infinite;
+  box-sizing: border-box;
+}
+@keyframes rp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.typeahead-spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+/* Clear button for typeahead */
+.typeahead-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.typeahead-clear:hover {
+  color: #0b1220;
+}
+
+/* Dropdown for typeahead */
+.typeahead-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e6eef6;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(13, 18, 25, 0.06);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+.typeahead-info {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 1px solid #e6eef6;
+}
+
+.typeahead-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.typeahead-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+.typeahead-item:hover {
+  background: #f8fafc;
+}
+.typeahead-item:last-child {
+  border-bottom: none;
+}
+
+.ta-name {
+  font-size: 14px;
+  color: #0b1220;
+  font-weight: 500;
+}
+.ta-dept {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 3px;
 }
 
 /* Select */
-.rp-select {
+.rep-select {
   min-width: 220px;
   background: #f8fafc;
   border: 1px solid #e6eef6;
   border-radius: 8px;
   padding: 8px 10px;
+  box-sizing: border-box;
+  height: 44px;
 }
 
-/* Presets chips */
+/* ---------- Presets chips ---------- */
 .rp-presets {
   display: flex;
   gap: 8px;
@@ -120,22 +230,33 @@
   border-radius: 999px;
   cursor: pointer;
   font-size: 13px;
-  color: #0b1220;
+  color: #0b1720;
   transition: all 0.14s ease;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
 }
-
 .rp-chip:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(2, 6, 23, 0.06);
 }
 
-/* Actions */
+/* small action chip */
+.rp-chip.small {
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  height: 32px;
+}
+
+/* ---------- Actions (buttons) ---------- */
 .rp-actions {
   display: flex;
   gap: 12px;
   align-items: center;
   margin-top: 4px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .rp-btn {
@@ -152,13 +273,13 @@
   background: #eef2ff;
   color: #0b1220;
   border: 1px solid #e6eef6;
+  height: 44px;
+  box-sizing: border-box;
 }
-
 .rp-btn.preview {
   background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   border: 1px solid rgba(99, 102, 241, 0.14);
 }
-
 .rp-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -168,11 +289,10 @@
 
 /* Excel style */
 .rp-btn.excel {
-  background: #7fbd2c;
+  background: linear-gradient(180deg, #047857 0%, #036c56 100%);
   color: white;
   box-shadow: 0 6px 16px rgba(3, 105, 96, 0.12);
 }
-
 .rp-btn.excel:hover:not(:disabled) {
   transform: translateY(-3px);
 }
@@ -183,68 +303,25 @@
   color: white;
   box-shadow: 0 6px 16px rgba(184, 28, 28, 0.12);
 }
-
 .rp-btn.pdf:hover:not(:disabled) {
   transform: translateY(-3px);
 }
 
-/* Spinner for loading in buttons */
-.rp-spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: rgba(255, 255, 255, 1);
-  border-radius: 50%;
-  animation: rp-spin 0.9s linear infinite;
-}
-
-@keyframes rp-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Note */
+/* ---------- Note ---------- */
 .rp-note {
   margin-top: 12px;
   font-size: 13px;
   color: #475569;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .rp-container {
-    padding: 12px;
-    margin: 12px;
-  }
-  .rp-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .rp-label {
-    min-width: 0;
-    margin-bottom: 6px;
-  }
-  .rp-select {
-    width: 100%;
-  }
-  .rp-btn {
-    flex: 1;
-  }
-  .rp-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-/* ===== Fields grid and chips (new layout) ===== */
+/* ---------- Fields grid and chips (new layout) ---------- */
 .rp-fields-row {
   align-items: flex-start;
 }
 
 .rp-fields-wrap {
   width: 100%;
+  box-sizing: border-box;
 }
 
 .rp-fields-actions {
@@ -266,6 +343,7 @@
   gap: 8px;
 }
 
+/* Field chip */
 .rp-field-chip {
   display: inline-flex;
   align-items: center;
@@ -280,8 +358,8 @@
   color: #0f172a;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   min-height: 44px;
+  box-sizing: border-box;
 }
-
 .rp-field-chip:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(2, 6, 23, 0.06);
@@ -298,7 +376,7 @@
 .rp-field-chip .rp-field-chip-check {
   margin-left: 8px;
   font-weight: 700;
-  color: #4CAF50;
+  color: #047857;
 }
 
 .rp-field-chip.selected {
@@ -307,20 +385,12 @@
   box-shadow: 0 6px 14px rgba(4, 120, 87, 0.06);
 }
 
-/* small action chip */
-.rp-chip.small {
-  padding: 6px 8px;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-/* Responsive: fewer columns on small screens */
+/* Responsive: fewer columns on smaller screens */
 @media (max-width: 1024px) {
   .rp-fields-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-
 @media (max-width: 720px) {
   .rp-fields-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -329,14 +399,13 @@
     min-width: 72px;
   }
 }
-
 @media (max-width: 420px) {
   .rp-fields-grid {
     grid-template-columns: 1fr;
   }
 }
 
-/* ===== Preview Panel styles ===== */
+/* ---------- Preview Panel styles ---------- */
 .rp-preview-panel {
   margin-top: 18px;
   padding: 12px;
@@ -344,6 +413,7 @@
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.04);
   box-shadow: 0 8px 20px rgba(16, 24, 40, 0.04);
+  box-sizing: border-box;
 }
 
 /* header within preview */
@@ -375,6 +445,7 @@
   overflow: auto;
   border-radius: 6px;
   border: 1px solid #eef2ff;
+  box-sizing: border-box;
 }
 
 /* basic table */
@@ -382,8 +453,10 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  min-width: 600px; /* allow horizontal scroll for many columns */
 }
 
+/* header cells */
 .rp-preview-table thead th {
   position: sticky;
   top: 0;
@@ -392,8 +465,10 @@
   text-align: left;
   padding: 10px;
   border-bottom: 1px solid #e6eef6;
+  white-space: nowrap;
 }
 
+/* body cells */
 .rp-preview-table tbody td {
   padding: 10px;
   border-bottom: 1px solid #f1f5f9;
@@ -404,21 +479,182 @@
   text-overflow: ellipsis;
 }
 
-/* small muted text for empty state */
+/* empty / muted text */
 .rp-small-muted {
   color: #6b7280;
   font-size: 13px;
 }
-
 .rp-preview-empty {
   padding: 12px;
   color: #475569;
 }
 
-/* responsive table tweaks */
+/* ---------- Pagination (preview) ---------- */
+.rp-pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 4px 0 0;
+  flex-wrap: wrap;
+}
+
+.rp-page-btn,
+.rp-page-num {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 40px;
+  box-sizing: border-box;
+}
+
+.rp-page-num.active {
+  background: #eef2ff;
+  border-color: #bfdbfe;
+  font-weight: 600;
+}
+
+.rp-page-btn:disabled,
+.rp-page-num:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* go-to page input */
+.rp-page-jump {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: 8px;
+}
+.rp-page-jump input {
+  width: 72px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  box-sizing: border-box;
+}
+
+/* small screens table tweaks */
 @media (max-width: 720px) {
   .rp-preview-table thead th,
   .rp-preview-table tbody td {
     padding: 8px;
+  }
+}
+
+/* ---------- Accessibility & Focus ---------- */
+.rp-btn:focus,
+.rp-field-chip:focus,
+.rep-select:focus,
+.typeahead-input:focus,
+.rp-page-num:focus,
+.rp-page-btn:focus,
+.rp-chip:focus {
+  outline: 3px solid rgba(99, 102, 241, 0.16);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---------- Tiny utility helpers ---------- */
+.hidden {
+  display: none !important;
+}
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===========================
+   New / Adjusted rules to fix alignment for the date row + typeahead
+   =========================== */
+
+/* Force the 4-field row to be column-oriented (label above control) and keep items aligned */
+.rp-row.rp-dates {
+  display: flex;
+  align-items: flex-start; /* labels sit above inputs */
+  gap: 16px;
+  flex-wrap: nowrap; /* keep all 4 items on one row where possible */
+}
+
+/* Each field acts as a vertical column (label above input) */
+.rp-row.rp-dates .rp-date-field {
+  flex: 1 1 220px; /* grow/shrink, base width 220px */
+  min-width: 160px; /* prevents shrinking too far */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Allow labels inside this row to be normal flow (override global min-width) */
+.rp-row.rp-dates > .rp-date-field > .rp-label,
+.rp-row.rp-dates .rp-label {
+  min-width: 0; /* allow label to size naturally */
+  width: auto;
+  margin-bottom: 6px;
+  align-self: flex-start;
+}
+
+/* Make selects/inputs/typeahead fill their column and vertically center content */
+.rp-row.rp-dates .rep-select,
+.rp-row.rp-dates .rp-input-with-icon,
+.rp-row.rp-dates .typeahead-input,
+.rp-row.rp-dates .typeahead-wrapper,
+.rp-row.rp-dates .rp-typeahead-field > div > select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* Typeahead-specific: ensure inner input stretches and is vertically centered */
+.rp-row.rp-dates .typeahead-input input,
+.rp-row.rp-dates .typeahead-input .typeahead-inner-input,
+.rp-row.rp-dates .typeahead-input {
+  height: 100%;
+  display: block;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 8px;
+}
+
+/* Subtext under typeahead (employee) */
+.rp-typeahead-subtext {
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* Make the department select align with inputs */
+.rp-row.rp-dates .rp-typeahead-field > div {
+  width: 100%;
+}
+
+/* Slightly reduce the icon push so internal icons don't change alignment */
+.rp-row.rp-dates .rp-input-with-icon .rp-icon {
+  margin-right: 8px;
+  height: 20px;
+}
+
+/* Responsive breakpoints: when there isn't room, wrap to two columns, then one */
+@media (max-width: 980px) {
+  .rp-row.rp-dates {
+    flex-wrap: wrap;
+  }
+  .rp-row.rp-dates .rp-date-field {
+    flex: 1 1 48%;
+    min-width: 220px;
+  }
+}
+
+@media (max-width: 600px) {
+  .rp-row.rp-dates .rp-date-field {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 }
