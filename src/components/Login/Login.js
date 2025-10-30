@@ -103,6 +103,7 @@ const Login = ({ onClose }) => {
       localStorage.setItem("userRole", data.message.role);
       localStorage.setItem("userName", data.message.name);
       localStorage.setItem("userGender", data.message.gender);
+      localStorage.setItem("username", data.message.email || username);
       localStorage.setItem(
         "dashboardData",
         JSON.stringify(data.message.dashboard)
@@ -225,4 +226,4 @@ const Login = ({ onClose }) => {
   );
 };
 
-export default Login;
+export default Login; //////////////////////////////////////////

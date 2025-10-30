@@ -3,23 +3,35 @@
   top: 40%;
   left: 50%;
   transform: translateX(-50%);
-background: linear-gradient(125deg, #82DAFE, #65eb7e9b);
-  border: 2px solid #6EBA35;
+  background: linear-gradient(125deg, #82dafe, #65eb7e9b);
+  border: 2px solid #6eba35;
   border-radius: 20px;
   padding: 40px 60px;
   text-align: center;
   z-index: 9999;
-  box-shadow: 0 0 30px #10677A;
+  box-shadow: 0 0 30px #10677a;
   font-family: "Comic Sans MS", cursive;
   overflow: hidden;
   animation: cardFade 5s forwards;
+  pointer-events: none;
 }
 
 @keyframes cardFade {
-  0% { opacity: 0; transform: scale(0.9) translateX(-50%); }
-  10% { opacity: 1; transform: scale(1.05) translateX(-50%); }
-  90% { opacity: 1; }
-  100% { opacity: 0; transform: scale(0.9) translateX(-50%); }
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateX(-50%);
+  }
+  10% {
+    opacity: 1;
+    transform: scale(1.05) translateX(-50%);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateX(-50%);
+  }
 }
 
 .sparkles {
@@ -29,8 +41,14 @@ background: linear-gradient(125deg, #82DAFE, #65eb7e9b);
 }
 
 @keyframes twinkle {
-  0% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 1; transform: scale(1.2); }
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 /* Blast Animation */
@@ -60,9 +78,10 @@ background: linear-gradient(125deg, #82DAFE, #65eb7e9b);
   }
   to {
     transform: translate(
-      calc(120px * cos(var(--i) * 9deg)),
-      calc(120px * sin(var(--i) * 9deg))
-    ) scale(0.5);
+        calc(120px * cos(var(--i) * 9deg)),
+        calc(120px * sin(var(--i) * 9deg))
+      )
+      scale(0.5);
     opacity: 0;
   }
 }
