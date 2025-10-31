@@ -25,7 +25,11 @@ const RbTeamLead = () => {
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [statusUpdates, setStatusUpdates] = useState({});
   const [comments, setComments] = useState({});
-  const [statusFilter, setStatusFilter] = useState("pending");
+  // statusFilter now supports admin options
+  const [statusFilter, setStatusFilter] = useState("all");
+  // searchQuery to filter by name or id (admin behavior)
+  const [searchQuery, setSearchQuery] = useState("");
+
   // (No longer using paymentStatusUpdates from a dropdown)
   // New states for payment modal functionality:
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -339,6 +343,47 @@ const RbTeamLead = () => {
     setView(e.target.checked ? "self" : "team");
   };
 
+  // Admin-style filteredEmployees (exact logic you gave) — preserves original UI behaviour
+  const filteredEmployees = employees
+    .map((emp) => ({
+      ...emp,
+      claims: emp.claims.filter((claim) => {
+        const status = claim.status?.toLowerCase().trim();
+        const pay = claim.payment_status?.toLowerCase().trim();
+
+        switch (statusFilter) {
+          case "approved":
+            return status === "approved";
+
+          case "rejected":
+            return status === "rejected";
+
+          case "pending":
+            return status === "pending";
+
+          case "approved_pending":
+            return status === "approved" && pay === "pending";
+
+          case "approved_paid":
+            return status === "approved" && pay === "paid";
+
+          case "all":
+            return true;
+
+          default:
+            return false;
+        }
+      }),
+    }))
+    .filter((emp) => emp.claims.length > 0)
+    .filter((emp) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      const name = (emp.claims[0]?.employee_name || "").toLowerCase();
+      const idStr = String(emp.employee_id).toLowerCase();
+      return name.includes(q) || idStr.includes(q);
+    });
+
   return (
     <div className="rb-admin">
       <h2>Reimbursement Requests</h2>
@@ -366,11 +411,25 @@ const RbTeamLead = () => {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
+                <option value="all">All</option>
                 <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="approved_pending">Approved - Pending</option>
+                <option value="approved_paid">Approved - Paid</option>
               </select>
             </div>
+
+            <div className="rb-filter-group">
+              <label>Search</label>
+              <input
+                type="text"
+                placeholder="Search by name or ID"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
             <div className="rb-filter-group">
               <label>Submitted From:</label>
               <input
@@ -387,17 +446,14 @@ const RbTeamLead = () => {
                 onChange={(e) => setSubmittedTo(e.target.value)}
               />
             </div>
-            <button className="rb-search" onClick={fetchEmployees}>
+            <button className="rb-search" onClick={handleSearch}>
               <FaSearch /> Search
             </button>
           </div>
 
           <div className="rb-atable-container">
-            {employees.map((employee) => {
-              const filteredClaims = employee.claims.filter(
-                (rb) =>
-                  (rb.status || "").toLowerCase() === statusFilter.toLowerCase()
-              );
+            {filteredEmployees.map((employee) => {
+              const filteredClaims = employee.claims;
               if (filteredClaims.length === 0) return null;
               return (
                 <div key={employee.employee_id} className="employee-section">

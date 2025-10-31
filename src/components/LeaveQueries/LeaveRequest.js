@@ -123,11 +123,12 @@ export default function LeaveRequest() {
         defaultLeaveSettings={hook.defaultLeaveSettings}
       />
 
+      {/* <-- FIX: wire real hook state & handlers to TeamTable (was placeholder before) */}
       <TeamTable
         leaveRequests={hook.leaveRequests}
-        statusUpdates={{}} // placeholder — wire admin approve logic if needed
-        handleStatusChange={() => {}}
-        onUpdate={() => {}}
+        statusUpdates={hook.statusUpdates}
+        handleStatusChange={hook.handleStatusChange}
+        onUpdate={hook.onUpdate}
         canViewTeam={hook.canViewTeam}
       />
 
