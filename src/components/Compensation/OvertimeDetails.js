@@ -14,6 +14,13 @@ const OvertimeDetails = () => {
   const [defaultHoursMap, setDefaultHoursMap] = useState({});
   const [cutoffDate, setCutoffDate] = useState(30); // Default fallback
 
+  const getLocalDateStr = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const fetchAssignedCompensation = async () => {
     try {
       const response = await axios.get(
@@ -114,22 +121,24 @@ const OvertimeDetails = () => {
       endDate = new Date(aprilYear, 3, cutoff); // April (month 3)
     }
 
-    // Adjust endDate to next day 00:00:00 to include full end day in <= filter
     const nextDayEnd = new Date(endDate);
     nextDayEnd.setDate(nextDayEnd.getDate() + 1);
 
     const range = {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: nextDayEnd.toISOString().split("T")[0],
+      startDate: getLocalDateStr(startDate),
+      endDate: getLocalDateStr(nextDayEnd),
     };
-    console.log(`getDateRange(${type}, cutoff: ${cutoff}): ${range.startDate} to ${range.endDate} (includes full ${endDate.toISOString().split("T")[0]} via next-day end)`);
+    console.log(`getDateRange(${type}, cutoff: ${cutoff}): ${range.startDate} to ${range.endDate} (includes full ${getLocalDateStr(endDate)} via next-day end)`);
     return range;
   };
 
   const getMonthName = (offset) => {
-    const date = new Date();
-    const targetMonth = date.getMonth() - offset;
-    date.setMonth(targetMonth);
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const targetMonth = currentMonth - offset;
+    const year = today.getFullYear() + Math.floor(targetMonth / 12);
+    const adjustedTargetMonth = (targetMonth % 12 + 12) % 12;
+    const date = new Date(year, adjustedTargetMonth, 1);
     const monthName = date.toLocaleString("en-US", { month: "long", year: "numeric" });
     console.log(`getMonthName(offset: ${offset}, targetMonth: ${targetMonth}): ${monthName}`);
     return monthName;
@@ -209,10 +218,10 @@ const OvertimeDetails = () => {
         console.warn("No overtime records returned from API for the given date range");
       }
 
-      // Compute original end date for filtering (since endDateParam is next day)
+      // Compute original end date for filtering (since endDateParam is next day) - use local parsing
       const paramEndDate = new Date(endDateParam + 'T00:00:00');
       paramEndDate.setDate(paramEndDate.getDate() - 1);
-      const originalEndStr = paramEndDate.toISOString().split('T')[0];
+      const originalEndStr = getLocalDateStr(paramEndDate);
       console.log(`Client-side filter range: ${startDate} to ${originalEndStr}`);
 
       // Filter raw data by date range FIRST (to exclude invalid dates like Sep 29)
@@ -278,10 +287,10 @@ const OvertimeDetails = () => {
       let data = Array.isArray(response.data.data) ? response.data.data : [];
       console.log("April Raw API Data (pre-filter):", data.length, "items");
 
-      // Compute original end date for filtering
+      // Compute original end date for filtering - use local parsing
       const paramEndDate = new Date(endDateParam + 'T00:00:00');
       paramEndDate.setDate(paramEndDate.getDate() - 1);
-      const originalEndStr = paramEndDate.toISOString().split('T')[0];
+      const originalEndStr = getLocalDateStr(paramEndDate);
       console.log(`April client-side filter range: ${startDate} to ${originalEndStr}`);
 
       // Filter raw data by date range
