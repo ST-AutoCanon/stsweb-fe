@@ -1,4 +1,5 @@
 
+
 export const getCurrentYearMonth = () => {
   const year = new Date().getFullYear();
   const month = String(new Date().getMonth() + 1).padStart(2, "0");
@@ -320,21 +321,21 @@ export const calculateSalaryDetails = (
 
   // Incentive Pay
   // Incentive Pay (filtered to current month)
-const empId = String(employeeId).toUpperCase();
-const matchedKey = Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId);
+  const empId = String(employeeId).toUpperCase();
+  const matchedKey = Object.keys(employeeIncentiveData).find(key => String(key).toUpperCase() === empId);
 
-if (matchedKey && employeeIncentiveData[matchedKey]) {
-  const incData = employeeIncentiveData[matchedKey];
-  const currentYm = getCurrentYearMonth(); // e.g., "2025-10"
-  const currentMonthIncentives = (incData.incentives || []).filter(
-    (inc) => inc.applicable_month === currentYm
-  );
-  incentivePay = currentMonthIncentives.reduce(
-    (sum, inc) => sum + parseFloat(inc.value || 0),
-    0
-  );
-}
-console.log(`Incentive Pay (monthly, current month only) for employee ${employeeId}: ₹${incentivePay}`);
+  if (matchedKey && employeeIncentiveData[matchedKey]) {
+    const incData = employeeIncentiveData[matchedKey];
+    const currentYm = getCurrentYearMonth(); // e.g., "2025-10"
+    const currentMonthIncentives = (incData.incentives || []).filter(
+      (inc) => inc.applicable_month === currentYm
+    );
+    incentivePay = currentMonthIncentives.reduce(
+      (sum, inc) => sum + parseFloat(inc.value || 0),
+      0
+    );
+  }
+  console.log(`Incentive Pay (monthly, current month only) for employee ${employeeId}: ₹${incentivePay}`);
   // Calculate Gross Salary
   grossSalary = basicSalary + hra + ltaAllowance + overtimePay + bonusPay + otherAllowances + incentivePay;
   console.log(`Gross Salary (monthly): ₹${grossSalary}`);
@@ -456,18 +457,22 @@ console.log(`Incentive Pay (monthly, current month only) for employee ${employee
   console.log(`Gratuity (monthly): ₹${gratuity}`);
 
   // Professional Tax
-  if (
-    planData.isProfessionalTax &&
-    planData.professionalTaxType === "percentage" &&
-    planData.professionalTax &&
-    !isNaN(parseFloat(planData.professionalTax))
-  ) {
-    professionalTax = (monthlyCtc * (parseFloat(planData.professionalTax) / 100));
-  } else if (planData.professionalTaxAmount && !isNaN(parseFloat(planData.professionalTaxAmount))) {
-    professionalTax = (parseFloat(planData.professionalTaxAmount) / 12);
+  professionalTax = 0;
+  if (planData.isProfessionalTax) {
+    if (
+      planData.professionalTaxType === "percentage" &&
+      planData.professionalTax &&
+      !isNaN(parseFloat(planData.professionalTax))
+    ) {
+      professionalTax = (monthlyCtc * (parseFloat(planData.professionalTax) / 100));
+    } else if (planData.professionalTaxAmount && !isNaN(parseFloat(planData.professionalTaxAmount))) {
+      professionalTax = (parseFloat(planData.professionalTaxAmount) / 12);
+    } else {
+      professionalTax = monthlyCtc <= 15000 ? 0 : 200;
+      console.warn(`Using default professionalTax (₹200 or 0) for employee ${employeeId}`);
+    }
   } else {
-    professionalTax = monthlyCtc <= 15000 ? 0 : 200;
-    console.warn(`Using default professionalTax (₹200 or 0) for employee ${employeeId}`);
+    console.log(`Professional Tax not applicable for employee ${employeeId}`);
   }
   console.log(`Professional Tax (monthly): ₹${professionalTax}`);
 

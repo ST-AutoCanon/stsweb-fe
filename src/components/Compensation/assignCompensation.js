@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./assignCompensation.css";
@@ -19,6 +20,7 @@ const AssignCompensation = () => {
   const [compensationSearchTerm, setCompensationSearchTerm] = useState("");
   const [selectedCompensation, setSelectedCompensation] = useState("");
   const [employeesByDepartment, setEmployeesByDepartment] = useState({});
+  const [originalEmployeesByDepartment, setOriginalEmployeesByDepartment] = useState({});
   const [selectionType, setSelectionType] = useState("employee"); // 'employee' or 'department'
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
@@ -235,6 +237,10 @@ const AssignCompensation = () => {
         ...prev,
         [department.id]: employees,
       }));
+      setOriginalEmployeesByDepartment((prev) => ({
+        ...prev,
+        [department.id]: [...employees],
+      }));
       setSelectedDepartment("");
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -272,6 +278,11 @@ const AssignCompensation = () => {
       delete updated[departmentId];
       return updated;
     });
+    setOriginalEmployeesByDepartment((prev) => {
+      const updated = { ...prev };
+      delete updated[departmentId];
+      return updated;
+    });
   };
 
   // Remove employee from a specific department's employee list
@@ -282,6 +293,11 @@ const AssignCompensation = () => {
       if (updated[departmentId].length === 0) {
         setSelectedDepartments(selectedDepartments.filter((dept) => dept.id !== departmentId));
         delete updated[departmentId];
+        setOriginalEmployeesByDepartment((origPrev) => {
+          const origUpdated = { ...origPrev };
+          delete origUpdated[departmentId];
+          return origUpdated;
+        });
       }
       return updated;
     });
@@ -351,12 +367,29 @@ const AssignCompensation = () => {
         return;
       }
 
+      // Prepare department and employee IDs for payload
+      const partialEmployeeIds = [];
+      const fullDepartmentIds = [];
+      selectedDepartments.forEach((dept) => {
+        const currentEmps = employeesByDepartment[dept.id] || [];
+        const originalEmps = originalEmployeesByDepartment[dept.id] || [];
+        if (currentEmps.length === originalEmps.length) {
+          fullDepartmentIds.push(dept.id);
+        } else {
+          partialEmployeeIds.push(...currentEmps.map((emp) => emp.employee_id));
+        }
+      });
+      const allIndividualEmployeeIds = [
+        ...selectedEmployees.map((emp) => emp.employee_id),
+        ...partialEmployeeIds,
+      ];
+
       // Prepare payload for assignment
       const payload = {
         compensationId: parseInt(selectedCompensation),
         compensationPlanName: compensation.compensation_plan_name,
-        employeeId: selectedEmployees.map((emp) => emp.employee_id),
-        departmentIds: selectedDepartments.map((dept) => dept.id),
+        employeeId: allIndividualEmployeeIds,
+        departmentIds: fullDepartmentIds,
         assignedBy: meId,
         assignedDate: new Date().toISOString(),
       };
@@ -378,6 +411,7 @@ const AssignCompensation = () => {
         setSelectedEmployee("");
         setSelectedDepartment("");
         setEmployeesByDepartment({});
+        setOriginalEmployeesByDepartment({});
       } else {
         throw new Error(assignResponse.data.error || "Assignment unsuccessful");
       }
@@ -468,6 +502,7 @@ const AssignCompensation = () => {
                   setSelectedDepartments([]);
                   setSelectedDepartment("");
                   setEmployeesByDepartment({});
+                  setOriginalEmployeesByDepartment({});
                 }}
                 disabled={isLoading}
               />
