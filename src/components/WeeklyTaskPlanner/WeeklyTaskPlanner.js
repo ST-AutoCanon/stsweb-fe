@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
@@ -6,13 +5,24 @@ import Modal from "../Modal/Modal";
 
 const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [weekOffset, setWeekOffset] = useState(0);
-  const currentDate = new Date(2025, 9, 13); // October 13, 2025
-  const dayOfWeek = currentDate.getDay();
-  const offset = (dayOfWeek + 6) % 7;
-  const startDate = new Date(currentDate);
-  startDate.setDate(currentDate.getDate() - offset + weekOffset * 7);
+
+  // DYNAMIC TODAY - November 4, 2025 (or any current date)
+  const today = new Date(); // Uses real current date
+  today.setHours(0, 0, 0, 0);
+
+  // Calculate Monday of the current week (ISO week starts on Monday)
+  const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const offsetToMonday = (dayOfWeek + 6) % 7; // Days to subtract to get Monday
+  const startOfCurrentWeek = new Date(today);
+  startOfCurrentWeek.setDate(today.getDate() - offsetToMonday);
+
+  // Apply weekOffset to get the displayed week's Monday
+  const startDate = new Date(startOfCurrentWeek);
+  startDate.setDate(startOfCurrentWeek.getDate() + weekOffset * 7);
+
   const endDate = new Date(startDate);
   endDate.setDate(startDate.getDate() + 6);
+
   const formatDateRange = (start, end) => {
     const startDay = start.getDate();
     const startMonth = start.toLocaleString('default', { month: 'short' });
@@ -22,6 +32,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
   };
   const dateRange = formatDateRange(startDate, endDate);
+
   const getISOWeekNumber = (date) => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -30,8 +41,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
     return weekNo;
   };
-  const weekId = getISOWeekNumber(startDate);
+
+  const weekId = getISOWeekNumber(startDate); // Dynamic Week ID
   console.log("Week ID:", weekId, "Employee ID:", employeeId);
+
   const weekDates = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(startDate);
@@ -39,6 +52,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const dateStr = `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
     weekDates.push(dateStr);
   }
+
   const [tasksData, setTasksData] = useState(
     weekDates.map((date) => ({ date, tasks: [] }))
   );
@@ -79,7 +93,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     dotId: null,
   });
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
   const tooltipRef = useRef(null);
 
   // Handle window resize for mobile detection
@@ -141,12 +154,14 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
+
   const toggleDropdown = (index) => {
     setDropdownOpen((prev) => ({
       ...prev,
       [index]: !prev[index],
     }));
   };
+
   const withRetry = async (fn, retries = 3, delay = 1000) => {
     for (let i = 0; i < retries; i++) {
       try {
@@ -157,6 +172,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       }
     }
   };
+
   const formatDateIST = (date) => {
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istDate = new Date(date.getTime() + istOffset);
@@ -165,6 +181,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const day = String(istDate.getUTCDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
+
   const isTaskEditable = (taskDate) => {
     if (!taskDate) {
       console.log(`Task date: ${taskDate}, freezeDays: ${freezeDays}, editable: false (no date)`);
@@ -179,9 +196,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     console.log(`Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`);
     return editable;
   };
+
   const getTaskDateStyle = (dateStr) => {
     const [day, month] = dateStr.split(" ");
-    const year = 2025;
+    const year = startDate.getFullYear();
     const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
     const taskDate = new Date(year, monthIndex, parseInt(day));
     taskDate.setHours(0, 0, 0, 0);
@@ -219,6 +237,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       tooltip: dateStr
     };
   };
+
   const fetchData = async () => {
     if (!employeeId) {
       showAlert("Employee ID is required to fetch data.");
@@ -264,6 +283,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           }
         }
       }
+
       const holidaysUrl = `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`;
       console.log("Fetching holidays from:", holidaysUrl);
       const holidaysRes = await withRetry(() =>
@@ -280,6 +300,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         : [];
       setHolidays(holidayData.length > 0 ? holidayData : ['2025-12-25']);
       console.log("Holidays:", holidayData);
+
       const leavesUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
       console.log("Fetching leaves from:", leavesUrl);
       const leavesRes = await withRetry(() =>
@@ -295,6 +316,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         : [];
       setApprovedLeaves(approvedLeavesData);
       console.log("Approved Leaves:", approvedLeavesData);
+
       const projectsUrl = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`;
       console.log("Fetching projects from:", projectsUrl);
       const projectsRes = await withRetry(() =>
@@ -311,6 +333,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         newProjects[project.id] = project.project;
       });
       setProjects(newProjects);
+
       const tasksUrl = `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/employee/${employeeId}`;
       console.log("Fetching tasks from:", tasksUrl);
       const tasksRes = await withRetry(() =>
@@ -351,6 +374,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setLoadingLeaves(false);
     }
   };
+
   useEffect(() => {
     if (process.env.REACT_APP_BACKEND_URL) {
       fetchData();
@@ -358,15 +382,19 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       showAlert("Backend URL not configured. Please check your .env file.");
     }
   }, [employeeId, weekId, weekOffset]);
+
+  // DYNAMIC NAVIGATION: ±3 weeks from today
   const handlePreviousWeek = () => {
     setWeekOffset((prev) => Math.max(prev - 1, -3));
   };
   const handleNextWeek = () => {
     setWeekOffset((prev) => Math.min(prev + 1, 3));
   };
+
   const toggleExpand = (date) => {
     setExpandedDates((prev) => ({ ...prev, [date]: !prev[date] }));
   };
+
   const handleEditClick = (task) => {
     if (userRole !== "employee") return;
     if (!isTaskEditable(task.task_date)) {
@@ -385,6 +413,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
     }
   };
+
   const handleSupStatusEditClick = (task) => {
     if (userRole !== "supervisor") return;
     if (!isTaskEditable(task.task_date)) {
@@ -403,6 +432,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setSupFormData({ supStatus: task.sup_status || "incomplete", supComment: task.sup_comment || "" });
     }
   };
+
   const handleSave = async (taskId) => {
     if (userRole !== "employee") return;
     const task = tasksData
@@ -452,10 +482,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setFormData({ taskName: "", status: "", comment: "" });
     }
   };
+
   const handleCancelEdit = () => {
     setEditingTask(null);
     setFormData({ taskName: "", status: "", comment: "" });
   };
+
   const handleSupStatusSave = async (taskId) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
@@ -572,20 +604,24 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setSupFormData({ supStatus: "", supComment: "" });
     }
   };
+
   const handleSupStatusCancel = () => {
     setEditingSupStatus(null);
     setSupFormData({ supStatus: "", supComment: "" });
   };
+
   const handleEnterReview = () => {
     if (userRole === "supervisor") {
       setSupReviewMode(true);
     }
   };
+
   const handleExitReview = () => {
     setSupReviewMode(false);
     setStrikeTaskId(null);
     setEditingSupStatus(null);
   };
+
   const handleApprove = async (taskId) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
@@ -620,6 +656,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
+
   const handleSuspendReview = async (taskId) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
@@ -650,6 +687,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
+
   const handleStrike = async (taskId, dayDate) => {
     if (userRole !== "supervisor") return;
     const task = tasksData
@@ -685,6 +723,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
+
   const handleReplacementChange = (field, value) => {
     setReplacementData((prev) => ({
       ...prev,
@@ -692,6 +731,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       ...(field === "projectId" ? { projectName: projects[value] || "" } : {}),
     }));
   };
+
   const handleAddReplacement = async () => {
     if (userRole !== "supervisor") return;
     if (!replacementData.projectId || !replacementData.taskName) {
@@ -727,7 +767,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
       });
       const [day, monthName] = replacementData.date.split(" ");
-      const year = 2025;
+      const year = startDate.getFullYear();
       const month = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
       const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const newTask = {
@@ -775,6 +815,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
+
   const handleAssignClick = () => {
     console.log("Assign New Tasks button clicked, setting showAssignForm to true");
     setShowAssignForm(true);
@@ -788,6 +829,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     ]);
     setDropdownOpen({});
   };
+
   const handleAddTask = () => {
     setAssignTasks((prev) => [
       ...prev,
@@ -799,6 +841,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       },
     ]);
   };
+
   const handleRemoveTask = (index) => {
     setAssignTasks((prev) => {
       if (prev.length <= 1) return prev;
@@ -811,6 +854,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       return newState;
     });
   };
+
   const handleAssignChange = (index, field, value) => {
     setAssignTasks((prev) =>
       prev.map((t, i) => {
@@ -825,6 +869,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       })
     );
   };
+
   const handleProjectSelect = (index) => (e) => {
     const id = e.target.value;
     setAssignTasks((prev) =>
@@ -839,6 +884,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       )
     );
   };
+
   const handleAssignSubmit = async () => {
     console.log("Submitting assign tasks:", assignTasks);
     const validTasks = assignTasks.filter(
@@ -905,12 +951,14 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.error(err);
     }
   };
+
   const handleAssignCancel = () => {
     console.log("Cancel assign form, resetting state");
     setShowAssignForm(false);
     setAssignTasks([]);
     setDropdownOpen({});
   };
+
   const statusColors = {
     completed: "#28a745",
     "add on": "#17a2b8",
@@ -951,7 +999,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               onClick={handlePreviousWeek}
               className="week-task-nav-button-task"
               disabled={weekOffset <= -3}
-              title={weekOffset <= -3 ? "Cannot view earlier than Week 36" : "Previous Week"}
+              title={weekOffset <= -3 ? "Cannot view earlier than 3 weeks ago" : "Previous Week"}
             >
               <svg
                 className="week-task-nav-icon"
@@ -974,7 +1022,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               onClick={handleNextWeek}
               className="week-task-nav-button-task"
               disabled={weekOffset >= 3}
-              title={weekOffset >= 3 ? "Cannot view beyond Week 42" : "Next Week"}
+              title={weekOffset >= 3 ? "Cannot view beyond 3 weeks ahead" : "Next Week"}
             >
               <svg
                 className="week-task-nav-icon"
@@ -1012,6 +1060,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           )}
         </div>
       </div>
+
       {loading || loadingHolidays || loadingLeaves ? <div>Loading data...</div> : null}
       {error && (
         <div className="error-message">
@@ -1026,6 +1075,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           No tasks available in this Week {weekId}: {dateRange}.
         </div>
       )}
+
       {mobileTooltip.isVisible && (
         <div
           ref={tooltipRef}
@@ -1040,6 +1090,8 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           {mobileTooltip.content}
         </div>
       )}
+
+      {/* --- MODALS & FORMS (unchanged) --- */}
       {showAssignForm && (
         <div className="week-task-assign-form-modal">
           <div className="week-task-assign-form-empdriven">
@@ -1138,6 +1190,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           </div>
         </div>
       )}
+
       {userRole === "supervisor" && strikeTaskId && (
         <div className="week-task-replacement-modal">
           <div className="week-task-replacement-form">
@@ -1181,6 +1234,8 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           </div>
         </div>
       )}
+
+      {/* --- TASK CARDS --- */}
       {!loading && !error && !noTasks && tasksData.map((day) => {
         const isExpanded = expandedDates[day.date] || false;
         const visibleTasks = isExpanded ? day.tasks : day.tasks.slice(0, 3);
@@ -1274,7 +1329,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                     : task.sup_review_status === "struck"
                                     ? "Struck"
                                     : "Suspended"
-                                  }
+                                }
                               >
                                 {reviewIcons[task.sup_review_status]}
                               </span>
@@ -1514,6 +1569,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           </div>
         );
       })}
+
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

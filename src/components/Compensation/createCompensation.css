@@ -830,7 +830,7 @@ compensation-select-incentives{
 
 /* Error message - absolute to not affect flow */
 .basic-salary-percentage-wrapper .error-span {
-  position: absolute;
+  
   bottom: 0; /* Place in reserved space */
   left: 0;
   width: 100%;
