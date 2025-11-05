@@ -6,6 +6,7 @@ export const getCurrentYearMonth = () => {
   return `${year}-${month}`; // e.g. "2025-09"
 };
 
+
 export const parseApplicableMonth = (monthStr) => {
   if (!monthStr || typeof monthStr !== "string") {
     console.log(`Invalid applicable_month format: ${monthStr}`);
@@ -45,7 +46,29 @@ export const parseWorkDate = (dateStr) => {
     return null;
   }
 };
+export const getPayrollFilter = () => {
+  const today = new Date();
+  const currentYear = today.getFullYear();  // 2025
+  const currentMonth = today.getMonth() + 1;  // 11 for Nov
+  const currentDay = today.getDate();  // 4
 
+  // Hardcode cutoff (fetch from API later if needed)
+  const cutoffDate = 5;
+
+  let targetMonth = currentMonth;
+  let targetYear = currentYear;
+  if (currentDay < cutoffDate) {
+    targetMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+    if (targetMonth === 12) targetYear--;
+  }
+  const targetMonthStr = targetMonth.toString().padStart(2, '0');  // "10" for Oct
+
+  // Payroll window: From cutoff of target month to cutoff of current month (UTC for ISO dates)
+  const windowStart = new Date(Date.UTC(targetYear, targetMonth - 1, cutoffDate));  // 2025-10-05 00:00:00 UTC
+  const windowEnd = new Date(Date.UTC(currentYear, currentMonth - 1, cutoffDate));  // 2025-11-05 00:00:00 UTC
+
+  return { targetMonthStr, targetYear, windowStart, windowEnd };
+};
 export const getWorkingDaysInMonth = (year, month) => {
   const daysInMonth = new Date(year, month, 0).getDate();
   let workingDays = 0;
@@ -187,55 +210,61 @@ export const calculateSalaryDetails = (
   console.log(`Other Allowances (monthly): ₹${otherAllowances}`);
 
   // Overtime Pay
-  console.log(`Filtering overtime records for employee ${employeeId}, year=${currentYear}, month=${currentMonthStr}`);
-  const employeeOvertime = safeOvertimeRecords.filter((ot) => {
-    const otDate = parseWorkDate(ot.work_date);
-    const isValid =
-      ot.employee_id === employeeId &&
-      ot.status === "Approved" &&
-      otDate &&
-      otDate.getFullYear() === currentYear &&
-      (otDate.getMonth() + 1).toString().padStart(2, "0") === currentMonthStr;
-    console.log(`Overtime record:`, JSON.stringify(ot), `isValid: ${isValid}`);
-    return isValid;
-  });
+ // Overtime Pay
+const { targetMonthStr, targetYear, windowStart, windowEnd } = getPayrollFilter();
+console.log(`Filtering overtime records for employee ${employeeId}, targetYear=${targetYear}, targetMonth=${targetMonthStr}, window=${windowStart.toISOString().split('T')[0]} to ${windowEnd.toISOString().split('T')[0]}`);
 
-  if (employeeOvertime.length === 0) {
-    console.log(`No approved overtime records found for employee ${employeeId} in ${currentYear}-${currentMonthStr}`);
-  } else {
-    console.log(`Found ${employeeOvertime.length} overtime records for employee ${employeeId}`);
+const employeeOvertime = safeOvertimeRecords.filter((ot) => {
+  const otDate = parseWorkDate(ot.work_date);
+  const updatedDate = new Date(ot.updated_at || ot.created_at);  // Fallback to created_at
+  const isInWindow = updatedDate >= windowStart && updatedDate < windowEnd;
+  const monthStr = String(otDate ? otDate.getMonth() + 1 : 0).padStart(2, '0');
+  const isValid =
+    ot.employee_id === employeeId &&
+    ot.status === 'Approved' &&
+    otDate &&
+    otDate.getFullYear() === targetYear &&
+    (monthStr === targetMonthStr || isInWindow);  // Base OR window
+  console.log(`Overtime record:`, JSON.stringify(ot), `isValid: ${isValid}`);
+  return isValid;
+});
+
+if (employeeOvertime.length === 0) {
+  console.log(`No approved overtime records found for employee ${employeeId} in payroll period`);
+} else {
+  console.log(`Found ${employeeOvertime.length} overtime records for employee ${employeeId}`);
+}
+
+overtimePay = employeeOvertime.reduce((total, ot) => {
+  const hours = parseFloat(ot.extra_hours);
+  let rate = parseFloat(ot.rate);
+  console.log(`Processing overtime: punch_id=${ot.punch_id}, hours=${hours}, rate=${rate}`);
+
+  if (!rate || isNaN(rate) || rate === 0) {
+    if (
+      planData.isOvertimePay &&
+      planData.overtimePayAmount &&
+      !isNaN(parseFloat(planData.overtimePayAmount))
+    ) {
+      rate = parseFloat(planData.overtimePayAmount);
+      console.log(`Using planData.overtimePayAmount: ₹${rate}/hour`);
+    } else {
+      rate = 500; // Fallback default rate (₹500/hour)
+      console.warn(`No valid rate or overtimePayAmount for employee ${employeeId}; using default rate=₹${rate}/hour`);
+    }
   }
 
-  overtimePay = employeeOvertime.reduce((total, ot) => {
-    const hours = parseFloat(ot.extra_hours);
-    let rate = parseFloat(ot.rate);
-    console.log(`Processing overtime: punch_id=${ot.punch_id}, hours=${hours}, rate=${rate}`);
+  if (isNaN(hours) || hours <= 0) {
+    console.log(`Invalid hours for overtime record: ${ot.punch_id}, hours=${ot.extra_hours}`);
+    return total;
+  }
 
-    if (!rate || isNaN(rate) || rate === 0) {
-      if (
-        planData.isOvertimePay &&
-        planData.overtimePayAmount &&
-        !isNaN(parseFloat(planData.overtimePayAmount))
-      ) {
-        rate = parseFloat(planData.overtimePayAmount);
-        console.log(`Using planData.overtimePayAmount: ₹${rate}/hour`);
-      } else {
-        rate = 500; // Fallback default rate (₹500/hour)
-        console.warn(`No valid rate or overtimePayAmount for employee ${employeeId}; using default rate=₹${rate}/hour`);
-      }
-    }
+  const pay = hours * rate;
+  console.log(`Overtime pay for punch_id ${ot.punch_id}: ${hours} hours * ₹${rate}/hour = ₹${pay}`);
+  return total + pay;
+}, 0);
 
-    if (isNaN(hours) || hours <= 0) {
-      console.log(`Invalid hours for overtime record: ${ot.punch_id}, hours=${ot.extra_hours}`);
-      return total;
-    }
-
-    const pay = hours * rate;
-    console.log(`Overtime pay for punch_id ${ot.punch_id}: ${hours} hours * ₹${rate}/hour = ₹${pay}`);
-    return total + pay;
-  }, 0);
-
-  console.log(`Total overtimePay for employee ${employeeId}: ₹${overtimePay}`);
+console.log(`Total overtimePay for employee ${employeeId}: ₹${overtimePay}`);
 
   // Bonus Pay from Records
   console.log(
@@ -262,11 +291,19 @@ export const calculateSalaryDetails = (
     if (bonus.fixed_amount && !isNaN(parseFloat(bonus.fixed_amount))) {
       amount = parseFloat(bonus.fixed_amount) * 12; // Yearly amount
       console.log(`Bonus ID ${bonus.id}: Applying fixed_amount=₹${amount} (yearly)`);
-    } else if (bonus.percentage_ctc && ctc && !isNaN(parseFloat(bonus.percentage_ctc))) {
-      amount = (parseFloat(bonus.percentage_ctc) / 100) * ctc; // Yearly amount
-      console.log(
-        `Bonus ID ${bonus.id}: Applying percentage_ctc=${bonus.percentage_ctc}% of CTC → ₹${amount} (yearly)`
-      );
+    } else if (
+  bonus.percentage_monthly_salary &&
+  monthlyCtc &&
+  !isNaN(parseFloat(bonus.percentage_monthly_salary))
+) {
+  // Treat this as "number of months" instead of "percentage"
+  const multiplier = parseFloat(bonus.percentage_monthly_salary);
+  amount = monthlyCtc * multiplier;
+
+  console.log(
+    `Bonus ID ${bonus.id}: Applying ${multiplier} month(s) of monthly salary → ₹${amount}`
+  );
+
     } else if (
       bonus.percentage_monthly_salary &&
       monthlyCtc &&
@@ -457,24 +494,30 @@ export const calculateSalaryDetails = (
   console.log(`Gratuity (monthly): ₹${gratuity}`);
 
   // Professional Tax
-  professionalTax = 0;
-  if (planData.isProfessionalTax) {
-    if (
-      planData.professionalTaxType === "percentage" &&
-      planData.professionalTax &&
-      !isNaN(parseFloat(planData.professionalTax))
-    ) {
-      professionalTax = (monthlyCtc * (parseFloat(planData.professionalTax) / 100));
-    } else if (planData.professionalTaxAmount && !isNaN(parseFloat(planData.professionalTaxAmount))) {
-      professionalTax = (parseFloat(planData.professionalTaxAmount) / 12);
-    } else {
-      professionalTax = monthlyCtc <= 15000 ? 0 : 200;
-      console.warn(`Using default professionalTax (₹200 or 0) for employee ${employeeId}`);
-    }
+ // Professional Tax
+professionalTax = 0;
+if (planData.isProfessionalTax) {
+  if (
+    planData.professionalTaxType === "percentage" &&
+    planData.professionalTax &&
+    !isNaN(parseFloat(planData.professionalTax))
+  ) {
+    professionalTax = (monthlyCtc * (parseFloat(planData.professionalTax) / 100));
+    planData.professionalTaxText = `${planData.professionalTax}% of CTC`;
+  } else if (planData.professionalTaxAmount && !isNaN(parseFloat(planData.professionalTaxAmount))) {
+    professionalTax = (parseFloat(planData.professionalTaxAmount) / 12);
+    planData.professionalTaxText = `₹${planData.professionalTaxAmount} (Fixed)`;
   } else {
-    console.log(`Professional Tax not applicable for employee ${employeeId}`);
+    // CHANGED: No default 200—stay at 0
+    professionalTax = 0;
+    planData.professionalTaxText = 'Not Set';  // CHANGED: Explicit no-default text
+    console.warn(`No Professional Tax value set for employee ${employeeId}; using 0`);
   }
-  console.log(`Professional Tax (monthly): ₹${professionalTax}`);
+} else {
+  planData.professionalTaxText = 'Not Applicable';
+  console.log(`Professional Tax not applicable for employee ${employeeId}`);
+}
+console.log(`Professional Tax (monthly): ₹${professionalTax} | Plan Text: ${planData.professionalTaxText}`);
 
   // Advance Recovery
   const employeeAdvances = safeAdvances.filter((adv) => {
@@ -517,30 +560,45 @@ export const calculateSalaryDetails = (
   console.log(`Total Advance Recovery (monthly): ₹${advanceRecovery}`);
 
   // TDS
-  let tds = 0;
-  if (planData.isTDSApplicable && Array.isArray(planData.tdsSlabs) && planData.tdsSlabs.length > 0) {
-    const annualCtc = parseFloat(ctc);
-    const sortedSlabs = [...planData.tdsSlabs].sort((a, b) => parseInt(a.from) - parseInt(b.from));
+ // TDS (UPDATED: Progressive/Cumulative calculation)
+let tds = 0;
+if (planData.isTDSApplicable && Array.isArray(planData.tdsSlabs) && planData.tdsSlabs.length > 0) {
+  const annualCtc = parseFloat(ctc);
+  const sortedSlabs = [...planData.tdsSlabs]
+    .filter(slab => slab.from && slab.percentage)  // Skip invalid slabs
+    .sort((a, b) => parseInt(a.from) - parseInt(b.from));  // Sort by 'from' ascending
 
-    for (const slab of sortedSlabs) {
-      const lower = parseInt(slab.from) || 0;
-      const upper = parseInt(slab.to) || Infinity;
-      const rate = parseFloat(slab.percentage) / 100 || 0;
+  let taxableIncome = annualCtc;
+  let prevUpper = 0;  // Start from 0 (implicit 0% below first slab)
 
-      if (annualCtc >= lower && (upper === Infinity || annualCtc <= upper) && rate > 0) {
-        tds = (annualCtc * rate / 12);
-        console.log(
-          `TDS calculated for CTC ₹${annualCtc}: slab [${lower}-${upper}], rate=${
-            rate * 100
-          }%, monthly TDS=₹${tds}`
-        );
-        break;
-      }
+  for (const slab of sortedSlabs) {
+    const lower = parseInt(slab.from) || 0;
+    const upper = parseInt(slab.to) || Infinity;
+    const rate = parseFloat(slab.percentage) / 100 || 0;
+
+    if (taxableIncome <= prevUpper) break;  // No more income left
+
+    const slabLower = Math.max(lower, prevUpper);
+    const slabUpper = Math.min(upper, taxableIncome);
+    const slabTaxable = Math.max(0, slabUpper - slabLower);
+
+    if (slabTaxable > 0 && rate > 0) {
+      const slabTaxAnnual = slabTaxable * rate;
+      tds += slabTaxAnnual / 12;  // Add monthly portion
+      console.log(
+        `TDS slab [${slabLower.toLocaleString('en-IN')}-${slabUpper.toLocaleString('en-IN')}] at ${rate * 100}%: ₹${slabTaxAnnual.toLocaleString('en-IN')} annual → ₹${(slabTaxAnnual / 12).toFixed(2)} monthly`
+      );
     }
-  } else {
-    console.log(`No valid TDS slabs or TDS not applicable for employee ${employeeId}, setting TDS to 0`);
-    tds = 0;
+
+    prevUpper = upper;
+    if (taxableIncome <= upper) break;  // No higher slabs needed
   }
+
+  console.log(`Total TDS for CTC ₹${annualCtc.toLocaleString('en-IN')}: ₹${(tds * 12).toLocaleString('en-IN')} annual → ₹${tds.toFixed(2)} monthly`);
+} else {
+  console.log(`No valid TDS slabs or TDS not applicable for employee ${employeeId}, setting TDS to 0`);
+  tds = 0;
+}
 
   // LOP Deduction
   lopDeduction = parseFloat(employeeLopData[employeeId]?.currentMonth?.value || 0);
