@@ -304,18 +304,13 @@ console.log(`Total overtimePay for employee ${employeeId}: ₹${overtimePay}`);
     `Bonus ID ${bonus.id}: Applying ${multiplier} month(s) of monthly salary → ₹${amount}`
   );
 
-    } else if (
-      bonus.percentage_monthly_salary &&
-      monthlyCtc &&
-      !isNaN(parseFloat(bonus.percentage_monthly_salary))
-    ) {
-      amount = (parseFloat(bonus.percentage_monthly_salary) / 100) * monthlyCtc * 12; // Yearly amount
-      console.log(
-        `Bonus ID ${bonus.id}: Applying percentage_monthly_salary=${bonus.percentage_monthly_salary}% of monthlyCtc → ₹${amount} (yearly)`
-      );
-    } else {
-      console.warn(`Bonus ID ${bonus.id}: No valid amount found (bonus data =`, bonus, `)`);
-    }
+    } else if (bonus.percentage_monthly_salary && !isNaN(parseFloat(bonus.percentage_monthly_salary))) {
+  const multiplier = parseFloat(bonus.percentage_monthly_salary);
+  amount = monthlyCtc * multiplier * 12;  // Multiply by 12 for yearly
+  console.log(
+    `Bonus ID ${bonus.id}: Applying ${multiplier} month(s) of monthly salary → ₹${amount} (yearly)`
+  );
+}
 
     return total + amount;
   }, 0);
@@ -560,41 +555,22 @@ console.log(`Professional Tax (monthly): ₹${professionalTax} | Plan Text: ${pl
   console.log(`Total Advance Recovery (monthly): ₹${advanceRecovery}`);
 
   // TDS
- // TDS (UPDATED: Progressive/Cumulative calculation)
+ // TDS (UPDATED: Flat rate per slab)
 let tds = 0;
 if (planData.isTDSApplicable && Array.isArray(planData.tdsSlabs) && planData.tdsSlabs.length > 0) {
   const annualCtc = parseFloat(ctc);
-  const sortedSlabs = [...planData.tdsSlabs]
-    .filter(slab => slab.from && slab.percentage)  // Skip invalid slabs
-    .sort((a, b) => parseInt(a.from) - parseInt(b.from));  // Sort by 'from' ascending
-
-  let taxableIncome = annualCtc;
-  let prevUpper = 0;  // Start from 0 (implicit 0% below first slab)
-
-  for (const slab of sortedSlabs) {
-    const lower = parseInt(slab.from) || 0;
-    const upper = parseInt(slab.to) || Infinity;
-    const rate = parseFloat(slab.percentage) / 100 || 0;
-
-    if (taxableIncome <= prevUpper) break;  // No more income left
-
-    const slabLower = Math.max(lower, prevUpper);
-    const slabUpper = Math.min(upper, taxableIncome);
-    const slabTaxable = Math.max(0, slabUpper - slabLower);
-
-    if (slabTaxable > 0 && rate > 0) {
-      const slabTaxAnnual = slabTaxable * rate;
-      tds += slabTaxAnnual / 12;  // Add monthly portion
-      console.log(
-        `TDS slab [${slabLower.toLocaleString('en-IN')}-${slabUpper.toLocaleString('en-IN')}] at ${rate * 100}%: ₹${slabTaxAnnual.toLocaleString('en-IN')} annual → ₹${(slabTaxAnnual / 12).toFixed(2)} monthly`
-      );
+  let applicableRate = 0;
+  for (let slab of planData.tdsSlabs) {
+    const from = parseFloat(slab.from) || 0;
+    const to = parseFloat(slab.to) || Infinity;
+    if (annualCtc >= from && annualCtc <= to) {
+      applicableRate = parseFloat(slab.percentage) || 0;
+      break;
     }
-
-    prevUpper = upper;
-    if (taxableIncome <= upper) break;  // No higher slabs needed
   }
-
-  console.log(`Total TDS for CTC ₹${annualCtc.toLocaleString('en-IN')}: ₹${(tds * 12).toLocaleString('en-IN')} annual → ₹${tds.toFixed(2)} monthly`);
+  const annualTDS = annualCtc * (applicableRate / 100);
+  tds = Math.round((annualTDS / 12) * 100) / 100;
+  console.log(`Flat TDS for CTC ₹${annualCtc.toLocaleString('en-IN')}: ${applicableRate}% → ₹${annualTDS.toLocaleString('en-IN')} annual → ₹${tds.toFixed(2)} monthly`);
 } else {
   console.log(`No valid TDS slabs or TDS not applicable for employee ${employeeId}, setting TDS to 0`);
   tds = 0;
