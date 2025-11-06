@@ -1,5 +1,4 @@
 
-
 // import React, { useState, useEffect, useMemo } from 'react';
 // import axios from 'axios';
 // import './createCompensation.css';
@@ -9,7 +8,6 @@
 // import SalaryCalculationPeriod from './salaryCalculationPeriod/salaryCalculationPeriod'; // Adjust path if folder structure differs
 // const API_KEY = process.env.REACT_APP_API_KEY;
 // const DEFAULT_CTC = 100000; // Default CTC for percentage conversion
-
 // const allowancePercentageFields = [
 //   { field: 'basicSalary', enable: 'isBasicSalary', type: 'basicSalaryType', amountField: 'basicSalaryAmount' },
 //   { field: 'houseRentAllowance', enable: 'isHouseRentAllowance', type: 'houseRentAllowanceType', amountField: 'houseRentAllowanceAmount' },
@@ -25,7 +23,6 @@
 //   { field: 'statutoryBonusPercentage', enable: 'isStatutoryBonus', type: 'statutoryBonusType', amountField: 'statutoryBonusAmount', include: 'statutoryBonusIncludeInCtc' },
 //   { field: 'incentives', enable: 'isIncentives', type: 'incentivesType', amountField: 'incentivesAmount', include: 'incentivesIncludeInCtc' },
 // ];
-
 // const defaultFormData = {
 //   compensationPlanName: '',
 //   isPFApplicable: false,
@@ -122,7 +119,6 @@
 //   isTDSApplicable: false,
 //   tdsSlabs: []
 // };
-
 // const calculationDefaults = {
 //   basicSalary: { percentage: '40', type: 'percentage' },
 //   hra: { percentage: '20', type: 'percentage' },
@@ -131,7 +127,7 @@
 //   variablePay: { percentage: '0', type: 'percentage' },
 //   statutoryBonus: { percentage: '0', type: 'percentage' },
 //   incentives: { amount: '0', type: 'amount' },
-//   professionalTax: { amount: '200', type: 'amount' },
+//   professionalTax: { amount: '0', type: 'amount' },
 //   pfEmployee: { percentage: '0', type: 'percentage' },
 //   pfEmployer: { percentage: '0', type: 'percentage' },
 //   esicEmployee: { percentage: '0', type: 'percentage' },
@@ -140,7 +136,6 @@
 //   tds: { percentage: '0', type: 'percentage' },
 //   advanceRecovery: { amount: '0', type: 'amount' },
 // };
-
 // const salaryFieldToFormDataMap = {
 //   basicSalary: { amount: 'basicSalaryAmount', percentage: 'basicSalary', type: 'basicSalaryType', enable: 'isBasicSalary', default: calculationDefaults.basicSalary },
 //   hra: { amount: 'houseRentAllowanceAmount', percentage: 'houseRentAllowance', type: 'houseRentAllowanceType', enable: 'isHouseRentAllowance', default: calculationDefaults.hra },
@@ -150,7 +145,7 @@
 //   statutoryBonus: { amount: 'statutoryBonusAmount', percentage: 'statutoryBonusPercentage', type: 'statutoryBonusType', enable: 'isStatutoryBonus', default: calculationDefaults.statutoryBonus },
 //   bonusPay: { amount: 'statutoryBonusAmount', percentage: 'statutoryBonusPercentage', type: 'statutoryBonusType', enable: 'isStatutoryBonus', default: calculationDefaults.statutoryBonus },
 //   incentives: { amount: 'incentivesAmount', percentage: 'incentives', type: 'incentivesType', enable: 'isIncentives', default: calculationDefaults.incentives },
-//   professionalTax: { amount: 'professionalTaxAmount', percentage: 'professionalTax', type: 'professionalTaxType', enable: 'isProfessionalTax', default: calculationDefaults.professionalTax },
+//   professionalTax: { amount: 'professionalTaxAmount', percentage: 'professionalTax', type: 'professionalTaxType', enable: 'isProfessionalTax', default: calculationDefaults.professionalTax, text: 'professionalTaxText' },
 //   employeePF: { amount: 'pfEmployeeAmount', percentage: 'pfEmployeePercentage', type: 'pfEmployeeType', enable: 'isPFEmployee', default: calculationDefaults.pfEmployee },
 //   employerPF: { amount: 'pfEmployerAmount', percentage: 'pfEmployerPercentage', type: 'pfEmployerType', enable: 'isPFEmployer', default: calculationDefaults.pfEmployer },
 //   pfCalculationBase: { field: 'pfCalculationBase', default: '' },
@@ -162,13 +157,11 @@
 //   advanceRecovery: { default: calculationDefaults.advanceRecovery },
 //   overtimePay: { amount: 'overtimePayAmount', type: 'overtimePayType', enable: 'isOvertimePay', units: 'overtimePayUnits', default: { amount: '0', type: 'hourly' } },
 // };
-
 // const convertAmountToPercentage = (amount, baseCtc = DEFAULT_CTC) => {
 //   const parsedAmount = parseFloat(amount);
 //   if (isNaN(parsedAmount) || parsedAmount <= 0) return 0;
 //   return (parsedAmount / baseCtc) * 100;
 // };
-
 // const formatFieldName = (key) => {
 //   const fieldNames = {
 //     basicSalary: 'Basic Salary',
@@ -195,7 +188,6 @@
 //   };
 //   return fieldNames[key] || key.replace(/([A-Z][a-z]+)/g, ' $1').replace(/^./, (str) => str.toUpperCase()).trim();
 // };
-
 // const validateTotalPercentage = (formData, ctc = DEFAULT_CTC) => {
 //   let totalPercentage = 0;
 //   const components = [];
@@ -233,7 +225,6 @@
 //     components,
 //   };
 // };
-
 // const CreateCompensation = () => {
 //   const [isPopupOpen, setIsPopupOpen] = useState(false);
 //   const [currentStep, setCurrentStep] = useState(1);
@@ -244,20 +235,23 @@
 //   const [salaryDetails, setSalaryDetails] = useState(null);
 //   const [formData, setFormData] = useState(defaultFormData);
 //   const [compensations, setCompensations] = useState([]);
-
-
 //   const [isSalaryPeriodModalOpen, setIsSalaryPeriodModalOpen] = useState(false);
 //   const [alertModal, setAlertModal] = useState({
 //     isVisible: false,
 //     title: '',
 //     message: '',
 //   });
+//   const [confirmModal, setConfirmModal] = useState({
+//     isVisible: false,
+//     title: '',
+//     message: '',
+//     onConfirm: null,
+//     onCancel: null,
+//   });
 //   const [viewExecCompensation, setViewExecCompensation] = useState(null);
 //   const [errors, setErrors] = useState({});
 //   const [salaryPeriods, setSalaryPeriods] = useState([]);
 //   const meId = JSON.parse(localStorage.getItem('dashboardData') || '{}').employeeId;
-
-
 // const allowancePercentageFields = [
 //   { field: 'basicSalary', enable: 'isBasicSalary', type: 'basicSalaryType', amountField: 'basicSalaryAmount' },
 //   { field: 'houseRentAllowance', enable: 'isHouseRentAllowance', type: 'houseRentAllowanceType', amountField: 'houseRentAllowanceAmount' },
@@ -273,15 +267,11 @@
 //   { field: 'statutoryBonusPercentage', enable: 'isStatutoryBonus', type: 'statutoryBonusType', amountField: 'statutoryBonusAmount', include: 'statutoryBonusIncludeInCtc' },
 //   { field: 'incentives', enable: 'isIncentives', type: 'incentivesType', amountField: 'incentivesAmount', include: 'incentivesIncludeInCtc' },
 // ];
-
-
-
 // const remainingPercentage = useMemo(() => {
 //   let sum = 0;
 //   const components = [];
 //   const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC; // Use ctcInput or 100000
 //   console.log('Calculating remainingPercentage:', { formData, totalCTC, allowancePercentageFields });
-
 //   allowancePercentageFields.forEach(({ field, enable, type, amountField, include }) => {
 //     const isEnabled = formData[enable];
 //     const isIncluded = include ? formData[include] : true;
@@ -289,7 +279,6 @@
 //     const percentageValue = formData[field];
 //     const amountValue = formData[amountField];
 //     console.log(`Processing field: ${field}, enable: ${isEnabled}, type: ${fieldType}, percentage: ${percentageValue}, amount: ${amountValue}, include: ${isIncluded}`);
-
 //     if (isEnabled && isIncluded) {
 //       if (fieldType === 'percentage' && percentageValue !== undefined && percentageValue !== '') {
 //         const val = parseFloat(percentageValue);
@@ -317,15 +306,10 @@
 //       console.log(`Field ${field} skipped: enable=${isEnabled}, include=${isIncluded}`);
 //     }
 //   });
-
 //   const remaining = 100 - sum;
 //   console.log('Percentage Components:', components, 'Total:', sum.toFixed(2), 'Remaining:', remaining.toFixed(2));
 //   return remaining;
 // }, [formData, ctcInput]);
-
-
-
-
 //  const renderCategoryField = ({
 //   label,
 //   field,
@@ -340,7 +324,6 @@
 // }) => {
 //   const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC;
 //   const percentageValue = formData[percentageField] || (formData[typeField] === 'amount' && formData[amountField] ? convertAmountToPercentage(formData[amountField], totalCTC).toFixed(2) : '');
-
 //   return (
 //     <div key={field} className="compensation-form-group">
 //       <span className="compensation-label-text">
@@ -475,242 +458,7 @@
 //     </div>
 //   );
 // };
-// //  const handleSubmit = async (e) => {
-// //   e.preventDefault();
-// //   setErrors({});
-// //   console.log('formData:', formData); // Debug
-
-// //   // Validate Compensation Plan Name
-// //   if (!formData.compensationPlanName.trim()) {
-// //     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
-// //     showAlert('Compensation Plan Name is required and cannot be empty');
-// //     return;
-// //   }
-
-// //   // Validate Incentives
-// //   if (formData.isIncentives && !formData.incentivesAmount.trim()) {
-// //     setErrors({ incentivesAmount: 'Incentives amount is required when incentives are enabled' });
-// //     showAlert('Incentives amount is required when incentives are enabled');
-// //     return;
-// //   }
-
-// //   // Validate Default Working Hours
-// //   if (formData.isDefaultWorkingHours && !formData.defaultWorkingHours.trim()) {
-// //     setErrors({ defaultWorkingHours: 'Default Working Hours is required when enabled' });
-// //     showAlert('Default Working Hours is required when enabled');
-// //     return;
-// //   }
-
-// //   // Validate PF Employee Percentage (optional, only if provided)
-// //   if (
-// //     formData.isPFEmployee &&
-// //     formData.pfEmployeeType === 'percentage' &&
-// //     formData.pfEmployeePercentage &&
-// //     parseFloat(formData.pfEmployeePercentage) > 12
-// //   ) {
-// //     setErrors({ pfEmployeePercentage: 'PF Employee percentage cannot exceed 12%' });
-// //     showAlert('PF Employee percentage cannot exceed 12%');
-// //     return;
-// //   }
-
-// //   // Validate PF Employer Percentage (optional, only if provided)
-// //   if (
-// //     formData.isPFEmployer &&
-// //     formData.pfEmployerType === 'percentage' &&
-// //     formData.pfEmployerPercentage &&
-// //     parseFloat(formData.pfEmployerPercentage) > 12
-// //   ) {
-// //     setErrors({ pfEmployerPercentage: 'PF Employer percentage cannot exceed 12%' });
-// //     showAlert('PF Employer percentage cannot exceed 12%');
-// //     return;
-// //   }
-
-// //   // Validate Total Percentage
-// //   if (remainingPercentage < 0) {
-// //     setErrors({ totalPercentage: `Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%` });
-// //     showAlert(`Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%`);
-// //     return;
-// //   }
-// //   if (remainingPercentage > 0) {
-// //     setErrors({ totalPercentage: `You still need to add ${remainingPercentage}% to reach 100%` });
-// //     showAlert(`You still need to add ${remainingPercentage}% to reach 100% of CTC`);
-// //     return;
-// //   }
-
-// //   // Prepare payload matching the previous working structure
-// //   const data = {
-// //     compensationPlanName: formData.compensationPlanName,
-// //     formData: { ...formData },
-// //   };
-
-// //   try {
-// //     let response;
-// //     const headers = {
-// //       'x-api-key': API_KEY,
-// //       'x-employee-id': meId,
-// //       'Content-Type': 'application/json',
-// //     };
-
-// //     console.log('Sending request to:', isEditing
-// //       ? `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`
-// //       : `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`);
-// //     console.log('Payload:', data); // Debug
-
-// //     if (isEditing) {
-// //       data.id = editingCompensationId;
-// //       response = await axios.put(
-// //         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`,
-// //         data,
-// //         { headers }
-// //       );
-// //       showAlert('Compensation updated successfully!');
-// //     } else {
-// //       response = await axios.post(
-// //         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`,
-// //         data,
-// //         { headers }
-// //       );
-// //       showAlert('Compensation created successfully!');
-// //     }
-
-// //     // Save working days if applicable
-// //     if (formData.isDefaultWorkingDays) {
-// //       const workingDaysResponse = await axios.post(
-// //         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/working-days`,
-// //         {
-// //           compensation_plan_id: isEditing ? editingCompensationId : response.data.data.id,
-// //           ...formData.defaultWorkingDays,
-// //         },
-// //         { headers }
-// //       );
-// //       if (!workingDaysResponse.data.success) {
-// //         throw new Error('Failed to save working days');
-// //       }
-// //     }
-
-// //     togglePopup();
-// //     fetchCompensations();
-// //   } catch (error) {
-// //     console.error('Error saving compensation plan:', error);
-// //     const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-// //     console.log('Backend error details:', error.response?.data); // Debug
-// //     setErrors({ general: errorMessage });
-// //     showAlert(`Failed to ${isEditing ? 'update' : 'create'} compensation: ${errorMessage}`);
-// //   }
-// // };
-// // const handleSubmit = async (e) => {
-// //   e.preventDefault();
-// //   setErrors({});
-// //   console.log('formData:', formData); // Debug
-
-// //   // Validate Compensation Plan Name
-// //   if (!formData.compensationPlanName.trim()) {
-// //     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
-// //     showAlert('Compensation Plan Name is required and cannot be empty');
-// //     return;
-// //   }
-
-// //   // Validate Incentives
-// //   if (formData.isIncentives && !formData.incentivesAmount.trim()) {
-// //     setErrors({ incentivesAmount: 'Incentives amount is required when incentives are enabled' });
-// //     showAlert('Incentives amount is required when incentives are enabled');
-// //     return;
-// //   }
-
-// //   // Validate Default Working Hours
-// //   if (formData.isDefaultWorkingHours && !formData.defaultWorkingHours.trim()) {
-// //     setErrors({ defaultWorkingHours: 'Default Working Hours is required when enabled' });
-// //     showAlert('Default Working Hours is required when enabled');
-// //     return;
-// //   }
-
-// //   // Validate Total Percentage
-// //   if (remainingPercentage < 0) {
-// //     setErrors({ totalPercentage: `Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%` });
-// //     showAlert(`Total percentage exceeds 100% by ${Math.abs(remainingPercentage)}%`);
-// //     return;
-// //   }
-// //   if (remainingPercentage > 0) {
-// //     setErrors({ totalPercentage: `You still need to add ${remainingPercentage}% to reach 100%` });
-// //     showAlert(`You still need to add ${remainingPercentage}% to reach 100%`);
-// //     return;
-// //   }
-
-// //   // Prepare payload
-// //   const data = {
-// //     compensationPlanName: formData.compensationPlanName,
-// //     formData: { ...formData },
-// //   };
-
-// //   try {
-// //     let response;
-// //     const headers = {
-// //       'x-api-key': API_KEY,
-// //       'x-employee-id': meId,
-// //       'Content-Type': 'application/json',
-// //     };
-
-// //     console.log('Sending request to:', isEditing
-// //       ? `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`
-// //       : `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`);
-// //     console.log('Payload:', data); // Debug
-
-// //     if (isEditing) {
-// //       data.id = editingCompensationId;
-// //       response = await axios.put(
-// //         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`,
-// //         data,
-// //         { headers }
-// //       );
-// //       showAlert('Compensation updated successfully!');
-// //     } else {
-// //       response = await axios.post(
-// //         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`,
-// //         data,
-// //         { headers }
-// //       );
-// //       showAlert('Compensation created successfully!');
-// //     }
-
-// //     togglePopup();
-// //     fetchCompensations();
-// //   } catch (error) {
-// //     console.error('Error saving compensation plan:', error);
-// //     const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-// //     console.log('Backend error details:', error.response?.data); // Debug
-// //     setErrors({ general: errorMessage });
-// //     showAlert(`Failed to ${isEditing ? 'update' : 'create'} compensation: ${errorMessage}`);
-// //   }
-// // };
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-//   setErrors({});
-//   // Validate salary calculation period exists
-// if (salaryPeriods.length === 0) {
-//   showAlert('Please add a salary calculation period first before creating a compensation plan.');
-//   setIsSalaryPeriodModalOpen(true);
-//   return;
-// }
-//   console.log('formData:', formData);
-//   // Validate Compensation Plan Name
-//   if (!formData.compensationPlanName.trim()) {
-//     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
-//     showAlert('Compensation Plan Name is required and cannot be empty');
-//     return;
-//   }
-//   // Validate Total Percentage
-//   const totalPercentage = 100 - remainingPercentage;
-//   if (remainingPercentage < -0.01) {
-//     setErrors({ totalPercentage: `Total percentage exceeds 100% by ${Math.abs(remainingPercentage).toFixed(2)}%` });
-//     showAlert(`Total percentage exceeds 100% by ${Math.abs(remainingPercentage).toFixed(2)}%`);
-//     return;
-//   }
-//   if (remainingPercentage > 0.01) {
-//     setErrors({ totalPercentage: `Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%` });
-//     showAlert(`Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%`);
-//     return;
-//   }
-//   // Prepare payload
+// const performSave = async () => {
 //   const data = {
 //     compensationPlanName: formData.compensationPlanName,
 //     formData: { ...formData },
@@ -742,8 +490,6 @@
 //       );
 //       showAlert('Compensation created successfully!');
 //     }
-//     // Save working days if applicable
-    
 //     togglePopup();
 //     fetchCompensations();
 //   } catch (error) {
@@ -754,86 +500,62 @@
 //     showAlert(`Failed to ${isEditing ? 'update' : 'create'} compensation: ${errorMessage}`);
 //   }
 // };
-// // const handleSubmit = async (e) => {
-// //   e.preventDefault();
-// //   setErrors({});
-// //   // Validate salary calculation period exists
-// //   if (salaryPeriods.length === 0) {
-// //     showAlert('Please add a salary calculation period first before creating a compensation plan.');
-// //     setIsSalaryPeriodModalOpen(true);
-// //     return;
-// //   }
-// //   console.log('formData:', formData);
-// //   // Validate Compensation Plan Name
-// //   if (!formData.compensationPlanName.trim()) {
-// //     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
-// //     showAlert('Compensation Plan Name is required and cannot be empty');
-// //     return;
-// //   }
-// //   // Validate Total Percentage
-// //   const totalPercentage = 100 - remainingPercentage;
-// //   if (remainingPercentage < -0.01) {
-// //     setErrors({ totalPercentage: `Total percentage exceeds 100% by ${Math.abs(remainingPercentage).toFixed(2)}%` });
-// //     showAlert(`Total percentage exceeds 100% by ${Math.abs(remainingPercentage).toFixed(2)}%`);
-// //     return;
-// //   }
-// //   if (remainingPercentage > 0.01) {
-// //     setErrors({ totalPercentage: `Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%` });
-// //     showAlert(`Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%`);
-// //     return;
-// //   }
-// //   // Prepare payload
-// //   const data = {
-// //     compensationPlanName: formData.compensationPlanName,
-// //     formData: { ...formData },  // Includes defaultWorkingDays as JSON object
-// //   };
-// //   try {
-// //     let response;
-// //     const headers = {
-// //       'x-api-key': API_KEY,
-// //       'x-employee-id': meId,
-// //       'Content-Type': 'application/json',
-// //     };
-// //     console.log('Sending request to:', isEditing
-// //       ? `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`
-// //       : `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`);
-// //     console.log('Payload:', data);
-// //     if (isEditing) {
-// //       data.id = editingCompensationId;
-// //       response = await axios.put(
-// //         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`,
-// //         data,
-// //         { headers }
-// //       );
-// //       showAlert('Compensation updated successfully!');
-// //     } else {
-// //       response = await axios.post(
-// //         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`,
-// //         data,
-// //         { headers }
-// //       );
-// //       console.log('this is compensation response:', response);
-// //       showAlert('Compensation created successfully!');
-// //     }
-// //     // No separate working days save: defaultWorkingDays is already in formData (saved as JSON in plan_data)
-// //     togglePopup();
-// //     fetchCompensations();
-// //   } catch (error) {
-// //     console.error('Error saving compensation plan:', error);
-// //     const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-// //     console.log('Backend error details:', error.response?.data);
-// //     setErrors({ general: errorMessage });
-// //     showAlert(`Failed to ${isEditing ? 'update' : 'create'} compensation: ${errorMessage}`);
-// //   }
-// // };
+// const handleSubmit = async (e) => {
+//   e.preventDefault();
+//   setErrors({});
+//   // Validate salary calculation period exists
+// if (salaryPeriods.length === 0) {
+//   showAlert('Please add a salary calculation period first before creating a compensation plan.');
+//   setIsSalaryPeriodModalOpen(true);
+//   return;
+// }
+//   console.log('formData:', formData);
+//   // Validate Compensation Plan Name
+//   if (!formData.compensationPlanName.trim()) {
+//     setErrors({ compensationPlanName: 'Compensation Plan Name is required' });
+//     showAlert('Compensation Plan Name is required and cannot be empty');
+//     return;
+//   }
+//   // Validate Total Percentage
+//   const totalPercentage = 100 - remainingPercentage;
+//   if (remainingPercentage < -0.01) {
+//     setErrors({ totalPercentage: `Total percentage exceeds 100% by ${Math.abs(remainingPercentage).toFixed(2)}%` });
+//     showAlert(`Total percentage exceeds 100% by ${Math.abs(remainingPercentage).toFixed(2)}%`);
+//     return;
+//   }
+//   if (remainingPercentage > 0.01) {
+//     setErrors({ totalPercentage: `Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%` });
+//     showAlert(`Total percentage is ${totalPercentage.toFixed(2)}%. Add ${remainingPercentage.toFixed(2)}% to reach 100%`);
+//     return;
+//   }
+//   // Show confirmation dialog only for create (not edit)
+//   if (!isEditing) {
+//     showConfirm('Do you want to save this plan?', 'Confirm Save', performSave);
+//   } else {
+//     performSave();
+//   }
+// };
 //   const showAlert = (message, title = '') => {
 //     setAlertModal({ isVisible: true, title, message });
 //   };
-
+//   const showConfirm = (message, title = 'Confirm', onConfirm, onCancel = () => {}) => {
+//     setConfirmModal({
+//       isVisible: true,
+//       title,
+//       message,
+//       onConfirm,
+//       onCancel,
+//     });
+//   };
 //   const closeAlert = () => {
 //     setAlertModal({ isVisible: false, title: '', message: '' });
 //   };
-
+//   const closeConfirm = () => {
+//     if (confirmModal.onCancel) {
+//       confirmModal.onCancel();
+//     }
+//     setConfirmModal({ isVisible: false, title: '', message: '', onConfirm: null, onCancel: null });
+//   };
 //   const togglePopup = () => {
 //     setIsPopupOpen(!isPopupOpen);
 //     setIsEditing(false);
@@ -842,13 +564,11 @@
 //     setFormData(defaultFormData);
 //     setErrors({});
 //   };
-
 //  const handleCheckboxChange = (field, value) => {
 //   console.log(`handleCheckboxChange: field=${field}, value=${value}`);
 //   setFormData((prev) => {
 //     const newData = { ...prev, [field]: value === 'yes' };
 //     const updatedErrors = { ...errors };
-
 //     if (value !== 'yes') {
 //       // Reset fields when unchecked
 //       if (field === 'isBasicSalary') {
@@ -915,6 +635,7 @@
 //         newData.professionalTaxAmount = '';
 //         newData.professionalTaxType = 'percentage';
 //         newData.professionalTaxIncludeInCtc = false;
+//         newData.professionalTaxIncludeInCtc = true;
 //         updatedErrors.professionalTax = '';
 //       }
 //       if (field === 'isVariablePay') {
@@ -1002,42 +723,39 @@
 //         newData.incentivesIncludeInCtc = true;
 //       }
 //     }
-
 //     setErrors(updatedErrors);
 //     return newData;
 //   });
 // };
-
 //   // const handleInputChange = (field, value) => {
-//   //   const newFormData = { ...formData, [field]: value };
-//   //   if (field.endsWith('Type')) {
-//   //     const baseField = field.replace('Type', '');
-//   //     const percentageField = salaryFieldToFormDataMap[baseField]?.percentage || `${baseField}Percentage`;
-//   //     const amountField = salaryFieldToFormDataMap[baseField]?.amount || `${baseField}Amount`;
-//   //     if (value === 'percentage') {
-//   //       newFormData[percentageField] = newFormData[percentageField] || '0';
-//   //       newFormData[amountField] = '';
-//   //     } else if (value === 'amount') {
-//   //       newFormData[amountField] = newFormData[amountField] || '0';
-//   //       newFormData[percentageField] = '';
-//   //     }
-//   //   }
-//   //   setFormData(newFormData);
-//   //   const fieldConfig = categories
-//   //     .flatMap((category) => category.fields)
-//   //     .find((f) => f.percentageField === field || f.amountField === field);
-//   //   if (fieldConfig && fieldConfig.validation && field === fieldConfig.percentageField) {
-//   //     const error = validateField(field, value, fieldConfig, newFormData);
-//   //     setErrors((prevErrors) => ({ ...prevErrors, [field]: error }));
-//   //   } else {
-//   //     setErrors((prevErrors) => ({ ...prevErrors, [field]: '' }));
-//   //   }
+//   // const newFormData = { ...formData, [field]: value };
+//   // if (field.endsWith('Type')) {
+//   // const baseField = field.replace('Type', '');
+//   // const percentageField = salaryFieldToFormDataMap[baseField]?.percentage || `${baseField}Percentage`;
+//   // const amountField = salaryFieldToFormDataMap[baseField]?.amount || `${baseField}Amount`;
+//   // if (value === 'percentage') {
+//   // newFormData[percentageField] = newFormData[percentageField] || '0';
+//   // newFormData[amountField] = '';
+//   // } else if (value === 'amount') {
+//   // newFormData[amountField] = newFormData[amountField] || '0';
+//   // newFormData[percentageField] = '';
+//   // }
+//   // }
+//   // setFormData(newFormData);
+//   // const fieldConfig = categories
+//   // .flatMap((category) => category.fields)
+//   // .find((f) => f.percentageField === field || f.amountField === field);
+//   // if (fieldConfig && fieldConfig.validation && field === fieldConfig.percentageField) {
+//   // const error = validateField(field, value, fieldConfig, newFormData);
+//   // setErrors((prevErrors) => ({ ...prevErrors, [field]: error }));
+//   // } else {
+//   // setErrors((prevErrors) => ({ ...prevErrors, [field]: '' }));
+//   // }
 //   // };
 // const handleInputChange = (field, value) => {
 //   console.log(`handleInputChange: field=${field}, value=${value}`);
 //   const newFormData = { ...formData, [field]: value };
 //   const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC;
-
 //   // Handle type changes (percentage/amount)
 //   if (field.endsWith('Type')) {
 //     const baseField = field.replace('Type', '');
@@ -1051,7 +769,6 @@
 //       newFormData[percentageField] = ''; // Reset to ensure recalculation
 //     }
 //   }
-
 //   // Calculate percentage for amount-based fields
 //   allowancePercentageFields.forEach(({ field: percentageField, amountField, typeField }) => {
 //     if (field === amountField && newFormData[typeField] === 'amount' && value) {
@@ -1060,9 +777,7 @@
 //       console.log(`Set ${percentageField} to ${percentage.toFixed(2)} for ${amountField}: ${value}`);
 //     }
 //   });
-
 //   setFormData(newFormData);
-
 //   // Validate field if applicable
 //   const fieldConfig = categories
 //     .flatMap((category) => category.fields)
@@ -1081,7 +796,6 @@
 //       return { ...prev, tdsSlabs: newSlabs };
 //     });
 //   };
-
 //   const handleAddSlab = () => {
 //     if (formData.tdsSlabs.length < 4) {
 //       setFormData((prev) => ({
@@ -1090,7 +804,6 @@
 //       }));
 //     }
 //   };
-
 //   const handleRemoveSlab = (index) => {
 //     if (!Number.isInteger(index) || index < 0 || index >= formData.tdsSlabs.length) {
 //       console.warn(`Invalid index ${index} for removing TDS slab`);
@@ -1104,7 +817,6 @@
 //         : []
 //     }));
 //   };
-
 //   const handleWorkingDayChange = (day, value) => {
 //     setFormData((prev) => ({
 //       ...prev,
@@ -1114,7 +826,6 @@
 //       }
 //     }));
 //   };
-
 //   const fetchCompensations = async () => {
 //     try {
 //       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`, {
@@ -1178,12 +889,10 @@
 //     showAlert('Failed to fetch salary calculation periods');
 //   }
 // };
-
 //   useEffect(() => {
 //     fetchCompensations();
 //     fetchSalaryPeriods();
 //   }, []);
-
 //   const handleEdit = (compensation) => {
 //     setIsEditing(true);
 //     setEditingCompensationId(compensation.id);
@@ -1279,7 +988,6 @@
 //     setCurrentStep(1);
 //     setErrors({});
 //   };
-
 //   const validateField = (name, value, fieldConfig, formData) => {
 //     const { validation } = fieldConfig;
 //     if (!validation || !formData[validation.appliesWhen.field] || formData[validation.appliesWhen.field] !== validation.appliesWhen.value) {
@@ -1294,7 +1002,6 @@
 //     }
 //     return '';
 //   };
-
 //   const handleViewPopup = async (planData, planId) => {
 //     if (planData && typeof planData === 'object' && !Array.isArray(planData)) {
 //       try {
@@ -1420,19 +1127,16 @@
 //       showAlert('Failed to display compensation details: Invalid data format');
 //     }
 //   };
-
 //   const handlePreview = () => {
 //     setPreviewModal(true);
 //     setCtcInput('');
 //     setSalaryDetails(null);
 //   };
-
 //   const closePreview = () => {
 //     setPreviewModal(false);
 //     setCtcInput('');
 //     setSalaryDetails(null);
 //   };
-
 //   const isDefaultValue = (key, value) => {
 //     const defaultValue = defaultFormData[key];
 //     if (typeof value === 'object' && value !== null) {
@@ -1440,7 +1144,6 @@
 //     }
 //     return value === defaultValue;
 //   };
-
 //  const shouldDisplayField = (key, value, formData) => {
 //   const excludedFields = [
 //     'pfEmployeeText',
@@ -1454,7 +1157,7 @@
 //   if (excludedFields.includes(key)) {
 //     return false;
 //   }
-    
+  
 //     if (isDefaultValue(key, value)) {
 //       return false;
 //     }
@@ -1553,7 +1256,6 @@
 //     }
 //     return false;
 //   };
-
 //   const getPlanValue = (calcField, formData) => {
 //   const mapping = salaryFieldToFormDataMap[calcField];
 //   if (!mapping) return { value: '-', basis: 'N/A' };
@@ -1576,6 +1278,22 @@
 //       value: defaultConfig ? `${defaultConfig.amount}/${typeValue} (default)` : '-',
 //       basis: 'Overtime Records'
 //     };
+//   }
+//   if (calcField === 'professionalTax') {
+//     if (!formData.isProfessionalTax) {
+//       return { value: 'Not Applicable', basis: 'N/A' };
+//     }
+//     const typeValue = formData.professionalTaxType || 'amount';
+//     if (typeValue === 'percentage') {
+//       const pct = formData.professionalTax || ''; // Empty if not set
+//       return { value: pct ? `${pct}% of CTC` : 'Not Set', basis: 'CTC (Monthly)' };
+//     } else {
+//       const amt = formData.professionalTaxAmount || ''; // Empty if not set
+//       return {
+//         value: amt ? `₹${parseFloat(amt).toLocaleString('en-IN')} (Fixed)` : 'Not Set',
+//         basis: 'Fixed'
+//       };
+//     }
 //   }
 //   if (calcField === 'employeePF' && formData.pfEmployeeText) {
 //     return {
@@ -1601,17 +1319,23 @@
 //       basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
 //     };
 //   }
+//   // INSERT HERE: New tds block (before let basis)
+//   if (calcField === 'tds') {
+//     if (!formData.isTDSApplicable || !formData.tdsSlabs || formData.tdsSlabs.length === 0) {
+//       return { value: 'Not Applicable', basis: 'N/A' };
+//     }
+//     return { value: 'Calculated based on CTC', basis: 'Annual' };
+//   }
 //   let basis = 'N/A';
 //   // Updated: LTA Allowance now uses CTC basis (moved out of Basic Salary group)
-//   if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'ltaAllowance'].includes(calcField)) {  // Added 'ltaAllowance' here
-//     basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)';  // Use 'Annual' if LTA is yearly
-//   } else if (['hra', 'gratuity'].includes(calcField)) {  // Removed 'ltaAllowance' from here
+//   if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'ltaAllowance'].includes(calcField)) { // Added 'ltaAllowance' here
+//     basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)'; // Use 'Annual' if LTA is yearly
+//   } else if (['hra', 'gratuity'].includes(calcField)) { // Removed 'ltaAllowance' from here
 //     basis = 'Basic Salary';
 //   } else if (calcField === 'incentives') {
 //     basis = 'Incentive Data';
-//   } else if (calcField === 'tds') {
-//     basis = 'CTC (Annual)';
 //   }
+//   // REMOVED: else if (calcField === 'tds') { basis = 'CTC (Annual)'; }  // Handled in new block above
 //   if (enable && formData[enable]) {
 //     const typeValue = formData[type] || defaultConfig?.type || 'percentage';
 //     const valueField = typeValue === 'percentage' ? percentage : amount;
@@ -1649,12 +1373,123 @@
 //   }
 //   return { value: '-', basis: 'N/A' };
 // };
-
+// //   const getPlanValue = (calcField, formData) => {
+// //   const mapping = salaryFieldToFormDataMap[calcField];
+// //   if (!mapping) return { value: '-', basis: 'N/A' };
+// //   const { enable, amount, percentage, type, units, default: defaultConfig } = mapping;
+// //   if (['grossSalary', 'netSalary', 'advanceRecovery', 'bonusPay', 'lopDeduction'].includes(calcField)) {
+// //     return { value: 'N/A', basis: calcField === 'grossSalary' ? 'Sum of components' : calcField === 'netSalary' ? 'Gross minus deductions' : 'Records' };
+// //   }
+// //   if (calcField === 'overtimePay') {
+// //     const typeValue = formData[type] || defaultConfig?.type || 'hourly';
+// //     const amountValue = formData[amount] || '0';
+// //     const unitsValue = formData[units] || '0';
+// //     const unitLabel = typeValue === 'hourly' ? 'hour' : typeValue === 'daily' ? 'day' : 'unit';
+// //     if (amountValue && amountValue !== '0') {
+// //       return {
+// //         value: `₹${parseFloat(amountValue).toLocaleString('en-IN')} / ${unitLabel}${unitsValue !== '0' ? ` (${unitsValue} ${unitLabel}${parseInt(unitsValue) !== 1 ? 's' : ''})` : ''}`,
+// //         basis: 'Overtime Records'
+// //       };
+// //     }
+// //     return {
+// //       value: defaultConfig ? `${defaultConfig.amount}/${typeValue} (default)` : '-',
+// //       basis: 'Overtime Records'
+// //     };
+// //   }
+// //   if (calcField === 'employeePF' && formData.pfEmployeeText) {
+// //     return {
+// //       value: formData.pfEmployeeText !== 'Not Applicable' ? formData.pfEmployeeText : '0%',
+// //       basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// //     };
+// //   }
+// //   if (calcField === 'employerPF' && formData.pfEmployerText) {
+// //     return {
+// //       value: formData.pfEmployerText !== 'Not Applicable' ? formData.pfEmployerText : '0%',
+// //       basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// //     };
+// //   }
+// //   if (calcField === 'esic' && formData.esicEmployeeText) {
+// //     return {
+// //       value: formData.esicEmployeeText !== 'Not Applicable' ? formData.esicEmployeeText : '0%',
+// //       basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// //     };
+// //   }
+// //   if (calcField === 'insurance' && formData.insuranceEmployeeText) {
+// //     return {
+// //       value: formData.insuranceEmployeeText !== 'Not Applicable' ? formData.insuranceEmployeeText : '0%',
+// //       basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// //     };
+// //   }
+// //   // INSERT HERE: New professionalTax block (before let basis)
+// //   if (calcField === 'professionalTax') {
+// //     if (!formData.isProfessionalTax) {
+// //       return { value: 'Not Applicable', basis: 'N/A' };
+// //     }
+// //     const typeValue = formData.professionalTaxType || 'amount';
+// //     if (typeValue === 'percentage') {
+// //       const pct = formData.professionalTax || ''; // Empty if not set
+// //       return { value: pct ? `${pct}% of CTC` : 'Not Set', basis: 'CTC (Monthly)' };
+// //     } else {
+// //       const amt = formData.professionalTaxAmount || ''; // Empty if not set
+// //       return {
+// //         value: amt ? `₹${parseFloat(amt).toLocaleString('en-IN')} (Fixed)` : 'Not Set',
+// //         basis: 'Fixed'
+// //       };
+// //     }
+// //   }
+// //   let basis = 'N/A';
+// //   // Updated: LTA Allowance now uses CTC basis (moved out of Basic Salary group)
+// //   if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'ltaAllowance'].includes(calcField)) { // Added 'ltaAllowance' here
+// //     basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)'; // Use 'Annual' if LTA is yearly
+// //   } else if (['hra', 'gratuity'].includes(calcField)) { // Removed 'ltaAllowance' from here
+// //     basis = 'Basic Salary';
+// //   } else if (calcField === 'incentives') {
+// //     basis = 'Incentive Data';
+// //   } else if (calcField === 'tds') {
+// //     basis = 'CTC (Annual)';
+// //   }
+// //   // REMOVED: else if (calcField === 'professionalTax') { basis = 'CTC (Monthly)'; }  // Handled in new block above
+// //   if (enable && formData[enable]) {
+// //     const typeValue = formData[type] || defaultConfig?.type || 'percentage';
+// //     const valueField = typeValue === 'percentage' ? percentage : amount;
+// //     const value = formData[valueField];
+// //     if (value && !isDefaultValue(valueField, value)) {
+// //       return {
+// //         value: typeValue === 'percentage'
+// //           ? `${parseFloat(value)}%`
+// //           : `₹${parseFloat(value).toLocaleString('en-IN')}`,
+// //         basis
+// //       };
+// //     }
+// //     if (typeValue === 'percentage' && !value && formData[amount]) {
+// //       return {
+// //         value: `₹${parseFloat(formData[amount]).toLocaleString('en-IN')}`,
+// //         basis
+// //       };
+// //     }
+// //     if (typeValue === 'amount' && !value && formData[percentage]) {
+// //       return {
+// //         value: `${parseFloat(formData[percentage])}%`,
+// //         basis
+// //       };
+// //     }
+// //   }
+// //   if (defaultConfig) {
+// //     const { percentage, amount, type } = defaultConfig;
+// //     const defaultValue = type === 'percentage' ? percentage : amount;
+// //     return {
+// //       value: defaultValue === 'fill'
+// //         ? 'Fill remaining (default)'
+// //         : `${defaultValue}${type === 'percentage' ? '%' : ''} (default)`,
+// //       basis
+// //     };
+// //   }
+// //   return { value: '-', basis: 'N/A' };
+// // };
 //   const handleStepChange = (step) => {
 //     const newStep = Math.max(1, Math.min(step, categories.length));
 //     setCurrentStep(newStep);
 //   };
-
 //   const handleCalculate = () => {
 //     if (!ctcInput || isNaN(parseFloat(ctcInput)) || parseFloat(ctcInput) <= 0) {
 //       showAlert('Please enter a valid CTC amount');
@@ -1710,7 +1545,8 @@
 //       pfEmployeeText: planDataCopy.pfEmployeeText || '0%',
 //       pfEmployerText: planDataCopy.pfEmployerText || '0%',
 //       esicEmployeeText: planDataCopy.esicEmployeeText || '0%',
-//       insuranceEmployeeText: planDataCopy.insuranceEmployeeText || '0%'
+//       insuranceEmployeeText: planDataCopy.insuranceEmployeeText || '0%',
+//       professionalTaxText: planDataCopy.professionalTaxText || '₹0 (Fixed)'  // ADDED: Include Professional Tax text
 //     }));
 //     setSalaryDetails(calculatedDetails);
 //   };
@@ -1912,10 +1748,11 @@
 //         }
 //       ]
 //     },
-   
+ 
 // {
 //   title: 'Allowances',
-//   fields: [
+ 
+//    fields: [
 //    {
 //       label: 'Basic Salary',
 //       field: 'isBasicSalary',
@@ -1955,7 +1792,7 @@
 //     }
 //   ]
 // },
-   
+ 
 //   {
 //   title: 'PF and Medical Contributions',
 //   fields: [
@@ -2089,7 +1926,7 @@
 //         {
 //           label: 'Incentives',
 //           field: 'isIncentives',
-          
+        
 //         },
 //         {
 //           component: (
@@ -2238,7 +2075,6 @@
 //   'overtimePayAmount',
 //   'overtimePayUnits'
 // ];
-
 //   const typeFieldMap = {
 //     basicSalary: { typeField: 'basicSalaryType', percentageField: 'basicSalary' },
 //     basicSalaryAmount: { typeField: 'basicSalaryType', percentageField: 'basicSalary' },
@@ -2253,7 +2089,6 @@
 //     pfEmployerPercentage: { typeField: 'pfEmployerType', percentageField: 'pfEmployerPercentage' },
 //     pfEmployerAmount: { typeField: 'pfEmployerType', percentageField: 'pfEmployerPercentage' },
 //   };
-
 //   return (
 //     <tbody>
 //       {fieldOrder
@@ -2265,7 +2100,6 @@
 //           const percentageField = config.percentageField;
 //           const typeValue = typeField ? compensationData[typeField] : null;
 //           let displayValue = '';
-
 //           if (typeof value === 'boolean') {
 //             displayValue = value ? 'Yes' : 'No';
 //          } else if (typeof value === 'object' && value !== null) {
@@ -2302,7 +2136,6 @@
 //           } else {
 //             displayValue = '-';
 //           }
-
 //           return (
 //             <tr key={key}>
 //               <td>{formatFieldName(key)}</td>
@@ -2611,7 +2444,6 @@
 //     if (!formData[field.enableField]) return null; // Skip disabled fields
 //     const totalCTC = ctcInput ? parseFloat(ctcInput) : DEFAULT_CTC;
 //     let displayValue = '';
-
 //     if (field.label === "Default Working Days") {
 //   displayValue = Object.entries(field.values).map(([day, status]) => (
 //     <div key={day}>{`${day}: ${formatStatus(status)}`}</div>
@@ -2654,7 +2486,6 @@
 //         displayValue = '-';
 //       }
 //     }
-
 //     return (
 //       <tr key={idx}>
 //         <td>{field.label}</td>
@@ -2677,29 +2508,41 @@
 //         </tr>
 //       </thead>
 //       <tbody>
-//         {Object.entries(salaryDetails)
-//           .filter(([key, value]) => shouldDisplayField(key, value, formData))
-//           .map(([key, value]) => {
-//             const totalCTC = parseFloat(ctcInput) || DEFAULT_CTC;
-//             const { value: planValue, basis } = getPlanValue(key, formData);
-//             let finalPlanValue = planValue;
-//             if (key === 'tds' && typeof value === 'number' && value > 0) {
-//               const annualTds = value * 12;
-//               const effectivePct = ((annualTds / totalCTC) * 100).toFixed(2);
-//               finalPlanValue = `Slab-based (${effectivePct}%)`;
-//             }
-//             return (
-//               <tr key={key}>
-//                 <td>{formatFieldName(key)}</td>
-//                 <td>
-//                   {typeof value === 'number'
-//                     ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-//                     : value}
-//                 </td>
-//                 <td>{finalPlanValue} {basis !== 'N/A' ? `(Based on ${basis})` : ''}</td>
-//               </tr>
-//             );
-//           })}
+//       {Object.entries(salaryDetails)
+//   .filter(([key, value]) => shouldDisplayField(key, value, formData))
+//   .map(([key, value]) => {
+//     const totalCTC = parseFloat(ctcInput) || DEFAULT_CTC;
+//     const { value: planValue, basis } = getPlanValue(key, formData);
+//     let finalPlanValue = planValue;
+//     if (key === 'tds' && typeof value === 'number' && value > 0) {
+//       // find applicable slab rate
+//       let applicableRate = 'N/A';
+//       if (formData.tdsSlabs && formData.tdsSlabs.length > 0) {
+//         const annualIncome = totalCTC;
+//         // assume slabs sorted, find the one containing annualIncome
+//         const applicableSlab = formData.tdsSlabs.find(slab => {
+//           const from = parseFloat(slab.from) || 0;
+//           const to = parseFloat(slab.to) || Infinity;
+//           return from <= annualIncome && annualIncome < to;
+//         });
+//         if (applicableSlab) {
+//           applicableRate = applicableSlab.percentage + '%';
+//         }
+//       }
+//       finalPlanValue = `Slab-based (${applicableRate})`;
+//     }
+//     return (
+//       <tr key={key}>
+//         <td>{formatFieldName(key)}</td>
+//         <td>
+//           {typeof value === 'number'
+//             ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+//             : value}
+//         </td>
+//         <td>{finalPlanValue} {basis !== 'N/A' ? `(Based on ${basis})` : ''}</td>
+//       </tr>
+//     );
+//   })}
 //       </tbody>
 //     </table>
 //   </div>
@@ -2711,13 +2554,13 @@
 //       )}
 //       {isSalaryPeriodModalOpen && (
 //   <div>
-// <SalaryCalculationPeriod 
+// <SalaryCalculationPeriod
 //       onClose={() => {
 //         setIsSalaryPeriodModalOpen(false);
 //         fetchSalaryPeriods(); // Add this to refresh after close
-//       }} 
+//       }}
 //       showAlert={showAlert} // Assuming it uses this prop as per your component
-//     />  </div>
+//     /> </div>
 // )}
 //       <Modal
 //         isVisible={alertModal.isVisible}
@@ -2726,6 +2569,16 @@
 //       >
 //         <p>{alertModal.message}</p>
 //       </Modal>
+//       <Modal
+//   isVisible={confirmModal.isVisible}
+//   onClose={closeConfirm}
+//   buttons={[
+//     { label: 'No', onClick: closeConfirm },
+//     { label: 'Yes', onClick: () => { confirmModal.onConfirm?.(); closeConfirm(); } }
+//   ]}
+// >
+//   <p>{confirmModal.message}</p>
+// </Modal>
 //     </div>
 //   );
 // };
@@ -3888,7 +3741,6 @@ const handleInputChange = (field, value) => {
   if (excludedFields.includes(key)) {
     return false;
   }
-  
     if (isDefaultValue(key, value)) {
       return false;
     }
@@ -4066,7 +3918,7 @@ const handleInputChange = (field, value) => {
   } else if (calcField === 'incentives') {
     basis = 'Incentive Data';
   }
-  // REMOVED: else if (calcField === 'tds') { basis = 'CTC (Annual)'; }  // Handled in new block above
+  // REMOVED: else if (calcField === 'tds') { basis = 'CTC (Annual)'; } // Handled in new block above
   if (enable && formData[enable]) {
     const typeValue = formData[type] || defaultConfig?.type || 'percentage';
     const valueField = typeValue === 'percentage' ? percentage : amount;
@@ -4104,183 +3956,202 @@ const handleInputChange = (field, value) => {
   }
   return { value: '-', basis: 'N/A' };
 };
-//   const getPlanValue = (calcField, formData) => {
-//   const mapping = salaryFieldToFormDataMap[calcField];
-//   if (!mapping) return { value: '-', basis: 'N/A' };
-//   const { enable, amount, percentage, type, units, default: defaultConfig } = mapping;
-//   if (['grossSalary', 'netSalary', 'advanceRecovery', 'bonusPay', 'lopDeduction'].includes(calcField)) {
-//     return { value: 'N/A', basis: calcField === 'grossSalary' ? 'Sum of components' : calcField === 'netSalary' ? 'Gross minus deductions' : 'Records' };
-//   }
-//   if (calcField === 'overtimePay') {
-//     const typeValue = formData[type] || defaultConfig?.type || 'hourly';
-//     const amountValue = formData[amount] || '0';
-//     const unitsValue = formData[units] || '0';
-//     const unitLabel = typeValue === 'hourly' ? 'hour' : typeValue === 'daily' ? 'day' : 'unit';
-//     if (amountValue && amountValue !== '0') {
-//       return {
-//         value: `₹${parseFloat(amountValue).toLocaleString('en-IN')} / ${unitLabel}${unitsValue !== '0' ? ` (${unitsValue} ${unitLabel}${parseInt(unitsValue) !== 1 ? 's' : ''})` : ''}`,
-//         basis: 'Overtime Records'
-//       };
-//     }
-//     return {
-//       value: defaultConfig ? `${defaultConfig.amount}/${typeValue} (default)` : '-',
-//       basis: 'Overtime Records'
-//     };
-//   }
-//   if (calcField === 'employeePF' && formData.pfEmployeeText) {
-//     return {
-//       value: formData.pfEmployeeText !== 'Not Applicable' ? formData.pfEmployeeText : '0%',
-//       basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-//     };
-//   }
-//   if (calcField === 'employerPF' && formData.pfEmployerText) {
-//     return {
-//       value: formData.pfEmployerText !== 'Not Applicable' ? formData.pfEmployerText : '0%',
-//       basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-//     };
-//   }
-//   if (calcField === 'esic' && formData.esicEmployeeText) {
-//     return {
-//       value: formData.esicEmployeeText !== 'Not Applicable' ? formData.esicEmployeeText : '0%',
-//       basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-//     };
-//   }
-//   if (calcField === 'insurance' && formData.insuranceEmployeeText) {
-//     return {
-//       value: formData.insuranceEmployeeText !== 'Not Applicable' ? formData.insuranceEmployeeText : '0%',
-//       basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
-//     };
-//   }
-//   // INSERT HERE: New professionalTax block (before let basis)
-//   if (calcField === 'professionalTax') {
-//     if (!formData.isProfessionalTax) {
-//       return { value: 'Not Applicable', basis: 'N/A' };
-//     }
-//     const typeValue = formData.professionalTaxType || 'amount';
-//     if (typeValue === 'percentage') {
-//       const pct = formData.professionalTax || ''; // Empty if not set
-//       return { value: pct ? `${pct}% of CTC` : 'Not Set', basis: 'CTC (Monthly)' };
-//     } else {
-//       const amt = formData.professionalTaxAmount || ''; // Empty if not set
-//       return {
-//         value: amt ? `₹${parseFloat(amt).toLocaleString('en-IN')} (Fixed)` : 'Not Set',
-//         basis: 'Fixed'
-//       };
-//     }
-//   }
-//   let basis = 'N/A';
-//   // Updated: LTA Allowance now uses CTC basis (moved out of Basic Salary group)
-//   if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'ltaAllowance'].includes(calcField)) { // Added 'ltaAllowance' here
-//     basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)'; // Use 'Annual' if LTA is yearly
-//   } else if (['hra', 'gratuity'].includes(calcField)) { // Removed 'ltaAllowance' from here
-//     basis = 'Basic Salary';
-//   } else if (calcField === 'incentives') {
-//     basis = 'Incentive Data';
-//   } else if (calcField === 'tds') {
-//     basis = 'CTC (Annual)';
-//   }
-//   // REMOVED: else if (calcField === 'professionalTax') { basis = 'CTC (Monthly)'; }  // Handled in new block above
-//   if (enable && formData[enable]) {
-//     const typeValue = formData[type] || defaultConfig?.type || 'percentage';
-//     const valueField = typeValue === 'percentage' ? percentage : amount;
-//     const value = formData[valueField];
-//     if (value && !isDefaultValue(valueField, value)) {
-//       return {
-//         value: typeValue === 'percentage'
-//           ? `${parseFloat(value)}%`
-//           : `₹${parseFloat(value).toLocaleString('en-IN')}`,
-//         basis
-//       };
-//     }
-//     if (typeValue === 'percentage' && !value && formData[amount]) {
-//       return {
-//         value: `₹${parseFloat(formData[amount]).toLocaleString('en-IN')}`,
-//         basis
-//       };
-//     }
-//     if (typeValue === 'amount' && !value && formData[percentage]) {
-//       return {
-//         value: `${parseFloat(formData[percentage])}%`,
-//         basis
-//       };
-//     }
-//   }
-//   if (defaultConfig) {
-//     const { percentage, amount, type } = defaultConfig;
-//     const defaultValue = type === 'percentage' ? percentage : amount;
-//     return {
-//       value: defaultValue === 'fill'
-//         ? 'Fill remaining (default)'
-//         : `${defaultValue}${type === 'percentage' ? '%' : ''} (default)`,
-//       basis
-//     };
-//   }
-//   return { value: '-', basis: 'N/A' };
+// const getPlanValue = (calcField, formData) => {
+// const mapping = salaryFieldToFormDataMap[calcField];
+// if (!mapping) return { value: '-', basis: 'N/A' };
+// const { enable, amount, percentage, type, units, default: defaultConfig } = mapping;
+// if (['grossSalary', 'netSalary', 'advanceRecovery', 'bonusPay', 'lopDeduction'].includes(calcField)) {
+// return { value: 'N/A', basis: calcField === 'grossSalary' ? 'Sum of components' : calcField === 'netSalary' ? 'Gross minus deductions' : 'Records' };
+// }
+// if (calcField === 'overtimePay') {
+// const typeValue = formData[type] || defaultConfig?.type || 'hourly';
+// const amountValue = formData[amount] || '0';
+// const unitsValue = formData[units] || '0';
+// const unitLabel = typeValue === 'hourly' ? 'hour' : typeValue === 'daily' ? 'day' : 'unit';
+// if (amountValue && amountValue !== '0') {
+// return {
+// value: `₹${parseFloat(amountValue).toLocaleString('en-IN')} / ${unitLabel}${unitsValue !== '0' ? ` (${unitsValue} ${unitLabel}${parseInt(unitsValue) !== 1 ? 's' : ''})` : ''}`,
+// basis: 'Overtime Records'
+// };
+// }
+// return {
+// value: defaultConfig ? `${defaultConfig.amount}/${typeValue} (default)` : '-',
+// basis: 'Overtime Records'
+// };
+// }
+// if (calcField === 'employeePF' && formData.pfEmployeeText) {
+// return {
+// value: formData.pfEmployeeText !== 'Not Applicable' ? formData.pfEmployeeText : '0%',
+// basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// };
+// }
+// if (calcField === 'employerPF' && formData.pfEmployerText) {
+// return {
+// value: formData.pfEmployerText !== 'Not Applicable' ? formData.pfEmployerText : '0%',
+// basis: formData.pfCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// };
+// }
+// if (calcField === 'esic' && formData.esicEmployeeText) {
+// return {
+// value: formData.esicEmployeeText !== 'Not Applicable' ? formData.esicEmployeeText : '0%',
+// basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// };
+// }
+// if (calcField === 'insurance' && formData.insuranceEmployeeText) {
+// return {
+// value: formData.insuranceEmployeeText !== 'Not Applicable' ? formData.insuranceEmployeeText : '0%',
+// basis: formData.medicalCalculationBase === 'gross' ? 'Gross Salary' : 'Basic Salary'
+// };
+// }
+// // INSERT HERE: New professionalTax block (before let basis)
+// if (calcField === 'professionalTax') {
+// if (!formData.isProfessionalTax) {
+// return { value: 'Not Applicable', basis: 'N/A' };
+// }
+// const typeValue = formData.professionalTaxType || 'amount';
+// if (typeValue === 'percentage') {
+// const pct = formData.professionalTax || ''; // Empty if not set
+// return { value: pct ? `${pct}% of CTC` : 'Not Set', basis: 'CTC (Monthly)' };
+// } else {
+// const amt = formData.professionalTaxAmount || ''; // Empty if not set
+// return {
+// value: amt ? `₹${parseFloat(amt).toLocaleString('en-IN')} (Fixed)` : 'Not Set',
+// basis: 'Fixed'
+// };
+// }
+// }
+// let basis = 'N/A';
+// // Updated: LTA Allowance now uses CTC basis (moved out of Basic Salary group)
+// if (['basicSalary', 'otherAllowances', 'statutoryBonus', 'ltaAllowance'].includes(calcField)) { // Added 'ltaAllowance' here
+// basis = calcField === 'statutoryBonus' ? 'CTC (Annual)' : 'CTC (Monthly)'; // Use 'Annual' if LTA is yearly
+// } else if (['hra', 'gratuity'].includes(calcField)) { // Removed 'ltaAllowance' from here
+// basis = 'Basic Salary';
+// } else if (calcField === 'incentives') {
+// basis = 'Incentive Data';
+// } else if (calcField === 'tds') {
+// basis = 'CTC (Annual)';
+// }
+// // REMOVED: else if (calcField === 'professionalTax') { basis = 'CTC (Monthly)'; } // Handled in new block above
+// if (enable && formData[enable]) {
+// const typeValue = formData[type] || defaultConfig?.type || 'percentage';
+// const valueField = typeValue === 'percentage' ? percentage : amount;
+// const value = formData[valueField];
+// if (value && !isDefaultValue(valueField, value)) {
+// return {
+// value: typeValue === 'percentage'
+// ? `${parseFloat(value)}%`
+// : `₹${parseFloat(value).toLocaleString('en-IN')}`,
+// basis
+// };
+// }
+// if (typeValue === 'percentage' && !value && formData[amount]) {
+// return {
+// value: `₹${parseFloat(formData[amount]).toLocaleString('en-IN')}`,
+// basis
+// };
+// }
+// if (typeValue === 'amount' && !value && formData[percentage]) {
+// return {
+// value: `${parseFloat(formData[percentage])}%`,
+// basis
+// };
+// }
+// }
+// if (defaultConfig) {
+// const { percentage, amount, type } = defaultConfig;
+// const defaultValue = type === 'percentage' ? percentage : amount;
+// return {
+// value: defaultValue === 'fill'
+// ? 'Fill remaining (default)'
+// : `${defaultValue}${type === 'percentage' ? '%' : ''} (default)`,
+// basis
+// };
+// }
+// return { value: '-', basis: 'N/A' };
 // };
   const handleStepChange = (step) => {
     const newStep = Math.max(1, Math.min(step, categories.length));
     setCurrentStep(newStep);
   };
-  const handleCalculate = () => {
-    if (!ctcInput || isNaN(parseFloat(ctcInput)) || parseFloat(ctcInput) <= 0) {
-      showAlert('Please enter a valid CTC amount');
-      return;
+ const handleCalculate = () => {
+  if (!ctcInput || isNaN(parseFloat(ctcInput)) || parseFloat(ctcInput) <= 0) {
+    showAlert('Please enter a valid CTC amount');
+    return;
+  }
+  if (formData.isOvertimePay && (!formData.overtimePayAmount || !formData.overtimePayUnits)) {
+    showAlert('Please provide both Overtime Pay Amount and Units when Overtime Pay is enabled');
+    return;
+  }
+  if (formData.isBasicSalary && !formData.basicSalary && !formData.basicSalaryAmount) {
+    showAlert('Please provide a value for Basic Salary when it is enabled');
+    return;
+  }
+  if (formData.isLtaAllowance && !formData.ltaAllowance && !formData.ltaAllowanceAmount) {
+    showAlert('Please provide a value for LTA Allowance when it is enabled');
+    return;
+  }
+  if (formData.isOtherAllowance && !formData.otherAllowance && !formData.otherAllowanceAmount) {
+    showAlert('Please provide a value for Other Allowance when it is enabled');
+    return;
+  }
+  if (formData.isPFEmployee && !formData.pfEmployeePercentage && !formData.pfEmployeeAmount) {
+    showAlert('Please provide a value for Employee PF when it is enabled');
+    return;
+  }
+  if (formData.isPFEmployer && !formData.pfEmployerPercentage && !formData.pfEmployerAmount) {
+    showAlert('Please provide a value for Employer PF when it is enabled');
+    return;
+  }
+  if (formData.isStatutoryBonus && !formData.statutoryBonusPercentage && !formData.statutoryBonusAmount) {
+    showAlert('Please provide a value for Statutory Bonus when it is enabled');
+    return;
+  }
+  const planDataCopy = { ...formData };
+  const calculatedDetails = calculateSalaryDetails(
+    parseFloat(ctcInput),
+    planDataCopy,
+    'preview-employee',
+    [],
+    [],
+    []
+  );
+  if (!calculatedDetails) {
+    showAlert('Failed to calculate salary details');
+    return;
+  }
+  if (formData.isOvertimePay && formData.overtimePayAmount && formData.overtimePayUnits) {
+    const projectedOvertime = parseFloat(formData.overtimePayAmount) * parseFloat(formData.overtimePayUnits);
+    calculatedDetails.overtimePay = Math.round(projectedOvertime);
+  }
+  // Override TDS calculation for preview to ensure proper slab-based computation on annual CTC
+  const oldTds = calculatedDetails.tds || 0;
+  if (formData.isTDSApplicable && formData.tdsSlabs && formData.tdsSlabs.length > 0) {
+    const annualIncome = parseFloat(ctcInput);
+    let applicableRate = 0;
+    for (let slab of formData.tdsSlabs) {
+      const from = parseFloat(slab.from) || 0;
+      const to = parseFloat(slab.to) || Infinity;
+      if (annualIncome >= from && annualIncome <= to) {
+        applicableRate = parseFloat(slab.percentage) || 0;
+        break;
+      }
     }
-    if (formData.isOvertimePay && (!formData.overtimePayAmount || !formData.overtimePayUnits)) {
-      showAlert('Please provide both Overtime Pay Amount and Units when Overtime Pay is enabled');
-      return;
-    }
-    if (formData.isBasicSalary && !formData.basicSalary && !formData.basicSalaryAmount) {
-      showAlert('Please provide a value for Basic Salary when it is enabled');
-      return;
-    }
-    if (formData.isLtaAllowance && !formData.ltaAllowance && !formData.ltaAllowanceAmount) {
-      showAlert('Please provide a value for LTA Allowance when it is enabled');
-      return;
-    }
-    if (formData.isOtherAllowance && !formData.otherAllowance && !formData.otherAllowanceAmount) {
-      showAlert('Please provide a value for Other Allowance when it is enabled');
-      return;
-    }
-    if (formData.isPFEmployee && !formData.pfEmployeePercentage && !formData.pfEmployeeAmount) {
-      showAlert('Please provide a value for Employee PF when it is enabled');
-      return;
-    }
-    if (formData.isPFEmployer && !formData.pfEmployerPercentage && !formData.pfEmployerAmount) {
-      showAlert('Please provide a value for Employer PF when it is enabled');
-      return;
-    }
-    if (formData.isStatutoryBonus && !formData.statutoryBonusPercentage && !formData.statutoryBonusAmount) {
-      showAlert('Please provide a value for Statutory Bonus when it is enabled');
-      return;
-    }
-    const planDataCopy = { ...formData };
-    const calculatedDetails = calculateSalaryDetails(
-      parseFloat(ctcInput),
-      planDataCopy,
-      'preview-employee',
-      [],
-      [],
-      []
-    );
-    if (!calculatedDetails) {
-      showAlert('Failed to calculate salary details');
-      return;
-    }
-    if (formData.isOvertimePay && formData.overtimePayAmount && formData.overtimePayUnits) {
-      const projectedOvertime = parseFloat(formData.overtimePayAmount) * parseFloat(formData.overtimePayUnits);
-      calculatedDetails.overtimePay = Math.round(projectedOvertime);
-    }
-    setFormData((prev) => ({
-      ...prev,
-      pfEmployeeText: planDataCopy.pfEmployeeText || '0%',
-      pfEmployerText: planDataCopy.pfEmployerText || '0%',
-      esicEmployeeText: planDataCopy.esicEmployeeText || '0%',
-      insuranceEmployeeText: planDataCopy.insuranceEmployeeText || '0%',
-      professionalTaxText: planDataCopy.professionalTaxText || '₹0 (Fixed)'  // ADDED: Include Professional Tax text
-    }));
-    setSalaryDetails(calculatedDetails);
-  };
+    const annualTDS = annualIncome * (applicableRate / 100);
+    const monthlyTDS = annualTDS / 12;
+    calculatedDetails.tds = Math.round(monthlyTDS * 100) / 100;
+    // Adjust netSalary to reflect the new TDS amount
+    calculatedDetails.netSalary += (oldTds - calculatedDetails.tds);
+  }
+  setFormData((prev) => ({
+    ...prev,
+    pfEmployeeText: planDataCopy.pfEmployeeText || '0%',
+    pfEmployerText: planDataCopy.pfEmployerText || '0%',
+    esicEmployeeText: planDataCopy.esicEmployeeText || '0%',
+    insuranceEmployeeText: planDataCopy.insuranceEmployeeText || '0%',
+    professionalTaxText: planDataCopy.professionalTaxText || '₹0 (Fixed)' // ADDED: Include Professional Tax text
+  }));
+  setSalaryDetails(calculatedDetails);
+};
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const dayRows = [
     daysOfWeek.slice(0, 2),
@@ -4479,10 +4350,8 @@ const handleInputChange = (field, value) => {
         }
       ]
     },
- 
 {
   title: 'Allowances',
- 
    fields: [
    {
       label: 'Basic Salary',
@@ -4523,7 +4392,6 @@ const handleInputChange = (field, value) => {
     }
   ]
 },
- 
   {
   title: 'PF and Medical Contributions',
   fields: [
@@ -4657,7 +4525,7 @@ const handleInputChange = (field, value) => {
         {
           label: 'Incentives',
           field: 'isIncentives',
-        
+      
         },
         {
           component: (
