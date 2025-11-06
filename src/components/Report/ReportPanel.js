@@ -21,6 +21,92 @@ import {
   MAX_RANGE_DAYS,
 } from "./ReportConstants";
 
+/**
+ * Helper: try to detect user role & department id from localStorage using multiple common keys.
+ * This keeps the component robust across projects that store user info under different keys.
+ */
+const inferUserRoleAndDepartment = () => {
+  try {
+    const tryKeys = (keys) => {
+      for (const k of keys) {
+        const v = localStorage.getItem(k);
+        if (!v) continue;
+        // If it looks like JSON, parse it and try to extract fields
+        if (v.trim().startsWith("{")) {
+          try {
+            const obj = JSON.parse(v);
+            if (!obj) continue;
+            // Common fields
+            const role =
+              obj.role ||
+              obj.userRole ||
+              obj.roleName ||
+              obj.employee_role ||
+              obj.accessLevel ||
+              obj.type;
+            const dept =
+              obj.department_id ||
+              obj.departmentId ||
+              obj.deptId ||
+              obj.department ||
+              obj.department_id;
+            if (role || dept) return { role, departmentId: dept ?? null };
+          } catch (e) {
+            // ignore parse error
+          }
+        } else {
+          // Plain string keys
+          // e.g. "Manager", "Supervisor", "dept_12", "12"
+          if (
+            ["manager", "supervisor", "team lead", "teamlead", "lead"].some(
+              (s) => v.toLowerCase().includes(s)
+            )
+          ) {
+            return { role: v, departmentId: null };
+          }
+          // numeric department id?
+          if (/^\d+$/.test(v.trim())) {
+            // ambiguous: treat as department id only
+            return { role: null, departmentId: v.trim() };
+          }
+        }
+      }
+    };
+
+    // common single-value keys
+    const singleKeys = [
+      "dashboardRole",
+      "dashboard_role",
+      "role",
+      "userRole",
+      "employee_role",
+      "roleName",
+      "userProfile",
+      "profile",
+      "user",
+      "dashboardDataRole",
+    ];
+    const singleTry = tryKeys(singleKeys);
+    if (singleTry) {
+      return singleTry;
+    }
+
+    const multiKeys = [
+      "userProfile",
+      "profile",
+      "user",
+      "dashboardData",
+      "dashboardUser",
+      "authUser",
+    ];
+    const multiTry = tryKeys(multiKeys);
+    if (multiTry) return multiTry;
+  } catch (e) {
+    // ignore
+  }
+  return { role: null, departmentId: null };
+};
+
 export default function ReportPanel() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -36,10 +122,27 @@ export default function ReportPanel() {
   const [previewRows, setPreviewRows] = useState([]);
   const [previewTotalRows, setPreviewTotalRows] = useState(null);
   const [previewPage, setPreviewPage] = useState(1);
-  // server-provided friendly message for empty previews or error responses
   const [previewMessage, setPreviewMessage] = useState("");
 
   const employeeId = localStorage.getItem("dashboardData");
+
+  // Try to infer user role/department from localStorage
+  const inferred = inferUserRoleAndDepartment();
+  const [userRole] = useState(
+    (inferred.role && String(inferred.role).trim()) || null
+  );
+  const [managerDepartmentIdRaw] = useState(
+    inferred.departmentId ? String(inferred.departmentId) : null
+  );
+
+  // decide if this user is considered a "Team" manager/supervisor role
+  const isTeamRole = Boolean(
+    userRole &&
+      String(userRole).toLowerCase &&
+      ["manager", "supervisor", "team lead", "teamlead", "lead"].some((s) =>
+        String(userRole).toLowerCase().includes(s)
+      )
+  );
 
   const [filterEmployeeId, setFilterEmployeeId] = useState(null);
   const [filterEmployeeName, setFilterEmployeeName] = useState("");
@@ -58,6 +161,14 @@ export default function ReportPanel() {
     message: "",
   });
 
+  // If user is team role and a department id was found in localStorage, use it.
+  // If not, we will attempt to derive it after departments fetch by matching employee id.
+  useEffect(() => {
+    if (isTeamRole && managerDepartmentIdRaw) {
+      setFilterDepartmentId(managerDepartmentIdRaw);
+    }
+  }, [isTeamRole, managerDepartmentIdRaw]);
+
   const showAlert = (message, title = "") => {
     setPreviewOpen(false);
     setTimeout(() => {
@@ -67,7 +178,6 @@ export default function ReportPanel() {
   const closeAlert = () =>
     setAlertModal({ isVisible: false, title: "", message: "" });
 
-  // Helper: read a message from various axios error shapes (Blob/string/object)
   const getErrorMessageFromAxiosError = useCallback(async (err) => {
     try {
       if (!err || !err.response) {
@@ -75,20 +185,14 @@ export default function ReportPanel() {
         return "Unknown error from server";
       }
       const { status, data } = err.response;
-
-      // If server returned no body
       if (data === null || typeof data === "undefined") {
         return `Server responded with status ${status}`;
       }
-
-      // If axios already parsed JSON (object)
       if (typeof data === "object" && !(data instanceof Blob)) {
-        // Common fields to check
         const candidate =
           data.message || data.error || data.msg || data.detail || null;
         if (candidate && typeof candidate === "string" && candidate.trim())
           return candidate;
-        // fallback to JSON string (shortened)
         try {
           const s = JSON.stringify(data);
           return s.length > 0 ? s : `Server responded with status ${status}`;
@@ -96,21 +200,15 @@ export default function ReportPanel() {
           return `Server responded with status ${status}`;
         }
       }
-
-      // If server returned text or blob (e.g. responseType: 'blob' used)
-      // data could be a Blob or string
       let text = null;
       if (data instanceof Blob && typeof data.text === "function") {
         text = await data.text();
       } else if (typeof data === "string") {
         text = data;
       }
-
       if (!text || !text.trim()) {
         return `Server responded with status ${status}`;
       }
-
-      // If text looks like JSON, parse it
       try {
         const parsed = JSON.parse(text);
         if (parsed && typeof parsed === "object") {
@@ -123,14 +221,11 @@ export default function ReportPanel() {
           );
         }
       } catch (e) {
-        // not JSON — return raw text (trimmed, but limit length)
         const t = text.trim();
         return t.length > 500 ? t.slice(0, 500) + "..." : t;
       }
-
       return `Server responded with status ${status}`;
     } catch (e) {
-      // fallback
       return err && err.message ? err.message : "Server error";
     }
   }, []);
@@ -157,6 +252,31 @@ export default function ReportPanel() {
         else if (Array.isArray(data.data)) rows = data.data;
         else rows = [];
         setDepartments(rows);
+
+        // If team role but no managerDepartmentIdRaw, try to infer from employeeId by searching departments
+        if (
+          isTeamRole &&
+          !managerDepartmentIdRaw &&
+          employeeId &&
+          rows.length
+        ) {
+          // Many APIs include employee lists or mapping, but we don't have that here.
+          // As a fallback, if any department entry has a manager_employee_id matching employeeId, use it.
+          const found = rows.find((d) => {
+            const mgr =
+              d.manager_employee_id ??
+              d.managerId ??
+              d.manager_employeeid ??
+              d.manager_employee;
+            if (!mgr) return false;
+            return String(mgr) === String(employeeId);
+          });
+          if (found) {
+            const id =
+              found.department_id ?? found.id ?? found.departmentId ?? null;
+            if (id) setFilterDepartmentId(String(id));
+          }
+        }
       })
       .catch((err) => {
         console.error("Failed to fetch departments:", err);
@@ -168,11 +288,10 @@ export default function ReportPanel() {
     return () => {
       mounted = false;
     };
-  }, [employeeId]);
+  }, [employeeId, isTeamRole, managerDepartmentIdRaw]);
 
   useEffect(() => {
     // When component changes we reset component-specific state.
-    // Also reset employee/department selection so changing component clears those filters.
     if (!component || component === "select") {
       setStatusOptions([]);
       setStatus("All");
@@ -182,33 +301,63 @@ export default function ReportPanel() {
       setPreviewRows([]);
       setPreviewError("");
       setPreviewMessage("");
-
-      // Reset employee/department/typeahead state when no component is selected
       setFilterEmployeeId(null);
       setFilterEmployeeName("");
-      setFilterDepartmentId(null);
+      // If this is a team role, keep the forced department; otherwise clear it.
+      if (!isTeamRole) setFilterDepartmentId(null);
       setIsTypingSearch(false);
       return;
     }
 
-    // When a real component is selected, populate fields/status and reset employee/department
     setStatusOptions(STATUS_OPTIONS[component] || ["All"]);
     setStatus("All");
+
+    // Build available fields. For vendors we remove employee/department-related fields from fields grid,
+    // and we clear employee/department filters so vendors fetch will return all vendors.
     const subs = SUB_OPTIONS[component] || [];
-    setAvailableFields(subs);
-    setSelectedFields(subs.map((s) => s.key));
+    let subsFiltered = subs;
+    if (component === "vendors") {
+      subsFiltered = subs.filter(
+        (s) =>
+          s.key !== "employee_name" &&
+          s.key !== "department_name" &&
+          s.key !== "department_id"
+      );
+      // Clear employee/department filters when switching to vendors (they should not be applied).
+      setFilterEmployeeId(null);
+      setFilterEmployeeName("");
+      setFilterDepartmentId(null);
+    }
+
+    setAvailableFields(subsFiltered);
+    setSelectedFields(subsFiltered.map((s) => s.key));
     setPreviewOpen(false);
     setPreviewRows([]);
     setPreviewError("");
     setPreviewMessage("");
 
-    // IMPORTANT: reset employee and department selection whenever component changes
-    // This ensures the component-specific filters do not leak across components.
-    setFilterEmployeeId(null);
-    setFilterEmployeeName("");
-    setFilterDepartmentId(null);
+    // For employees/attendance components and team roles, force department filter to manager's department.
+    if (
+      isTeamRole &&
+      (component === "attendance" || component === "employees")
+    ) {
+      // If we already have manager's dept from localStorage or inference, use it,
+      // otherwise leave it to departments fetch effect to attempt inference.
+      if (managerDepartmentIdRaw) {
+        setFilterDepartmentId(managerDepartmentIdRaw);
+      }
+    } else if (!isTeamRole) {
+      // not team role: reset department selection when component changes
+      setFilterDepartmentId(null);
+    }
+
+    // Always clear employee selection when component changes (unless vendors - already cleared above)
+    if (component !== "vendors") {
+      setFilterEmployeeId(null);
+      setFilterEmployeeName("");
+    }
     setIsTypingSearch(false);
-  }, [component]);
+  }, [component, isTeamRole, managerDepartmentIdRaw]);
 
   const presetRange = (days) => {
     const end = new Date();
@@ -281,8 +430,21 @@ export default function ReportPanel() {
     params.append("status", st);
     if (selectedFields && selectedFields.length > 0)
       params.append("fields", selectedFields.join(","));
-    if (filterEmployeeId) params.append("employee_id", filterEmployeeId);
-    if (filterDepartmentId) params.append("department_id", filterDepartmentId);
+
+    // IMPORTANT: For vendors we must NOT send employee/department scoping.
+    if (component !== "vendors") {
+      if (filterEmployeeId) params.append("employee_id", filterEmployeeId);
+
+      // If user is a team role and we have a manager department, always include it.
+      if (isTeamRole) {
+        const deptToSend = filterDepartmentId || managerDepartmentIdRaw || "";
+        if (deptToSend) params.append("department_id", deptToSend);
+      } else {
+        if (filterDepartmentId)
+          params.append("department_id", filterDepartmentId);
+      }
+    }
+
     if (preview) params.append("preview", "true");
     if (includeFormat) params.append("format", "xlsx");
     return params.toString();
@@ -356,7 +518,6 @@ export default function ReportPanel() {
         contentType.includes("application/json") ||
         contentType.includes("text/plain");
       if (isJson) {
-        // server returned a JSON error instead of a file — read and show it
         let text = "";
         try {
           text = await res.data.text();
@@ -392,7 +553,6 @@ export default function ReportPanel() {
       window.URL.revokeObjectURL(link.href);
     } catch (err) {
       console.error("Report download error:", err);
-      // Extract useful message from server (handles blob/json/text)
       const msg = await getErrorMessageFromAxiosError(err);
       showAlert(msg);
     } finally {
@@ -456,7 +616,6 @@ export default function ReportPanel() {
       setPreviewRows(rows.slice(0, MAX_PREVIEW_ROWS));
       setPreviewTotalRows((prev) => prev ?? total ?? rows.length);
 
-      // prefer server-provided preview message when rows empty
       if (rows.length === 0) {
         const serverMsg =
           (res.data &&
@@ -475,8 +634,6 @@ export default function ReportPanel() {
       }
     } catch (err) {
       console.error("Preview error:", err);
-
-      // Try to get server message and show it inside the preview panel (not alert)
       const msg = await getErrorMessageFromAxiosError(err);
       setPreviewRows([]);
       setPreviewTotalRows(0);
@@ -529,6 +686,19 @@ export default function ReportPanel() {
   );
   const goToPage = (p) => setPreviewPage(Math.min(Math.max(1, p), totalPages));
 
+  // Adjust component list for team roles: hide vendors and assets for non-admins? (existing behaviour preserved)
+  const componentOptions = [
+    { value: "leaves", label: "Leaves" },
+    { value: "reimbursements", label: "Reimbursements" },
+    { value: "employees", label: "Employees" },
+    // vendors / assets hidden for team roles
+    ...(isTeamRole ? [] : [{ value: "vendors", label: "Vendors" }]),
+    ...(isTeamRole ? [] : [{ value: "assets", label: "Assets" }]),
+    { value: "attendance", label: "Attendance" },
+    { value: "tasks_employee", label: "Tasks (Employee Driven)" },
+    { value: "tasks_supervisor", label: "Tasks (Supervisor Driven)" },
+  ];
+
   return (
     <div className="rp-container">
       <header className="rp-header">
@@ -555,14 +725,11 @@ export default function ReportPanel() {
             <option value="select" disabled>
               Select
             </option>
-            <option value="leaves">Leaves</option>
-            <option value="reimbursements">Reimbursements</option>
-            <option value="employees">Employees</option>
-            <option value="vendors">Vendors</option>
-            <option value="assets">Assets</option>
-            <option value="attendance">Attendance</option>
-            <option value="tasks_employee">Tasks (Employee Driven)</option>
-            <option value="tasks_supervisor">Tasks (Supervisor Driven)</option>
+            {componentOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -630,25 +797,28 @@ export default function ReportPanel() {
           </div>
         </div>
 
-        <div className="rp-row">
-          <label className="rp-label">Status</label>
-          <select
-            className="rep-select"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            disabled={!componentIsSelected || !statusOptions.length}
-          >
-            {statusOptions.length === 0 ? (
-              <option value="All">—</option>
-            ) : (
-              statusOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
+        {/* Hide the Status control for vendors */}
+        {component !== "vendors" && (
+          <div className="rp-row">
+            <label className="rp-label">Status</label>
+            <select
+              className="rep-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={!componentIsSelected || !statusOptions.length}
+            >
+              {statusOptions.length === 0 ? (
+                <option value="All">—</option>
+              ) : (
+                statusOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+        )}
 
         <div className="rp-row rp-dates rp-dates-4">
           <div className="rp-date-field">
@@ -675,54 +845,84 @@ export default function ReportPanel() {
             </div>
           </div>
 
-          <div className="rp-date-field rp-typeahead-field">
-            <label className="rp-label">Employee Name</label>
-            <EmployeeTypeahead
-              onSelect={onEmployeeSelect}
-              onTyping={onTypeStart}
-              onClear={onEmployeeClear}
-              departmentId={filterDepartmentId}
-              limit={10}
-              selectedValue={filterEmployeeName}
-              isTyping={isTypingSearch}
+          {/* Hide employee typeahead for vendors (vendors should fetch all data) */}
+          {component !== "vendors" ? (
+            <div className="rp-date-field rp-typeahead-field">
+              <label className="rp-label">Employee Name</label>
+              <EmployeeTypeahead
+                onSelect={onEmployeeSelect}
+                onTyping={onTypeStart}
+                onClear={onEmployeeClear}
+                // If Team role, restrict to manager department (force)
+                departmentId={
+                  isTeamRole
+                    ? filterDepartmentId || managerDepartmentIdRaw
+                    : filterDepartmentId
+                }
+                limit={10}
+                selectedValue={filterEmployeeName}
+                isTyping={isTypingSearch}
+              />
+              <div className="rp-typeahead-subtext">
+                {filterEmployeeId ? (
+                  <em>Filtering by employee id: {filterEmployeeId}</em>
+                ) : (
+                  <em>Search by name or email</em>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div
+              className="rp-date-field rp-typeahead-field"
+              style={{ alignSelf: "flex-end" }}
             />
-            <div className="rp-typeahead-subtext">
-              {filterEmployeeId ? (
-                <em>Filtering by employee id: {filterEmployeeId}</em>
-              ) : (
-                <em>Search by name or email</em>
-              )}
-            </div>
-          </div>
+          )}
 
-          <div className="rp-date-field rp-typeahead-field">
-            <label className="rp-label">Department</label>
-            <div>
-              <select
-                className="rep-select"
-                value={filterDepartmentId || ""}
-                onChange={onDepartmentChange}
-                disabled={deptLoading}
-                aria-label="Select department"
-                style={{ width: "100%" }}
-              >
-                <option value="">All departments</option>
-                {departments.map((d) => {
-                  const id = d.department_id ?? d.id ?? d.departmentId ?? "";
-                  const name =
-                    d.department_name ?? d.name ?? d.departmentName ?? "";
-                  return (
-                    <option key={id} value={id}>
-                      {name}
-                    </option>
-                  );
-                })}
-              </select>
-              {deptLoading && (
-                <div className="rp-typeahead-subtext">Loading departments…</div>
-              )}
+          {/* Department dropdown: hide for Team roles and also hide for vendors */}
+          {!isTeamRole && component !== "vendors" ? (
+            <div className="rp-date-field rp-typeahead-field">
+              <label className="rp-label">Department</label>
+              <div>
+                <select
+                  className="rep-select"
+                  value={filterDepartmentId || ""}
+                  onChange={onDepartmentChange}
+                  disabled={deptLoading}
+                  aria-label="Select department"
+                  style={{ width: "100%" }}
+                >
+                  <option value="">All departments</option>
+                  {departments.map((d) => {
+                    const id = d.department_id ?? d.id ?? d.departmentId ?? "";
+                    const name =
+                      d.department_name ?? d.name ?? d.departmentName ?? "";
+                    return (
+                      <option key={id} value={id}>
+                        {name}
+                      </option>
+                    );
+                  })}
+                </select>
+                {deptLoading && (
+                  <div className="rp-typeahead-subtext">
+                    Loading departments…
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          ) : component !== "vendors" ? (
+            // preserve layout when team role: empty placeholder (as before)
+            <div
+              className="rp-date-field rp-typeahead-field"
+              style={{ alignSelf: "flex-end" }}
+            ></div>
+          ) : (
+            // vendors: placeholder to keep layout tidy
+            <div
+              className="rp-date-field rp-typeahead-field"
+              style={{ alignSelf: "flex-end" }}
+            ></div>
+          )}
         </div>
 
         <div className="rp-presets">
