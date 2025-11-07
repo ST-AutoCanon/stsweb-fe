@@ -131,20 +131,6 @@
   align-items: center;
 }
 
-/* Clear button for typeahead */
-.typeahead-clear {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #475569;
-  padding: 0;
-  display: flex;
-  align-items: center;
-}
 .typeahead-clear:hover {
   color: #0b1220;
 }
