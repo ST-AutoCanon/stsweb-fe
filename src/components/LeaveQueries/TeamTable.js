@@ -3,15 +3,12 @@ import React, { useState } from "react";
 import { parseLocalDate, calculateDays } from "./leaveUtils";
 
 /**
- * TeamTable (diagnostic)
+ * TeamTable (admin-styled)
  *
- * If you see "parent onUpdate returned undefined" in the console,
- * this component will now print a stack trace so you can find the parent.
+ * Uses the admin.css class names so the same visual styles are applied
+ * for teamlead / manager / admin views.
  *
- * Typical causes:
- *  - Parent passed `onUpdate={(id) => { handleUpdate(id) }}` (missing `return`)
- *  - Parent `handleUpdate` opens the LOP modal but does `return;` instead of `return { modalOpened: true }`
- *  - Parent returns nothing in some code paths (undefined)
+ * Keep the diagnostic messages — they help find parent handler issues.
  */
 
 const normalizeStatus = (s) => {
@@ -32,14 +29,12 @@ export default function TeamTable({
   onUpdate,
   canViewTeam,
 }) {
-  // local edits so UI stays responsive even if parent handler not present or delayed
+  // local optimistic edits
   const [localUpdates, setLocalUpdates] = useState({});
-  // per-row loading state while update is in-flight
   const [loadingRows, setLoadingRows] = useState({});
 
   if (!canViewTeam) return null;
 
-  // merged view: parent-provided updates overridden by local edits for immediate UX
   const updates = {
     ...(statusUpdates || {}),
     ...(localUpdates || {}),
@@ -48,13 +43,12 @@ export default function TeamTable({
   const safeHandleStatusChange = (id, key, value) => {
     const payload = key === "status" ? normalizeStatus(value) : value;
 
-    // update local immediately for instant UI response
+    // immediate local update for responsive UX
     setLocalUpdates((prev) => ({
       ...prev,
       [id]: { ...(prev[id] || {}), [key]: payload },
     }));
 
-    // also inform parent if handler exists (non-blocking)
     if (typeof handleStatusChange === "function") {
       try {
         handleStatusChange(id, key, payload);
@@ -103,7 +97,6 @@ export default function TeamTable({
         return { ok: false, message: "no_onUpdate_handler" };
       }
 
-      // call parent's handler and await result
       let result;
       try {
         result = await onUpdate(id, leaveObj);
@@ -112,9 +105,7 @@ export default function TeamTable({
         result = { ok: false, error: err };
       }
 
-      // helpful diagnostics: if parent returned undefined, print stack & explanation
       if (result === undefined) {
-        // include a stack trace — helpful to find parent callsite
         const trace = new Error("trace").stack;
         console.error(
           "[TeamTable] parent onUpdate returned undefined — parent did not return a result. Make sure the handler returns the result of the update call.",
@@ -137,15 +128,12 @@ export default function TeamTable({
 
       console.log("[TeamTable] onUpdate returned for", id, "=>", result);
 
-      // handle successful server update
       if (result && result.ok) {
-        // clear local edits for this row (server state is authoritative now)
         clearLocalForId(id);
         setLoadingRows((s) => ({ ...s, [id]: false }));
         return result;
       }
 
-      // If modalOpened true, treat as not-a-failure (LOP modal opened)
       if (result && result.modalOpened) {
         console.log(
           "[TeamTable] modal opened for",
@@ -156,7 +144,6 @@ export default function TeamTable({
         return result;
       }
 
-      // treat falsy/undefined as failure but keep local edits for retry
       console.warn(
         "[TeamTable] update failed for",
         id,
@@ -167,7 +154,6 @@ export default function TeamTable({
       window.alert("Update failed. Check console and try again.");
       return result;
     } finally {
-      // ensure loading flag cleared in case of any unexpected path
       setLoadingRows((s) => ({ ...s, [id]: false }));
     }
   };
@@ -180,8 +166,10 @@ export default function TeamTable({
   return (
     <>
       <h4 className="my-leaves">Team Leave Requests</h4>
-      <div className="leave-request-table">
-        <table className="leave-requests">
+
+      {/* Use admin.css container class so teamlead gets same styling */}
+      <div className="leave-table-container">
+        <table className="leave-table">
           <thead>
             <tr>
               <th>Emp Name</th>
@@ -207,23 +195,22 @@ export default function TeamTable({
                 const id = leave.leave_id ?? leave.id;
                 const update = (updates && updates[id]) || {};
 
-                // display status prefer updated value, else server, else Pending
                 const currentStatus = normalizeStatus(
                   update.status ?? leave.status ?? "Pending"
                 );
 
+                // classes aligned to admin.css
                 const statusClass =
                   currentStatus === "Approved"
-                    ? "status-approved"
+                    ? "leav-status-approved"
                     : currentStatus === "Rejected"
-                    ? "status-rejected"
+                    ? "leav-status-rejected"
                     : "";
 
                 const serverStatusRaw = String(leave.status ?? "").trim();
                 const isAlreadyUpdated =
                   serverStatusRaw !== "" && !/^pending$/i.test(serverStatusRaw);
 
-                // detect if user changed something compared to server
                 const serverStatusNorm = normalizeStatus(leave.status ?? "");
                 const serverComments = leave.comments ?? "";
                 const editedStatus =
@@ -259,9 +246,11 @@ export default function TeamTable({
                     <td>{leave.H_F_day}</td>
                     <td>{parseLocalDate(leave.start_date)}</td>
                     <td>{parseLocalDate(leave.end_date)}</td>
+
                     <td className="comments-col">
                       <div className="comment-preview">{leave.reason}</div>
                     </td>
+
                     <td>{days}</td>
 
                     <td>
@@ -270,7 +259,7 @@ export default function TeamTable({
                         onChange={(e) =>
                           safeHandleStatusChange(id, "status", e.target.value)
                         }
-                        className={`status-dropdown ${statusClass}`}
+                        className={`leav-status-dropdown ${statusClass}`}
                         disabled={isAlreadyUpdated || loading}
                       >
                         <option value="Pending">Pending</option>
@@ -297,7 +286,7 @@ export default function TeamTable({
                                 e.target.value
                               )
                             }
-                            className="comments-input"
+                            className="comment-preview input"
                             disabled={isAlreadyUpdated || loading}
                           />
                         )}

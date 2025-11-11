@@ -1,5 +1,3 @@
-// src/constants/reportConstants.js
-
 export const MAX_DOWNLOAD_FIELDS = 13;
 export const PREVIEW_PAGE_SIZE = 10;
 export const MAX_RANGE_DAYS = 62;
@@ -34,7 +32,8 @@ export const STATUS_OPTIONS = {
     "In Progress",
     "On Hold",
   ],
-  tasks_employee: ["All", "Completed", "Add on", "Re work", "Incomplete"],
+  // <--- UPDATED: employee-driven tasks now only expose these status options
+  tasks_employee: ["All", "Completed", "Not started", "Working"],
 };
 
 /**
