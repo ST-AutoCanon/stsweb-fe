@@ -107,6 +107,18 @@ const inferUserRoleAndDepartment = () => {
   return { role: null, departmentId: null };
 };
 
+/**
+ * FORMAT DATE (local) helper
+ * Returns YYYY-MM-DD based on user's local timezone (avoids UTC shift from toISOString).
+ */
+function formatDateLocal(d) {
+  if (!d || !(d instanceof Date)) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function ReportPanel() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -363,15 +375,17 @@ export default function ReportPanel() {
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - days + 1);
-    setStartDate(start.toISOString().slice(0, 10));
-    setEndDate(end.toISOString().slice(0, 10));
+    // use local formatter to avoid UTC shift
+    setStartDate(formatDateLocal(start));
+    setEndDate(formatDateLocal(end));
   };
   const thisMonth = () => {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    setStartDate(start.toISOString().slice(0, 10));
-    setEndDate(end.toISOString().slice(0, 10));
+    // use local formatter to avoid UTC shift
+    setStartDate(formatDateLocal(start));
+    setEndDate(formatDateLocal(end));
   };
 
   const validateDates = () => {
@@ -625,12 +639,6 @@ export default function ReportPanel() {
         setPreviewMessage(serverMsg);
       } else {
         setPreviewMessage("");
-      }
-
-      if (rows.length > MAX_PREVIEW_ROWS) {
-        setPreviewError(
-          `Preview shows first ${MAX_PREVIEW_ROWS} rows. Server returned ${rows.length} rows.`
-        );
       }
     } catch (err) {
       console.error("Preview error:", err);

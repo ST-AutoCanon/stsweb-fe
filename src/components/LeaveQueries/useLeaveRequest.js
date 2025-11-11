@@ -29,6 +29,15 @@ const rolesWithTeamView = new Set([
   "super_admin",
 ]);
 
+const managerOrAboveSet = new Set([
+  "manager",
+  "admin",
+  "ceo",
+  "super admin",
+  "superadmin",
+  "super_admin",
+]);
+
 const normalizeStatus = (s) => {
   if (s === null || s === undefined) return "";
   const str = String(s).trim();
@@ -275,6 +284,66 @@ export default function useLeaveRequest() {
           );
         } else {
           console.warn("Team fetch returned non-ok", teamResponse.status);
+        }
+
+        // ------------------ NEW: client-side filtering fixes ------------------
+        // 1) Always filter out current user's own leaves from the team list
+        // 2) If current user is a supervisor (not manager/admin), hide supervisor-owned leaves in team list.
+        try {
+          if (Array.isArray(teamRequests) && meId) {
+            teamRequests = teamRequests.filter((r) => {
+              const rowEmpId = (
+                r.employee_id ||
+                r.employeeId ||
+                r.empId ||
+                r.employee ||
+                ""
+              )
+                .toString()
+                .trim();
+
+              // 1) Exclude the current user (their leaves belong in "My Leaves")
+              if (rowEmpId && String(rowEmpId) === String(meId)) return false;
+
+              // 2) The server should already scope correctly, but defensively:
+              // if the current viewer is NOT manager-or-above, hide rows that belong to employees
+              // whose role is 'supervisor' (supervisor-owned leaves visible only to manager/admin).
+              if (!managerOrAboveSet.has(roleNormalized)) {
+                const roleFields = (
+                  r.role ||
+                  r.emp_role ||
+                  r.employee_role ||
+                  r.role_name ||
+                  r.roleName ||
+                  r.position ||
+                  ""
+                )
+                  .toString()
+                  .toLowerCase();
+
+                const isSupervisorRow =
+                  roleFields.includes("supervisor") ||
+                  roleFields === "supervisor";
+
+                // also consider explicit flags (some APIs set is_supervisor or is_manager)
+                const isSupervisorFlag =
+                  r.is_supervisor === 1 ||
+                  r.isSupervisor === 1 ||
+                  r.is_supervisor === true ||
+                  r.isSupervisor === true;
+
+                // If the row is a supervisor-owned leave, hide it from non-manager viewers.
+                if (isSupervisorRow || isSupervisorFlag) {
+                  return false;
+                }
+              }
+
+              // otherwise keep the row
+              return true;
+            });
+          }
+        } catch (e) {
+          console.warn("Client-side team filter failed:", e);
         }
       }
 

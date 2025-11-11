@@ -1081,9 +1081,9 @@ export default function Admin({ openPolicyId = null }) {
                   const currentStatus = update.status || query.status || "";
                   const statusClass =
                     currentStatus === "Approved"
-                      ? "status-approved"
+                      ? "leav-status-approved"
                       : currentStatus === "Rejected"
-                      ? "status-rejected"
+                      ? "leav-status-rejected"
                       : "";
 
                   const isAlreadyUpdated =
@@ -1117,7 +1117,7 @@ export default function Admin({ openPolicyId = null }) {
                               e.target.value
                             )
                           }
-                          className={`status-dropdown ${statusClass}`}
+                          className={`leav-status-dropdown ${statusClass}`}
                           disabled={isAlreadyUpdated}
                         >
                           <option value="Pending">Pending</option>
