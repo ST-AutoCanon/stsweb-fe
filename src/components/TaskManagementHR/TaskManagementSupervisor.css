@@ -1,0 +1,496 @@
+.task-management-wrapper {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+}
+
+.task-management-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  padding: 15px 20px;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.task-management-config-button {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.task-management-config-button:hover {
+  background-color: #218838;
+}
+.task-management-config-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.task-management-search-bar {
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 11px;
+}
+
+.task-management-employee-list {
+  width: 160px;
+  max-width: 100%;
+  background-color: #fff;
+  padding: 15px;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+.task-management-employee-list h3 {
+  margin-bottom: 10px;
+  color: #333;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+.task-management-employee-list ul.task-management-employee-scroll {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 100px);
+  width: 100%;
+  max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #b1b8b2 #f0f0f0;
+}
+.task-management-employee-list ul.task-management-employee-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.task-management-employee-list ul.task-management-employee-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+.task-management-employee-list ul.task-management-employee-scroll::-webkit-scrollbar-thumb {
+  background: #28a745;
+  border-radius: 4px;
+}
+.task-management-employee-list li {
+  padding: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 13px;
+}
+.task-management-employee-list li:hover {
+  background-color: #f0f0f0;
+}
+.task-management-employee-list li.task-management-active {
+  background-color: #28a745;
+  color: white;
+}
+
+.task-management-task-details {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.task-management-week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  position: sticky;
+  background-color: #f0f2f5;
+  z-index: 10;
+  padding: 10px 0;
+  width: 100%;
+  max-width: 100%;
+}
+.task-management-nav-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.task-management-nav-button:hover {
+  background-color: #218838;
+}
+.task-management-nav-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.task-management-week-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.task-management-tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 100px);
+  width: 100%;
+  max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #b0b3b0 #f0f0f0;
+}
+.task-management-tasks-container::-webkit-scrollbar {
+  width: 8px;
+}
+.task-management-tasks-container::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+.task-management-tasks-container::-webkit-scrollbar-thumb {
+  background: #28a745;
+  border-radius: 4px;
+}
+
+.task-management-day-group {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.task-management-day-header {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+}
+.task-management-no-tasks {
+  color: #999;
+  font-style: italic;
+  margin: 5px 0;
+  font-size: 13px;
+}
+
+.task-management-day-group > .task-management-task-card {
+  margin-bottom: 15px;
+}
+.task-management-day-group > .task-management-task-card:last-child {
+  margin-bottom: 0;
+}
+
+.task-management-task-card {
+  background: #fff;
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #eee;
+  max-width: 100%;
+}
+.task-management-task-card.task-management-task-frozen {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.task-management-task-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+}
+.task-management-task-title {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.task-management-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.task-management-task-date {
+  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+.task-management-task-date-leave { background: #ffeb3b; }
+.task-management-task-date-holiday { background: #ff9800; color: white; }
+.task-management-task-date-sunday { background: #2196f3; color: white; }
+.task-management-task-date-regular { background: transparent; }
+
+.task-management-status-icon {
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.task-management-task-body {
+  margin-bottom: 10px;
+}
+.task-management-task-body p {
+  margin: 0;
+  font-size: 13px;
+  word-break: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.task-management-project-circle-wrapper {
+  position: relative;
+}
+.task-management-project-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #28a745;
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.task-management-status-dot-wrapper {
+  position: relative;
+}
+.task-management-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.task-management-tooltip {
+  visibility: hidden;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  padding: 5px 8px;
+  position: absolute;
+  z-index: 1000;
+  left: -100%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.task-management-project-circle-wrapper:hover .task-management-tooltip,
+.task-management-status-dot-wrapper:hover .task-management-tooltip {
+  visibility: visible;
+}
+
+.task-management-star-rating {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+.task-management-star {
+  font-size: 14px;
+  color: #ccc;
+  cursor: pointer;
+}
+.task-management-star.filled {
+  color: #ffc107;
+}
+
+.task-management-edit-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  max-width: 100%;
+  transition: opacity 0.8s ease;
+}
+.task-management-edit-section label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+.task-management-edit-section select,
+.task-management-edit-section input {
+  padding: 5px 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-width: 100%;
+  word-break: break-word;
+  white-space: normal;
+}
+.task-management-edit-section .task-management-star-rating {
+  justify-content: flex-start;
+}
+.task-management-update-task-button {
+  padding: 5px 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  align-self: end;
+  justify-self: end;
+  max-width: 80px;
+}
+.task-management-update-task-button:hover {
+  background-color: #218838;
+}
+.task-management-update-task-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.task-management-frozen-message {
+  color: #dc3545;
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.task-management-error-message {
+  color: red;
+  padding: 10px;
+}
+
+.task-management-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  max-width: 400px;
+  width: 90%;
+}
+.task-management-modal h3 {
+  margin: 0 0 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+.task-management-config-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.task-management-config-input-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+.task-management-config-input-group label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #333;
+}
+.task-management-config-input-group input {
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.task-management-config-input-group input:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.3);
+}
+.task-management-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+.task-management-modal-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.task-management-modal-buttons button:first-child {
+  background-color: #ccc;
+  color: #333;
+}
+.task-management-modal-buttons button:first-child:hover {
+  background-color: #b0b0b0;
+}
+.task-management-modal-buttons button:last-child {
+  background-color: #28a745;
+  color: white;
+}
+.task-management-modal-buttons button:last-child:hover {
+  background-color: #218838;
+}
+.task-management-modal-buttons button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.task-management-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+@media (max-width: 768px) {
+  .task-management-config-button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .task-management-header {
+    padding: 10px 15px;
+  }
+  .task-management-employee-list {
+    width: 120px;
+  }
+  .task-management-modal {
+    max-width: 300px;
+  }
+}
