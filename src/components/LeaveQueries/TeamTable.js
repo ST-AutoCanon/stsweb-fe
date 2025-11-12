@@ -1,15 +1,5 @@
-// src/components/LeaveQueries/TeamTable.js
 import React, { useState } from "react";
 import { parseLocalDate, calculateDays } from "./leaveUtils";
-
-/**
- * TeamTable (admin-styled)
- *
- * Uses the admin.css class names so the same visual styles are applied
- * for teamlead / manager / admin views.
- *
- * Keep the diagnostic messages — they help find parent handler issues.
- */
 
 const normalizeStatus = (s) => {
   if (s === null || s === undefined) return "";
@@ -28,8 +18,12 @@ export default function TeamTable({
   handleStatusChange,
   onUpdate,
   canViewTeam,
+  // new props:
+  // showAlerts: boolean - when true, preserves existing window.alert behavior
+  // onUpdateError: function({ id, message, details }) - optional parent handler for errors (preferred)
+  showAlerts = false,
+  onUpdateError,
 }) {
-  // local optimistic edits
   const [localUpdates, setLocalUpdates] = useState({});
   const [loadingRows, setLoadingRows] = useState({});
 
@@ -40,10 +34,35 @@ export default function TeamTable({
     ...(localUpdates || {}),
   };
 
+  // central notification helper - no direct window.alert unless showAlerts === true
+  const notify = (payload) => {
+    // payload can be string or object: { id?, message, details? }
+    const message =
+      typeof payload === "string"
+        ? payload
+        : payload?.message ?? "Update error";
+    const details = typeof payload === "string" ? {} : payload?.details;
+
+    if (typeof onUpdateError === "function") {
+      try {
+        onUpdateError({ id: payload?.id, message, details });
+        return;
+      } catch (e) {
+        // fall through to console if the parent's onUpdateError throws
+        console.error("[TeamTable] onUpdateError threw:", e);
+      }
+    }
+
+    if (showAlerts) {
+      window.alert(message);
+    } else {
+      console.warn("[TeamTable] " + message, details || "");
+    }
+  };
+
   const safeHandleStatusChange = (id, key, value) => {
     const payload = key === "status" ? normalizeStatus(value) : value;
 
-    // immediate local update for responsive UX
     setLocalUpdates((prev) => ({
       ...prev,
       [id]: { ...(prev[id] || {}), [key]: payload },
@@ -91,9 +110,11 @@ export default function TeamTable({
           "[TeamTable] onUpdate not provided by parent — cannot persist update."
         );
         setLoadingRows((s) => ({ ...s, [id]: false }));
-        window.alert(
-          "Update handler not found. Provide onUpdate(id, leave) in parent."
-        );
+        notify({
+          id,
+          message:
+            "Update handler not found. Provide onUpdate(id, leave) in parent.",
+        });
         return { ok: false, message: "no_onUpdate_handler" };
       }
 
@@ -122,7 +143,11 @@ export default function TeamTable({
             " - Ensure every code path in parent handler returns a result object like `{ ok: true }` or `{ ok: false }`."
         );
         setLoadingRows((s) => ({ ...s, [id]: false }));
-        window.alert("Update failed. Check console for parent stack trace.");
+        notify({
+          id,
+          message:
+            "Update failed. Parent returned undefined — check console for parent stack trace.",
+        });
         return { ok: false, message: "parent_returned_undefined" };
       }
 
@@ -151,7 +176,11 @@ export default function TeamTable({
         result
       );
       setLoadingRows((s) => ({ ...s, [id]: false }));
-      window.alert("Update failed. Check console and try again.");
+      notify({
+        id,
+        message: "Update failed. Check console and try again.",
+        details: result,
+      });
       return result;
     } finally {
       setLoadingRows((s) => ({ ...s, [id]: false }));
@@ -167,7 +196,6 @@ export default function TeamTable({
     <>
       <h4 className="my-leaves">Team Leave Requests</h4>
 
-      {/* Use admin.css container class so teamlead gets same styling */}
       <div className="leave-table-container">
         <table className="leave-table">
           <thead>
@@ -199,7 +227,6 @@ export default function TeamTable({
                   update.status ?? leave.status ?? "Pending"
                 );
 
-                // classes aligned to admin.css
                 const statusClass =
                   currentStatus === "Approved"
                     ? "leav-status-approved"
