@@ -11,7 +11,7 @@ import {
 } from "../../../utils/SalaryCalculations.js";
 import { calculateLOPEffect } from "../../../utils/lopCalculations.js";
 import { calculateIncentives } from "../../../utils/IncentiveUtils.js";
-
+import Modal from "./../../Modal/Modal.js";
 const SalaryDetails = () => {
   const [employees, setEmployees] = useState([]);
   const [advances, setAdvances] = useState([]);
@@ -148,7 +148,19 @@ const SalaryDetails = () => {
       emp.employee_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
 
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
   const handleRowSelect = (employeeId) => {
     if (isApproved(employeeId)) return;
 
@@ -802,7 +814,15 @@ const SalaryDetails = () => {
           </div>
         </div>
       )}
+       <Modal
+                        isVisible={alertModal.isVisible}
+                        onClose={closeAlert}
+                        buttons={[{ label: "OK", onClick: closeAlert }]}
+                      >
+                        <p>{alertModal.message}</p>
+                      </Modal>
     </div>
+    
   );
 };
 

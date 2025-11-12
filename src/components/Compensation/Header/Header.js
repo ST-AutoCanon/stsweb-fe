@@ -23,12 +23,7 @@ const Header = ({ menuOpen, toggleMenu, openNoPlanModal, openBonusModal, handleV
             >
               Add Bonus
             </button>
-            <button
-              className="sb-header-dropdown-item"
-              onClick={handleViewAllDetails}
-            >
-              View All Details
-            </button>
+            
           </div>
         )}
       </div>
