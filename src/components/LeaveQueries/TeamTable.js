@@ -1,5 +1,14 @@
-import React, { useState } from "react";
+// src/components/LeaveQueries/TeamTable.js
+import React, { useState, useEffect } from "react";
 import { parseLocalDate, calculateDays } from "./leaveUtils";
+
+/**
+ * TeamTable — hardened success detection + debug logging
+ *
+ * If this still doesn't flip to "Updated", open the browser console (F12) and
+ * paste the logged `onUpdate result for <id> : <result>` line here so I can
+ * adapt detection to your parent handler's exact return shape.
+ */
 
 const normalizeStatus = (s) => {
   if (s === null || s === undefined) return "";
@@ -12,31 +21,63 @@ const normalizeStatus = (s) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
+const normalizeKeyed = (obj) => {
+  if (!obj) return {};
+  return Object.keys(obj).reduce((acc, k) => {
+    acc[String(k)] = obj[k];
+    return acc;
+  }, {});
+};
+
 export default function TeamTable({
   leaveRequests,
   statusUpdates,
   handleStatusChange,
   onUpdate,
   canViewTeam,
-  // new props:
-  // showAlerts: boolean - when true, preserves existing window.alert behavior
-  // onUpdateError: function({ id, message, details }) - optional parent handler for errors (preferred)
   showAlerts = false,
   onUpdateError,
 }) {
-  const [localUpdates, setLocalUpdates] = useState({});
-  const [loadingRows, setLoadingRows] = useState({});
+  // Hooks — unconditional
+  const [localUpdates, setLocalUpdates] = useState({}); // keys: string id
+  const [loadingRows, setLoadingRows] = useState({}); // keys: string id
+  const [updatedRows, setUpdatedRows] = useState({}); // keys: string id (local "updated" marker)
+
+  const updates = {
+    ...normalizeKeyed(statusUpdates),
+    ...localUpdates,
+  };
+
+  // Auto-clear locally-updated markers when server shows row as non-pending
+  useEffect(() => {
+    if (!leaveRequests?.team || !Object.keys(updatedRows).length) return;
+
+    const serverUpdatedIds = new Set();
+    leaveRequests.team.forEach((l) => {
+      const id = l.leave_id ?? l.id;
+      const serverStatusRaw = String(l.status ?? "").trim();
+      if (serverStatusRaw !== "" && !/^pending$/i.test(serverStatusRaw)) {
+        serverUpdatedIds.add(String(id));
+      }
+    });
+
+    const toClear = Object.keys(updatedRows).filter((idKey) =>
+      serverUpdatedIds.has(idKey)
+    );
+
+    if (toClear.length) {
+      setUpdatedRows((prev) => {
+        const copy = { ...prev };
+        toClear.forEach((k) => delete copy[k]);
+        return copy;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leaveRequests, updatedRows]);
 
   if (!canViewTeam) return null;
 
-  const updates = {
-    ...(statusUpdates || {}),
-    ...(localUpdates || {}),
-  };
-
-  // central notification helper - no direct window.alert unless showAlerts === true
   const notify = (payload) => {
-    // payload can be string or object: { id?, message, details? }
     const message =
       typeof payload === "string"
         ? payload
@@ -48,7 +89,6 @@ export default function TeamTable({
         onUpdateError({ id: payload?.id, message, details });
         return;
       } catch (e) {
-        // fall through to console if the parent's onUpdateError throws
         console.error("[TeamTable] onUpdateError threw:", e);
       }
     }
@@ -61,11 +101,12 @@ export default function TeamTable({
   };
 
   const safeHandleStatusChange = (id, key, value) => {
+    const idKey = String(id);
     const payload = key === "status" ? normalizeStatus(value) : value;
 
     setLocalUpdates((prev) => ({
       ...prev,
-      [id]: { ...(prev[id] || {}), [key]: payload },
+      [idKey]: { ...(prev[idKey] || {}), [key]: payload },
     }));
 
     if (typeof handleStatusChange === "function") {
@@ -82,34 +123,80 @@ export default function TeamTable({
   };
 
   const clearLocalForId = (id) => {
+    const idKey = String(id);
     setLocalUpdates((prev) => {
       const copy = { ...prev };
-      delete copy[id];
+      delete copy[idKey];
       return copy;
     });
   };
 
-  const safeOnUpdate = async (id, leaveObj) => {
-    console.log(
-      "[TeamTable] Attempting onUpdate for id:",
-      id,
-      "leaveObj:",
-      leaveObj
-    );
+  // Very forgiving success detector.
+  const detectSuccess = (result, requestedStatus) => {
+    // quick primitives
+    if (result === true) return true;
+    if (result === "ok") return true;
 
-    if (loadingRows[id]) {
+    if (result && typeof result === "object") {
+      // common explicit flags
+      if (
+        result.ok === true ||
+        result.success === true ||
+        result.updated === true
+      )
+        return true;
+
+      // axios-like: numeric HTTP status code
+      const httpStatus = result.status || result.statusCode;
+      if (
+        typeof httpStatus === "number" &&
+        httpStatus >= 200 &&
+        httpStatus < 300
+      )
+        return true;
+
+      // check nested `.data`, `.body`, `.result`
+      const nest = result.data ?? result.body ?? result.result ?? result;
+      if (nest && typeof nest === "object") {
+        if (nest.ok === true || nest.success === true || nest.updated === true)
+          return true;
+        const candidateStatus =
+          (nest.status && normalizeStatus(nest.status)) ||
+          (nest.data &&
+            nest.data.status &&
+            normalizeStatus(nest.data.status)) ||
+          (nest.leave &&
+            nest.leave.status &&
+            normalizeStatus(nest.leave.status));
+        if (candidateStatus && requestedStatus) {
+          return candidateStatus === normalizeStatus(requestedStatus);
+        }
+      }
+    }
+    // otherwise no success detected
+    return false;
+  };
+
+  const safeOnUpdate = async (id, leave) => {
+    const idKey = String(id);
+
+    if (loadingRows[idKey]) {
       console.warn("[TeamTable] update already in progress for", id);
       return;
     }
 
-    setLoadingRows((s) => ({ ...s, [id]: true }));
+    // Build merged payload: server leave object overridden by any local edits
+    const local = updates[idKey] || {};
+    const mergedLeave = { ...leave, ...local };
+
+    setLoadingRows((s) => ({ ...s, [idKey]: true }));
 
     try {
       if (typeof onUpdate !== "function") {
         console.warn(
           "[TeamTable] onUpdate not provided by parent — cannot persist update."
         );
-        setLoadingRows((s) => ({ ...s, [id]: false }));
+        setLoadingRows((s) => ({ ...s, [idKey]: false }));
         notify({
           id,
           message:
@@ -120,29 +207,21 @@ export default function TeamTable({
 
       let result;
       try {
-        result = await onUpdate(id, leaveObj);
+        // We call parent with the merged row (so parent sees changed status & comments)
+        result = await onUpdate(id, mergedLeave);
       } catch (err) {
         console.error("[TeamTable] parent onUpdate threw:", err);
         result = { ok: false, error: err };
       }
 
+      // DEBUG: show what parent returned — paste this if detection still fails
+      console.debug("[TeamTable] onUpdate result for", id, ":", result);
+
       if (result === undefined) {
-        const trace = new Error("trace").stack;
         console.error(
-          "[TeamTable] parent onUpdate returned undefined — parent did not return a result. Make sure the handler returns the result of the update call.",
-          { id, leaveObj }
+          "[TeamTable] parent onUpdate returned undefined — ensure a result is returned."
         );
-        console.error(
-          "[TeamTable] call stack (use this to find parent):\n",
-          trace
-        );
-        console.error(
-          "[TeamTable] Common fixes:\n" +
-            " - If you passed an inline wrapper: use `onUpdate={(id) => handleUpdate(id)}` (no braces) or `onUpdate={(id) => { return handleUpdate(id); }}`\n" +
-            " - If your parent opens the LOP modal, return `{ modalOpened: true }` from that branch so TeamTable can treat it as non-failure.\n" +
-            " - Ensure every code path in parent handler returns a result object like `{ ok: true }` or `{ ok: false }`."
-        );
-        setLoadingRows((s) => ({ ...s, [id]: false }));
+        setLoadingRows((s) => ({ ...s, [idKey]: false }));
         notify({
           id,
           message:
@@ -151,11 +230,15 @@ export default function TeamTable({
         return { ok: false, message: "parent_returned_undefined" };
       }
 
-      console.log("[TeamTable] onUpdate returned for", id, "=>", result);
+      const requestedStatus =
+        local.status ?? mergedLeave.status ?? leave.status ?? null;
+      const ok = detectSuccess(result, requestedStatus);
 
-      if (result && result.ok) {
-        clearLocalForId(id);
-        setLoadingRows((s) => ({ ...s, [id]: false }));
+      if (ok) {
+        // success: mark locally-updated, clear local edits
+        setUpdatedRows((s) => ({ ...s, [idKey]: true }));
+        clearLocalForId(idKey);
+        setLoadingRows((s) => ({ ...s, [idKey]: false }));
         return result;
       }
 
@@ -163,19 +246,19 @@ export default function TeamTable({
         console.log(
           "[TeamTable] modal opened for",
           id,
-          "- keeping local edits for next step."
+          "- keeping local edits."
         );
-        setLoadingRows((s) => ({ ...s, [id]: false }));
+        setLoadingRows((s) => ({ ...s, [idKey]: false }));
         return result;
       }
 
       console.warn(
-        "[TeamTable] update failed for",
+        "[TeamTable] update returned non-success for",
         id,
-        "— keeping local edits; result:",
+        ":",
         result
       );
-      setLoadingRows((s) => ({ ...s, [id]: false }));
+      setLoadingRows((s) => ({ ...s, [idKey]: false }));
       notify({
         id,
         message: "Update failed. Check console and try again.",
@@ -183,7 +266,7 @@ export default function TeamTable({
       });
       return result;
     } finally {
-      setLoadingRows((s) => ({ ...s, [id]: false }));
+      setLoadingRows((s) => ({ ...s, [idKey]: false }));
     }
   };
 
@@ -221,12 +304,12 @@ export default function TeamTable({
               )
               .map((leave) => {
                 const id = leave.leave_id ?? leave.id;
-                const update = (updates && updates[id]) || {};
+                const idKey = String(id);
+                const update = (updates && updates[idKey]) || {};
 
                 const currentStatus = normalizeStatus(
                   update.status ?? leave.status ?? "Pending"
                 );
-
                 const statusClass =
                   currentStatus === "Approved"
                     ? "leav-status-approved"
@@ -235,8 +318,12 @@ export default function TeamTable({
                     : "";
 
                 const serverStatusRaw = String(leave.status ?? "").trim();
-                const isAlreadyUpdated =
+                const serverAlreadyUpdated =
                   serverStatusRaw !== "" && !/^pending$/i.test(serverStatusRaw);
+
+                const locallyMarkedUpdated = Boolean(updatedRows[idKey]);
+                const isAlreadyUpdated =
+                  serverAlreadyUpdated || locallyMarkedUpdated;
 
                 const serverStatusNorm = normalizeStatus(leave.status ?? "");
                 const serverComments = leave.comments ?? "";
@@ -254,8 +341,7 @@ export default function TeamTable({
                   leave.end_date,
                   leave.H_F_day
                 );
-
-                const loading = Boolean(loadingRows[id]);
+                const loading = Boolean(loadingRows[idKey]);
 
                 return (
                   <tr
