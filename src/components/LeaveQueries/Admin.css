@@ -143,8 +143,9 @@
   background-color: #f1f1f1;
 }
 
-.status-dropdown {
+.leav-status-dropdown {
   padding: 4%;
+  width: 85%;
   border-radius: 4px;
   border: 2px solid #ccc;
   font-size: small;
@@ -153,25 +154,42 @@
   cursor: pointer;
 }
 
-.status-dropdown option[value="Approved"],
-.status-dropdown[value="Approved"] {
-  background-color: #d7f2ce;
+.leav-status-dropdown option[value="Approved"],
+.leav-status-dropdown [value="Approved"] {
+  background-color: hsl(107, 58%, 88%);
   color: #000;
 }
 
-.status-dropdown option[value="Rejected"],
-.status-dropdown[value="Rejected"] {
-  background-color: #ffe5d2;
+.leav-status-dropdown {
+  padding: 4%;
+  width: 100%;
+}
+
+.leav-status-dropdown option[value="Rejected"],
+.leav-status-dropdown[value="Rejected"] {
+  background-color: #f5c2ab;
   color: #000;
 }
 
-.status-approved {
-  background-color: #d7f2ce;
-  color: #000;
+.leav-status-approved {
+  background: #d7f2ce;
+  color: #2e7d32;
 }
 
-.status-rejected {
-  background-color: #ffe5d2;
+.leav-status-label {
+  padding: 6px 12px;
+  border-radius: 12px;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+}
+
+.leav-status-label {
+  margin-left: 50%;
+}
+
+.leav-status-rejected {
+  background-color: #f5c2ab;
   color: #000;
 }
 

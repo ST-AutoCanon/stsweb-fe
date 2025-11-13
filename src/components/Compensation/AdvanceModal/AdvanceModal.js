@@ -28,6 +28,33 @@ const AdvanceModal = ({
 
   const availableMonths = generateAvailableMonths(); // Use new logic
 
+  // Function to compute even division of advance amount over recovery months
+  const computeMonthlyRecoveries = () => {
+    const amountStr = advanceModal.advanceAmount;
+    const monthsStr = advanceModal.recoveryMonths;
+    if (!amountStr || !monthsStr || parseInt(monthsStr) <= 0) {
+      return null;
+    }
+    const amount = parseInt(amountStr);
+    const numMonths = parseInt(monthsStr);
+    if (numMonths === 0 || amount <= 0) {
+      return null;
+    }
+    const base = Math.floor(amount / numMonths);
+    const remainder = amount % numMonths;
+    const recoveries = [];
+    for (let i = 0; i < numMonths; i++) {
+      const monthly = base + (i < remainder ? 1 : 0);
+      recoveries.push(monthly);
+    }
+    return recoveries.map(r => `₹${r.toLocaleString("en-IN")}`).join(' + ');
+  };
+
+  const monthlyRecoveries = computeMonthlyRecoveries();
+
+  // Get label for selected applicable month
+  const selectedLabel = availableMonths.find(m => m.value === advanceModal.applicableMonth)?.label || '';
+
   return (
     <div className="am-modal-overlay">
       <div className="am-modal">
@@ -67,8 +94,14 @@ const AdvanceModal = ({
               }
               placeholder="Enter number of months"
             />
+            {monthlyRecoveries && (
+              <p className="am-modal-division">Amount division: {monthlyRecoveries}</p>
+            )}
           </div>
           <div className="am-modal-field">
+            {selectedLabel && (
+              <p className="am-modal-note">Recovery amount start from {selectedLabel}</p>
+            )}
             <label>Applicable Month:</label>
             <select
               value={advanceModal.applicableMonth}

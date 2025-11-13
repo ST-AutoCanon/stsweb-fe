@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./overtimeSupervisor.css";
@@ -18,7 +19,31 @@ const OvertimeSupervisor = () => {
     title: "",
     message: "",
   });
-  const [monthOptions, setMonthOptions] = useState([]);
+
+  const getLocalDateStr = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+ const getMonthName = (offset) => {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const targetMonth = currentMonth - offset;
+  const year = today.getFullYear() + Math.floor(targetMonth / 12);
+  const adjustedTargetMonth = (targetMonth % 12 + 12) % 12;
+  const date = new Date(year, adjustedTargetMonth, 1);
+  const monthName = date.toLocaleString("en-US", { month: "long", year: "numeric" });
+  console.log(`getMonthName(offset: ${offset}, targetMonth: ${targetMonth}): ${monthName}`);
+  return monthName;
+};
+
+  const [monthOptions] = useState([
+    { type: "current", offset: 0, label: getMonthName(0) },
+    { type: "last", offset: 1, label: getMonthName(1) },
+    { type: "twoMonthsAgo", offset: 2, label: getMonthName(2) },
+  ]);
   const [cutoffDate, setCutoffDate] = useState(30);
 
   const meId = JSON.parse(
@@ -52,52 +77,34 @@ const OvertimeSupervisor = () => {
     }
   };
 
-  const getMonthName = (offset) => {
-    const date = new Date();
-    const targetMonth = date.getMonth() - offset;
-    date.setMonth(targetMonth);
-    const monthName = date.toLocaleString("en-US", { month: "long", year: "numeric" });
-    console.log(`getMonthName(offset: ${offset}, targetMonth: ${targetMonth}): ${monthName}`);
-    return monthName;
+ const getDateRange = (type, cutoff) => {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+
+  let startDate, endDate;
+
+  if (type === "current") {
+    startDate = new Date(currentYear, currentMonth - 1, cutoff);
+    endDate = new Date(currentYear, currentMonth, cutoff);
+  } else if (type === "last") {
+    startDate = new Date(currentYear, currentMonth - 2, cutoff);
+    endDate = new Date(currentYear, currentMonth - 1, cutoff);
+  } else if (type === "twoMonthsAgo") {
+    startDate = new Date(currentYear, currentMonth - 3, cutoff);
+    endDate = new Date(currentYear, currentMonth - 2, cutoff);
+  }
+
+  const nextDayEnd = new Date(endDate);
+  nextDayEnd.setDate(nextDayEnd.getDate() + 1);
+
+  const range = {
+    startDate: getLocalDateStr(startDate),
+    endDate: getLocalDateStr(nextDayEnd),
   };
-
-  const getDateRange = (type, cutoff) => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-
-    let startDate, endDate;
-
-    if (type === "current") {
-      startDate = new Date(currentYear, currentMonth - 1, cutoff);
-      endDate = new Date(currentYear, currentMonth, cutoff);
-    } else if (type === "last") {
-      startDate = new Date(currentYear, currentMonth - 2, cutoff);
-      endDate = new Date(currentYear, currentMonth - 1, cutoff);
-    } else if (type === "twoMonthsAgo") {
-      startDate = new Date(currentYear, currentMonth - 3, cutoff);
-      endDate = new Date(currentYear, currentMonth - 2, cutoff);
-    }
-
-    const nextDayEnd = new Date(endDate);
-    nextDayEnd.setDate(nextDayEnd.getDate() + 1);
-
-    const range = {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: nextDayEnd.toISOString().split("T")[0],
-    };
-    console.log(`getDateRange(${type}, cutoff: ${cutoff}): ${range.startDate} to ${range.endDate} (includes full ${endDate.toISOString().split("T")[0]} via next-day end)`);
-    return range;
-  };
-
-  useEffect(() => {
-    console.log("Setting monthOptions");
-    setMonthOptions([
-      { type: "current", offset: 0, label: getMonthName(0) },
-      { type: "last", offset: 1, label: getMonthName(1) },
-      { type: "twoMonthsAgo", offset: 2, label: getMonthName(2) },
-    ]);
-  }, []);
+  console.log(`getDateRange(${type}, cutoff: ${cutoff}): ${range.startDate} to ${range.endDate} (includes full ${getLocalDateStr(endDate)} via next-day end)`);
+  return range;
+};
 
   const fetchEmployees = async () => {
     try {
@@ -148,108 +155,122 @@ const OvertimeSupervisor = () => {
         setCompensationData(validatedData);
         console.log("Compensation data set:", JSON.stringify(validatedData, null, 2));
       } else {
-        setError("Failed to fetch compensation data: Invalid response");
-        showAlert("Failed to fetch compensation data");
+        console.warn("Failed to fetch compensation data: Invalid response");
+        // Don't set error, proceed with defaults
       }
     } catch (error) {
       console.error("Error fetching compensation data:", error);
-      setError(`Failed to fetch compensation data: ${error.message}`);
-      showAlert(`Failed to fetch compensation data: ${error.message}`);
+      // Don't set error, proceed with defaults
+      console.warn(`Failed to fetch compensation data: ${error.message}, using defaults`);
     }
   };
 
-  const fetchOvertimeData = async () => {
-    const selectedMonthOption = monthOptions.find(
-      (option) => option.type === selectedMonth
+ const fetchOvertimeData = async () => {
+  setLoading(true);
+  const selectedMonthOption = monthOptions.find(
+    (option) => option.type === selectedMonth
+  );
+  if (!selectedMonthOption) {
+    console.warn("No selected month option found for:", selectedMonth);
+    setLoading(false);
+    return;
+  }
+
+  const { startDate, endDate } = getDateRange(selectedMonth, cutoffDate);
+  try {
+    const response = await axios.get(
+      `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
+      { headers }
     );
-    if (!selectedMonthOption) {
-      console.warn("No selected month option found for:", selectedMonth);
-      return;
-    }
-
-    const { startDate, endDate } = getDateRange(selectedMonth, cutoffDate);
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
-        { headers }
+    console.log("Overtime Data API Response:", response.data);
+    if (response.data.success) {
+      const employeeIds = employees.map(emp => emp.employee_id);
+      console.log("Employee IDs under supervisor:", employeeIds);
+      let rawData = response.data.data || [];
+      
+      // Filter by employees AND date range (new: excludes pre-start like Aug 31)
+      const originalEndDate = new Date(endDate + 'T00:00:00'); // Parse endDate as local midnight
+      originalEndDate.setDate(originalEndDate.getDate() - 1); // Previous day for <= filter
+      const originalEndStr = getLocalDateStr(originalEndDate);
+      const filteredRaw = rawData.filter(item => 
+        employeeIds.includes(item.employee_id) && 
+        item.work_date >= startDate && 
+        item.work_date <= originalEndStr
       );
-      console.log("Overtime Data API Response:", response.data);
-      if (response.data.success) {
-        const employeeIds = employees.map(emp => emp.employee_id);
-        console.log("Employee IDs under supervisor:", employeeIds);
-        let rawData = response.data.data || [];
-        const filteredRaw = rawData.filter(item => employeeIds.includes(item.employee_id));
-        console.log(`Filtered raw data to supervisor employees: ${filteredRaw.length} items`);
-        const processedRecords = filteredRaw.map(item => {
-          const comp = compensationData.find(c => c.employee_id === item.employee_id);
-          const defaultHours = parseFloat(comp?.plan_data?.defaultWorkingHours) || 8;
-          let totalHours;
-          let sessions;
-          if (item.sessions && item.total_hours_worked !== undefined) {
-            // Grouped data
-            totalHours = parseFloat(item.total_hours_worked) || 0;
-            sessions = [...(item.sessions || [])];
-          } else {
-            // Legacy per-punch data
-            totalHours = parseFloat(item.hours_worked) || 0;
-            sessions = [{ punch_id: item.punch_id, apportioned_hours: totalHours }];
-          }
-          const extraHours = Math.max(0, totalHours - defaultHours);
-          const totalApportioned = sessions.reduce((sum, s) => sum + (parseFloat(s.apportioned_hours) || 0), 0);
-          sessions.forEach(s => {
-            s.extra_hours = totalApportioned > 0 ? ((parseFloat(s.apportioned_hours) || 0) / totalApportioned) * extraHours : 0;
-          });
-          const id = item.work_date ? `${item.employee_id}-${item.work_date}` : `temp-${item.employee_id}-${Math.random().toString(36).substr(2, 9)}`;
-          if (totalHours > 24) {
-            console.warn(`Unusually high total_hours for ${id}: ${totalHours}`);
-          }
-          if (extraHours > 14) {
-            console.warn(`Unusually high extra_hours for ${id}: ${extraHours}`);
-          }
-          let rate = parseFloat(item.rate) || 0; // Fallback rate
-          if (comp && comp.plan_data && comp.plan_data.overtimePayAmount) {
-            rate = parseFloat(comp.plan_data.overtimePayAmount) || 0;
-          } else if (comp) {
-            console.warn(`No overtimePayAmount for employee_id ${item.employee_id}`);
-          } else {
-            console.warn(`No compensation data for employee_id ${item.employee_id}, using fallback rate`);
-          }
-          return {
-            id,
-            date: item.work_date ? item.work_date : item.punch_in_time ? new Date(item.punch_in_time).toISOString().split("T")[0] : "Unknown",
-            employee_id: item.employee_id || "Unknown",
-            hours: extraHours,
-            hours_worked: totalHours,
-            rate,
-            project: item.project || item.projects || "",
-            supervisor: item.supervisor || item.supervisors || employees.find(emp => emp.employee_id === item.employee_id)?.supervisor_name || "Unknown",
-            comments: item.comments || "",
-            status: item.status || "Pending",
-            sessions,
-          };
-        }).filter(item => item.hours > 0);
-        const uniqueRecords = Array.from(
-          new Map(processedRecords.map(item => [item.id, item])).values()
-        );
-        setOvertimeRecords(uniqueRecords);
-        console.log("Overtime records set:", JSON.stringify(uniqueRecords, null, 2));
-        if (uniqueRecords.length === 0) {
-          console.warn("No overtime records returned for employees with extra hours > 0 in this date range");
-          setError("No overtime records found for employees with extra hours in this period.");
+      console.log(`Filtered raw data to supervisor employees + date range (${startDate} to ${originalEndStr}): ${filteredRaw.length} items`);
+      
+      const processedRecords = filteredRaw.map(item => {
+        const comp = compensationData.find(c => c.employee_id === item.employee_id);
+        const defaultHours = parseFloat(comp?.plan_data?.defaultWorkingHours) || 8;
+        let totalHours;
+        let sessions;
+        if (item.sessions && item.total_hours_worked !== undefined) {
+          // Grouped data
+          totalHours = parseFloat(item.total_hours_worked) || 0;
+          sessions = [...(item.sessions || [])];
         } else {
-          setError("");
+          // Legacy per-punch data
+          totalHours = parseFloat(item.hours_worked) || 0;
+          sessions = [{ punch_id: item.punch_id, apportioned_hours: totalHours }];
         }
+        const extraHours = Math.max(0, totalHours - defaultHours);
+        const totalApportioned = sessions.reduce((sum, s) => sum + (parseFloat(s.apportioned_hours) || 0), 0);
+        sessions.forEach(s => {
+          s.extra_hours = totalApportioned > 0 ? ((parseFloat(s.apportioned_hours) || 0) / totalApportioned) * extraHours : 0;
+        });
+        const id = item.work_date ? `${item.employee_id}-${item.work_date}` : `temp-${item.employee_id}-${Math.random().toString(36).substr(2, 9)}`;
+        if (totalHours > 24) {
+          console.warn(`Unusually high total_hours for ${id}: ${totalHours}`);
+        }
+        if (extraHours > 14) {
+          console.warn(`Unusually high extra_hours for ${id}: ${extraHours}`);
+        }
+        let rate = parseFloat(item.rate) || 0; // Fallback rate
+        if (comp && comp.plan_data && comp.plan_data.overtimePayAmount) {
+          rate = parseFloat(comp.plan_data.overtimePayAmount) || 0;
+        } else if (comp) {
+          console.warn(`No overtimePayAmount for employee_id ${item.employee_id}`);
+        } else {
+          console.warn(`No compensation data for employee_id ${item.employee_id}, using fallback rate`);
+        }
+        return {
+          id,
+          date: item.work_date ? item.work_date : item.punch_in_time ? new Date(item.punch_in_time).toISOString().split("T")[0] : "Unknown",
+          employee_id: item.employee_id || "Unknown",
+          hours: extraHours,
+          hours_worked: totalHours,
+          rate,
+          project: item.project || item.projects || "",
+          supervisor: item.supervisor || item.supervisors || employees.find(emp => emp.employee_id === item.employee_id)?.supervisor_name || "Unknown",
+          comments: item.comments || "",
+          status: item.status || "Pending",
+          sessions,
+        };
+      }).filter(item => item.hours > 0);
+      const uniqueRecords = Array.from(
+        new Map(processedRecords.map(item => [item.id, item])).values()
+      );
+      setOvertimeRecords(uniqueRecords);
+      console.log("Overtime records set:", JSON.stringify(uniqueRecords, null, 2));
+      if (uniqueRecords.length === 0) {
+        console.warn("No overtime records returned for employees with extra hours > 0 in this date range");
+        setError("No overtime records found for employees with extra hours in this period.");
       } else {
-        setError(`Failed to fetch overtime data: ${response.data.error || "Invalid response"}`);
-        showAlert(`Failed to fetch overtime data: ${response.data.error || "Invalid response"}`);
+        setError("");
       }
-    } catch (error) {
-      console.error("Error fetching overtime data:", error);
-      const errorMessage = error.response?.data?.error || error.message || "Network error";
-      setError(`Failed to fetch overtime data: ${errorMessage}`);
-      showAlert(`Failed to fetch overtime data: ${errorMessage}`);
+    } else {
+      setError(`Failed to fetch overtime data: ${response.data.error || "Invalid response"}`);
+      showAlert(`Failed to fetch overtime data: ${response.data.error || "Invalid response"}`);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching overtime data:", error);
+    const errorMessage = error.response?.data?.error || error.message || "Network error";
+    setError(`Failed to fetch overtime data: ${errorMessage}`);
+    showAlert(`Failed to fetch overtime data: ${errorMessage}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleInputChange = (id, field, value) => {
     if (field !== "rate") return;
@@ -326,29 +347,47 @@ const OvertimeSupervisor = () => {
     }
   };
 
-  useEffect(() => {
-    if (meId) {
-      setLoading(true);
-      setError("");
-      Promise.all([fetchEmployees(), fetchCompensationData(), fetchCutoffDate()])
-        .then(() => setLoading(false))
-        .catch((error) => {
-          console.error("Error in fetching data:", error);
-          setError(`Failed to fetch data: ${error.message}`);
-          showAlert(`Failed to fetch data: ${error.message}`);
-          setLoading(false);
-        });
-    } else {
+  const initData = async () => {
+    if (!meId) {
       setError("Supervisor ID not found in localStorage.");
       setLoading(false);
       console.error("No meId found in localStorage");
+      return;
     }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await fetchEmployees();
+
+      try {
+        await fetchCompensationData();
+      } catch (compError) {
+        console.warn("Compensation fetch failed, proceeding with defaults:", compError);
+        // Compensation data remains empty, fallbacks will be used
+      }
+
+      await fetchCutoffDate();
+
+      // Overtime data fetch is now handled by useEffect
+    } catch (error) {
+      console.error("Error in fetching data:", error);
+      setError(`Failed to fetch data: ${error.message}`);
+      showAlert(`Failed to fetch data: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    initData();
   }, [meId]);
 
   useEffect(() => {
-    if (loading || employees.length === 0 || compensationData.length === 0 || monthOptions.length === 0) return;
+    if (loading || employees.length === 0 || monthOptions.length === 0) return;
     fetchOvertimeData();
-  }, [selectedMonth, cutoffDate, employees.length, compensationData.length, monthOptions.length]);
+  }, [selectedMonth, cutoffDate, employees, compensationData]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -415,7 +454,7 @@ const OvertimeSupervisor = () => {
               <tr className="header-row">
                 <th>Employee ID</th>
                 <th>Employee Name</th>
-                <th>Supervisor</th>
+                
                 <th>Date</th>
                 <th> Hours Worked</th>
                 <th>Extra Hours</th>
@@ -431,7 +470,7 @@ const OvertimeSupervisor = () => {
                   <tr key={record.id}>
                     <td>{record.employee_id}</td>
                     <td>{employee ? employee.employee_name : record.employee_id}</td>
-                    <td>{record.supervisor}</td>
+                    
                     <td>{record.date}</td>
                     <td>{record.hours_worked.toFixed(2)} hours</td>
                     <td>{record.hours.toFixed(2)} hours</td>

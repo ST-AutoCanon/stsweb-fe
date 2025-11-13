@@ -585,7 +585,9 @@ export default function Admin({ openPolicyId = null }) {
             "Failed to update leave";
           showAlert(msg);
         }
-        return;
+
+        // <<< IMPORTANT: return the result so caller (TeamTable) receives it >>>
+        return result;
       }
 
       // If there IS an active policy -> show compensation popup as before
@@ -881,7 +883,7 @@ export default function Admin({ openPolicyId = null }) {
         applyFlexibleSplit,
         error: "",
       });
-      return;
+      return { modalOpened: true, ok: true };
     }
 
     // Not Approved (or simple non-split action) — send simple status update (reject/approve without splits)
@@ -894,6 +896,9 @@ export default function Admin({ openPolicyId = null }) {
       const msg = (result.body && result.body.message) || "Leave updated";
       showAlert(msg);
     }
+
+    // <<< IMPORTANT: return the result so caller (TeamTable) receives it >>>
+    return result;
   };
 
   const handleStatusChange = (leaveId, key, value) => {
@@ -1076,9 +1081,9 @@ export default function Admin({ openPolicyId = null }) {
                   const currentStatus = update.status || query.status || "";
                   const statusClass =
                     currentStatus === "Approved"
-                      ? "status-approved"
+                      ? "leav-status-approved"
                       : currentStatus === "Rejected"
-                      ? "status-rejected"
+                      ? "leav-status-rejected"
                       : "";
 
                   const isAlreadyUpdated =
@@ -1112,7 +1117,7 @@ export default function Admin({ openPolicyId = null }) {
                               e.target.value
                             )
                           }
-                          className={`status-dropdown ${statusClass}`}
+                          className={`leav-status-dropdown ${statusClass}`}
                           disabled={isAlreadyUpdated}
                         >
                           <option value="Pending">Pending</option>

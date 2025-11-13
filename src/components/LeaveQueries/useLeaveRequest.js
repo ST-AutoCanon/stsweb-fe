@@ -12,9 +12,10 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND = process.env.REACT_APP_BACKEND_URL;
 const employeeData = JSON.parse(localStorage.getItem("dashboardData") || "{}");
 const meId = employeeData?.employeeId;
-const headers = {
+const headersBase = {
   "x-api-key": API_KEY,
   "Content-Type": "application/json",
+  // note: x-employee-id header added per-request when actorId known
   "x-employee-id": meId,
 };
 
@@ -27,6 +28,26 @@ const rolesWithTeamView = new Set([
   "superadmin",
   "super_admin",
 ]);
+
+const managerOrAboveSet = new Set([
+  "manager",
+  "admin",
+  "ceo",
+  "super admin",
+  "superadmin",
+  "super_admin",
+]);
+
+const normalizeStatus = (s) => {
+  if (s === null || s === undefined) return "";
+  const str = String(s).trim();
+  if (!str) return "";
+  const low = str.toLowerCase();
+  if (low === "pending") return "Pending";
+  if (low === "approved") return "Approved";
+  if (low === "rejected") return "Rejected";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
 
 export default function useLeaveRequest() {
   // UI state
@@ -61,6 +82,10 @@ export default function useLeaveRequest() {
   const [policies, setPolicies] = useState([]);
   const [activePolicy, setActivePolicy] = useState(null);
   const [leaveRequests, setLeaveRequests] = useState({ self: [], team: [] });
+
+  // status updates for TeamTable editing
+  // shape: { [leaveId]: { status?: 'Pending'|'Approved'|'Rejected', comments?: '...' } }
+  const [statusUpdates, setStatusUpdates] = useState({});
 
   // venn state
   const now = new Date();
@@ -117,7 +142,7 @@ export default function useLeaveRequest() {
     try {
       const res = await fetch(
         `${BACKEND}/api/leave-policies/employee/${employeeId}/leave-balance`,
-        { headers }
+        { headers: headersBase }
       );
       if (!res.ok) throw new Error("Failed to load leave balance");
       const json = await res.json();
@@ -131,7 +156,9 @@ export default function useLeaveRequest() {
 
   const fetchPolicies = async () => {
     try {
-      const res = await fetch(`${BACKEND}/api/leave-policies`, { headers });
+      const res = await fetch(`${BACKEND}/api/leave-policies`, {
+        headers: headersBase,
+      });
       const json = await res.json();
       setPolicies(json.data || []);
     } catch (err) {
@@ -209,7 +236,7 @@ export default function useLeaveRequest() {
         : selfUrl;
       const selfResponse = await fetch(selfFinalUrl, {
         method: "GET",
-        headers,
+        headers: headersBase,
       });
       let selfRequests = [];
       if (selfResponse.ok) {
@@ -229,12 +256,26 @@ export default function useLeaveRequest() {
         if (filters.to_date) teamParams.append("to_date", filters.to_date);
         if (teamSearch) teamParams.append("search", teamSearch);
         if (teamStatus) teamParams.append("status", teamStatus);
+
+        // optional departments filter if manager has departments saved in localStorage
+        try {
+          const md = localStorage.getItem("managedDepartments");
+          if (md) {
+            const arr = JSON.parse(md);
+            if (Array.isArray(arr) && arr.length) {
+              teamParams.append("departments", arr.join(","));
+            }
+          }
+        } catch (e) {
+          // ignore parse error
+        }
+
         const teamFinalUrl = teamParams.toString()
           ? `${teamUrl}?${teamParams}`
           : teamUrl;
         const teamResponse = await fetch(teamFinalUrl, {
           method: "GET",
-          headers,
+          headers: headersBase,
         });
         if (teamResponse.ok) {
           const teamResult = await teamResponse.json();
@@ -243,6 +284,66 @@ export default function useLeaveRequest() {
           );
         } else {
           console.warn("Team fetch returned non-ok", teamResponse.status);
+        }
+
+        // ------------------ NEW: client-side filtering fixes ------------------
+        // 1) Always filter out current user's own leaves from the team list
+        // 2) If current user is a supervisor (not manager/admin), hide supervisor-owned leaves in team list.
+        try {
+          if (Array.isArray(teamRequests) && meId) {
+            teamRequests = teamRequests.filter((r) => {
+              const rowEmpId = (
+                r.employee_id ||
+                r.employeeId ||
+                r.empId ||
+                r.employee ||
+                ""
+              )
+                .toString()
+                .trim();
+
+              // 1) Exclude the current user (their leaves belong in "My Leaves")
+              if (rowEmpId && String(rowEmpId) === String(meId)) return false;
+
+              // 2) The server should already scope correctly, but defensively:
+              // if the current viewer is NOT manager-or-above, hide rows that belong to employees
+              // whose role is 'supervisor' (supervisor-owned leaves visible only to manager/admin).
+              if (!managerOrAboveSet.has(roleNormalized)) {
+                const roleFields = (
+                  r.role ||
+                  r.emp_role ||
+                  r.employee_role ||
+                  r.role_name ||
+                  r.roleName ||
+                  r.position ||
+                  ""
+                )
+                  .toString()
+                  .toLowerCase();
+
+                const isSupervisorRow =
+                  roleFields.includes("supervisor") ||
+                  roleFields === "supervisor";
+
+                // also consider explicit flags (some APIs set is_supervisor or is_manager)
+                const isSupervisorFlag =
+                  r.is_supervisor === 1 ||
+                  r.isSupervisor === 1 ||
+                  r.is_supervisor === true ||
+                  r.isSupervisor === true;
+
+                // If the row is a supervisor-owned leave, hide it from non-manager viewers.
+                if (isSupervisorRow || isSupervisorFlag) {
+                  return false;
+                }
+              }
+
+              // otherwise keep the row
+              return true;
+            });
+          }
+        } catch (e) {
+          console.warn("Client-side team filter failed:", e);
         }
       }
 
@@ -260,7 +361,7 @@ export default function useLeaveRequest() {
       return leaveBalancesCache[employeeIdToLoad];
     try {
       const url = `${BACKEND}/api/leave-policies/employee/${employeeIdToLoad}/leave-balance`;
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { headers: headersBase });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       const arr = json.data || [];
@@ -339,7 +440,7 @@ export default function useLeaveRequest() {
         try {
           const response = await fetch(
             `${BACKEND}/cancel/${id}/${employeeData.employeeId}`,
-            { method: "DELETE", headers }
+            { method: "DELETE", headers: headersBase }
           );
           if (response.ok) {
             showAlert("Leave request cancelled successfully!");
@@ -358,12 +459,7 @@ export default function useLeaveRequest() {
   };
 
   /**
-   * handleSubmit
-   * - robustly picks setting: first from activePolicy (if present), falling back
-   *   to defaultLeaveSettings when no policy or leave type not found in policy.
-   * - ALWAYS enforces advance notice days where configured (including default settings when no policy).
-   * - If requestedDays > remaining AND there is NO active policy, doSubmit runs directly
-   *   (no LOP confirmation popup).
+   * handleSubmit (employee submit) - unchanged from previous behavior
    */
   const handleSubmit = async (e) => {
     e?.preventDefault?.();
@@ -383,8 +479,6 @@ export default function useLeaveRequest() {
     }
 
     // Determine the applicable setting:
-    // 1) Try activePolicy.leave_settings (if policy exists)
-    // 2) If not found there, fall back to defaultLeaveSettings
     const selectedType = String(formData.leavetype || "").toLowerCase();
 
     let setting = null;
@@ -393,7 +487,6 @@ export default function useLeaveRequest() {
         (s) => String(s.type || "").toLowerCase() === selectedType
       );
     }
-    // fallback to global defaults if not found in activePolicy or no activePolicy
     if (!setting) {
       setting = defaultLeaveSettings.find(
         (s) => String(s.type || "").toLowerCase() === selectedType
@@ -405,11 +498,10 @@ export default function useLeaveRequest() {
       return;
     }
 
-    // enforce advance notice (ALWAYS use the selected setting, even when no active policy)
+    // enforce advance notice
     const noticeDays = getAdvanceNoticeDays(setting);
     if (!editingId && noticeDays > 0) {
       const today = new Date();
-      // produce date-only (midnight) to avoid timezone surprises
       const minDate = new Date(
         today.getFullYear(),
         today.getMonth(),
@@ -425,7 +517,6 @@ export default function useLeaveRequest() {
       );
 
       if (chosenStart < minDate) {
-        // If there is no active policy, be explicit in the message (user requested that)
         if (!activePolicy) {
           showAlert(
             `By default, a ${setting.type} request requires at least ${noticeDays} day(s) advance. You must apply at least ${noticeDays} day(s) before the start date.`
@@ -482,7 +573,7 @@ export default function useLeaveRequest() {
       try {
         const response = await fetch(submitUrl, {
           method: submitMethod,
-          headers,
+          headers: headersBase,
           body: JSON.stringify(data),
         });
         const responseData = await response.json();
@@ -497,27 +588,28 @@ export default function useLeaveRequest() {
           resetForm();
           fetchLeaveRequests();
           fetchLeaveBalance();
+          return { ok: true, body: responseData };
         } else {
           console.error(
             "Failed to submit leave request:",
             responseData.message
           );
           showAlert(responseData.message || "Failed to submit leave request.");
+          return { ok: false, body: responseData };
         }
       } catch (error) {
         console.error("Error submitting leave request:", error);
         showAlert("An error occurred while submitting the leave request.");
+        return { ok: false, error };
       }
     };
 
-    // When requestedDays > remaining AND there is NO active policy -> DO NOT show confirm for LOP;
-    // just submit (user's requirement).
+    // requestedDays > remaining and no active policy -> submit directly
     if (requestedDays > remaining && !activePolicy) {
-      await doSubmit(requestData, url, method);
-      return;
+      return await doSubmit(requestData, url, method);
     }
 
-    // If requested > remaining and there IS active policy, show confirm about LoP
+    // requestedDays > remaining AND active policy -> confirm LOP
     if (requestedDays > remaining) {
       const deficit = requestedDays - remaining;
       const confirmMsg = `You're requesting ${requestedDays} day(s), but you have only ${remaining} remaining (${allowance} allowance, ${used} used, ${carry_forward} carry-forward). This will incur ${deficit} Loss-of-Pay day(s). Do you want to continue?`;
@@ -525,10 +617,514 @@ export default function useLeaveRequest() {
         await doSubmit(requestData, url, method);
         closeConfirm();
       });
-      return;
+      return { ok: true, modalOpened: true };
     }
 
-    await doSubmit(requestData, url, method);
+    return await doSubmit(requestData, url, method);
+  };
+
+  // ----- Manager / Supervisor update logic (for TeamTable) -----
+
+  /**
+   * doUpdate - robust, shared update caller for admin/manager actions
+   * returns object like { ok: boolean, status?, body? }
+   */
+  const doUpdate = async (leaveId, payload = {}) => {
+    try {
+      // normalize numeric synonyms
+      const compensated =
+        Number(
+          payload.compensated_days ??
+            payload.compensatedDays ??
+            payload.compensated ??
+            0
+        ) || 0;
+      const deducted =
+        Number(
+          payload.deducted_days ?? payload.deductedDays ?? payload.deducted ?? 0
+        ) || 0;
+      const lop =
+        Number(
+          payload.loss_of_pay_days ??
+            payload.lopDays ??
+            payload.loss_of_pay ??
+            0
+        ) || 0;
+
+      const preservedRaw =
+        payload.preserved_leave_days ??
+        payload.preservedLeaveDays ??
+        payload.preserved;
+      const preserved =
+        preservedRaw === null || preservedRaw === undefined
+          ? null
+          : Number(preservedRaw);
+
+      const status = payload.status ?? payload.statusText ?? "";
+      const comments = payload.comments ?? payload.comment ?? null;
+
+      // actorId fallback from localStorage
+      let actorId = null;
+      try {
+        const raw = localStorage.getItem("dashboardData");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          actorId = parsed.employeeId ?? parsed.id ?? null;
+        }
+      } catch (e) {
+        actorId = null;
+      }
+
+      const isDefaulted =
+        payload.is_defaulted === true ||
+        payload.isDefaulted === true ||
+        payload.is_defaulted === "true" ||
+        payload.isDefaulted === "true"
+          ? true
+          : false;
+
+      const fullPayload = {
+        status,
+        comments,
+
+        compensated_days: compensated,
+        compensatedDays: compensated,
+        compensated: compensated,
+
+        deducted_days: deducted,
+        deductedDays: deducted,
+        deducted: deducted,
+
+        loss_of_pay_days: lop,
+        lopDays: lop,
+        loss_of_pay: lop,
+
+        preserved_leave_days: preserved === undefined ? null : preserved,
+        preservedLeaveDays: preserved === undefined ? null : preserved,
+        preserved: preserved === undefined ? null : preserved,
+
+        total_days:
+          payload.total_days ??
+          payload.totalDays ??
+          payload.totalDaysRequested ??
+          null,
+        totalDays:
+          payload.totalDays ??
+          payload.total_days ??
+          payload.totalDaysRequested ??
+          null,
+
+        actorId,
+        is_defaulted: isDefaulted,
+        isDefaulted: isDefaulted,
+      };
+
+      const headersForReq = { ...headersBase };
+      if (actorId) headersForReq["x-employee-id"] = actorId;
+
+      const url = `${BACKEND}/admin/leave/${leaveId}`;
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: headersForReq,
+        body: JSON.stringify(fullPayload),
+      });
+
+      let json = null;
+      let text = null;
+      try {
+        json = await res.json();
+      } catch (err) {
+        try {
+          text = await res.text();
+        } catch (e) {
+          text = `<failed to read text: ${String(e)}>`;
+        }
+      }
+
+      if (!res.ok) {
+        const serverMsg =
+          (json && (json.message || (json.error && json.error.message))) ||
+          text ||
+          `Server returned ${res.status}`;
+        showAlert(serverMsg);
+        return { ok: false, status: res.status, body: json || text };
+      }
+
+      if (json && json.success) {
+        // refresh list
+        await fetchLeaveRequests();
+        return { ok: true, status: res.status, body: json };
+      } else {
+        const serverMsg =
+          (json && (json.message || json.error)) ||
+          "Failed to update leave (no success flag)";
+        showAlert(serverMsg);
+        return { ok: false, status: res.status, body: json };
+      }
+    } catch (err) {
+      console.error("doUpdate unexpected error:", err);
+      showAlert(
+        "Error updating leave (network or client error). Check console."
+      );
+      return { ok: false, error: err };
+    }
+  };
+
+  const findActivePolicyForRequestDate = (request) => {
+    if (!request) return null;
+    if (!Array.isArray(policies) || policies.length === 0) return null;
+    const startDate = request.start_date || request.startDate || null;
+    if (!startDate) return null;
+    try {
+      const req = new Date(startDate);
+      req.setHours(0, 0, 0, 0);
+      for (const p of policies) {
+        try {
+          const s = new Date(p.year_start);
+          const e = new Date(p.year_end);
+          s.setHours(0, 0, 0, 0);
+          e.setHours(0, 0, 0, 0);
+          if (s <= req && req <= e) return p;
+        } catch (e) {
+          continue;
+        }
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  };
+
+  /**
+   * handleStatusChange - called by TeamTable when user edits select/input
+   * keeps changes in statusUpdates state so TeamTable can read them
+   */
+  const handleStatusChange = (leaveId, key, value) => {
+    const val = key === "status" ? normalizeStatus(value) : value;
+    setStatusUpdates((prev) => ({
+      ...prev,
+      [leaveId]: { ...(prev[leaveId] || {}), [key]: val },
+    }));
+  };
+
+  /**
+   * onUpdate - called when manager clicks Update for a particular leave row.
+   * Accepts (leaveId, leaveObj) — leaveObj is optional but we use it when provided.
+   *
+   * IMPORTANT: returns an object in all code paths.
+   * - successful network update: { ok: true, ... }
+   * - failure: { ok: false, ... }
+   * - modal opened for further input: { modalOpened: true }
+   */
+  const onUpdate = async (leaveId, leaveObj = null) => {
+    const upd = statusUpdates[leaveId] || {};
+    const newStatus = normalizeStatus(upd.status ?? "");
+    const serverStatus = normalizeStatus(
+      (leaveObj && (leaveObj.status ?? leaveObj.Status)) ?? ""
+    );
+
+    // If rejecting, require comment either in upd.comments or existing leaveObj.comments
+    if (/^rejected$/i.test(newStatus)) {
+      const commentProvided =
+        (upd.comments && String(upd.comments).trim()) ||
+        (leaveObj && leaveObj.comments && String(leaveObj.comments).trim());
+      if (!commentProvided) {
+        showAlert("Please add comments when rejecting a leave.");
+        return { ok: false, message: "comment_required" };
+      }
+    }
+
+    // if approving: handle LOP logic & activePolicy
+    if (/^approved$/i.test(newStatus)) {
+      // need leaveObj to compute days and balances; if not passed find it from leaveRequests
+      let query = leaveObj;
+      if (!query) {
+        const all = (leaveRequests.team || []).concat(leaveRequests.self || []);
+        query = all.find((r) => String(r.leave_id ?? r.id) === String(leaveId));
+      }
+      if (!query) {
+        showAlert("Could not find leave request details for update.");
+        return { ok: false, message: "no_request_found" };
+      }
+
+      const days = calculateDays(query.start_date, query.end_date);
+      const balances = await loadLeaveBalance(query.employee_id);
+      const bal = balances.find(
+        (r) =>
+          String(r.type).toLowerCase() ===
+          String(query.leave_type).toLowerCase()
+      );
+      const remaining =
+        bal && bal.remaining !== undefined ? Number(bal.remaining) || 0 : 0;
+
+      const deficit = Math.max(0, days - remaining);
+      const activePolicyForRequest = findActivePolicyForRequestDate(query);
+
+      if (!activePolicyForRequest) {
+        // No active policy: perform simple approve with default LoP (mark is_defaulted)
+        const simplePayload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          compensated_days: 0,
+          compensatedDays: 0,
+          compensated: 0,
+
+          deducted_days: 0,
+          deductedDays: 0,
+          deducted: 0,
+
+          loss_of_pay_days: Number(days),
+          lopDays: Number(days),
+          loss_of_pay: Number(days),
+
+          preserved_leave_days: remaining > 0 ? Number(remaining) : null,
+          preservedLeaveDays: remaining > 0 ? Number(remaining) : null,
+          preserved: remaining > 0 ? Number(remaining) : null,
+
+          total_days: Number(days),
+          totalDays: Number(days),
+
+          is_defaulted: true,
+          isDefaulted: true,
+        };
+
+        const result = await doUpdate(leaveId, simplePayload);
+        if (result && result.ok) {
+          showAlert((result.body && result.body.message) || "Leave updated");
+        } else {
+          // doUpdate already showed alert when server returned an error
+        }
+        return result || { ok: false, message: "update_failed" };
+      }
+
+      // Active policy -> set up handlers and open lopModal
+      const approveDeficit = async () => {
+        const preserved_leave_days = Number(remaining) || 0;
+        const lopDaysVal = Number(days) || 0;
+
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          compensated_days: 0,
+          compensatedDays: 0,
+          compensated: 0,
+
+          deducted_days: 0,
+          deductedDays: 0,
+          deducted: 0,
+
+          loss_of_pay_days: lopDaysVal,
+          lopDays: lopDaysVal,
+          loss_of_pay: lopDaysVal,
+
+          preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          total_days: Number(days),
+          totalDays: Number(days),
+
+          is_defaulted: false,
+          isDefaulted: false,
+        };
+
+        const result = await doUpdate(leaveId, payload);
+        if (result && result.ok) {
+          showAlert((result.body && result.body.message) || "Leave updated");
+        } else {
+          setLopModal((m) => ({ ...m, error: "Failed to approve deficit." }));
+        }
+        return result;
+      };
+
+      const setAllCompensated = async () => {
+        const compensated_days = Number(days) || 0;
+        const preserved_leave_days = Number(remaining) || 0;
+
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          compensated_days: compensated_days,
+          compensatedDays: compensated_days,
+          compensated: compensated_days,
+
+          deducted_days: 0,
+          deductedDays: 0,
+          deducted: 0,
+
+          loss_of_pay_days: 0,
+          lopDays: 0,
+          loss_of_pay: 0,
+
+          preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          total_days: Number(days),
+          totalDays: Number(days),
+
+          is_defaulted: false,
+          isDefaulted: false,
+        };
+
+        const result = await doUpdate(leaveId, payload);
+        if (result && result.ok) {
+          showAlert((result.body && result.body.message) || "Leave updated");
+        } else {
+          setLopModal((m) => ({
+            ...m,
+            error: "Failed to set all compensated.",
+          }));
+        }
+        return result;
+      };
+
+      const setAllDeducted = async () => {
+        const daysNum = Number(days) || 0;
+        const remainingNum = Number(remaining) || 0;
+        const deducted_clamped = Math.min(daysNum, remainingNum);
+        const lop_days = Math.max(0, daysNum - deducted_clamped);
+        const preserved_leave_days = Math.max(
+          0,
+          remainingNum - deducted_clamped
+        );
+
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          compensated_days: 0,
+          compensatedDays: 0,
+          compensated: 0,
+
+          deducted_days: deducted_clamped,
+          deductedDays: deducted_clamped,
+          deducted: deducted_clamped,
+
+          loss_of_pay_days: lop_days,
+          lopDays: lop_days,
+          loss_of_pay: lop_days,
+
+          preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          total_days: Number(days),
+          totalDays: Number(days),
+
+          is_defaulted: false,
+          isDefaulted: false,
+        };
+
+        const result = await doUpdate(leaveId, payload);
+        if (result && result.ok) {
+          showAlert((result.body && result.body.message) || "Leave updated");
+        } else {
+          setLopModal((m) => ({ ...m, error: "Failed to set all deducted." }));
+        }
+        return result;
+      };
+
+      const applyFlexibleSplit = async (
+        compensatedDays,
+        deductedDays,
+        lopDays
+      ) => {
+        const c = Number(compensatedDays) || 0;
+        const d = Number(deductedDays) || 0;
+        const l = Number(lopDays) || 0;
+        const EPS = 1e-6;
+        if (Math.abs(c + d + l - days) > EPS) {
+          const msg = `Split values must add up to total requested days (${days}).`;
+          setLopModal((m) => ({ ...m, error: msg }));
+          return { ok: false, message: "validation_failed", body: msg };
+        }
+
+        const deducted_clamped = Math.min(Number(remaining) || 0, d);
+        if (deducted_clamped < d) {
+          const msg = `Deducted days (${d}) exceed remaining (${remaining}).`;
+          setLopModal((m) => ({ ...m, error: msg }));
+          return {
+            ok: false,
+            message: "deducted_exceeds_remaining",
+            body: msg,
+          };
+        }
+
+        const preserved_leave_days = Number(
+          Math.max(0, Number(remaining) - deducted_clamped).toFixed(2)
+        );
+
+        const payload = {
+          ...(upd || {}),
+          status: "Approved",
+
+          compensated_days: Number(c.toFixed(2)),
+          compensatedDays: Number(c.toFixed(2)),
+          compensated: Number(c.toFixed(2)),
+
+          deducted_days: Number(deducted_clamped.toFixed(2)),
+          deductedDays: Number(deducted_clamped.toFixed(2)),
+          deducted: Number(deducted_clamped.toFixed(2)),
+
+          loss_of_pay_days: Number(l.toFixed(2)),
+          lopDays: Number(l.toFixed(2)),
+          loss_of_pay: Number(l.toFixed(2)),
+
+          preserved_leave_days: preserved_leave_days,
+          preservedLeaveDays: preserved_leave_days,
+          preserved: preserved_leave_days,
+
+          total_days: Number(days),
+          totalDays: Number(days),
+
+          is_defaulted: false,
+          isDefaulted: false,
+        };
+
+        const result = await doUpdate(leaveId, payload);
+        if (result && result.ok) {
+          showAlert((result.body && result.body.message) || "Leave updated");
+        } else {
+          setLopModal((m) => ({ ...m, error: "Failed to apply split." }));
+        }
+        return result;
+      };
+
+      setLopModal({
+        isVisible: true,
+        leaveId,
+        deficit: Number(deficit),
+        days: Number(days),
+        remaining: Number(remaining),
+        message: `Employee requested ${days} day(s); remaining balance = ${remaining}. Deficit = ${deficit}. Choose how to allocate the ${days} requested days:`,
+        compensatedDays: 0,
+        deductedDays: Math.min(Number(remaining), Number(days)),
+        lopDays: Math.max(0, days - Math.min(Number(remaining), Number(days))),
+        approveDeficit,
+        setAllCompensated,
+        setAllDeducted,
+        applyFlexibleSplit,
+        error: "",
+      });
+
+      // IMPORTANT: signal to caller (TeamTable) that modal was opened and NOT an error
+      return { ok: true, modalOpened: true };
+    }
+
+    // non-approved (e.g., pending -> rejected), simple update
+    const sendPayload = {
+      ...(statusUpdates[leaveId] || {}),
+      status: normalizeStatus(upd.status ?? serverStatus ?? ""),
+    };
+    const result = await doUpdate(leaveId, sendPayload);
+    if (result && result.ok) {
+      showAlert((result.body && result.body.message) || "Leave updated");
+    }
+    return result || { ok: false, message: "update_failed" };
   };
 
   // expose everything UI will need
@@ -575,7 +1171,7 @@ export default function useLeaveRequest() {
       if (!employeeData?.employeeId) return 0;
       try {
         const url = `${BACKEND}/api/leave-policies/employee/${employeeData.employeeId}/monthly-lop?month=${m}&year=${y}`;
-        const res = await fetch(url, { headers });
+        const res = await fetch(url, { headers: headersBase });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         const payload = json?.data || {};
@@ -596,7 +1192,7 @@ export default function useLeaveRequest() {
         const url = `${BACKEND}/api/leave-policies/employee/${employeeData.employeeId}/compute-monthly-lop`;
         const res = await fetch(url, {
           method: "POST",
-          headers,
+          headers: headersBase,
           body: JSON.stringify({ month: m, year: y }),
         });
         if (!res.ok) throw new Error("Compute failed");
@@ -619,6 +1215,11 @@ export default function useLeaveRequest() {
     closeAlert,
     showConfirm,
     closeConfirm,
+
+    // status updates for TeamTable
+    statusUpdates,
+    handleStatusChange,
+    onUpdate,
 
     // misc
     setFormData,

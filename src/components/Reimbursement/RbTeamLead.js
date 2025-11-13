@@ -1,20 +1,17 @@
+// src/components/RbTeamLead.js
 import React, { useState, useEffect } from "react";
 import { FaSearch, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
 import { FaFileInvoice } from "react-icons/fa6";
-import { MdOutlineCancel } from "react-icons/md";
+import { MdOutlineCancel, MdOutlineRemoveRedEye } from "react-icons/md";
 import axios from "axios";
-import { MdOutlineRemoveRedEye } from "react-icons/md";
 
-import Reimbursement from "./Reimbursement"; // Self reimbursement component
-import "./RbTeamLead.css"; // Keep the same CSS file
-import Modal from "../Modal/Modal"; // Custom alert modal
+import Reimbursement from "./Reimbursement";
+import "./RbTeamLead.css";
+import Modal from "../Modal/Modal";
 
 const RbTeamLead = () => {
-  // "team" for team view; "self" for self view.
   const [view, setView] = useState("team");
-
-  // States for team view
   const [employees, setEmployees] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
   const [submittedFrom, setSubmittedFrom] = useState("");
@@ -25,15 +22,42 @@ const RbTeamLead = () => {
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [statusUpdates, setStatusUpdates] = useState({});
   const [comments, setComments] = useState({});
-  const [statusFilter, setStatusFilter] = useState("pending");
-  // (No longer using paymentStatusUpdates from a dropdown)
-  // New states for payment modal functionality:
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPaymentClaim, setSelectedPaymentClaim] = useState(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState("");
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState("");
   const [projectSelections, setProjectSelections] = useState({});
+
+  // parse local storage robustly
+  const teamLeadData = JSON.parse(localStorage.getItem("dashboardData")) || {};
+  // Convert to string/number consistently to avoid type mismatch
+  const teamLeadId = teamLeadData?.employeeId
+    ? String(teamLeadData.employeeId)
+    : null;
+  const departmentId = teamLeadData?.department_id || null;
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
+          {
+            headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+          }
+        );
+        setProjects(response.data);
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (view === "team") fetchEmployees();
+  }, [view]);
 
   const formatDisplayDate = (raw) => {
     if (!raw) return "N/A";
@@ -45,59 +69,12 @@ const RbTeamLead = () => {
     return `${dd}-${mon}-${yy}`;
   };
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
-          {
-            headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY,
-            },
-          }
-        );
-        setProjects(response.data);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
-
-    fetchProjects();
-  }, []);
-
-  // Alert modal state (no title by default)
-  const [alertModal, setAlertModal] = useState({
-    isVisible: false,
-    title: "",
-    message: "",
-  });
-
-  // Helper functions for the alert modal
-  const showAlert = (message, title = "") => {
-    setAlertModal({ isVisible: true, title, message });
-  };
-
-  const closeAlert = () => {
-    setAlertModal({ isVisible: false, title: "", message: "" });
-  };
-
-  // Get team lead data from localStorage (assumed stored under "dashboardData")
-  const teamLeadData = JSON.parse(localStorage.getItem("dashboardData"));
-  const teamLeadId = teamLeadData?.employeeId;
-  const departmentId = teamLeadData?.department_id || null;
-
-  useEffect(() => {
-    if (view === "team") {
-      fetchEmployees(); // Initial fetch, without filters
-    }
-  }, [view]);
-
-  const handleSearch = () => {
-    fetchEmployees(); // Now uses current submittedFrom and submittedTo values
-  };
-
   const fetchEmployees = async () => {
     try {
+      if (!teamLeadId) {
+        showAlert("Team lead not found in local storage.");
+        return;
+      }
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/team/${teamLeadId}/reimbursements`,
         {
@@ -106,28 +83,33 @@ const RbTeamLead = () => {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
           params: {
-            departmentId, // ← add this
+            departmentId,
             submittedFrom: submittedFrom || null,
             submittedTo: submittedTo || null,
           },
         }
       );
 
-      console.log("API Response:", response.data);
+      const flatClaims = response.data || [];
 
-      const grouped = response.data.reduce((acc, claim) => {
+      // Defensive client-side filter: ensure manager's own claims are excluded from team view
+      // Use string comparison to avoid number/string mismatches
+      const filteredFlatClaims = flatClaims.filter(
+        (c) => String(c.employee_id) !== String(teamLeadId)
+      );
+
+      // Group by employee (use filtered list)
+      const grouped = filteredFlatClaims.reduce((acc, claim) => {
         const empId = claim.employee_id;
-        if (!acc[empId]) {
-          acc[empId] = { employee_id: empId, claims: [] };
-        }
+        if (!acc[empId]) acc[empId] = { employee_id: empId, claims: [] };
         acc[empId].claims.push(claim);
         return acc;
       }, {});
-
       setEmployees(Object.values(grouped));
 
+      // build attachments map based on filtered claims (so attachments match visible claims)
       const attachmentsMap = {};
-      response.data.forEach((claim) => {
+      filteredFlatClaims.forEach((claim) => {
         attachmentsMap[claim.id] = claim.attachments || [];
       });
       setAttachments(attachmentsMap);
@@ -138,11 +120,19 @@ const RbTeamLead = () => {
   };
 
   const toggleRow = (employeeId) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [employeeId]: !prev[employeeId],
-    }));
+    setExpandedRows((prev) => ({ ...prev, [employeeId]: !prev[employeeId] }));
   };
+
+  const showAlert = (message, title = "") => {
+    setAlertModal({ isVisible: true, title, message });
+  };
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+  const closeAlert = () =>
+    setAlertModal({ isVisible: false, title: "", message: "" });
 
   const handleOpenAttachments = async (files, claim) => {
     try {
@@ -152,7 +142,6 @@ const RbTeamLead = () => {
       }
 
       const authToken = localStorage.getItem("token");
-
       const fetchedFiles = await Promise.all(
         files.map(async (file) => {
           if (!file?.filename) return null;
@@ -187,7 +176,7 @@ const RbTeamLead = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching attachments:", error);
-      showAlert("No attachments found for this screen .");
+      showAlert("No attachments found for this screen.");
     }
   };
 
@@ -200,8 +189,6 @@ const RbTeamLead = () => {
       showAlert("Please select a status.");
       return;
     }
-
-    // Retrieve the selected project for this claim from projectSelections
     const project = projectSelections[id] || "";
     if (!project) {
       showAlert("Please select a project.");
@@ -210,10 +197,7 @@ const RbTeamLead = () => {
 
     const updatedStatus = statusUpdates[id];
     const approverComment = comments?.[id] || "";
-
-    const teamLeadData = JSON.parse(localStorage.getItem("dashboardData"));
-    const approverId = teamLeadData?.employeeId;
-
+    const approverId = teamLeadId;
     if (!approverId) {
       showAlert("Approver ID is missing!");
       return;
@@ -226,13 +210,9 @@ const RbTeamLead = () => {
           status: updatedStatus,
           approver_comments: approverComment,
           approver_id: approverId,
-          project: project, // ← add this
+          project,
         },
-        {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY,
-          },
-        }
+        { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
       );
 
       showAlert(`Reimbursement ${updatedStatus} successfully.`);
@@ -255,32 +235,34 @@ const RbTeamLead = () => {
       showAlert("Status update was not successful. Try again later.");
     }
   };
-
-  // Updated payment status function is now triggered via the modal
   const updatePaymentStatus = async () => {
     if (!selectedPaymentOption) {
       showAlert("Please select an option.");
       return;
     }
+
     try {
+      // send the actual selected value (paid / pending / rejected)
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursement/payment-status/${selectedPaymentClaim.id}`,
         {
-          payment_status: selectedPaymentOption === "paid" ? "paid" : "pending",
-          user_role: "Manager", // Sent as team lead
+          payment_status: selectedPaymentOption, // <-- send exactly what user selected
+          user_role: "Manager",
         },
-        {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY,
-          },
-        }
+        { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
       );
+
       showAlert("Payment status updated successfully.");
       setIsPaymentModalOpen(false);
-      fetchEmployees(); // Refresh data
+      // Refresh the list so UI shows updated status from server
+      fetchEmployees();
     } catch (error) {
       console.error("Error updating payment status:", error);
-      showAlert("Could not update payment status. Please try again.");
+      // show backend message if available
+      const msg =
+        error?.response?.data?.error ||
+        "Could not update payment status. Please try again.";
+      showAlert(msg);
     }
   };
 
@@ -289,35 +271,20 @@ const RbTeamLead = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/download/${claim.id}`,
         {
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY,
-          },
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           responseType: "blob",
         }
       );
 
       const cd = response.headers["content-disposition"];
-      console.log("Content-Disposition:", cd); // DEBUGGING
-
       let filename = "";
-
       if (cd) {
         const filenameRegex = /filename[^;=\n]*=(['"]?)([^;\n]*)\1/;
         const matches = filenameRegex.exec(cd);
-        if (matches != null && matches[2]) {
-          filename = matches[2];
-        }
+        if (matches != null && matches[2]) filename = matches[2];
       }
-
-      // Fallback if backend doesn't set it
-      if (!filename) {
-        filename = `Reimbursement_${claim.id}.pdf`;
-      }
-
-      // Ensure .pdf extension
-      if (!filename.toLowerCase().endsWith(".pdf")) {
-        filename += ".pdf";
-      }
+      if (!filename) filename = `Reimbursement_${claim.id}.pdf`;
+      if (!filename.toLowerCase().endsWith(".pdf")) filename += ".pdf";
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
@@ -334,15 +301,46 @@ const RbTeamLead = () => {
     }
   };
 
-  // Handler for slider toggle change
   const handleToggleChange = (e) => {
     setView(e.target.checked ? "self" : "team");
   };
 
+  // Filtered employees for rendering (applies statusFilter and search)
+  const filteredEmployees = employees
+    .map((emp) => ({
+      ...emp,
+      claims: emp.claims.filter((claim) => {
+        const status = (claim.status || "").toLowerCase().trim();
+        const pay = (claim.payment_status || "").toLowerCase().trim();
+        switch (statusFilter) {
+          case "approved":
+            return status === "approved";
+          case "rejected":
+            return status === "rejected";
+          case "pending":
+            return status === "pending";
+          case "approved_pending":
+            return status === "approved" && pay === "pending";
+          case "approved_paid":
+            return status === "approved" && pay === "paid";
+          case "all":
+          default:
+            return true;
+        }
+      }),
+    }))
+    .filter((emp) => emp.claims.length > 0)
+    .filter((emp) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      const name = (emp.claims[0]?.employee_name || "").toLowerCase();
+      const idStr = String(emp.employee_id).toLowerCase();
+      return name.includes(q) || idStr.includes(q);
+    });
+
   return (
     <div className="rb-admin">
       <h2>Reimbursement Requests</h2>
-
       <div className="tabs-container">
         <button
           className={`tab ${view === "team" ? "active" : ""}`}
@@ -357,6 +355,7 @@ const RbTeamLead = () => {
           Self
         </button>
       </div>
+
       {view === "team" ? (
         <div className="rb-main">
           <div className="rb-filters">
@@ -366,11 +365,25 @@ const RbTeamLead = () => {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
+                <option value="all">All</option>
                 <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="approved_pending">Approved - Pending</option>
+                <option value="approved_paid">Approved - Paid</option>
               </select>
             </div>
+
+            <div className="rb-filter-group">
+              <label>Search</label>
+              <input
+                type="text"
+                placeholder="Search by name or ID"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
             <div className="rb-filter-group">
               <label>Submitted From:</label>
               <input
@@ -393,11 +406,8 @@ const RbTeamLead = () => {
           </div>
 
           <div className="rb-atable-container">
-            {employees.map((employee) => {
-              const filteredClaims = employee.claims.filter(
-                (rb) =>
-                  (rb.status || "").toLowerCase() === statusFilter.toLowerCase()
-              );
+            {filteredEmployees.map((employee) => {
+              const filteredClaims = employee.claims;
               if (filteredClaims.length === 0) return null;
               return (
                 <div key={employee.employee_id} className="employee-section">
@@ -406,7 +416,7 @@ const RbTeamLead = () => {
                     onClick={() => toggleRow(employee.employee_id)}
                   >
                     <div className="empId-rows">
-                      <span>{employee.claims[0].employee_name}</span>
+                      <span>{employee.claims[0]?.employee_name}</span>
                       <span>{employee.employee_id}</span>
                     </div>
                     <div className="emp-rows">
@@ -425,10 +435,9 @@ const RbTeamLead = () => {
                       Amount Approved: Rs{" "}
                       <span>
                         {filteredClaims
-                          .filter((claim) => claim.status === "approved")
+                          .filter((c) => c.status === "approved")
                           .reduce(
-                            (sum, claim) =>
-                              sum + parseFloat(claim.total_amount || 0),
+                            (sum, c) => sum + parseFloat(c.total_amount || 0),
                             0
                           )
                           .toLocaleString("en-IN")}
@@ -442,6 +451,7 @@ const RbTeamLead = () => {
                       )}
                     </div>
                   </div>
+
                   {expandedRows[employee.employee_id] && (
                     <div className="reimbursement-table-scroll">
                       <div className="rb-sub-container">
@@ -533,7 +543,6 @@ const RbTeamLead = () => {
                                       {projectSelections[rb.id] || rb.project}
                                     </div>
                                   ) : (
-                                    // When status is pending, render the dropdown
                                     <select
                                       className="rb-status-dropdown"
                                       value={projectSelections[rb.id] || ""}
@@ -548,8 +557,8 @@ const RbTeamLead = () => {
                                       <option value="STS CLAIM">
                                         STS CLAIM
                                       </option>
-                                      {projects.map((project, index) => (
-                                        <option key={index} value={project}>
+                                      {projects.map((project, idx) => (
+                                        <option key={idx} value={project}>
                                           {project}
                                         </option>
                                       ))}
@@ -587,7 +596,13 @@ const RbTeamLead = () => {
                                         className="pending-payment-btn"
                                         onClick={() => {
                                           setSelectedPaymentClaim(rb);
-                                          setSelectedPaymentOption(""); // Reset selection
+                                          // Prefill the modal with the current payment_status (or 'pending' fallback)
+                                          const current = rb.payment_status
+                                            ? String(rb.payment_status)
+                                                .toLowerCase()
+                                                .trim()
+                                            : "pending";
+                                          setSelectedPaymentOption(current);
                                           setIsPaymentModalOpen(true);
                                         }}
                                       >
@@ -643,7 +658,7 @@ const RbTeamLead = () => {
       ) : (
         <Reimbursement />
       )}
-      {/* Modal for Attachments */}
+
       {isModalOpen && (
         <div className="att-modal-overlay">
           <div className="att-modal-content">
@@ -680,7 +695,6 @@ const RbTeamLead = () => {
         </div>
       )}
 
-      {/* Payment Modal */}
       {isPaymentModalOpen && (
         <Modal
           isVisible={isPaymentModalOpen}
@@ -702,10 +716,20 @@ const RbTeamLead = () => {
                 <input
                   type="radio"
                   name="paymentOption"
+                  value="rejected"
+                  checked={selectedPaymentOption === "rejected"}
+                  onChange={(e) => setSelectedPaymentOption(e.target.value)}
+                />{" "}
+                Reject
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="paymentOption"
                   value="paid"
                   checked={selectedPaymentOption === "paid"}
                   onChange={(e) => setSelectedPaymentOption(e.target.value)}
-                />
+                />{" "}
                 Payable
               </label>
               <label style={{ marginLeft: "20px" }}>
@@ -715,49 +739,22 @@ const RbTeamLead = () => {
                   value="pending"
                   checked={selectedPaymentOption === "pending"}
                   onChange={(e) => setSelectedPaymentOption(e.target.value)}
-                />
+                />{" "}
                 Pending
               </label>
             </div>
             <p>I'll make sure to process the payment today</p>
             <button
               className="submit-payment-btn"
-              onClick={async () => {
-                if (!selectedPaymentOption) {
-                  showAlert("Please select an option.");
-                  return;
-                }
-                try {
-                  await axios.put(
-                    `${process.env.REACT_APP_BACKEND_URL}/reimbursement/payment-status/${selectedPaymentClaim.id}`,
-                    {
-                      payment_status:
-                        selectedPaymentOption === "paid" ? "paid" : "pending",
-                      user_role: "admin", // adjust role as needed
-                    },
-                    {
-                      headers: {
-                        "x-api-key": process.env.REACT_APP_API_KEY,
-                      },
-                    }
-                  );
-                  showAlert("Payment status updated successfully.");
-                  setIsPaymentModalOpen(false);
-                  fetchEmployees(); // Refresh data
-                } catch (error) {
-                  console.error("Error updating payment status:", error);
-                  showAlert(
-                    "Payment status couldn't be updated at the moment."
-                  );
-                }
-              }}
+              onClick={updatePaymentStatus}
+              disabled={!selectedPaymentOption}
             >
               Submit
             </button>
           </div>
         </Modal>
       )}
-      {/* Alert Modal */}
+
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

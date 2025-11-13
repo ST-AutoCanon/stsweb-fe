@@ -248,11 +248,21 @@ const handleViewSalaryDetails = () => {
 
     // Proceed with bonus submission
     const payload = {
-      percentageCtc: selectedOption === "percentageCtc" ? parseFloat(percentageCtc) : null,
-      percentageMonthlySalary: selectedOption === "monthlySalaryCount" ? parseFloat(monthlySalaryCount) * 100 : null,
-      fixedAmount: selectedOption === "fixedAmount" ? parseFloat(fixedAmount) : null,
-      applicableMonth,
-    };
+  percentageCtc:
+    selectedOption === "percentageCtc"
+      ? parseFloat(percentageCtc)
+      : null,
+  percentageMonthlySalary:
+    selectedOption === "monthlySalaryCount"
+      ? parseFloat(monthlySalaryCount)
+      : null,
+  fixedAmount:
+    selectedOption === "fixedAmount"
+      ? parseFloat(fixedAmount)
+      : null,
+  applicableMonth,
+};
+
 
     try {
       setIsLoading(true);

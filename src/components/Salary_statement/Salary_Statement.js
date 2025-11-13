@@ -1,3 +1,4 @@
+
 import * as XLSX from "xlsx";
 import axios from "axios";
 import "./Salary_Statement.css";
@@ -396,6 +397,36 @@ const Salary_Statement = () => {
     return !isNaN(Date.parse(dateString));
   };
 
+ // Frontend: Salary_Statement.js (Enhanced with logging in handleTogglePayslip)
+const handleTogglePayslip = async (employeeId, currentValue) => {
+  const newValue = currentValue === 0 ? 1 : 0;
+  const action = newValue === 1 ? "enable" : "disable";
+  console.log(`🔄 Toggling payslip for ${employeeId}: ${currentValue} -> ${newValue} (${action})`);
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/api/salary-statement/update-payslip/${selectedMonth.toLowerCase()}/${selectedYear}/${employeeId}`,
+      { payslip_generated: newValue },
+      { headers }
+    );
+    console.log(`📥 Backend response:`, response.data);
+    if (response.data.success) {
+      setSalaryData((prev) =>
+        prev.map((row) =>
+          row.employee_id === employeeId
+            ? { ...row, payslip_generated: newValue }
+            : row
+        )
+      );
+      showAlert(`Payslip ${action}d successfully`, "Success");
+    } else {
+      throw new Error(response.data.error || "Update failed");
+    }
+  } catch (err) {
+    console.error("❌ Error updating payslip status:", err);
+    console.error("❌ Full error details:", err.response?.data || err.message);
+    showAlert(`Failed to ${action} payslip: ${err.response?.data?.error || err.message}`, "Error");
+  }
+};
   const handleUpload = async () => {
   console.log("📂 handleUpload() called. File:", file?.name);
   if (!file || excelData.length === 0) {
@@ -407,6 +438,19 @@ const Salary_Statement = () => {
     setIsMonthYearSelected(false);
     setTableData([]);
     showAlert("❌ Please select a valid file to upload!", "No File Selected");
+    return;
+  }
+
+  // Extract month and year from filename
+  const fileNameLower = file.name.toLowerCase();
+  const monthMatch = fileNameLower.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
+  const yearMatch = fileNameLower.match(/(\d{4})/);
+  const month = monthMatch ? monthMatch[1].toLowerCase() : "";
+  const year = yearMatch ? yearMatch[1] : "";
+
+  if (!month || !year) {
+    setError("❌ Could not extract month/year from filename");
+    showAlert("❌ Invalid filename format", "Error");
     return;
   }
 
@@ -452,13 +496,14 @@ const Salary_Statement = () => {
       lop_deduction: parseFloat(row["LOP Deduction"] || 0),
       gross_salary: parseFloat(row["Gross Salary"] || 0),
       net_salary: parseFloat(row["Net Salary"] || 0) > 0 ? parseFloat(row["Net Salary"] || 0) : 0,
+      payslip_generated: 0,
     })).filter((item) => item.employee_id && item.full_name); // Filter out invalid rows
 
     console.log("📤 Sending fullSalaryData:", fullSalaryData);
 
     const response = await axios.post(
       `${BASE_URL}/api/salary-details/save`,
-      { salaryData: fullSalaryData },
+      { salaryData: fullSalaryData, month, year },
       { headers }
     );
     console.log("📥 Backend Response:", response.data);
@@ -650,6 +695,12 @@ const Salary_Statement = () => {
     return header.charAt(0).toUpperCase() + header.slice(1).toLowerCase();
   };
 
+  // Get display keys excluding payslip_generated
+  const getDisplayKeys = () => {
+    if (salaryData.length === 0) return [];
+    return Object.keys(salaryData[0]).filter((key) => key !== "payslip_generated");
+  };
+
   return (
     <div className="salary-container">
       <div className="upload-container">
@@ -798,24 +849,33 @@ const Salary_Statement = () => {
                 <table className="adminsalary-table">
                   <thead>
                     <tr>
-                      {Object.keys(salaryData[0] || {}).map((key) => (
+                      {getDisplayKeys().map((key) => (
                         <th key={key}>{formatHeader(key)}</th>
                       ))}
+                      <th>Payslip Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(searchTerm ? filteredData : salaryData).map((row, index) => (
                       <tr key={index}>
-                        {Object.values(row).map((value, idx) => (
-                          <td key={idx}>{value ?? "N/A"}</td>
+                        {getDisplayKeys().map((key, idx) => (
+                          <td key={idx}>{row[key] ?? "N/A"}</td>
                         ))}
+                        <td>
+                          <button
+                            className="toggle-btn"
+                            onClick={() => handleTogglePayslip(row.employee_id, row.payslip_generated)}
+                          >
+                            {row.payslip_generated === 0 ? "Enable" : "Disable"}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr>
                       <td
-                        colSpan={Object.keys(salaryData[0] || {}).length}
+                        colSpan={getDisplayKeys().length + 1}
                         className="net-salary-row"
                       >
                         Total Amount: ₹ {Math.floor(calculateTotalNetSalary())}

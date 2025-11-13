@@ -14,38 +14,31 @@ const Gallery = () => {
   ];
 
   const secondSectionImages = [
-    "./images/gallery3.jpg",
-    "./images/s1.jpeg",
-    "./images/grp2.jpeg",
-    "./images/grp3.jpeg",
-    "./images/gallery8.jpg",
+    "./images/pic3.jpg",
+    "./images/pic1.jpg",
+    "./images/pic2.jpg",
+    "./images/pic14.jpeg",
+    "./images/pic7.jpeg",
   ];
 
-  const descriptions = [
-    "Description for Image 1",
-    "Description for Image 2",
-    "Description for Image 3",
-    "Description for Image 4",
-  ];
-
-  const secondSectionDescriptions = [
-    "Description for Idea 1",
-    "Description for Idea 2",
-    "Description for Idea 3",
-    "Description for Idea 4",
-    "Description for Idea 5",
+  const thirdSectionImages = [
+    "./images/pic8.jpeg",
+    "./images/pic9.jpeg",
+    "./images/pic5.jpeg",
+    "./images/pic13.jpg",
+    "./images/pic11.jpg",
   ];
 
   const handleImageClick = (index, section) => {
     setSelectedImage(index);
-    setSelectedSection(section); // Track which section the image came from
-    setIsModalOpen(true); // Open the modal
+    setSelectedSection(section);
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false);
     setSelectedImage(null);
-    setSelectedSection(""); // Reset the section tracking
+    setSelectedSection("");
   };
 
   return (
@@ -66,11 +59,6 @@ const Gallery = () => {
 
         <div className="info-section">
           <h2>{selectedImage !== null ? "Selected Idea" : "Our Creative Vision and Innovation"}</h2>
-          <p>
-            {selectedImage !== null
-              ? descriptions[selectedImage]
-              : "Explore Our collection of designs that represent our identity,and commitment to excellence.This represents the foundation of journey towards success."}
-          </p>
         </div>
       </div>
 
@@ -82,12 +70,13 @@ const Gallery = () => {
               src={
                 selectedSection === "first"
                   ? images[selectedImage]
-                  : secondSectionImages[selectedImage]
+                  : selectedSection === "second"
+                  ? secondSectionImages[selectedImage]
+                  : thirdSectionImages[selectedImage]
               }
               alt={`Enlarged Image ${selectedImage + 1}`}
               className="modal-image"
             />
-            
             <button className="modal-close" onClick={closeModal}>
               X
             </button>
@@ -95,13 +84,14 @@ const Gallery = () => {
         </div>
       )}
 
-      {/* Second Page Section */}
+      {/* Second Page Section: Team Celebration Event */}
       <div className="second-gallery-container">
         <div className="second-gallery-content">
           <div className="second-left-info">
-            <h2>Team Celebration Event</h2>
+            <h2>A Glimpse Of Our Team</h2>
             <p>
-            Employees gather for a joyous team event, where gifts are distributed as tokens of appreciation for their hard work and dedication throughout the year.          </p>
+              Employees gather for a joyous team event, stronger connections, Happier Faces and lasting memories.
+            </p>
           </div>
           <div className="second-right-images">
             {secondSectionImages.map((src, index) => (
@@ -113,6 +103,29 @@ const Gallery = () => {
                 <img src={src} alt={`Idea ${index + 1}`} className="second-side-image" />
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Third Page Section: Another Team Event */}
+      <div className="third-gallery-container">
+        <div className="third-gallery-content">
+          <div className="third-left-images">
+            {thirdSectionImages.map((src, index) => (
+              <div
+                key={index}
+                className="third-side-image-container"
+                onClick={() => handleImageClick(index, "third")}
+              >
+                <img src={src} alt={`Idea ${index + 1}`} className="third-side-image" />
+              </div>
+            ))}
+          </div>
+          <div className="third-right-info">
+            <h2> Team Event</h2>
+            <p>
+              Join us in celebrating another milestone with our team, filled with joy, collaboration, and memorable moments that strengthen our bond and commitment.
+            </p>
           </div>
         </div>
       </div>

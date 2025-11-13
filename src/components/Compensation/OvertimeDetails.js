@@ -1,816 +1,500 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./OvertimeDetails.css";
+import Modal from "../Modal/Modal";
 
 const OvertimeDetails = () => {
-  const [overtimeData, setOvertimeData] = useState([]);
-  const [employeeProjectData, setEmployeeProjectData] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState("current");
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
-  const [assignedCompensationData, setAssignedCompensationData] = useState({});
+  const [data, setData] = useState([]);
+  const [selected, setSelected] = useState(new Set());
+  const [approvedSet, setApprovedSet] = useState(new Set());
+  const [edited, setEdited] = useState({});
+  const [rateMap, setRateMap] = useState({});
   const [defaultHoursMap, setDefaultHoursMap] = useState({});
-  const [cutoffDate, setCutoffDate] = useState(30); // Default fallback
+  const [tab, setTab] = useState("current");
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const fetchAssignedCompensation = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            "x-employee-id": meId,
-          },
-        }
-      );
+  const API_KEY = process.env.REACT_APP_API_KEY;
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
 
-      const compensationMap = {};
-      const defaultHoursMapLocal = {};
-      response.data.data.forEach((plan) => {
-        plan.assigned_data.forEach((emp) => {
-          compensationMap[emp.employee_id] = plan.plan_data?.overtimePayAmount || 0;
-          defaultHoursMapLocal[emp.employee_id] = parseFloat(plan.plan_data?.defaultWorkingHours) || 8;
-        });
-      });
-
-      setAssignedCompensationData(compensationMap);
-      setDefaultHoursMap(defaultHoursMapLocal);
-    } catch (error) {
-      console.error("Error fetching assigned compensation:", error);
-    }
+  const headers = {
+    "x-api-key": API_KEY,
+    "x-employee-id": meId,
+    "Content-Type": "application/json",
   };
 
-  const fetchCutoffDate = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/salaryCalculationperiods`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            "x-employee-id": meId,
-          },
-        }
-      );
-      const fetchedCutoff = response.data.data[0]?.cutoff_date || 30;
-      setCutoffDate(fetchedCutoff);
-      console.log(`Fetched cutoff date: ${fetchedCutoff}`);
-    } catch (error) {
-      console.error("Error fetching cutoff date:", error);
-      // Fallback to 30
-    }
+  // ---------- DATE HELPERS ----------
+  const monthLabel = (offset) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - offset);
+    return d.toLocaleString("default", { month: "long", year: "numeric" });
   };
 
-  useEffect(() => {
-    fetchAssignedCompensation();
-    fetchCutoffDate();
-  }, []);
-
-  const [aprilPendingPopup, setAprilPendingPopup] = useState({
-    isVisible: false,
-    pendingCount: 0,
-    showDetails: false,
-    data: [],
-  });
-  const [monthOptions, setMonthOptions] = useState([]);
-  const [alertModal, setAlertModal] = useState({
+  // Convert UTC ISO string to local YYYY-MM-DD (IST)
+  const toLocalDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+ const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  const API_KEY = process.env.REACT_APP_API_KEY;
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
-
-  const showAlert = (message, title = "Alert") => {
+  const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
 
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
-
-  const getDateRange = (type, cutoff) => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-
-    let startDate, endDate;
-
-    if (type === "current") {
-      startDate = new Date(currentYear, currentMonth - 1, cutoff);
-      endDate = new Date(currentYear, currentMonth, cutoff);
-    } else if (type === "last") {
-      startDate = new Date(currentYear, currentMonth - 2, cutoff);
-      endDate = new Date(currentYear, currentMonth - 1, cutoff);
-    } else if (type === "twoMonthsAgo") {
-      startDate = new Date(currentYear, currentMonth - 3, cutoff);
-      endDate = new Date(currentYear, currentMonth - 2, cutoff);
-    } else if (type === "april") {
-      // Hardcoded for April 2025 period: March cutoff to April cutoff
-      const aprilYear = 2025;
-      startDate = new Date(aprilYear, 2, cutoff); // March (month 2)
-      endDate = new Date(aprilYear, 3, cutoff); // April (month 3)
-    }
-
-    // Adjust endDate to next day 00:00:00 to include full end day in <= filter
-    const nextDayEnd = new Date(endDate);
-    nextDayEnd.setDate(nextDayEnd.getDate() + 1);
-
-    const range = {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: nextDayEnd.toISOString().split("T")[0],
-    };
-    console.log(`getDateRange(${type}, cutoff: ${cutoff}): ${range.startDate} to ${range.endDate} (includes full ${endDate.toISOString().split("T")[0]} via next-day end)`);
-    return range;
-  };
-
-  const getMonthName = (offset) => {
-    const date = new Date();
-    const targetMonth = date.getMonth() - offset;
-    date.setMonth(targetMonth);
-    const monthName = date.toLocaleString("en-US", { month: "long", year: "numeric" });
-    console.log(`getMonthName(offset: ${offset}, targetMonth: ${targetMonth}): ${monthName}`);
-    return monthName;
-  };
-
-  const fetchEmployeeProjectData = async () => {
+  // ---------- FETCH ----------
+  const fetchData = async () => {
+    if (!API_KEY || !meId) return;
+    setLoading(true);
     try {
-      console.log("Fetching employee project data");
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/employee-projects`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            "x-employee-id": meId,
-          },
-        }
-      );
-      console.log("Employee Project API Response:", response.data);
-      setEmployeeProjectData(Array.isArray(response.data.data) ? response.data.data : []);
-    } catch (error) {
-      console.error("Employee project fetch error:", error);
-      showAlert("Failed to fetch employee projects", "Error");
-    }
-  };
+      // 1. Get cutoff date
+      const cutoffRes = await axios.get(`${BASE_URL}/api/salaryCalculationperiods`, { headers });
+      const cutoff_date = cutoffRes.data?.data?.[0]?.cutoff_date || 5;
 
-  const computeExtraHours = (totalHours, employeeId, sessions) => {
-    const defaultHours = defaultHoursMap[employeeId] || 8;
-    const extraHours = Math.max(0, totalHours - defaultHours);
+      // 2. Calculate start & end date
+      const now = new Date();
+      let currentMonth = now.getMonth();
+      let currentYear = now.getFullYear();
+      if (tab === "prev1") currentMonth -= 1;
+      else if (tab === "prev2") currentMonth -= 2;
+      while (currentMonth < 0) {
+        currentMonth += 12;
+        currentYear -= 1;
+      }
+      const periodEnd = new Date(currentYear, currentMonth, cutoff_date);
+      const periodStart = new Date(currentYear, currentMonth - 1, cutoff_date);
+      const startDate = `${periodStart.getFullYear()}-${String(periodStart.getMonth() + 1).padStart(2, "0")}-${String(
+        periodStart.getDate()
+      ).padStart(2, "0")}`;
+      const endDate = `${periodEnd.getFullYear()}-${String(periodEnd.getMonth() + 1).padStart(2, "0")}-${String(
+        periodEnd.getDate()
+      ).padStart(2, "0")}`;
 
-    // Apportion extra pro-rata to sessions
-    if (sessions && sessions.length > 0) {
-      const totalApportioned = sessions.reduce((sum, s) => sum + s.apportioned_hours, 0);
-      sessions.forEach((s) => {
-        s.extra_hours = totalApportioned > 0 ? (s.apportioned_hours / totalApportioned) * extraHours : 0;
+      // 3. Fetch all required data
+      const [extraRes, summaryRes, assignedRes, planListRes] = await Promise.all([
+        axios.get(
+          `${BASE_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
+          { headers }
+        ),
+        axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }),
+        axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }),
+        axios.get(`${BASE_URL}/api/compensations/list`, { headers }),
+      ]);
+
+      // --- Build Summary Map (Project & Supervisor) ---
+      const summaryData = summaryRes.data?.data || [];
+      const summaryMap = {};
+      summaryData.forEach((item) => {
+        summaryMap[item.employee_id] = {
+          project: item.project || item.projects || "—",
+          supervisor: item.supervisor || item.supervisors || "—",
+        };
       });
-    }
 
-    return { extraHours, defaultHours };
-  };
-
-  // Helper to filter raw API data by date range (applied before mapping)
-  const filterRawDataByDate = (rawData, startDateStr, originalEndStr) => {
-    const startDate = new Date(startDateStr + 'T00:00:00');
-    const endDate = new Date(originalEndStr + 'T00:00:00');
-    const filtered = rawData.filter((item) => {
-      const workDate = new Date(item.work_date + 'T00:00:00');
-      return workDate >= startDate && workDate <= endDate;
-    });
-    console.log(`Raw data filter: Input ${rawData.length} items, Output ${filtered.length} items (range: ${startDateStr} to ${originalEndStr})`);
-    return filtered;
-  };
-
-  const fetchData = async (startDate, endDateParam) => {
-    try {
-      setIsLoading(true);
-      console.log(`Fetching overtime data for ${startDate} to ${endDateParam}`);
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            "x-employee-id": meId,
-          },
-          params: {
-            startDate,
-            endDate: endDateParam,
-          },
-        }
-      );
-
-      console.log("Overtime API Response:", response.data);
-
-      let data = Array.isArray(response.data.data) ? response.data.data : [];
-      console.log("Overtime Raw API Data (pre-filter):", data.length, "items");
-
-      if (data.length === 0) {
-        console.warn("No overtime records returned from API for the given date range");
-      }
-
-      // Compute original end date for filtering (since endDateParam is next day)
-      const paramEndDate = new Date(endDateParam + 'T00:00:00');
-      paramEndDate.setDate(paramEndDate.getDate() - 1);
-      const originalEndStr = paramEndDate.toISOString().split('T')[0];
-      console.log(`Client-side filter range: ${startDate} to ${originalEndStr}`);
-
-      // Filter raw data by date range FIRST (to exclude invalid dates like Sep 29)
-      data = filterRawDataByDate(data, startDate, originalEndStr);
-
-      const formattedData = data
-        .map((item) => {
-          const employeeInfo = employeeProjectData.find((emp) => emp.employee_id === item.employee_id) || {};
-          const totalHours = parseFloat(item.total_hours_worked) || 0;
-          const { extraHours } = computeExtraHours(totalHours, item.employee_id, item.sessions);
-          if (extraHours > 14) {
-            console.warn(`Unusually high extra_hours for ${item.employee_id} on ${item.work_date}: ${extraHours}`);
-          }
-          return {
-            key: `${item.employee_id}-${item.work_date}`,
-            employee_id: item.employee_id,
-            date: item.work_date,
-            name: employeeInfo.employee_name || item.employee_id,
-            total_hours: totalHours,
-            hours: extraHours,
-            rate: parseFloat(item.rate) || 0,
-            project: employeeInfo.project_names || item.projects || "",
-            supervisor: employeeInfo.supervisor_name || item.supervisors || "",
-            comments: item.comments || "",
-            status: item.status || "Pending",
-            sessions: item.sessions || [],
-          };
-        })
-        .filter((row) => row.hours > 0); // Filter: Only show if extra > 0
-
-      console.log("Overtime Formatted Data (after extra hours filter):", formattedData.length, "items");
-      setOvertimeData(formattedData);
-      setSelectedRows([]);
-      setSelectAll(false);
-    } catch (error) {
-      console.error("Overtime fetch error:", error);
-      showAlert(
-        error.response?.data?.error || error.message || "Network error",
-        "Error"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const checkAprilPending = async () => {
-    const { startDate, endDate: endDateParam } = getDateRange("april", cutoffDate);
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/compensation/employee-extra-hours`,
-        {
-          headers: {
-            "x-api-key": API_KEY,
-            "x-employee-id": meId,
-          },
-          params: {
-            startDate,
-            endDate: endDateParam,
-          },
-        }
-      );
-
-      let data = Array.isArray(response.data.data) ? response.data.data : [];
-      console.log("April Raw API Data (pre-filter):", data.length, "items");
-
-      // Compute original end date for filtering
-      const paramEndDate = new Date(endDateParam + 'T00:00:00');
-      paramEndDate.setDate(paramEndDate.getDate() - 1);
-      const originalEndStr = paramEndDate.toISOString().split('T')[0];
-      console.log(`April client-side filter range: ${startDate} to ${originalEndStr}`);
-
-      // Filter raw data by date range
-      data = filterRawDataByDate(data, startDate, originalEndStr);
-
-      // Filter pending days with total_hours > 0, then compute and filter extra > 0
-      const pendingData = data.filter((item) => (item.status === "Pending" || !item.status) && parseFloat(item.total_hours_worked) > 0);
-      console.log(`April pending records before extra filter: ${pendingData.length}`);
-
-      const formattedData = pendingData
-        .map((item) => {
-          const employeeInfo = employeeProjectData.find((emp) => emp.employee_id === item.employee_id) || {};
-          const totalHours = parseFloat(item.total_hours_worked) || 0;
-          const { extraHours } = computeExtraHours(totalHours, item.employee_id, item.sessions);
-          if (extraHours > 14) {
-            console.warn(`Unusually high extra_hours for ${item.employee_id} on ${item.work_date}: ${extraHours}`);
-          }
-          return {
-            key: `${item.employee_id}-${item.work_date}`,
-            employee_id: item.employee_id,
-            date: item.work_date,
-            name: employeeInfo.employee_name || item.employee_id,
-            total_hours: totalHours,
-            hours: extraHours,
-            rate: parseFloat(item.rate) || 0,
-            project: employeeInfo.project_names || item.projects || "",
-            supervisor: employeeInfo.supervisor_name || item.supervisors || "",
-            comments: item.comments || "",
-            status: item.status || "Pending",
-            sessions: item.sessions || [],
-          };
-        })
-        .filter((row) => row.hours > 0); // Filter: Only show if extra > 0
-
-      console.log(`April pending records after extra filter: ${formattedData.length}`);
-
-      if (formattedData.length > 0 && !sessionStorage.getItem("aprilPopupShown")) {
-        setAprilPendingPopup({
-          isVisible: true,
-          pendingCount: formattedData.length,
-          showDetails: false,
-          data: formattedData,
+      // --- Build Rate Map ---
+      const rateObj = {};
+      const assignedData = assignedRes.data?.data || assignedRes.data || [];
+      assignedData.forEach((plan) => {
+        const rate = parseFloat(plan.plan_data?.overtimePayAmount || "0") || 0;
+        (plan.assigned_data || []).forEach((emp) => {
+          rateObj[emp.employee_id] = rate;
         });
-        sessionStorage.setItem("aprilPopupShown", "true");
+      });
+      setRateMap(rateObj);
+
+      // --- Build Default Working Hours Map ---
+      const hoursObj = {};
+      const planList = planListRes.data?.data || [];
+      const planHoursMap = {};
+      planList.forEach((plan) => {
+        const hours = parseFloat(plan.plan_data?.defaultWorkingHours) || 8;
+        planHoursMap[plan.id] = hours;
+      });
+      assignedData.forEach((assignment) => {
+        const planId = assignment.id;
+        const defaultHours = planHoursMap[planId] || 8;
+        (assignment.assigned_data || []).forEach((emp) => {
+          hoursObj[emp.employee_id] = defaultHours;
+        });
+      });
+      setDefaultHoursMap(hoursObj);
+
+      // --- Process Main Data with LOCAL DATE ---
+      const mainData = (extraRes.data?.data || []).map((item) => {
+        const localDate = toLocalDate(item.work_date); // ← Critical: normalize
+        const totalHrs = parseFloat(item.total_hours_worked) || 0;
+        const defaultHrs = hoursObj[item.employee_id] || 8;
+        const recalculatedExtra = totalHrs > defaultHrs ? totalHrs - defaultHrs : 0;
+
+        const sessionsWithCorrectedExtra = (item.sessions || []).map((s) => ({
+          ...s,
+          extra_hours: item.sessions.length > 0 ? (recalculatedExtra / item.sessions.length).toFixed(2) : "0.00",
+        }));
+
+        return {
+          ...item,
+          work_date: localDate, // ← override with local date
+          projects:
+            item.projects ||
+            item.project ||
+            summaryMap[item.employee_id]?.project ||
+            "—",
+          supervisors:
+            item.supervisors ||
+            item.supervisor ||
+            summaryMap[item.employee_id]?.supervisor ||
+            "—",
+          extra_hours: recalculatedExtra.toFixed(2),
+          sessions: sessionsWithCorrectedExtra,
+        };
+      });
+      setData(mainData);
+
+      // --- Build Approved Set using LOCAL DATE ---
+      const approved = new Set();
+      summaryData.forEach((r) => {
+        if (r.employee_id && r.work_date) {
+          const localDate = toLocalDate(r.work_date);
+          approved.add(`${r.employee_id}-${localDate}`);
+        }
+      });
+      setApprovedSet(approved);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [tab]);
+
+  // ---------- FILTER ----------
+  const filtered = useMemo(() => {
+    if (!search) return data;
+    const q = search.toLowerCase();
+    return data.filter(
+      (r) =>
+        r.employee_id?.toLowerCase().includes(q) ||
+        r.employee_name?.toLowerCase().includes(q) ||
+        r.work_date?.includes(q)
+    );
+  }, [data, search]);
+
+  // ---------- SELECTION (per day) ----------
+  const rowKey = (item) => `${item.employee_id}-${item.work_date}`;
+
+  const isApproved = (item) => approvedSet.has(rowKey(item));
+  const isRowSelected = (item) => selected.has(rowKey(item));
+
+  const getAllSelectableKeys = () => {
+    const keys = new Set();
+    filtered.forEach((r) => {
+      if (!isApproved(r)) {
+        keys.add(rowKey(r));
       }
-    } catch (error) {
-      console.error("Error checking April pending records:", error);
-    }
+    });
+    return Array.from(keys);
   };
 
-  const handleInputChange = (key, field, value, isAprilPopup = false) => {
-    if (field !== "comments" && field !== "rate") return;
-    const updateFn = (prev) =>
-      prev.map((row) => (row.key === key ? { ...row, [field]: field === "rate" ? parseFloat(value) : value } : row));
-    
-    if (isAprilPopup) {
-      setAprilPendingPopup((prev) => ({ ...prev, data: updateFn(prev.data) }));
-    } else {
-      setOvertimeData(updateFn);
-    }
-  };
-
-  const handleCheckboxChange = (key) => {
-    setSelectedRows((prevSelected) => {
-      const newSelected = prevSelected.includes(key)
-        ? prevSelected.filter((rowKey) => rowKey !== key)
-        : [...prevSelected, key];
-      const pendingRows = overtimeData.filter((row) => row.status === "Pending" && row.hours > 0);
-      const allPendingSelected = pendingRows.length > 0 && pendingRows.every((row) => newSelected.includes(row.key));
-      setSelectAll(allPendingSelected);
-      return newSelected;
+  const toggleRow = (item) => {
+    if (isApproved(item)) return;
+    const key = rowKey(item);
+    setSelected((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) newSet.delete(key);
+      else newSet.add(key);
+      return newSet;
     });
   };
 
-  const handleSelectAllChange = () => {
-    if (selectAll) {
-      setSelectedRows([]);
-      setSelectAll(false);
-    } else {
-      const pendingRowKeys = overtimeData
-        .filter((row) => row.status === "Pending" && row.hours > 0)
-        .map((row) => row.key);
-      setSelectedRows(pendingRowKeys);
-      setSelectAll(true);
-    }
+  const toggleAll = () => {
+    const allKeys = getAllSelectableKeys();
+    setSelected((prev) => {
+      if (allKeys.every((k) => prev.has(k))) return new Set();
+      return new Set(allKeys);
+    });
   };
 
-  const handleStatusChange = async (rowKey, status, isBulk = false, isApril = false) => {
+  const isAllSelected = (() => {
+    const allKeys = getAllSelectableKeys();
+    return allKeys.length > 0 && allKeys.every((k) => selected.has(k));
+  })();
+
+  // ---------- BULK UPDATE ----------
+  const buildPayload = (sessions, status, parent) => {
+    const groupKey = rowKey(parent);
+    const effectiveRate = edited[groupKey]?.rate ?? (rateMap[parent.employee_id] ?? parent.rate ?? 0);
+    const effectiveComments = edited[groupKey]?.comments ?? (parent.comments || "");
+
+    return sessions.map((s) => ({
+      punch_id: s.punch_id,
+      work_date: parent.work_date, // ← already local date
+      employee_id: parent.employee_id,
+      extra_hours: parseFloat(s.extra_hours) || 0,
+      rate: effectiveRate,
+      project: parent.projects || "",
+      supervisor: parent.supervisors || "",
+      comments: effectiveComments,
+      status,
+    }));
+  };
+
+  const bulkUpdate = async (payload, status) => {
+    if (!payload.length) return;
     try {
-      setIsLoading(true);
-      const fullUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/overtime-bulk`;
-
-      let selectedData;
-      if (isBulk || isApril) {
-        let rows;
-        if (isApril) {
-          rows = aprilPendingPopup.data
-            .filter((row) => selectedRows.includes(row.key))
-            .filter((row) => row.status === "Pending" && row.hours > 0);
-        } else {
-          rows = overtimeData
-            .filter((row) => selectedRows.includes(row.key))
-            .filter((row) => row.status === "Pending" && row.hours > 0);
-        }
-
-        selectedData = [];
-        rows.forEach((row) => {
-          row.sessions.forEach((session) => {
-            selectedData.push({
-              punch_id: session.punch_id,
-              work_date: row.date,
-              employee_id: row.employee_id,
-              extra_hours: session.extra_hours,
-              rate: parseFloat(row.rate) || 0,
-              project: row.project || "",
-              supervisor: row.supervisor || "",
-              comments: row.comments || "",
-              status: status,
-            });
-          });
-        });
-
-        if (selectedData.length === 0 || selectedData.every((d) => d.extra_hours === 0)) {
-          throw new Error("No overtime hours to approve/reject.");
-        }
-      } else {
-        let rows;
-        if (isApril) {
-          rows = [aprilPendingPopup.data.find((row) => row.key === rowKey)];
-        } else {
-          rows = [overtimeData.find((row) => row.key === rowKey)];
-        }
-        const row = rows[0];
-        if (!row) {
-          throw new Error("Row not found for key: " + rowKey);
-        }
-        if (row.status !== "Pending" || row.hours === 0) {
-          throw new Error(`Cannot change status: ${row.status} or no extra hours.`);
-        }
-
-        selectedData = row.sessions.map((session) => ({
-          punch_id: session.punch_id,
-          work_date: row.date,
-          employee_id: row.employee_id,
-          extra_hours: session.extra_hours,
-          rate: parseFloat(row.rate) || 0,
-          project: row.project || "",
-          supervisor: row.supervisor || "",
-          comments: row.comments || "",
-          status: status,
-        }));
-
-        if (selectedData.every((d) => d.extra_hours === 0)) {
-          throw new Error("No overtime hours to approve/reject.");
-        }
-      }
-
-      const payload = { data: selectedData };
-
-      await axios.post(fullUrl, payload, {
-        headers: {
-          "x-api-key": API_KEY,
-          "x-employee-id": meId,
-          "Content-Type": "application/json",
-        },
-      });
-
-      showAlert(`Overtime record(s) ${status.toLowerCase()} successfully`, "Success");
-
-      if (isApril) {
-        setAprilPendingPopup((prev) => ({
-          ...prev,
-          data: prev.data.map((row) =>
-            (isBulk ? selectedRows.includes(row.key) : row.key === rowKey) && row.status === "Pending"
-              ? { ...row, status }
-              : row
-          ),
-          pendingCount: prev.data.filter((row) => row.status === "Pending" && row.hours > 0).length,
-          isVisible: prev.data.filter((row) => row.status === "Pending" && row.hours > 0).length > 0,
-        }));
-        setSelectedRows([]);
-      } else {
-        setOvertimeData((prevData) =>
-          prevData.map((row) =>
-            (isBulk && selectedRows.includes(row.key) && row.status === "Pending")
-              ? { ...row, status }
-              : row.key === rowKey && row.status === "Pending"
-              ? { ...row, status }
-              : row
-          )
-        );
-        setSelectedRows([]);
-        setSelectAll(false);
-        const { startDate: newStart, endDate: newEndParam } = getDateRange(selectedMonth, cutoffDate);
-        await fetchData(newStart, newEndParam);
-      }
-    } catch (error) {
-      console.error("Error updating overtime status:", error);
-      showAlert(
-        error.response?.data?.error || error.response?.data?.message || error.message || "Network error",
-        "Error"
-      );
-    } finally {
-      setIsLoading(false);
+      await axios.post(`${BASE_URL}/api/compensation/overtime-bulk`, { data: payload }, { headers });
+      showAlert(`Successfully ${status.toLowerCase()} ${payload.length} record(s)`);
+      await fetchData();
+      setSelected(new Set());
+    } catch (err) {
+      console.error("Update error:", err.response?.data || err);
+      showAlert(`Failed: ${err.response?.data?.details || err.message}`);
     }
   };
 
-  const handleApproveSelected = () => handleStatusChange(null, "Approved", true);
-  const handleRejectSelected = () => handleStatusChange(null, "Rejected", true);
-  const handleAprilApprove = () => handleStatusChange(null, "Approved", true, true);
-  const handleAprilReject = () => handleStatusChange(null, "Rejected", true, true);
-  const handleViewDetails = () => {
-    setAprilPendingPopup((prev) => ({ ...prev, showDetails: true }));
+  const approveAll = () => {
+    const toApprove = [];
+    const processed = new Set();
+
+    filtered.forEach((r) => {
+      const key = rowKey(r);
+      if (selected.has(key) && !processed.has(key)) {
+        processed.add(key);
+        toApprove.push(...buildPayload(r.sessions, "Approved", r));
+      }
+    });
+
+    if (toApprove.length > 0) bulkUpdate(toApprove, "Approved");
   };
 
-  useEffect(() => {
-    console.log("Setting monthOptions");
-    setMonthOptions([
-      { type: "current", offset: 0, label: getMonthName(0) },
-      { type: "last", offset: 1, label: getMonthName(1) },
-      { type: "twoMonthsAgo", offset: 2, label: getMonthName(2) },
-    ]);
-  }, []);
+  const rejectAll = () => {
+    const toReject = [];
+    const processed = new Set();
 
-  useEffect(() => {
-    fetchEmployeeProjectData();
-  }, []);
+    filtered.forEach((r) => {
+      const key = rowKey(r);
+      if (selected.has(key) && !processed.has(key)) {
+        processed.add(key);
+        toReject.push(...buildPayload(r.sessions, "Rejected", r));
+      }
+    });
 
-  useEffect(() => {
-    const pendingRows = overtimeData.filter((row) => row.status === "Pending" && row.hours > 0);
-    const allPendingSelected = pendingRows.length > 0 && pendingRows.every((row) => selectedRows.includes(row.key));
-    setSelectAll(allPendingSelected);
-  }, [overtimeData, selectedRows]);
+    if (toReject.length > 0) bulkUpdate(toReject, "Rejected");
+  };
 
-  useEffect(() => {
-    const { startDate, endDate } = getDateRange(selectedMonth, cutoffDate);
-    fetchData(startDate, endDate);
-  }, [selectedMonth, employeeProjectData, defaultHoursMap, cutoffDate]);
+  const approveOne = (row) => {
+    const payload = buildPayload(row.sessions, "Approved", row);
+    bulkUpdate(payload, "Approved");
+  };
 
-  useEffect(() => {
-    checkAprilPending();
-  }, [employeeProjectData, defaultHoursMap, cutoffDate]);
+  const rejectOne = (row) => {
+    const payload = buildPayload(row.sessions, "Rejected", row);
+    bulkUpdate(payload, "Rejected");
+  };
 
-  const hasExtraHours = (row) => row.hours > 0;
-  const pendingWithExtra = (data) => data.filter((row) => row.status === "Pending" && hasExtraHours(row)).length;
+  // ---------- RENDER ----------
+  if (loading) return <div className="ot-loading">Loading…</div>;
 
   return (
-    <div className="otd-overtime-container">
-      <h2 className="otd-title">Overtime Details</h2>
-      <div className="otd-month-selector">
-        {monthOptions.map(({ type, label }) => (
-          <span
-            key={type}
-            data-testid={`month-option-${type}`}
-            className={`otd-month-option ${selectedMonth === type ? "otd-active" : ""}`}
-            onClick={() => setSelectedMonth(type)}
-            title={label}
+    <div className="ot-container">
+      <div className="ot-tabs">
+        {["prev2", "prev1", "current"].map((t) => (
+          <button
+            key={t}
+            className={tab === t ? "ot-tab active" : "ot-tab"}
+            onClick={() => setTab(t)}
           >
-            {label}
-          </span>
+            {monthLabel(t === "prev2" ? 2 : t === "prev1" ? 1 : 0)}
+          </button>
         ))}
       </div>
-      <div className="otd-action-buttons-container">
-        <button
-          onClick={handleApproveSelected}
-          className="otd-approve-button"
-          disabled={selectedRows.length === 0 || isLoading || pendingWithExtra(overtimeData) === 0}
-        >
-          Approve All
-        </button>
-        <button
-          onClick={handleRejectSelected}
-          className="otd-reject-button"
-          disabled={selectedRows.length === 0 || isLoading || pendingWithExtra(overtimeData) === 0}
-        >
-          Reject All
-        </button>
+
+      <div className="ot-controls">
+        <input
+          type="text"
+          placeholder="Search by ID, Name, Date..."
+          className="ot-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <div className="ot-bulk-actions">
+          <button className="ot-btn ot-btn-approve" onClick={approveAll} disabled={selected.size === 0}>
+            Approve All
+          </button>
+          <button className="ot-btn ot-btn-reject" onClick={rejectAll} disabled={selected.size === 0}>
+            Reject All
+          </button>
+        </div>
       </div>
-      {isLoading ? (
-        <div className="otd-loading">Loading...</div>
+
+      {filtered.length === 0 ? (
+        <p className="ot-no-data">No overtime records found</p>
       ) : (
-        <div className="otd-table-container">
-          <table className="otd-overtime-table">
+        <div className="ot-table-wrapper">
+          <table className="ot-table">
             <thead>
               <tr>
-                <th className="otd-table-header">
-                  <input
-                    type="checkbox"
-                    checked={selectAll}
-                    onChange={handleSelectAllChange}
-                    className="otd-checkbox"
-                    disabled={pendingWithExtra(overtimeData) === 0}
-                  />
+                <th className="ot-th ot-th-select">
+                  <input type="checkbox" checked={isAllSelected} onChange={toggleAll} />
                 </th>
-                <th className="otd-table-header">Date</th>
-                <th className="otd-table-header">Employee Name</th>
-                <th className="otd-table-header">Total Hours</th>
-                <th className="otd-table-header">Extra Hours</th>
-                <th className="otd-table-header">Rate</th>
-                <th className="otd-table-header">Project</th>
-                <th className="otd-table-header">Supervisor</th>
-                <th className="otd-table-header">Comments</th>
-                <th className="otd-table-header">Status</th>
-                <th className="otd-table-header">Actions</th>
+                <th className="ot-th">Date</th>
+                <th className="ot-th">Employee ID</th>
+                <th className="ot-th">Employee Name</th>
+                <th className="ot-th ot-align-right">Total Hrs</th>
+                <th className="ot-th ot-align-right">Extra Hrs</th>
+                <th className="ot-th ot-align-right">Rate</th>
+                <th className="ot-th">Project</th>
+                <th className="ot-th">Supervisor</th>
+                <th className="ot-th">Comments</th>
+                <th className="ot-th">Status</th>
+                <th className="ot-th">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {overtimeData.length > 0 ? (
-                overtimeData.map((row) => (
-                  <tr key={row.key} className={`otd-table-row ${selectedRows.includes(row.key) ? "otd-selected-row" : ""}`}>
-                    <td className="otd-table-cell">
+              {filtered.map((row) => {
+                const key = rowKey(row);
+                const approved = isApproved(row);
+                const sel = isRowSelected(row);
+                const groupKey = key;
+                const defaultRate = rateMap[row.employee_id] ?? row.rate ?? 0;
+
+                return (
+                  <tr key={key} className={approved ? "ot-row-disabled" : ""}>
+                    <td className="ot-td ot-td-select">
                       <input
                         type="checkbox"
-                        checked={selectedRows.includes(row.key)}
-                        onChange={() => handleCheckboxChange(row.key)}
-                        className="otd-checkbox"
-                        disabled={row.status !== "Pending" || !hasExtraHours(row)}
+                        checked={sel}
+                        disabled={approved}
+                        onChange={() => toggleRow(row)}
                       />
                     </td>
-                    <td className="otd-table-cell otd-date-cell">{row.date}</td>
-                    <td className="otd-table-cell">{row.name}</td>
-                    <td className="otd-table-cell">{row.total_hours.toFixed(2)}</td>
-                    <td className="otd-table-cell">{row.hours.toFixed(2)}</td>
-                    <td className="otd-table-cell">
-                      {row.status === "Pending" && hasExtraHours(row) ? (
-                        <input
-                          type="number"
-                          value={row.rate || assignedCompensationData[row.employee_id] || 0}
-                          onChange={(e) => handleInputChange(row.key, "rate", e.target.value)}
-                          className="otd-input"
-                        />
-                      ) : (
-                        row.rate.toFixed(2)
-                      )}
+                    <td className="ot-td">{row.work_date}</td>
+                    <td className="ot-td">{row.employee_id}</td>
+                    <td className="ot-td">{row.employee_name || "—"}</td>
+                    <td className="ot-td ot-align-right">
+                      {Number(row.total_hours_worked || 0).toFixed(2)}
                     </td>
-                    <td className="otd-table-cell" title={row.project?.length > 20 || row.project?.includes(",") ? row.project : ""}>
-                      <span className="otd-text-ellipsis">{row.project}</span>
+                    <td className="ot-td ot-align-right">
+                      {parseFloat(row.extra_hours || 0).toFixed(2)}
                     </td>
-                    <td className="otd-table-cell">{row.supervisor}</td>
-                    <td className="otd-table-cell">
+                    <td className="ot-td ot-align-right">
                       <input
-                        type="text"
-                        value={row.comments}
-                        onChange={(e) => handleInputChange(row.key, "comments", e.target.value)}
-                        className="otd-input"
-                        disabled={row.status === "Approved" || row.status === "Rejected" || !hasExtraHours(row)}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={(edited[groupKey]?.rate ?? defaultRate).toFixed(2)}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          setEdited((prev) => ({
+                            ...prev,
+                            [groupKey]: { ...(prev[groupKey] || {}), rate: val },
+                          }));
+                        }}
+                        disabled={approved}
+                        className="ot-input-rate"
                       />
                     </td>
-                    <td className={`otd-table-cell status-${row.status.toLowerCase()}`}>{row.status}</td>
-                    <td className="otd-table-cell">
-                      <div className="otd-action-buttons">
-                        <button
-                          onClick={() => handleStatusChange(row.key, "Approved")}
-                          className="otd-approve"
-                          disabled={row.status === "Approved" || row.status === "Rejected" || isLoading || !hasExtraHours(row)}
-                        >
-                          <svg className="otd-icon" viewBox="0 0 24 24">
-                            <path
-                              fill="currentColor"
-                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(row.key, "Rejected")}
-                          className="otd-reject"
-                          disabled={row.status === "Approved" || row.status === "Rejected" || isLoading || !hasExtraHours(row)}
-                        >
-                          <svg className="otd-icon" viewBox="0 0 24 24">
-                            <path
-                              fill="currentColor"
-                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"
-                            />
-                          </svg>
-                        </button>
+                    <td className="ot-td">
+                      <div
+                        className="ot-project-tooltip"
+                        title={
+                          Array.isArray(row.projects)
+                            ? row.projects.join(", ")
+                            : row.projects || "—"
+                        }
+                        style={{
+                          display: "inline-block",
+                          maxWidth: "150px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          verticalAlign: "middle",
+                          cursor: "help",
+                        }}
+                      >
+                        {Array.isArray(row.projects)
+                          ? row.projects[0]?.slice(0, 8)
+                          : (row.projects || "—").slice(0, 8)}
+                        {Array.isArray(row.projects) && row.projects.length > 1 && (
+                          <span
+                            className="ot-tooltip-icon"
+                            style={{
+                              marginLeft: "6px",
+                              color: "#555",
+                              fontSize: "12px",
+                            }}
+                          >
+                            i
+                          </span>
+                        )}
                       </div>
                     </td>
+                    <td className="ot-td">{row.supervisors || "—"}</td>
+                    <td className="ot-td">
+                      <input
+                        type="text"
+                        value={edited[groupKey]?.comments ?? (row.comments || "")}
+                        onChange={(e) => {
+                          setEdited((prev) => ({
+                            ...prev,
+                            [groupKey]: { ...(prev[groupKey] || {}), comments: e.target.value },
+                          }));
+                        }}
+                        disabled={approved}
+                        className="ot-input-comments"
+                      />
+                    </td>
+                    <td className="ot-td">
+                      <span
+                        className={`ot-status ot-status-${approved ? "approved" : "pending"}`}
+                      >
+                        {approved ? "Approved" : "Pending"}
+                      </span>
+                    </td>
+                    <td className="ot-td ot-td-actions">
+                      {!approved && (
+                        <>
+                          <button
+                            className="ot-btn-icon ot-btn-approve"
+                            onClick={() => approveOne(row)}
+                            title="Approve"
+                          >
+                            <i className="fas fa-check"></i>
+                          </button>
+                          <button
+                            className="ot-btn-icon ot-btn-reject"
+                            onClick={() => rejectOne(row)}
+                            title="Reject"
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </>
+                      )}
+                    </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="11" className="otd-table-cell otd-no-records">
-                    No overtime records found.
-                  </td>
-                </tr>
-              )}
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
-      {alertModal.isVisible && (
-        <div className="otd-modal-overlay">
-          <div className="otd-modal-content">
-            <h3 className="otd-modal-title">{alertModal.title}</h3>
-            <p className="otd-modal-error">{alertModal.message}</p>
-            <button onClick={closeAlert} className="otd-modal-button">
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-      {aprilPendingPopup.isVisible && (
-        <div className="otd-april-popup-overlay">
-          <div className="otd-april-popup-content">
-            <h3 className="otd-april-popup-title">Pending April 2025 Records</h3>
-            <p className="otd-april-popup-message">
-              There are {aprilPendingPopup.pendingCount} pending overtime records for April 2025. Please approve or reject them.
-            </p>
-            {aprilPendingPopup.showDetails && (
-              <div className="otd-table-container">
-                <table className="otd-overtime-table">
-                  <thead>
-                    <tr>
-                      <th className="otd-table-header">Date</th>
-                      <th className="otd-table-header">Employee Name</th>
-                      <th className="otd-table-header">Total Hours</th>
-                      <th className="otd-table-header">Extra Hours</th>
-                      <th className="otd-table-header">Rate</th>
-                      <th className="otd-table-header">Project</th>
-                      <th className="otd-table-header">Supervisor</th>
-                      <th className="otd-table-header">Comments</th>
-                      <th className="otd-table-header">Status</th>
-                      <th className="otd-table-header">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {aprilPendingPopup.data.length > 0 ? (
-                      aprilPendingPopup.data.map((row) => (
-                        <tr key={row.key} className="otd-table-row">
-                          <td className="otd-table-cell otd-date-cell">{row.date}</td>
-                          <td className="otd-table-cell">{row.name}</td>
-                          <td className="otd-table-cell">{row.total_hours.toFixed(2)}</td>
-                          <td className="otd-table-cell">{row.hours.toFixed(2)}</td>
-                          <td className="otd-table-cell">
-                            <input
-                              type="number"
-                              value={row.rate || assignedCompensationData[row.employee_id] || 0}
-                              onChange={(e) => handleInputChange(row.key, "rate", e.target.value, true)}
-                              className="otd-input"
-                              disabled={!hasExtraHours(row)}
-                            />
-                          </td>
-                          <td className="otd-table-cell" title={row.project?.length > 20 || row.project?.includes(",") ? row.project : ""}>
-                            <span className="otd-text-ellipsis">{row.project}</span>
-                          </td>
-                          <td className="otd-table-cell">{row.supervisor}</td>
-                          <td className="otd-table-cell">
-                            <input
-                              type="text"
-                              value={row.comments}
-                              onChange={(e) => handleInputChange(row.key, "comments", e.target.value, true)}
-                              className="otd-input"
-                              disabled={row.status === "Approved" || row.status === "Rejected"}
-                            />
-                          </td>
-                          <td className={`otd-table-cell status-${row.status.toLowerCase()}`}>{row.status}</td>
-                          <td className="otd-table-cell">
-                            <div className="otd-action-buttons">
-                              <button
-                                onClick={() => handleStatusChange(row.key, "Approved", false, true)}
-                                className="otd-approve"
-                                disabled={row.status === "Approved" || row.status === "Rejected" || isLoading || !hasExtraHours(row)}
-                              >
-                                <svg className="otd-icon" viewBox="0 0 24 24">
-                                  <path
-                                    fill="currentColor"
-                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleStatusChange(row.key, "Rejected", false, true)}
-                                className="otd-reject"
-                                disabled={row.status === "Approved" || row.status === "Rejected" || isLoading || !hasExtraHours(row)}
-                              >
-                                <svg className="otd-icon" viewBox="0 0 24 24">
-                                  <path
-                                    fill="currentColor"
-                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="10" className="otd-table-cell otd-no-records">
-                          No pending records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <div className="otd-april-popup-buttons">
-              <button
-                onClick={handleAprilApprove}
-                className="otd-april-approve-button"
-                disabled={isLoading || pendingWithExtra(aprilPendingPopup.data) === 0}
-              >
-                Approve All
-              </button>
-              <button
-                onClick={handleAprilReject}
-                className="otd-april-reject-button"
-                disabled={isLoading || pendingWithExtra(aprilPendingPopup.data) === 0}
-              >
-                Reject All
-              </button>
-              <button
-                onClick={handleViewDetails}
-                className="otd-april-view-details-button"
-                disabled={isLoading}
-              >
-                View All Details
-              </button>
-              <button
-                onClick={() => setAprilPendingPopup({ isVisible: false, pendingCount: 0, showDetails: false, data: [] })}
-                className="otd-april-close-button"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+                  isVisible={alertModal.isVisible}
+                  onClose={closeAlert}
+                  buttons={[{ label: "OK", onClick: closeAlert }]}
+                >
+                  <p>{alertModal.message}</p>
+                </Modal>
     </div>
   );
 };
