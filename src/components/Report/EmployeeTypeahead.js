@@ -1,23 +1,43 @@
-// src/components/EmployeeTypeahead.jsx
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { MdClose } from "react-icons/md";
 import { getApiBase } from "./ReportUtils";
 
-/**
- * Non-aborting EmployeeTypeahead
- * - Debounces input.
- * - DOES NOT abort inflight requests (so browser won't show "cancelled"),
- *   instead uses requestId to ignore stale responses.
- * - Logs request URL + headers + response status for easy debugging.
- */
+function extractEmployeeIdFromDashboardData(raw) {
+  try {
+    if (!raw) return "";
+    if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        trimmed.startsWith("[")
+      ) {
+        try {
+          const obj = JSON.parse(trimmed);
+          return (
+            obj.employeeId || obj.employee_id || obj.employee || obj.id || ""
+          );
+        } catch (e) {}
+      }
+      const m = trimmed.match(/(STS[0-9A-Za-z-_]+)/);
+      if (m) return m[1];
+      return trimmed;
+    } else if (typeof raw === "object") {
+      return raw.employeeId || raw.employee_id || raw.id || "";
+    }
+    return String(raw);
+  } catch (e) {
+    return "";
+  }
+}
+
 export default function EmployeeTypeahead({
   placeholder = "Search by name or email...",
   limit = 10,
   onSelect = () => {},
   onTyping = () => {},
   onClear = () => {},
-  departmentId = null,
+
   selectedValue = "",
   isTyping = false,
   minChars = 2,
@@ -29,17 +49,44 @@ export default function EmployeeTypeahead({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
+  // parse local storage robustly
+  const teamLeadData = JSON.parse(localStorage.getItem("dashboardData")) || {};
+  // Convert to string/number consistently to avoid type mismatch
+  const teamLeadId = teamLeadData?.employeeId
+    ? String(teamLeadData.employeeId)
+    : null;
+  const departmentId = teamLeadData?.department_id || null;
 
   const debRef = useRef(null);
-  const latestRequestId = useRef(0); // incrementing request id
+  const latestRequestId = useRef(0);
   const boxRef = useRef(null);
   const inputRef = useRef(null);
   const lastTypingRef = useRef(false);
+  const mountedRef = useRef(true);
 
-  const employeeId =
-    typeof window !== "undefined" ? localStorage.getItem("dashboardData") : "";
+  let employeeId = "";
+  try {
+    const raw =
+      typeof window !== "undefined"
+        ? localStorage.getItem("dashboardData")
+        : "";
+    employeeId = extractEmployeeIdFromDashboardData(raw);
+  } catch (e) {
+    employeeId = "";
+  }
 
-  // sync external selectedValue into local state when not typing
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (debRef.current) {
+        clearTimeout(debRef.current);
+        debRef.current = null;
+      }
+      latestRequestId.current++;
+    };
+  }, []);
+
   useEffect(() => {
     if (
       !isTyping &&
@@ -48,10 +95,8 @@ export default function EmployeeTypeahead({
     ) {
       setQuery(selectedValue);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedValue, isTyping]);
 
-  // click outside closes dropdown
   useEffect(() => {
     function onDocClick(e) {
       if (boxRef.current && !boxRef.current.contains(e.target)) {
@@ -66,7 +111,6 @@ export default function EmployeeTypeahead({
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
-  // notify parent typing state
   useEffect(() => {
     const nowTyping = Boolean(query && query.trim().length > 0);
     if (lastTypingRef.current !== nowTyping) {
@@ -74,105 +118,75 @@ export default function EmployeeTypeahead({
       try {
         onTyping(nowTyping);
       } catch (e) {}
-      if (!nowTyping) {
+      if (!nowTyping)
         try {
           onClear();
         } catch (e) {}
-      }
     }
   }, [query, onTyping, onClear]);
 
-  // main effect: debounce + fire axios (without cancelling prior requests)
   useEffect(() => {
-    // clear previous timer
     if (debRef.current) {
       clearTimeout(debRef.current);
       debRef.current = null;
     }
 
     const trimmed = query ? query.trim() : "";
-
     if (trimmed.length < minChars) {
-      setSuggestions([]);
-      setTotalMatches(0);
-      setLoading(false);
-      setOpen(false);
-      setErrorText("");
+      if (mountedRef.current) {
+        setSuggestions([]);
+        setTotalMatches(0);
+        setLoading(false);
+        setOpen(false);
+        setErrorText("");
+      }
       return;
     }
+    if (!mountedRef.current) return;
 
     setLoading(true);
     setErrorText("");
-
     debRef.current = setTimeout(async () => {
-      // increment request id and capture for this request
       const reqId = ++latestRequestId.current;
-
-      const base = getApiBase() || "";
+      const base = (getApiBase && getApiBase()) || "";
       const params = new URLSearchParams();
-      params.set("q", trimmed);
-      params.set("limit", String(limit));
-      if (departmentId) params.set("department_id", String(departmentId));
+      try {
+        params.set("q", trimmed);
+        params.set("limit", String(limit));
+        if (departmentId) params.set("department_id", String(departmentId));
+      } catch (e) {}
       const url = `${base.replace(
         /\/$/,
         ""
       )}/api/report/search-employees?${params.toString()}`;
-
-      // prepare headers
       const headers = {
         Accept: "application/json",
         "x-api-key": process.env.REACT_APP_API_KEY || "",
         "x-employee-id": employeeId || "",
       };
-
-      // debug log to help map front ↔ back
-      console.debug("[EmployeeTypeahead] requesting:", { reqId, url, headers });
-
       try {
-        const resp = await axios.get(url, { headers, timeout: 25_000 });
-        console.debug("[EmployeeTypeahead] response:", {
-          reqId,
-          status: resp.status,
-          url,
-        });
-
-        // If a newer request was fired meanwhile, ignore this response
-        if (reqId !== latestRequestId.current) {
-          console.debug("[EmployeeTypeahead] ignoring stale response", {
-            reqId,
-            latest: latestRequestId.current,
-          });
-          return;
-        }
-
+        const resp = await axios.get(url, { headers, timeout: 10_000 });
+        if (reqId !== latestRequestId.current) return; // stale
+        if (!mountedRef.current) return;
         const data = resp && resp.data ? resp.data : {};
         let items = [];
         if (Array.isArray(data)) items = data;
         else if (Array.isArray(data.results)) items = data.results;
         else if (Array.isArray(data.data)) items = data.data;
+        else if (Array.isArray(data.rows)) items = data.rows;
         else items = [];
-
-        setSuggestions(items.slice(0, limit));
-        setTotalMatches(
-          typeof data.total === "number" ? data.total : items.length
-        );
-        setOpen(items.length > 0);
-      } catch (err) {
-        // if axios cancelled or network error — surface friendly message
-        const isCancel = axios.isCancel && axios.isCancel(err);
-        const msg = err && err.message ? String(err.message) : "Unknown error";
-        console.error("[EmployeeTypeahead] request error:", { reqId, err });
-
-        // ignore stale errors if newer request exists
-        if (reqId !== latestRequestId.current) {
-          console.debug("[EmployeeTypeahead] ignoring stale error", {
-            reqId,
-            latest: latestRequestId.current,
-          });
-          return;
+        if (mountedRef.current && reqId === latestRequestId.current) {
+          setSuggestions(items.slice(0, limit));
+          setTotalMatches(
+            typeof data.total === "number" ? data.total : items.length
+          );
+          setOpen(items.length > 0);
+          setErrorText("");
         }
-
-        // Detect common failures and give helpful message
+      } catch (err) {
+        if (!mountedRef.current) return;
+        if (reqId !== latestRequestId.current) return; // stale
+        const msg = err && err.message ? String(err.message) : "Unknown error";
         if (
           msg.toLowerCase().includes("cors") ||
           msg.toLowerCase().includes("failed to fetch") ||
@@ -181,21 +195,17 @@ export default function EmployeeTypeahead({
           setErrorText(
             "Network/CORS error — check server CORS and getApiBase()."
           );
+        } else if (err && err.response && err.response.status) {
+          setErrorText(`Server returned ${err.response.status}`);
         } else {
-          // server responded with error - try to extract status
-          if (err && err.response && err.response.status) {
-            setErrorText(`Server returned ${err.response.status}`);
-          } else {
-            setErrorText(msg);
-          }
+          setErrorText(msg);
         }
-
         setSuggestions([]);
         setTotalMatches(0);
         setOpen(false);
       } finally {
-        // only clear loading if this is the latest request
-        if (reqId === latestRequestId.current) setLoading(false);
+        if (mountedRef.current && reqId === latestRequestId.current)
+          setLoading(false);
         debRef.current = null;
       }
     }, debounceMs);
@@ -205,32 +215,30 @@ export default function EmployeeTypeahead({
         clearTimeout(debRef.current);
         debRef.current = null;
       }
-      // do NOT cancel inflight requests — we rely on requestId ignoring stale responses
     };
   }, [query, limit, departmentId, debounceMs, minChars, employeeId]);
 
   function handleSelect(item) {
     const name = item.employee_name || item.name || item.email || "";
-    // reset UI and mark query
-    setSuggestions([]);
-    setTotalMatches(0);
-    setQuery(name);
-    setOpen(false);
+    if (mountedRef.current) {
+      setSuggestions([]);
+      setTotalMatches(0);
+      setQuery(name);
+      setOpen(false);
+    }
     try {
       onSelect(item);
     } catch (e) {}
-    // focus back
     setTimeout(() => {
       try {
-        if (inputRef.current) {
-          inputRef.current.focus();
-          const len = inputRef.current.value
-            ? inputRef.current.value.length
-            : 0;
-          inputRef.current.setSelectionRange(len, len);
+        const input = inputRef && inputRef.current;
+        if (input && typeof input.focus === "function") input.focus();
+        if (input && typeof input.setSelectionRange === "function") {
+          const len = input.value ? input.value.length : 0;
+          input.setSelectionRange(len, len);
         }
       } catch (e) {}
-    }, 40);
+    }, 30);
   }
 
   function handleClear() {
@@ -238,13 +246,14 @@ export default function EmployeeTypeahead({
       clearTimeout(debRef.current);
       debRef.current = null;
     }
-    // increment latestRequestId to ignore any inflight responses
     latestRequestId.current++;
-    setQuery("");
-    setSuggestions([]);
-    setTotalMatches(0);
-    setOpen(false);
-    setErrorText("");
+    if (mountedRef.current) {
+      setQuery("");
+      setSuggestions([]);
+      setTotalMatches(0);
+      setOpen(false);
+      setErrorText("");
+    }
     try {
       onClear();
     } catch (e) {}
@@ -269,7 +278,6 @@ export default function EmployeeTypeahead({
         autoComplete="off"
         style={{ width: "100%" }}
       />
-
       {loading && (
         <span
           className="typeahead-spinner"
@@ -279,7 +287,6 @@ export default function EmployeeTypeahead({
           <span className="rp-spinner" />
         </span>
       )}
-
       {query && !loading && (
         <button
           type="button"
@@ -300,13 +307,11 @@ export default function EmployeeTypeahead({
           <MdClose size={16} />
         </button>
       )}
-
       {errorText && (
         <div style={{ color: "crimson", fontSize: 12, marginTop: 6 }}>
           {errorText}
         </div>
       )}
-
       {open && (suggestions.length > 0 || totalMatches > 0) && (
         <div
           className="typeahead-dropdown"

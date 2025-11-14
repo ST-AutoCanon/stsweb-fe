@@ -22,9 +22,61 @@ import {
 } from "./ReportConstants";
 
 /**
- * Helper: try to detect user role & department id from localStorage using multiple common keys.
- * This keeps the component robust across projects that store user info under different keys.
+ * Try to extract a plain employee id from localStorage dashboardData.
+ * Handles cases where dashboardData is a JSON string or a plain id or contains an STSxxx id.
  */
+function extractEmployeeIdFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem("dashboardData");
+    if (!raw) return null;
+    const trimmed = String(raw).trim();
+
+    // If it looks like JSON, parse and extract common keys
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        const obj = JSON.parse(trimmed);
+        return (
+          obj.employeeId ||
+          obj.employee_id ||
+          obj.employee ||
+          obj.id ||
+          // some payloads use camelCase or different keys
+          obj.employeeId ||
+          null
+        );
+      } catch (e) {
+        // fall through to pattern match
+      }
+    }
+
+    // Try to parse even if not starting with { (defensive)
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === "object") {
+        return (
+          parsed.employeeId ||
+          parsed.employee_id ||
+          parsed.employee ||
+          parsed.id ||
+          null
+        );
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // If the string contains an STS-style id, extract it
+    const m = trimmed.match(/(STS[0-9A-Za-z-_]+)/);
+    if (m) return m[1];
+
+    // Otherwise assume the stored value is the id itself
+    return trimmed;
+  } catch (e) {
+    // fallback to raw value if anything goes wrong
+    return localStorage.getItem("dashboardData") || null;
+  }
+}
+
 const inferUserRoleAndDepartment = () => {
   try {
     const tryKeys = (keys) => {
@@ -73,7 +125,6 @@ const inferUserRoleAndDepartment = () => {
       }
     };
 
-    // common single-value keys
     const singleKeys = [
       "dashboardRole",
       "dashboard_role",
@@ -101,22 +152,68 @@ const inferUserRoleAndDepartment = () => {
     ];
     const multiTry = tryKeys(multiKeys);
     if (multiTry) return multiTry;
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) {}
   return { role: null, departmentId: null };
 };
 
-/**
- * FORMAT DATE (local) helper
- * Returns YYYY-MM-DD based on user's local timezone (avoids UTC shift from toISOString).
- */
 function formatDateLocal(d) {
   if (!d || !(d instanceof Date)) return "";
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function inferManagerDeptFromDepartmentsArray(deptRows, employeeId) {
+  if (!Array.isArray(deptRows) || !employeeId) return null;
+  for (const d of deptRows) {
+    const mgrCandidates = [
+      d.manager_employee_id,
+      d.managerId,
+      d.manager_employeeid,
+      d.manager_employee,
+      d.manager_id,
+      d.manager,
+    ];
+    for (const mgr of mgrCandidates) {
+      if (!mgr) continue;
+      const mgrId =
+        typeof mgr === "object"
+          ? mgr.employee_id || mgr.id || mgr.manager_employee_id || null
+          : mgr;
+      if (mgrId && String(mgrId) === String(employeeId)) {
+        const id = d.department_id ?? d.id ?? d.departmentId ?? d._id ?? null;
+        if (id) return String(id);
+        break;
+      }
+    }
+
+    if (Array.isArray(d.employees) && d.employees.length) {
+      const foundMem = d.employees.find((m) => {
+        const mid = m.employee_id ?? m.id ?? m._id ?? null;
+        if (!mid) return false;
+        return String(mid) === String(employeeId);
+      });
+      if (foundMem) {
+        const id = d.department_id ?? d.id ?? d.departmentId ?? d._id ?? null;
+        if (id) return String(id);
+      }
+    }
+
+    // nested manager object
+    if (d.manager && typeof d.manager === "object") {
+      const nestedMgrId =
+        d.manager.employee_id ||
+        d.manager.id ||
+        (d.manager.employee &&
+          (d.manager.employee.id || d.manager.employee.employee_id));
+      if (nestedMgrId && String(nestedMgrId) === String(employeeId)) {
+        const id = d.department_id ?? d.id ?? d.departmentId ?? d._id ?? null;
+        if (id) return String(id);
+      }
+    }
+  }
+  return null;
 }
 
 export default function ReportPanel() {
@@ -136,9 +233,8 @@ export default function ReportPanel() {
   const [previewPage, setPreviewPage] = useState(1);
   const [previewMessage, setPreviewMessage] = useState("");
 
-  const employeeId = localStorage.getItem("dashboardData");
+  const employeeId = extractEmployeeIdFromLocalStorage();
 
-  // Try to infer user role/department from localStorage
   const inferred = inferUserRoleAndDepartment();
   const [userRole] = useState(
     (inferred.role && String(inferred.role).trim()) || null
@@ -147,7 +243,6 @@ export default function ReportPanel() {
     inferred.departmentId ? String(inferred.departmentId) : null
   );
 
-  // decide if this user is considered a "Team" manager/supervisor role
   const isTeamRole = Boolean(
     userRole &&
       String(userRole).toLowerCase &&
@@ -173,8 +268,6 @@ export default function ReportPanel() {
     message: "",
   });
 
-  // If user is team role and a department id was found in localStorage, use it.
-  // If not, we will attempt to derive it after departments fetch by matching employee id.
   useEffect(() => {
     if (isTeamRole && managerDepartmentIdRaw) {
       setFilterDepartmentId(managerDepartmentIdRaw);
@@ -265,28 +358,33 @@ export default function ReportPanel() {
         else rows = [];
         setDepartments(rows);
 
-        // If team role but no managerDepartmentIdRaw, try to infer from employeeId by searching departments
         if (
           isTeamRole &&
           !managerDepartmentIdRaw &&
           employeeId &&
           rows.length
         ) {
-          // Many APIs include employee lists or mapping, but we don't have that here.
-          // As a fallback, if any department entry has a manager_employee_id matching employeeId, use it.
-          const found = rows.find((d) => {
-            const mgr =
-              d.manager_employee_id ??
-              d.managerId ??
-              d.manager_employeeid ??
-              d.manager_employee;
-            if (!mgr) return false;
-            return String(mgr) === String(employeeId);
-          });
-          if (found) {
-            const id =
-              found.department_id ?? found.id ?? found.departmentId ?? null;
-            if (id) setFilterDepartmentId(String(id));
+          const inferredId = inferManagerDeptFromDepartmentsArray(
+            rows,
+            employeeId
+          );
+          if (inferredId) {
+            setFilterDepartmentId(String(inferredId));
+          } else {
+            const found = rows.find((d) => {
+              const mgr =
+                d.manager_employee_id ??
+                d.managerId ??
+                d.manager_employeeid ??
+                d.manager_employee;
+              if (!mgr) return false;
+              return String(mgr) === String(employeeId);
+            });
+            if (found) {
+              const id =
+                found.department_id ?? found.id ?? found.departmentId ?? null;
+              if (id) setFilterDepartmentId(String(id));
+            }
           }
         }
       })
@@ -303,7 +401,6 @@ export default function ReportPanel() {
   }, [employeeId, isTeamRole, managerDepartmentIdRaw]);
 
   useEffect(() => {
-    // When component changes we reset component-specific state.
     if (!component || component === "select") {
       setStatusOptions([]);
       setStatus("All");
@@ -315,7 +412,6 @@ export default function ReportPanel() {
       setPreviewMessage("");
       setFilterEmployeeId(null);
       setFilterEmployeeName("");
-      // If this is a team role, keep the forced department; otherwise clear it.
       if (!isTeamRole) setFilterDepartmentId(null);
       setIsTypingSearch(false);
       return;
@@ -324,8 +420,6 @@ export default function ReportPanel() {
     setStatusOptions(STATUS_OPTIONS[component] || ["All"]);
     setStatus("All");
 
-    // Build available fields. For vendors we remove employee/department-related fields from fields grid,
-    // and we clear employee/department filters so vendors fetch will return all vendors.
     const subs = SUB_OPTIONS[component] || [];
     let subsFiltered = subs;
     if (component === "vendors") {
@@ -335,7 +429,6 @@ export default function ReportPanel() {
           s.key !== "department_name" &&
           s.key !== "department_id"
       );
-      // Clear employee/department filters when switching to vendors (they should not be applied).
       setFilterEmployeeId(null);
       setFilterEmployeeName("");
       setFilterDepartmentId(null);
@@ -348,22 +441,23 @@ export default function ReportPanel() {
     setPreviewError("");
     setPreviewMessage("");
 
-    // For employees/attendance components and team roles, force department filter to manager's department.
     if (
       isTeamRole &&
       (component === "attendance" || component === "employees")
     ) {
-      // If we already have manager's dept from localStorage or inference, use it,
-      // otherwise leave it to departments fetch effect to attempt inference.
       if (managerDepartmentIdRaw) {
         setFilterDepartmentId(managerDepartmentIdRaw);
+      } else {
+        const inferredId = inferManagerDeptFromDepartmentsArray(
+          departments,
+          employeeId
+        );
+        if (inferredId) setFilterDepartmentId(inferredId);
       }
     } else if (!isTeamRole) {
-      // not team role: reset department selection when component changes
       setFilterDepartmentId(null);
     }
 
-    // Always clear employee selection when component changes (unless vendors - already cleared above)
     if (component !== "vendors") {
       setFilterEmployeeId(null);
       setFilterEmployeeName("");
@@ -435,6 +529,42 @@ export default function ReportPanel() {
     return comp;
   };
 
+  // compute an effective manager dept id to use everywhere (typeahead + buildParams)
+  const effectiveManagerDepartmentId = (() => {
+    // priority: explicit user selection > filterDepartmentId state > managerDepartmentIdRaw > infer from departments
+    if (!isTeamRole) return filterDepartmentId;
+    return (
+      filterDepartmentId ||
+      managerDepartmentIdRaw ||
+      inferManagerDeptFromDepartmentsArray(departments, employeeId) ||
+      null
+    );
+  })();
+
+  const onTypeStart = useCallback((typing) => setIsTypingSearch(typing), []);
+  const onEmployeeSelect = useCallback((item) => {
+    setFilterEmployeeId(item.employee_id || item.id || null);
+    setFilterEmployeeName(item.employee_name || item.name || item.email || "");
+    if (item.department_id) setFilterDepartmentId(item.department_id);
+    setIsTypingSearch(false);
+  }, []);
+  const onEmployeeClear = useCallback(() => {
+    setFilterEmployeeId(null);
+    setFilterEmployeeName("");
+  }, []);
+  const onDepartmentChange = useCallback((ev) => {
+    const val = ev.target.value;
+    const v = val === "" ? null : val;
+    setFilterDepartmentId(v);
+    setFilterEmployeeId(null);
+    setFilterEmployeeName("");
+  }, []);
+  const onDepartmentSelectFromDropdown = useCallback((dept) => {
+    setFilterDepartmentId(dept ? String(dept.department_id) : null);
+    setFilterEmployeeId(null);
+    setFilterEmployeeName("");
+  }, []);
+
   const buildParams = ({ includeFormat = false, preview = false } = {}) => {
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
@@ -442,16 +572,33 @@ export default function ReportPanel() {
     const st =
       status === undefined || status === null ? "" : String(status).trim();
     params.append("status", st);
-    if (selectedFields && selectedFields.length > 0)
-      params.append("fields", selectedFields.join(","));
+
+    // Add preview flag early (so server sees it's a preview)
+    if (preview) params.append("preview", "true");
+
+    // SAFETY: For preview requests we intentionally DO NOT send 'fields' to avoid huge query strings.
+    // For downloads, we send fields but cap the number of fields included for transport.
+    const MAX_CLIENT_FIELDS_SEND = 60; // change if you want to allow more fields to be sent
+    if (!preview) {
+      if (selectedFields && selectedFields.length > 0) {
+        let fieldsToSend = selectedFields;
+        if (selectedFields.length > MAX_CLIENT_FIELDS_SEND) {
+          console.warn(
+            `[ReportPanel] selectedFields length (${selectedFields.length}) exceeds MAX_CLIENT_FIELDS_SEND (${MAX_CLIENT_FIELDS_SEND}). Truncating for network transport.`
+          );
+          fieldsToSend = selectedFields.slice(0, MAX_CLIENT_FIELDS_SEND);
+        }
+        params.append("fields", fieldsToSend.join(","));
+      }
+    }
 
     // IMPORTANT: For vendors we must NOT send employee/department scoping.
     if (component !== "vendors") {
       if (filterEmployeeId) params.append("employee_id", filterEmployeeId);
 
-      // If user is a team role and we have a manager department, always include it.
+      // Always try to include manager's department for team roles using the effective id
       if (isTeamRole) {
-        const deptToSend = filterDepartmentId || managerDepartmentIdRaw || "";
+        const deptToSend = effectiveManagerDepartmentId || "";
         if (deptToSend) params.append("department_id", deptToSend);
       } else {
         if (filterDepartmentId)
@@ -459,7 +606,6 @@ export default function ReportPanel() {
       }
     }
 
-    if (preview) params.append("preview", "true");
     if (includeFormat) params.append("format", "xlsx");
     return params.toString();
   };
@@ -506,7 +652,18 @@ export default function ReportPanel() {
         showAlert("Invalid component selected");
         return;
       }
+
+      // build params for download — we include a capped fields list for transport
       const paramString = buildParams({ includeFormat: false, preview: false });
+
+      // debug log to confirm department id sent
+      console.debug(
+        "[ReportPanel] download -> effectiveManagerDepartmentId:",
+        effectiveManagerDepartmentId
+      );
+      console.debug("[ReportPanel] download -> paramString:", paramString);
+
+      // attach format explicitly (keeps previous behavior)
       const url = `${base}/api/report/${endpoint}?${paramString}${
         paramString ? "&" : ""
       }format=${encodeURIComponent(format)}`;
@@ -594,9 +751,17 @@ export default function ReportPanel() {
         showAlert("Invalid component selected");
         return;
       }
-      const url = `${base}/api/report/${endpoint}?${buildParams({
-        preview: true,
-      })}`;
+
+      // build params for preview — NOTE: fields are intentionally NOT sent here
+      const paramString = buildParams({ preview: true });
+      // debug: show the final query string sent to backend
+      console.debug(
+        "[ReportPanel] preview -> effectiveManagerDepartmentId:",
+        effectiveManagerDepartmentId
+      );
+      console.debug("[ReportPanel] preview -> paramString:", paramString);
+
+      const url = `${base}/api/report/${endpoint}?${paramString}`;
 
       const res = await axios.get(url, {
         headers: {
@@ -640,6 +805,12 @@ export default function ReportPanel() {
       } else {
         setPreviewMessage("");
       }
+
+      if (rows.length > MAX_PREVIEW_ROWS) {
+        setPreviewError(
+          `Preview shows first ${MAX_PREVIEW_ROWS} rows. Server returned ${rows.length} rows.`
+        );
+      }
     } catch (err) {
       console.error("Preview error:", err);
       const msg = await getErrorMessageFromAxiosError(err);
@@ -656,31 +827,6 @@ export default function ReportPanel() {
   const keyToLabel = {};
   availableFields.forEach((f) => (keyToLabel[f.key] = f.label));
   const componentIsSelected = component && component !== "select";
-
-  // Typeahead callbacks
-  const onTypeStart = useCallback((typing) => setIsTypingSearch(typing), []);
-  const onEmployeeSelect = useCallback((item) => {
-    setFilterEmployeeId(item.employee_id || item.id || null);
-    setFilterEmployeeName(item.employee_name || item.name || item.email || "");
-    if (item.department_id) setFilterDepartmentId(item.department_id);
-    setIsTypingSearch(false);
-  }, []);
-  const onEmployeeClear = useCallback(() => {
-    setFilterEmployeeId(null);
-    setFilterEmployeeName("");
-  }, []);
-  const onDepartmentChange = useCallback((ev) => {
-    const val = ev.target.value;
-    const v = val === "" ? null : val;
-    setFilterDepartmentId(v);
-    setFilterEmployeeId(null);
-    setFilterEmployeeName("");
-  }, []);
-  const onDepartmentSelectFromDropdown = useCallback((dept) => {
-    setFilterDepartmentId(dept ? String(dept.department_id) : null);
-    setFilterEmployeeId(null);
-    setFilterEmployeeName("");
-  }, []);
 
   // pagination helpers
   const totalPages = Math.max(
@@ -861,11 +1007,9 @@ export default function ReportPanel() {
                 onSelect={onEmployeeSelect}
                 onTyping={onTypeStart}
                 onClear={onEmployeeClear}
-                // If Team role, restrict to manager department (force)
+                // Force department scoping for team roles using effectiveManagerDepartmentId
                 departmentId={
-                  isTeamRole
-                    ? filterDepartmentId || managerDepartmentIdRaw
-                    : filterDepartmentId
+                  isTeamRole ? effectiveManagerDepartmentId : filterDepartmentId
                 }
                 limit={10}
                 selectedValue={filterEmployeeName}
