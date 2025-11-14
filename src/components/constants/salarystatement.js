@@ -16,10 +16,10 @@ export const VALID_SALARY_HEADERS = [
   "ESIC",
   "Gratuity",
   "Professional Tax",
-  "Income Tax",
+  "TDS",
   "Insurance",
   "LOP Days",
   "LOP Deduction",
   "Gross Salary",
-  "Net Salary"
+  "Net Salary",
 ];

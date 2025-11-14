@@ -30,7 +30,7 @@ export const STATUS_OPTIONS = {
     "Completed",
     "Yet to Start",
     "In Progress",
-    "On Hold",
+    "on hold",
   ],
   // <--- UPDATED: employee-driven tasks now only expose these status options
   tasks_employee: ["All", "Completed", "Not started", "Working"],
