@@ -1033,7 +1033,7 @@
   .week-task-week-navigation {
     justify-content: space-between;
     width: 100%;
-    gap: 6px;
+    gap: 1spx;
   }
 
   .week-task-nav-button-task {

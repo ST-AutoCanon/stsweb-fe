@@ -383,9 +383,9 @@ const TaskManagementHR = () => {
       {mainTab === "Task Board" && (
         <>
           <div className="task-hr-board-subheader">
-            <button className="assign-task-hr-btn" disabled>
+            {/* <button className="assign-task-hr-btn" disabled>
               Assign Task
-            </button>
+            </button> */}
           </div>
 
           {error && <div className="task-hr-error-message">{error}</div>}
