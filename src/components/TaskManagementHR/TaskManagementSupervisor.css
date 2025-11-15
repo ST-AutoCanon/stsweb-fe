@@ -478,7 +478,135 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
-
+/* --------------------------------------------------------------
+   FREEZE-DAYS MODAL – identical to Task-Management view
+   -------------------------------------------------------------- */
+.task-management-freeze-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.task-management-freeze-modal {
+  background: #fff;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.2);
+  overflow: hidden;
+}
+.task-management-freeze-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: #f9f9f9;
+  border-bottom: 1px solid #eee;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+.task-management-freeze-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #777;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background .2s, color .2s;
+}
+.task-management-freeze-modal-close:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+.task-management-freeze-modal-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.task-management-freeze-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.task-management-freeze-input-group label {
+  font-size: .9rem;
+  color: #444;
+}
+.task-management-freeze-input-group input[type="number"] {
+  padding: .65rem .9rem;
+  font-size: .95rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  transition: border-color .2s, box-shadow .2s;
+}
+.task-management-freeze-input-group input[type="number"]:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40,167,69,.2);
+}
+.task-management-freeze-input-group input[type="number"]:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+.task-management-freeze-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  padding: 1rem 1.5rem;
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+.task-management-freeze-modal-footer button {
+  min-width: 80px;
+  padding: .55rem 1rem;
+  font-size: .9rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.task-management-freeze-modal-footer button:first-child {
+  background: #ccc;
+  color: #333;
+}
+.task-management-freeze-modal-footer button:first-child:hover:not(:disabled) {
+  background: #b0b0b0;
+}
+.task-management-freeze-modal-footer button:last-child {
+  background: #28a745;
+  color: #fff;
+}
+.task-management-freeze-modal-footer button:last-child:hover:not(:disabled) {
+  background: #218838;
+}
+.task-management-freeze-modal-footer button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+@media (max-width: 480px) {
+  .task-management-freeze-modal {
+    width: 95%;
+  }
+  .task-management-freeze-modal-header,
+  .task-management-freeze-modal-content,
+  .task-management-freeze-modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
 @media (max-width: 768px) {
   .task-management-config-button {
     padding: 6px 12px;
