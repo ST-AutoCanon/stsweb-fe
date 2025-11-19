@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/CompensationPopup.js
 import React, { useEffect, useRef, useState } from "react";
 import "./CompensationPopup.css";
 
@@ -134,7 +133,10 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="comp-popup-title"
-      onMouseDown={close}
+      onMouseDown={() => {
+        // don't close while an action is running
+        if (!anyRunning) close();
+      }}
     >
       <div
         className="comp-card"

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -16,8 +15,8 @@ import {
 import "./TotalsContainer.css";
 import {
   calculateSalaryDetails,
-  parseWorkDate,
-} from "../../../utils/SalaryCalculations.js"; // Adjust path if needed
+  parseApplicableMonth,
+} from "../../../utils/SalaryCalculations.js"; // Adjusted import (removed parseWorkDate as it's no longer used)
 import { calculateLOPEffect } from "../../../utils/lopCalculations.js"; // Adjust path if needed
 import { calculateIncentives } from "../../../utils/IncentiveUtils.js"; // Adjust path if needed
 
@@ -35,10 +34,72 @@ const TotalsContainer = () => {
     totalLopDeduction: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
-
   const API_KEY = process.env.REACT_APP_API_KEY;
   const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
   const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+
+  // Helper function to calculate monthly bonus pay (copied from SalaryDetails)
+  const calculateMonthlyBonusPay = (empCtc, bonusRecords) => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const monthlyCTC = parseFloat(empCtc) / 12;
+
+    const monthlyBonuses = bonusRecords.filter((bonus) => {
+      const date = parseApplicableMonth(bonus.applicable_month);
+      return (
+        date &&
+        date.getFullYear() === currentYear &&
+        (date.getMonth() + 1).toString().padStart(2, '0') === currentMonthStr
+      );
+    });
+
+    return monthlyBonuses.reduce((sum, bonus) => {
+      let bonusAmount = 0;
+      if (bonus.fixed_amount && !isNaN(parseFloat(bonus.fixed_amount))) {
+        bonusAmount = parseFloat(bonus.fixed_amount);
+      } else if (bonus.percentage_ctc && !isNaN(parseFloat(bonus.percentage_ctc))) {
+        bonusAmount = (parseFloat(bonus.percentage_ctc) / 100) * parseFloat(empCtc || 0);
+      } else if (bonus.percentage_monthly_salary && !isNaN(parseFloat(bonus.percentage_monthly_salary))) {
+        bonusAmount = parseFloat(bonus.percentage_monthly_salary) * monthlyCTC;
+      }
+      return sum + bonusAmount;
+    }, 0);
+  };
+
+  // Helper to calculate local gross and net for an employee (copied from SalaryDetails)
+  const calculateLocalGrossNet = (salaryDetails, monthlyBonusPay, lopDeduction, planData) => {
+    if (!salaryDetails) {
+      return { localGross: 0, localNet: 0 };
+    }
+    const monthlyEarningsSum = [
+      salaryDetails.basicSalary || 0,
+      salaryDetails.hra || 0,
+      salaryDetails.ltaAllowance || 0,
+      salaryDetails.otherAllowances || 0,
+      salaryDetails.incentivePay || 0,
+      salaryDetails.overtimePay || 0,
+      salaryDetails.statutoryBonus || 0,
+      monthlyBonusPay
+    ].reduce((sum, val) => sum + parseFloat(val || 0), 0);
+
+    let monthlyDeductionsSum = 0;
+    monthlyDeductionsSum += parseFloat(salaryDetails.advanceRecovery || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.employeePF || 0);
+    if (planData.pfEmployerIncludeInCtc !== false) {
+      monthlyDeductionsSum += parseFloat(salaryDetails.employerPF || 0);
+    }
+    monthlyDeductionsSum += parseFloat(salaryDetails.esic || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.gratuity || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.professionalTax || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.tds || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.insurance || 0);
+    monthlyDeductionsSum += lopDeduction;
+
+    const localGross = monthlyEarningsSum;
+    const localNet = localGross - monthlyDeductionsSum;
+    return { localGross, localNet };
+  };
 
   useEffect(() => {
     const fetchTotalsData = async () => {
@@ -47,16 +108,13 @@ const TotalsContainer = () => {
         BASE_URL: process.env.REACT_APP_BACKEND_URL,
         meId,
       });
-
       if (!process.env.REACT_APP_API_KEY || !meId) {
         console.error("Missing credentials: API_KEY or meId");
         setIsLoading(false);
         return;
       }
-
       const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
       console.log("Fetching data with headers:", headers);
-
       try {
         setIsLoading(true);
         const [
@@ -87,7 +145,6 @@ const TotalsContainer = () => {
             throw err;
           }),
         ]);
-
         console.log("API Responses:", {
           compensations: compensationsRes.data,
           employees: employeesRes.data,
@@ -95,12 +152,10 @@ const TotalsContainer = () => {
           overtime: overtimeRes.data,
           bonus: bonusRes.data,
         });
-
         const compensationMap = new Map();
         (compensationsRes.data.data || []).forEach((comp) => {
           compensationMap.set(comp.compensation_plan_name, comp.plan_data);
         });
-
         const enrichedEmployeesMap = new Map();
         (employeesRes.data.data || []).forEach((emp) => {
           if (!enrichedEmployeesMap.has(emp.employee_id)) {
@@ -113,11 +168,9 @@ const TotalsContainer = () => {
           }
         });
         const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
-
         const advances = advancesRes.data.data || [];
         const overtimeRecords = overtimeRes.data.data || [];
         const bonusRecords = bonusRes.data.data || [];
-
         const lopDataPromises = enrichedEmployees.map((emp) =>
           calculateLOPEffect(emp.employee_id)
             .then((result) => ({
@@ -137,13 +190,11 @@ const TotalsContainer = () => {
               };
             })
         );
-
         const lopDataResults = await Promise.all(lopDataPromises);
         const lopDataMap = lopDataResults.reduce((acc, { employeeId, lopData }) => {
           acc[employeeId] = lopData;
           return acc;
         }, {});
-
         const incentiveDataPromises = enrichedEmployees.map((emp) =>
           calculateIncentives(emp.employee_id)
             .then((result) => ({
@@ -162,7 +213,6 @@ const TotalsContainer = () => {
               };
             })
         );
-
         const incentiveDataResults = await Promise.all(incentiveDataPromises);
         const incentiveDataMap = incentiveDataResults.reduce(
           (acc, { employeeId, incentiveData }) => {
@@ -174,17 +224,7 @@ const TotalsContainer = () => {
           },
           {}
         );
-
         // Compute totals
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonthNum = currentDate.getMonth() + 1;
-        const currentMonthStr = String(currentMonthNum).padStart(2, '0');
-        const currentYm = `${currentYear}-${currentMonthStr}`;
-        const lastMonthIndex = currentMonthNum - 2;
-        const startWorkDate = new Date(currentYear, lastMonthIndex, 25);
-        const endWorkDate = new Date(currentYear, currentMonthNum - 1, 25);
-
         let totalGross = 0;
         let totalPayable = 0;
         let totalTDS = 0;
@@ -195,7 +235,6 @@ const TotalsContainer = () => {
         let totalEmployerPF = 0;
         let totalInsurance = 0;
         let totalLopDeduction = 0;
-
         enrichedEmployees.forEach((emp) => {
           const salaryDetails = calculateSalaryDetails(
             emp.ctc,
@@ -219,87 +258,45 @@ const TotalsContainer = () => {
               nextMonth: { days: 0, value: '0.00', currency: 'INR' },
               yearly: { days: 0, value: '0.00', currency: 'INR' },
             };
-
-          const lopDays = lopData.yearly ? lopData.yearly.days : 0;
           const lopDeduction = parseFloat(lopData.yearly ? lopData.yearly.value : '0');
-
-          // Calculate incentive for this employee
-          const empId = String(emp.employee_id).toUpperCase();
-          const incentiveObj = incentiveDataMap[empId];
-          let incentiveValue = 0;
-          if (incentiveObj && incentiveObj.incentives) {
-            const currentMonthIncentives = incentiveObj.incentives.filter((inc) => inc.applicable_month === currentYm);
-            incentiveValue = currentMonthIncentives.reduce((sum, inc) => sum + parseFloat(inc.value || 0), 0);
-          }
-
-          // Calculate overtime for this employee
-          const employeeOvertime = overtimeRecords.filter((ot) => {
-            const workDate = parseWorkDate(ot.work_date);
-            const createdDate = parseWorkDate(ot.created_at);
-            return (
-              ot.employee_id === emp.employee_id &&
-              ot.status === 'Approved' &&
-              workDate &&
-              workDate >= startWorkDate &&
-              workDate <= endWorkDate &&
-              createdDate &&
-              createdDate.getFullYear() === currentYear &&
-              String(createdDate.getMonth() + 1).padStart(2, '0') === currentMonthStr
-            );
-          });
-
-          let totalOvertimePay = 0;
-          if (employeeOvertime.length > 0) {
-            totalOvertimePay = employeeOvertime.reduce((sum, ot) => {
-              const hours = parseFloat(ot.extra_hours);
-              let rate = parseFloat(ot.rate);
-              if (isNaN(rate) || rate <= 0) {
-                if (
-                  emp.plan_data.isOvertimePay &&
-                  emp.plan_data.overtimePayAmount &&
-                  !isNaN(parseFloat(emp.plan_data.overtimePayAmount))
-                ) {
-                  rate = parseFloat(emp.plan_data.overtimePayAmount);
-                } else {
-                  rate = 500; // Fallback default rate
-                }
-              }
-              return isNaN(hours) || hours <= 0 ? sum : sum + (hours * rate);
-            }, 0);
-          }
-
-          // Compute gross and net
-          const basicSalary = salaryDetails ? parseFloat(salaryDetails.basicSalary) : 0;
-          const hra = salaryDetails ? parseFloat(salaryDetails.hra) : 0;
-          const ltaAllowance = salaryDetails ? parseFloat(salaryDetails.ltaAllowance) : 0;
-          const otherAllowances = salaryDetails ? parseFloat(salaryDetails.otherAllowances) : 0;
-          const statutoryBonus = salaryDetails ? parseFloat(salaryDetails.statutoryBonus) : 0;
-          const recordBonusPay = salaryDetails ? parseFloat(salaryDetails.recordBonusPay) : 0;
-          const grossSalary = basicSalary + hra + ltaAllowance + otherAllowances + statutoryBonus + recordBonusPay + incentiveValue + totalOvertimePay;
-
+          // Calculate monthly bonus pay
+          const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
+          // Calculate local gross and net (aligned with SalaryDetails)
+          const { localGross, localNet } = calculateLocalGrossNet(salaryDetails, monthlyBonusPay, lopDeduction, emp.plan_data);
+          const netSalary = localNet > 0 ? localNet : 0;
+          // Extract components for other totals
           const advanceRecovery = salaryDetails ? parseFloat(salaryDetails.advanceRecovery) : 0;
           const employeePF = salaryDetails ? parseFloat(salaryDetails.employeePF) : 0;
+          const employerPF = salaryDetails ? parseFloat(salaryDetails.employerPF) : 0;
           const esic = salaryDetails ? parseFloat(salaryDetails.esic) : 0;
           const gratuity = salaryDetails ? parseFloat(salaryDetails.gratuity) : 0;
           const professionalTax = salaryDetails ? parseFloat(salaryDetails.professionalTax) : 0;
           const tds = salaryDetails ? parseFloat(salaryDetails.tds) : 0;
           const insurance = salaryDetails ? parseFloat(salaryDetails.insurance) : 0;
-          const totalDeductions = advanceRecovery + employeePF + esic + gratuity + professionalTax + tds + insurance + lopDeduction;
-          const netSalary = grossSalary - totalDeductions;
-
+          const overtimePay = salaryDetails ? parseFloat(salaryDetails.overtimePay) : 0;
+          // Round to 2 decimal places to avoid precision issues
+          const roundedGross = Math.round(localGross * 100) / 100;
+          const roundedPayable = Math.round(netSalary * 100) / 100;
+          const roundedTDS = Math.round(tds * 100) / 100;
+          const roundedAdvance = Math.round(advanceRecovery * 100) / 100;
+          const roundedOvertime = Math.round(overtimePay * 100) / 100;
+          const roundedBonus = Math.round(monthlyBonusPay * 100) / 100;
+          const roundedEmployeePF = Math.round(employeePF * 100) / 100;
+          const roundedEmployerPF = Math.round(employerPF * 100) / 100;
+          const roundedInsurance = Math.round(insurance * 100) / 100;
+          const roundedLopDeduction = Math.round(lopDeduction * 100) / 100;
           // Accumulate totals
-          totalGross += grossSalary;
-          totalPayable += netSalary;
-          totalTDS += tds;
-          totalAdvance += advanceRecovery;
-          totalOvertime += totalOvertimePay;
-          totalBonus += recordBonusPay;
-          totalEmployeePF += employeePF;
-          totalEmployerPF += salaryDetails ? parseFloat(salaryDetails.employerPF) : 0;
-          totalInsurance += insurance;
-          totalLopDeduction += lopDeduction;
+          totalGross += roundedGross;
+          totalPayable += roundedPayable;
+          totalTDS += roundedTDS;
+          totalAdvance += roundedAdvance;
+          totalOvertime += roundedOvertime;
+          totalBonus += roundedBonus;
+          totalEmployeePF += roundedEmployeePF;
+          totalEmployerPF += roundedEmployerPF;
+          totalInsurance += roundedInsurance;
+          totalLopDeduction += roundedLopDeduction;
         });
-
         setTotals({
           totalPayable,
           totalGross,
@@ -318,18 +315,22 @@ const TotalsContainer = () => {
         setIsLoading(false);
       }
     };
-
     fetchTotalsData();
   }, []);
+
+  // Helper to format currency (round to 2 decimals and locale string)
+  const formatCurrency = (value) => {
+    const rounded = Math.round(value * 100) / 100;
+    return rounded.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+  };
 
   if (isLoading) {
     return <div className="sb-loading">Loading totals...</div>;
   }
-
   return (
     <div className="sb-totals-container">
       <h2 className="sb-totals-total-payroll">
-        Total Payroll: ₹{(totals.totalPayable).toLocaleString()}
+        Total Payroll: ₹{formatCurrency(totals.totalPayable)}
       </h2>
       <div className="sb-totals-grid">
         <div className="sb-totals-card sb-payable">
@@ -337,7 +338,7 @@ const TotalsContainer = () => {
           <div>
             <span className="sb-totals-card-title">Total Payable</span>
             <span className="sb-totals-card-value">
-              ₹{totals.totalPayable.toLocaleString()}
+              ₹{formatCurrency(totals.totalPayable)}
             </span>
           </div>
         </div>
@@ -345,63 +346,63 @@ const TotalsContainer = () => {
           <FaChartLine className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total Gross</span>
-            <span className="sb-totals-card-value">₹{totals.totalGross.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalGross)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-tds">
           <FaMoneyCheckAlt className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total TDS</span>
-            <span className="sb-totals-card-value">₹{totals.totalTDS.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalTDS)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-advance">
           <FaHandHoldingUsd className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total Advance</span>
-            <span className="sb-totals-card-value">₹{totals.totalAdvance.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalAdvance)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-overtime">
           <FaClock className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total Overtime</span>
-            <span className="sb-totals-card-value">₹{totals.totalOvertime.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalOvertime)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-bonus">
           <FaGift className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total Bonus</span>
-            <span className="sb-totals-card-value">₹{totals.totalBonus.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalBonus)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-pf-employee">
           <FaShieldAlt className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total PF Employee</span>
-            <span className="sb-totals-card-value">₹{totals.totalEmployeePF.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalEmployeePF)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-pf-employer">
           <FaBriefcase className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total PF Employer</span>
-            <span className="sb-totals-card-value">₹{totals.totalEmployerPF.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalEmployerPF)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-insurance">
           <FaStethoscope className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total Insurance</span>
-            <span className="sb-totals-card-value">₹{totals.totalInsurance.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalInsurance)}</span>
           </div>
         </div>
         <div className="sb-totals-card sb-lop">
           <FaExclamationTriangle className="sb-totals-card-icon" />
           <div>
             <span className="sb-totals-card-title">Total LOP Deduction</span>
-            <span className="sb-totals-card-value">₹{totals.totalLopDeduction.toLocaleString()}</span>
+            <span className="sb-totals-card-value">₹{formatCurrency(totals.totalLopDeduction)}</span>
           </div>
         </div>
       </div>

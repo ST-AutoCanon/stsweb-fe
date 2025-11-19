@@ -13,6 +13,8 @@
   justify-content: space-between;
   align-items: center;
   margin: 5% 0;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .HR-rb-admin-filter-group {
@@ -26,36 +28,39 @@
   font-weight: bold;
 }
 
-.HR-rb-admin-filter-group select {
+.HR-rb-admin-filter-group select,
+.HR-rb-admin-filter-group input[type="date"] {
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 5px;
   height: 35px;
   font-size: medium;
-  width: 100px;
+  width: 140px;
 }
 
-.HR-rb-admin-filter-group input {
+.HR-rb-admin-filter-group input[type="text"] {
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 5px;
   height: 26px;
   font-size: medium;
-  width: 120px;
+  width: 180px;
 }
 
 .HR-rb-admin-search {
   background-color: #79c42b;
   color: white;
   border: none;
-  padding: 1%;
+  padding: 10px 16px;
   font-size: medium;
   cursor: pointer;
   border-radius: 5px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   height: 36px;
+  min-width: 100px;
+  justify-content: center;
 }
 
 .HR-rb-admin-search:hover {
@@ -71,95 +76,119 @@
 
 .HR-rb-admin-employee-section {
   background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .HR-rb-admin-employee-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 12px 16px;
   cursor: pointer;
   background: #fff;
   transition: background 0.3s;
+  font-weight: 500;
 }
 
 .HR-rb-admin-employee-row:hover {
   background: #f0f0f0;
 }
 
+.HR-rb-admin-empId-rows,
+.HR-rb-admin-emp-rows {
+  color: #949494;
+  font-size: 14px;
+}
+
+.HR-rb-admin-empId-rows span,
+.HR-rb-admin-emp-rows span {
+  color: #000;
+  font-weight: bold;
+}
+
+.HR-rb-admin-toggle-btn {
+  font-size: 20px;
+  color: #555;
+}
+
 .HR-rb-admin-rb-sub-container {
   background: #fff;
+  overflow-x: auto;
 }
 
 .HR-rb-admin-rb-sub-table {
-  padding: 0;
   width: 100%;
   border-collapse: collapse;
-  overflow: visible;
+  min-width: 1000px;
 }
 
 .HR-rb-admin-rb-sub-table th {
   background-color: #f2f2f2;
-  padding: 8px;
+  padding: 10px;
   border: 2px solid #ddd;
-  min-width: 60px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
 }
 
 .HR-rb-admin-rb-sub-table td {
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #ddd;
   text-align: center;
-  position: relative;
-  overflow: visible;
+  font-size: 13px;
 }
 
 .HR-rb-admin-rb-sub-table td:nth-child(4) {
   text-align: right;
 }
 
-.HR-rb-admin-update-btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+.HR-rb-admin-purpose-cell {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.HR-rb-admin-update-btn {
-  margin-right: 20%;
+.HR-rb-admin-purpose-cell[title]:hover {
+  overflow: visible;
+  white-space: normal;
+  word-wrap: break-word;
+  background: white;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 8px;
+  border-radius: 4px;
 }
 
-.HR-rb-admin-no-data {
-  text-align: center;
-  font-style: italic;
-  color: gray;
+.HR-rb-admin-attachments-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #f2f2f2;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 13px;
 }
 
-.HR-rb-admin-emp-rows {
-  width: 25%;
+.HR-rb-admin-eye-icon {
   color: #949494;
-}
-
-.HR-rb-admin-emp-rows span {
-  color: #000;
-  font-weight: bold;
-}
-
-.HR-rb-admin-empId-rows {
-  color: #949494;
-  width: 40%;
-}
-
-.HR-rb-admin-empId-rows span {
-  color: #000;
-  font-weight: bold;
-  margin-right: 2%;
+  font-size: 18px;
 }
 
 .HR-rb-admin-status-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
   font-weight: bold;
+  font-size: 12px;
   text-transform: capitalize;
 }
 
@@ -188,22 +217,106 @@
 }
 
 .HR-rb-admin-rb-status-dropdown {
-  width: 90px;
+  width: 100px;
   padding: 6px;
   border-radius: 5px;
   border: 1px solid #ccc;
   background-color: white;
   cursor: pointer;
+  font-size: 13px;
 }
 
-.HR-rb-admin-rb-sub-table input {
+/* Default "Pending" state */
+.HR-rb-admin-rb-status-dropdown option[value=""] {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+/* Green for Approve */
+.HR-rb-admin-rb-status-dropdown option[value="approved"] {
+  background-color: #e6f9ed;
+  color: #0f9d58;
+}
+
+/* Red for Reject */
+.HR-rb-admin-rb-status-dropdown option[value="rejected"] {
+  background-color: #fde8e8;
+  color: #d32f2f;
+}
+
+/* When "Approve" is actually selected → full green dropdown */
+.HR-rb-admin-rb-status-dropdown[value="approved"],
+.HR-rb-admin-rb-status-dropdown:focus[value="approved"] {
+  background-color: #0f9d58 !important;
+  color: white !important;
+  border-color: #0f9d58;
+}
+
+/* When "Reject" is actually selected → full red dropdown */
+.HR-rb-admin-rb-status-dropdown[value="rejected"],
+.HR-rb-admin-rb-status-dropdown:focus[value="rejected"] {
+  background-color: #d32f2f !important;
+  color: white !important;
+  border-color: #d32f2f;
+}
+
+/* Remove default focus outline */
+.HR-rb-admin-rb-status-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(121, 196, 43, 0.3);
+}
+/* APPROVER COMMENTS INPUT – EXACT SAME AS ADMIN SIDE */
+.HR-rb-admin-rb-sub-table input[type="text"] {
   width: 90px;
-  padding: 5%;
-  border-radius: 5px;
+    padding: 5%;
+    border-radius: 5px;
 }
 
+/* Hover & Focus – green glow like Admin */
+.HR-rb-admin-rb-sub-table input[type="text"]:focus {
+  outline: none;
+  border-color: #79c42b;
+  box-shadow: 0 0 0 2px rgba(121, 196, 43, 0.25);
+}
+
+/* ACTION BUTTONS – PERFECT GAP & ALIGNMENT (exactly like Admin) */
+.HR-rb-admin-actions-sticky {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  z-index: 10;
+  padding: 8px 10px;               /* consistent padding */
+  text-align: center;
+  border-left: 2px solid #ddd;
+  box-shadow: -4px 0 8px rgba(0,0,0,0.08);
+  
+  /* This is the key: flex with proper gap */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;                        /* perfect 16px gap between icons */
+  min-width: 110px;
+}
+
+/* Make both icons same size and perfectly centered */
+.HR-rb-admin-update-btn-frozen,
+.HR-rb-admin-download-btn {
+  font-size: 24px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Optional: subtle hover effect only on Download (Update is disabled) */
+.HR-rb-admin-download-btn:hover {
+  color: #79c42b;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
 .HR-rb-admin-rbadmin-comments {
-  max-width: 100px;
+  max-width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -213,86 +326,80 @@
 .HR-rb-admin-rb-sub-table td:hover .HR-rb-admin-rbadmin-comments {
   white-space: normal;
   overflow: visible;
-  text-overflow: unset;
   word-wrap: break-word;
-  display: block;
   max-width: 200px;
-}
-
-.HR-rb-admin-rb-sub-table td:hover {
-  height: auto;
-}
-
-.HR-rb-admin-rb-sub-table,
-.HR-rb-admin-rb-sub-container {
-  overflow: visible !important;
-}
-
-.HR-rb-admin-modal-cross-btn {
-  background: none;
-  border: none;
-  padding-bottom: 2%;
-  font-size: 18px;
-  cursor: pointer;
-  color: #fff;
-}
-
-.HR-rb-admin-payment-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2%;
-  background-color: #00468c;
-  color: #fff;
-}
-
-.HR-rb-admin-payment-header h3 {
-  margin: 1% 0;
-  padding-bottom: 2%;
-}
-
-.HR-rb-admin-payment-options {
-  padding: 4%;
+  background: white;
+  z-index: 10;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .HR-rb-admin-pending-payment-btn {
   border: 2px solid #fbb751;
   background-color: white;
   color: #fbb751;
-  padding: 5px 10px;
-  cursor: pointer;
+  padding: 6px 12px;
   border-radius: 4px;
+  font-size: 12px;
+  cursor: default;
 }
 
-.HR-rb-admin-submit-payment-btn {
-  background-color: #4caf50;
-  color: white;
-  border: none;
+.HR-rb-admin-pending-payment-btn-frozen {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.HR-rb-admin-actions-sticky {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  z-index: 10;
   padding: 8px 12px;
+  text-align: center;
+  border-left: 2px solid #ddd;
+  box-shadow: -4px 0 8px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 100px;
+}
+
+.HR-rb-admin-update-btn-frozen {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  color: #999 !important;
+}
+
+.HR-rb-admin-download-btn {
+  color: #00468c;
   cursor: pointer;
-  border-radius: 4px;
-  margin-top: 10px;
+  transition: color 0.2s;
 }
 
-/* Purpose cell tooltip on hover */
-.HR-rb-admin-rb-sub-table .HR-rb-admin-purpose-cell {
-  max-width: 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.HR-rb-admin-download-btn:hover {
+  color: #79c42b;
 }
 
-/* Tabs Styling */
+.HR-rb-admin-total-row {
+  background-color: #f9f9f9;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Tabs */
 .HR-rb-admin-tabs-container {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .HR-rb-admin-tab {
-  padding: 10px 20px;
+  padding: 10px 24px;
   background-color: #f0f0f0;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s;
@@ -302,58 +409,10 @@
   background-color: #79c42b;
   color: white;
 }
-
-.HR-rb-admin-toggle-btn {
-  display: flex;
-  align-items: center;
-}
-
-.HR-rb-admin-drop-icon {
-  font-size: 18px;
-  color: #555;
-}
-
-.HR-rb-admin-attachments-btn {
-  background: none;
-  border: 1px solid #ccc;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-}
-
-.HR-rb-admin-eye-icon {
-  font-size: 16px;
-}
-
-.HR-rb-admin-download-btn {
-  color: #00468c;
-  cursor: pointer;
-}
-
-.HR-rb-admin-download-btn:hover {
-  color: #79c42b;
-}
-
-.HR-rb-admin-update-btn {
-  color: #00468c;
-  cursor: pointer;
-}
-
-.HR-rb-admin-update-btn:hover:not(:disabled) {
-  color: #79c42b;
-}
-
-/* Modal Overlays */
+/* ATTACHMENT MODAL – 100% IDENTICAL TO ADMIN (including dark blue header) */
 .HR-rb-admin-att-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -362,9 +421,9 @@
 }
 
 .HR-rb-admin-att-modal-content {
-  background: white;
+  background: rgba(255, 255, 255, 0.836);
   padding: 20px;
-  border-radius: 8px;
+ 
   width: 400px;
   max-height: 80vh;
   overflow-y: auto;
@@ -376,130 +435,122 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  padding: 12px 20px;
+  background-color: #00468c;
+  color: rgb(255, 255, 255);
+  
+  margin: -20px -20px 20px -20px;
+}
+
+.HR-rb-admin-att-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .HR-rb-admin-att-close {
   cursor: pointer;
-  font-size: 20px;
-  color: #aaa;
+  font-size: 26px;
+  color: white;
+  transition: color 0.2s;
 }
 
 .HR-rb-admin-att-close:hover {
-  color: #d32f2f;
+  color: #ff6b6b;
+}
+
+.HR-rb-admin-att-files-title {
+  margin: 10px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #444;
 }
 
 .HR-rb-admin-att-files {
   margin: 8px 0;
-  padding: 8px;
-  background-color: #f9f9f9;
-  border-radius: 4px;
+  padding: 12px;
+ 
+  border-radius: 6px;
 }
 
 .HR-rb-admin-att-files a {
   color: #00468c;
   text-decoration: none;
+  font-weight: 500;
   word-break: break-all;
 }
 
 .HR-rb-admin-att-files a:hover {
   text-decoration: underline;
+  color: #79c42b;
 }
 
 .HR-rb-admin-att-close-btn {
-  margin-top: 15px;
-  padding: 8px 16px;
-  background-color: #00468c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
+ background-color: #79c42b;
+    color: white;
+    border: none;
+    padding: 3% 10%;
+    font-size: medium;
+    cursor: pointer;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    margin: 5%;
+    margin-left: 60%;
 }
 
 .HR-rb-admin-att-close-btn:hover {
   background-color: #003366;
 }
 
+/* Payment Modal */
 .HR-rb-admin-payment-modal-content {
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
-  width: 400px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.HR-rb-admin-total-row {
-  background-color: #f9f9f9;
-  font-weight: bold;
-}
-
-/* ──────────────────────────────────────────────────────────────
-   FREEZE: Update & Pending-Payment Buttons (Sticky Actions Column)
-   DISABLE: Update button (user cannot click)
-   ────────────────────────────────────────────────────────────── */
-
-.HR-rb-admin-rb-sub-table td:last-child {
-  position: sticky;
-  right: 0;
-  background: #fff;
-  z-index: 10;
-  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
-  padding: 8px 12px;
-  text-align: center;
-  border-left: 2px solid #ddd;
-}
-
-.HR-rb-admin-update-btn,
-.HR-rb-admin-pending-payment-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 6px;
-  min-width: 36px;
-  min-height: 36px;
-}
-
-.HR-rb-admin-update-btn {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-  color: #999;
-}
-
-.HR-rb-admin-update-btn:hover {
-  color: #999;
-}
-
-.HR-rb-admin-download-btn {
-  margin-left: 8px;
-}
-
-/* FREEZE ONLY UPDATE BUTTON (Actions column) */
-.HR-rb-admin-actions-sticky {
-  position: sticky;
-  right: 0;
-  background: #fff;
-  z-index: 10;
-  padding: 8px 12px;
-  text-align: center;
-  border-left: 2px solid #ddd;
-  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+.HR-rb-admin-payment-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  min-width: 90px;
+  padding: 16px 24px;
+  background-color: #00468c;
+  color: #fff;
 }
 
-.HR-rb-admin-update-btn-frozen {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-  color: #999 !important;
+.HR-rb-admin-payment-header h3 {
+  margin: 0;
+  font-size: 18px;
 }
 
-.HR-rb-admin-update-btn-frozen:hover {
-  color: #999 !important;
+.HR-rb-admin-modal-cross-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.HR-rb-admin-payment-options {
+  padding: 24px;
+}
+
+.HR-rb-admin-submit-payment-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 16px;
+}
+
+.HR-rb-admin-submit-payment-btn:hover {
+  background-color: #388e3c;
 }
