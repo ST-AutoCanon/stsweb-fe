@@ -43,7 +43,6 @@ const [assetDocument, setAssetDocument] = useState(null);
   const [comments, setComments] = useState("");
 
   const [assigningStatus, setAssigningStatus] = useState("Pending");
-  const [status, setStatus] = useState("In Use"); // Default status
 
   const [assignedAssets, setAssignedAssets] = useState([]); // New state to store assigned assets
   const [popupSuggestions, setPopupSuggestions] = useState({});
@@ -356,7 +355,6 @@ const [assetDocument, setAssetDocument] = useState(null);
     setAssetDocument(null);
     setSelectedCategory("");
     setSelectedSubCategory("");
-    setStatus("In Use");
   };
 
   const closePopup = () => {
@@ -620,7 +618,6 @@ const [assetDocument, setAssetDocument] = useState(null);
   formData.append("valuation_date", valuationDate);
   formData.append("category", selectedCategory);
   formData.append("sub_category", selectedSubCategory);
-  formData.append("status", status);
 
   let assignedToArray = [];
   if (assignedTo && typeof assignedTo === "object" && assignedTo.name && assignedTo.employeeId) {
@@ -1262,20 +1259,6 @@ const [showForm, setShowForm] = useState(false);
                       ))}
                     </ul>
                   )}
-                </div>
-
-                <div className="row">
-                  <label>Status</label>
-                  <div className="asset-status-dropdown">
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                    >
-                      <option value="In Use">In Use</option>
-                      <option value="Not Using">Not Using</option>
-                      <option value="Decommissioned">Decommissioned</option>
-                    </select>
-                  </div>
                 </div>
 
                 <div className="row">
