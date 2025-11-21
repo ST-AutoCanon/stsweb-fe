@@ -1,3 +1,4 @@
+// src/components/LeaveQueries/Admin.js
 import React, { useState, useEffect } from "react";
 import "./Admin.css";
 import PolicyModal from "./PolicyModal";
@@ -5,6 +6,7 @@ import Modal from "../Modal/Modal";
 import CompensationPopup from "./CompensationPopup";
 import { IoSearch } from "react-icons/io5";
 import { useLocation } from "react-router-dom";
+import { computeRequestedDays } from "./leaveUtils"; // <- added
 
 const formatDate = (isoDate) => {
   if (!isoDate) return "";
@@ -23,15 +25,6 @@ const parseDateOnly = (isoDate) => {
     return null;
   }
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-};
-
-const calculateDays = (startDate, endDate) => {
-  const s = parseDateOnly(startDate);
-  const e = parseDateOnly(endDate);
-  if (!s || !e) return 0;
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const diffDays = Math.round((e - s) / msPerDay);
-  return diffDays >= 0 ? diffDays + 1 : 0;
 };
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL;
@@ -345,8 +338,6 @@ export default function Admin({ openPolicyId = null }) {
           ? true
           : false;
 
-      // Build robust payload with synonyms; note we intentionally set is_defaulted only
-      // from the internal marker above — this avoids accidental bypass by client.
       const fullPayload = {
         status,
         comments,
@@ -415,9 +406,10 @@ export default function Admin({ openPolicyId = null }) {
           (query.start_date || query.startDate) &&
           (query.end_date || query.endDate)
         ) {
-          days = calculateDays(
+          days = computeRequestedDays(
             query.start_date || query.startDate,
-            query.end_date || query.endDate
+            query.end_date || query.endDate,
+            query.H_F_day || query.h_f_day || "Full Day"
           );
         }
 
@@ -721,7 +713,6 @@ export default function Admin({ openPolicyId = null }) {
     delete upd.is_defaulted;
     delete upd.isDefaulted;
     delete upd._internalOrigin;
-    delete upd.__internal_system;
 
     console.log(
       "[handleUpdate] invoked for leaveId:",
@@ -732,7 +723,12 @@ export default function Admin({ openPolicyId = null }) {
       query
     );
     if (upd.status === "Approved") {
-      const days = calculateDays(query.start_date, query.end_date);
+      // Use computeRequestedDays so Half Day semantics match server calculation
+      const days = computeRequestedDays(
+        query.start_date,
+        query.end_date,
+        query.H_F_day || query.h_f_day || "Full Day"
+      );
 
       // if policies not loaded yet, fetch them now to avoid race conditions
       if (!Array.isArray(policies) || policies.length === 0) {
@@ -780,7 +776,6 @@ export default function Admin({ openPolicyId = null }) {
           is_defaulted: true,
           isDefaulted: true,
           _internalOrigin: "system",
-          __internal_system: true,
         };
 
         console.log(
@@ -1283,6 +1278,13 @@ export default function Admin({ openPolicyId = null }) {
                     statusUpdates[query.leave_id]?.status &&
                     statusUpdates[query.leave_id]?.status !== query.status;
 
+                  // Use computeRequestedDays for correct half-day handling
+                  const days = computeRequestedDays(
+                    query.start_date,
+                    query.end_date,
+                    query.H_F_day || query.h_f_day || "Full Day"
+                  );
+
                   return (
                     <tr
                       key={query.leave_id}
@@ -1297,7 +1299,7 @@ export default function Admin({ openPolicyId = null }) {
                       <td className="comments-col">
                         <div className="comment-preview">{query.reason}</div>
                       </td>
-                      <td>{calculateDays(query.start_date, query.end_date)}</td>
+                      <td>{days}</td>
                       <td>
                         <select
                           value={currentStatus}
