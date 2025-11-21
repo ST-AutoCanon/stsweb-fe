@@ -991,10 +991,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       <div className="week-task-planner-header">
         <h2>
           Weekly Task Planner{" "}
-          <span className="week-task-week-id">
+          {/* <span className="week-task-week-id">
             Week {weekId}: {dateRange}
-          </span>
-          <div className="week-task-week-navigation">
+          </span> */}
+          {/* <div className="week-task-week-navigation">
             <button
               onClick={handlePreviousWeek}
               className="week-task-nav-button-task"
@@ -1035,7 +1035,35 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               >
                 <path d="M9 18l6-6-6-6" />
               </svg>
-            </button>
+            </button> */}
+            <div className="week-task-week-navigation">
+  <button
+    onClick={handlePreviousWeek}
+    className="week-task-nav-button-task"
+    disabled={weekOffset <= -3}
+    title={weekOffset <= -3 ? "Cannot view earlier than 3 weeks ago" : "Previous Week"}
+  >
+    <svg className="week-task-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  </button>
+
+  {/* Week ID and Date Range in the middle */}
+  <span className="week-task-week-id-nav">
+    Week {weekId}: {dateRange}
+  </span>
+
+  <button
+    onClick={handleNextWeek}
+    className="week-task-nav-button-task"
+    disabled={weekOffset >= 3}
+    title={weekOffset >= 3 ? "Cannot view beyond 3 weeks ahead" : "Next Week"}
+  >
+    <svg className="week-task-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  </button>
+
           </div>
         </h2>
         <div className="week-task-header-buttons">
@@ -1046,7 +1074,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               handleAssignClick();
             }}
           >
-            Assign New Tasks
+            Create new task
           </button>
           {userRole === "supervisor" && !supReviewMode && (
             <button className="week-task-review-button" onClick={handleEnterReview}>
@@ -1096,7 +1124,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         <div className="week-task-assign-form-modal">
           <div className="week-task-assign-form-empdriven">
             <div className="week-task-form-header">
-              <h3>Assign New Tasks</h3>
+              <h3>Create New Tasks</h3>
               <button className="week-task-close-button" onClick={handleAssignCancel}>×</button>
             </div>
             <div className="week-task-tasks-form-container">

@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/TeamTable.js
 import React, { useState, useEffect } from "react";
 import { parseLocalDate, calculateDays } from "./leaveUtils";
 
@@ -122,8 +121,8 @@ export default function TeamTable({
     }
   };
 
-  const clearLocalForId = (id) => {
-    const idKey = String(id);
+  const clearLocalForId = (idOrKey) => {
+    const idKey = String(idOrKey);
     setLocalUpdates((prev) => {
       const copy = { ...prev };
       delete copy[idKey];
@@ -336,11 +335,17 @@ export default function TeamTable({
                     String(serverComments).trim();
                 const isUpdating = Boolean(editedStatus || editedComments);
 
-                const days = calculateDays(
-                  leave.start_date,
-                  leave.end_date,
-                  leave.H_F_day
-                );
+                let days = 0;
+                try {
+                  days = calculateDays(
+                    leave.start_date,
+                    leave.end_date,
+                    leave.H_F_day
+                  );
+                } catch (e) {
+                  console.warn("[TeamTable] calculateDays failed for", id, e);
+                }
+
                 const loading = Boolean(loadingRows[idKey]);
 
                 return (

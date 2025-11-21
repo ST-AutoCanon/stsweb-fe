@@ -1,17 +1,23 @@
 // Pagination.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Pagination({
   totalPages = 1,
   currentPage = 1,
   onPageChange = () => {},
+  // if you want non-sticky behavior in some places you can pass sticky={false}
+  sticky = true,
 }) {
   const [jump, setJump] = useState(currentPage);
 
+  useEffect(() => {
+    setJump(currentPage);
+  }, [currentPage]);
+
   const goTo = (p) => {
-    const pageNum = Math.min(Math.max(1, p), totalPages);
+    const pageNum = Math.min(Math.max(1, Number(p || 1)), totalPages || 1);
     setJump(pageNum);
-    onPageChange(pageNum);
+    if (pageNum !== currentPage) onPageChange(pageNum);
   };
 
   const renderPages = () => {
@@ -30,6 +36,7 @@ export default function Pagination({
           className={`rp-page-num ${p === currentPage ? "active" : ""}`}
           onClick={() => goTo(p)}
           aria-current={p === currentPage ? "page" : undefined}
+          type="button"
         >
           {p}
         </button>
@@ -38,13 +45,19 @@ export default function Pagination({
     return pages;
   };
 
+  // class to control sticky vs normal
+  const wrapperClass = sticky
+    ? "rp-pagination rp-pagination-static"
+    : "rp-pagination";
+
   return (
-    <div className="rp-pagination">
+    <div className={wrapperClass} role="navigation" aria-label="Pagination">
       <button
         className="rp-page-btn"
         onClick={() => goTo(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Previous page"
+        type="button"
       >
         Prev
       </button>
@@ -56,11 +69,12 @@ export default function Pagination({
         onClick={() => goTo(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Next page"
+        type="button"
       >
         Next
       </button>
 
-      <div className="rp-page-jump">
+      <div className="rp-page-jump" aria-label="Jump to page">
         <label style={{ fontSize: 13 }}>Go to</label>
         <input
           type="number"
@@ -71,8 +85,13 @@ export default function Pagination({
           onKeyDown={(e) => {
             if (e.key === "Enter") goTo(jump);
           }}
+          aria-label="Page number"
         />
-        <button className="rp-page-btn" onClick={() => goTo(jump)}>
+        <button
+          className="rp-page-btn"
+          onClick={() => goTo(jump)}
+          type="button"
+        >
           Go
         </button>
       </div>

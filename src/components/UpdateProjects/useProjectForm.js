@@ -11,7 +11,7 @@ export default function useProjectForm({
 }) {
   const projectRole = localStorage.getItem("userRole") || "Employee";
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
-  const userPosition = dashboardData.position || null;
+  const userDepartment = dashboardData.department || null;
 
   const rolePermissions = {
     Admin: {
@@ -27,7 +27,7 @@ export default function useProjectForm({
       editable: { 1: false, 2: false, 3: true },
     },
   };
-  if (projectRole === "Manager" && userPosition === "Finance Manager") {
+  if (projectRole === "Manager" && userDepartment === "Finance") {
     rolePermissions.Manager = {
       allowedSteps: [1, 2, 3, 4],
       editable: { 1: false, 2: false, 3: false, 4: true },
@@ -428,7 +428,6 @@ export default function useProjectForm({
 
     const projectAmount = parseFloat(formData.project_amount || 0);
 
-    // Milestone base amount (percentage of project)
     if (finance.m_actual_percentage) {
       finance.m_actual_amount = (
         (projectAmount * parseFloat(finance.m_actual_percentage)) /
@@ -436,7 +435,6 @@ export default function useProjectForm({
       ).toFixed(2);
     }
 
-    // TDS amount
     if (finance.m_tds_percentage) {
       finance.m_tds_amount = (
         (parseFloat(finance.m_actual_amount || 0) *
@@ -445,7 +443,6 @@ export default function useProjectForm({
       ).toFixed(2);
     }
 
-    // GST amount
     if (finance.m_gst_percentage) {
       finance.m_gst_amount = (
         (parseFloat(finance.m_actual_amount || 0) *
@@ -454,7 +451,6 @@ export default function useProjectForm({
       ).toFixed(2);
     }
 
-    // Total milestone amount
     finance.m_total_amount = (
       parseFloat(finance.m_actual_amount || 0) -
       parseFloat(finance.m_tds_amount || 0) +
@@ -677,16 +673,13 @@ export default function useProjectForm({
     }
   };
 
-  // Reset rows when switching payment type
   useEffect(() => {
     if (formData.payment_type === "Monthly Scheduled") {
-      // Clear milestone-based rows so MonthlyScheduleTable can regenerate cleanly
       setFormData((prev) => ({
         ...prev,
         financialDetails: [],
       }));
     } else {
-      // Service schedules: keep financial rows aligned with milestones only
       if (!formData.milestones || formData.milestones.length === 0) {
         setFormData((prev) => ({
           ...prev,
@@ -837,7 +830,6 @@ export default function useProjectForm({
     });
   };
 
-  // set STS owner and prefill contact (still editable)
   const handleStsOwnerChange = (e) => {
     const ownerId = e.target.value;
     const owner = allEmployees.find((emp) => emp.employee_id === ownerId);
@@ -846,7 +838,6 @@ export default function useProjectForm({
       ...prev,
       sts_owner_id: ownerId,
       sts_owner: owner ? owner.name : "",
-      // prefer common contact field names if available; adapt to your API field
       sts_contact: owner ? owner.phone_number || "" : "",
     }));
   };
@@ -858,11 +849,9 @@ export default function useProjectForm({
     const tdsPercentage = parseFloat(updatedData.tds_percentage || 0);
     const gstPercentage = parseFloat(updatedData.gst_percentage || 0);
 
-    // Calculate TDS & GST
     const tdsAmount = (projectAmount * tdsPercentage) / 100;
     const gstAmount = (projectAmount * gstPercentage) / 100;
 
-    // Total
     const totalAmount = projectAmount - tdsAmount + gstAmount;
 
     updatedData = {
@@ -875,7 +864,6 @@ export default function useProjectForm({
     setFormData(updatedData);
   };
 
-  // Ensure sts_contact is filled if sts_owner_id exists and employees arrive later
   useEffect(() => {
     const ownerId = formData.sts_owner_id;
     if (!ownerId || !allEmployees || allEmployees.length === 0) return;
@@ -884,7 +872,6 @@ export default function useProjectForm({
     if (!owner) return;
 
     setFormData((prev) => {
-      // only overwrite contact if empty (so user edits remain)
       if (prev.sts_contact && prev.sts_contact.trim() !== "") return prev;
 
       return {
@@ -895,9 +882,7 @@ export default function useProjectForm({
     });
   }, [formData.sts_owner_id, allEmployees]);
 
-  // add this helper (put it near other helpers in your hook)
   const validateForm = () => {
-    // mapping of internal keys -> user friendly labels
     const fieldLabels = {
       company_name: "Company Name",
       project_name: "Project Name",
@@ -917,7 +902,6 @@ export default function useProjectForm({
       payment_type: "Payment Type",
     };
 
-    // 1) core required fields
     const requiredKeys = [
       "company_name",
       "project_name",
@@ -952,7 +936,6 @@ export default function useProjectForm({
       }
     }
 
-    // 2) validate dates
     if (formData.start_date && formData.end_date) {
       const start = new Date(formData.start_date);
       const end = new Date(formData.end_date);
@@ -961,20 +944,17 @@ export default function useProjectForm({
       }
     }
 
-    // 4) optional: validate phone number length for POC (basic)
     const poc = (formData.project_poc_contact || "").toString().trim();
     if (poc && poc.length < 7) {
       return "Project POC Contact looks too short.";
     }
 
-    // if all checks pass, return null (no error)
     return null;
   };
 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
-    // run validation
     const validationError = validateForm();
     if (validationError) {
       showAlert(validationError, "Validation Error");
@@ -1020,11 +1000,9 @@ export default function useProjectForm({
         onProjectAdded();
       }
 
-      // show success
       showAlert("Project saved successfully!", "Success");
       if (onSuccess) onSuccess();
 
-      // close form after a short pause so user can see the alert
       setTimeout(() => {
         onClose();
       }, 1500);
@@ -1069,8 +1047,8 @@ export default function useProjectForm({
       handleInputChange,
       handleKeyDown,
       editable,
-      handleStsOwnerChange, // NEW
-      handleChange, // ensure existing generic handler is available
+      handleStsOwnerChange,
+      handleChange,
       formData,
     },
     stepThree: {

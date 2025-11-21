@@ -402,6 +402,79 @@
   box-sizing: border-box;
 }
 
+/* Ensure preview panel is positioning context for sticky footer */
+.rp-preview-panel {
+  position: relative; /* already present in your file? keep it */
+  padding-bottom: 64px; /* reserve space so sticky pagination doesn't overlap content */
+  box-sizing: border-box;
+}
+
+/* Sticky pagination bar (appears fixed at bottom of the preview panel) */
+.rp-pagination-static {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px 12px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.98)
+  );
+  backdrop-filter: blur(4px);
+  z-index: 1200;
+  box-shadow: 0 -6px 18px rgba(2, 6, 23, 0.04);
+  border-top: 1px solid rgba(229, 231, 235, 0.8);
+  /* prevent pagination from expanding container width */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Keep pagination inline and avoid wrapping to multiple lines */
+.rp-pagination-static {
+  flex-wrap: nowrap;
+}
+
+/* When many buttons exist allow horizontal overflow inside the sticky bar only,
+   not the entire preview area */
+.rp-pagination-static > * {
+  flex: 0 0 auto;
+}
+
+/* Make jump input narrower for compact look on sticky bar */
+.rp-pagination-static .rp-page-jump input {
+  width: 64px;
+}
+
+/* If you cannot move the Pagination out of the scrollable table wrapper,
+   this rule will prevent it from contributing to the horizontal scroll width */
+.rp-preview-table-wrap .rp-pagination {
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* For accessibility: ensure focus styles are visible even with sticky background */
+.rp-pagination-static :focus {
+  outline: 3px solid rgba(99, 102, 241, 0.16);
+  outline-offset: 2px;
+}
+
+/* Small screens: keep things compact */
+@media (max-width: 420px) {
+  .rp-pagination-static {
+    padding: 8px;
+    gap: 6px;
+    justify-content: center;
+  }
+  .rp-page-jump {
+    display: none; /* hide jump on tiny screens to reduce width — optional */
+  }
+}
+
 /* header within preview */
 .rp-preview-header {
   display: flex;

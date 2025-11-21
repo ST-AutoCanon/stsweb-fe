@@ -1,11 +1,9 @@
-// src/components/LeaveQueries/useLeaveRequest.js
 import { useState, useEffect } from "react";
 import {
   defaultLeaveSettings,
   computeRequestedDays,
   getAdvanceNoticeDays,
   parseLocalDate,
-  calculateDays,
 } from "./leaveUtils";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -27,6 +25,7 @@ const rolesWithTeamView = new Set([
   "super admin",
   "superadmin",
   "super_admin",
+  "hr",
 ]);
 
 const managerOrAboveSet = new Set([
@@ -36,6 +35,7 @@ const managerOrAboveSet = new Set([
   "super admin",
   "superadmin",
   "super_admin",
+  "hr",
 ]);
 
 const normalizeStatus = (s) => {
@@ -628,40 +628,58 @@ export default function useLeaveRequest() {
   /**
    * doUpdate - robust, shared update caller for admin/manager actions
    * returns object like { ok: boolean, status?, body? }
+   *
+   * Defensive: sanitize any client-supplied is_defaulted/isDefaulted/_internalOrigin
+   * so only internal flows can set that flag.
    */
   const doUpdate = async (leaveId, payload = {}) => {
     try {
+      // sanitize client-supplied default flags unless payload._internalOrigin === 'system'
+      const internal = payload && payload._internalOrigin === "system";
+      const safePayload = { ...payload };
+      if (!internal) {
+        // remove any client-provided default flags to avoid accidental bypass
+        delete safePayload.is_defaulted;
+        delete safePayload.isDefaulted;
+        delete safePayload._internalOrigin;
+      } else {
+        // keep it if internal
+      }
+
       // normalize numeric synonyms
       const compensated =
         Number(
-          payload.compensated_days ??
-            payload.compensatedDays ??
-            payload.compensated ??
+          safePayload.compensated_days ??
+            safePayload.compensatedDays ??
+            safePayload.compensated ??
             0
         ) || 0;
       const deducted =
         Number(
-          payload.deducted_days ?? payload.deductedDays ?? payload.deducted ?? 0
+          safePayload.deducted_days ??
+            safePayload.deductedDays ??
+            safePayload.deducted ??
+            0
         ) || 0;
       const lop =
         Number(
-          payload.loss_of_pay_days ??
-            payload.lopDays ??
-            payload.loss_of_pay ??
+          safePayload.loss_of_pay_days ??
+            safePayload.lopDays ??
+            safePayload.loss_of_pay ??
             0
         ) || 0;
 
       const preservedRaw =
-        payload.preserved_leave_days ??
-        payload.preservedLeaveDays ??
-        payload.preserved;
+        safePayload.preserved_leave_days ??
+        safePayload.preservedLeaveDays ??
+        safePayload.preserved;
       const preserved =
         preservedRaw === null || preservedRaw === undefined
           ? null
           : Number(preservedRaw);
 
-      const status = payload.status ?? payload.statusText ?? "";
-      const comments = payload.comments ?? payload.comment ?? null;
+      const status = safePayload.status ?? safePayload.statusText ?? "";
+      const comments = safePayload.comments ?? safePayload.comment ?? null;
 
       // actorId fallback from localStorage
       let actorId = null;
@@ -676,10 +694,11 @@ export default function useLeaveRequest() {
       }
 
       const isDefaulted =
-        payload.is_defaulted === true ||
-        payload.isDefaulted === true ||
-        payload.is_defaulted === "true" ||
-        payload.isDefaulted === "true"
+        internal &&
+        (safePayload.is_defaulted === true ||
+          safePayload.isDefaulted === true ||
+          safePayload.is_defaulted === "true" ||
+          safePayload.isDefaulted === "true")
           ? true
           : false;
 
@@ -704,14 +723,14 @@ export default function useLeaveRequest() {
         preserved: preserved === undefined ? null : preserved,
 
         total_days:
-          payload.total_days ??
-          payload.totalDays ??
-          payload.totalDaysRequested ??
+          safePayload.total_days ??
+          safePayload.totalDays ??
+          safePayload.totalDaysRequested ??
           null,
         totalDays:
-          payload.totalDays ??
-          payload.total_days ??
-          payload.totalDaysRequested ??
+          safePayload.totalDays ??
+          safePayload.total_days ??
+          safePayload.totalDaysRequested ??
           null,
 
         actorId,
@@ -719,10 +738,229 @@ export default function useLeaveRequest() {
         isDefaulted: isDefaulted,
       };
 
+      // headers
       const headersForReq = { ...headersBase };
       if (actorId) headersForReq["x-employee-id"] = actorId;
 
       const url = `${BACKEND}/admin/leave/${leaveId}`;
+
+      // Preflight: if trying to approve and splits don't add up and NOT internal, open popup
+      if (/^Approved$/i.test(fullPayload.status) && !isDefaulted) {
+        // derive days if provided or fetch from cache by searching leaveRequests
+        let days = null;
+        const all = (leaveRequests.team || []).concat(leaveRequests.self || []);
+        const found = all.find(
+          (r) => String(r.leave_id ?? r.id) === String(leaveId)
+        );
+        if (found) {
+          const hfFlag =
+            found.H_F_day ??
+            found.h_f_day ??
+            found.HF_day ??
+            found.hf_day ??
+            "Full Day";
+          days = Number(
+            computeRequestedDays(found.start_date, found.end_date, hfFlag)
+          );
+        } else if (
+          fullPayload.total_days !== null &&
+          fullPayload.total_days !== undefined
+        ) {
+          days = Number(fullPayload.total_days) || null;
+        }
+
+        const EPS = 1e-6;
+        if (
+          days !== null &&
+          Math.abs(compensated + deducted + lop - days) > EPS
+        ) {
+          // open popup if possible (we need leave row info to compute remaining)
+          if (found) {
+            const balances = await loadLeaveBalance(found.employee_id);
+            const bal = balances.find(
+              (r) =>
+                String(r.type).toLowerCase() ===
+                String(found.leave_type).toLowerCase()
+            );
+            const remaining =
+              bal && bal.remaining !== undefined
+                ? Number(bal.remaining) || 0
+                : 0;
+            const deficit = Math.max(0, days - remaining);
+
+            // build handlers (these use this same doUpdate but mark internal origin)
+            const approveDeficit = async () => {
+              const preserved_leave_days = Number(remaining) || 0;
+              const lopDaysVal = Number(days) || 0;
+              const payload2 = {
+                status: "Approved",
+                compensated_days: 0,
+                compensatedDays: 0,
+                compensated: 0,
+                deducted_days: 0,
+                deductedDays: 0,
+                deducted: 0,
+                loss_of_pay_days: lopDaysVal,
+                lopDays: lopDaysVal,
+                loss_of_pay: lopDaysVal,
+                preserved_leave_days,
+                preservedLeaveDays: preserved_leave_days,
+                preserved: preserved_leave_days,
+                total_days: Number(days),
+                totalDays: Number(days),
+                is_defaulted: true,
+                isDefaulted: true,
+                _internalOrigin: "system",
+              };
+              return await doUpdate(leaveId, payload2);
+            };
+
+            const setAllCompensated = async () => {
+              const compensated_days = Number(days) || 0;
+              const preserved_leave_days = Number(remaining) || 0;
+              const payload2 = {
+                status: "Approved",
+                compensated_days: compensated_days,
+                compensatedDays: compensated_days,
+                compensated: compensated_days,
+                deducted_days: 0,
+                deductedDays: 0,
+                deducted: 0,
+                loss_of_pay_days: 0,
+                lopDays: 0,
+                loss_of_pay: 0,
+                preserved_leave_days,
+                preservedLeaveDays: preserved_leave_days,
+                preserved: preserved_leave_days,
+                total_days: Number(days),
+                totalDays: Number(days),
+                is_defaulted: false,
+                isDefaulted: false,
+                _internalOrigin: "system",
+              };
+              return await doUpdate(leaveId, payload2);
+            };
+
+            const setAllDeducted = async () => {
+              const daysNum = Number(days) || 0;
+              const remainingNum = Number(remaining) || 0;
+              const deducted_clamped = Math.min(daysNum, remainingNum);
+              const lop_days = Math.max(0, daysNum - deducted_clamped);
+              const preserved_leave_days = Math.max(
+                0,
+                remainingNum - deducted_clamped
+              );
+              const payload2 = {
+                status: "Approved",
+                compensated_days: 0,
+                compensatedDays: 0,
+                compensated: 0,
+                deducted_days: deducted_clamped,
+                deductedDays: deducted_clamped,
+                deducted: deducted_clamped,
+                loss_of_pay_days: lop_days,
+                lopDays: lop_days,
+                loss_of_pay: lop_days,
+                preserved_leave_days,
+                preservedLeaveDays: preserved_leave_days,
+                preserved: preserved_leave_days,
+                total_days: Number(days),
+                totalDays: Number(days),
+                is_defaulted: false,
+                isDefaulted: false,
+                _internalOrigin: "system",
+              };
+              return await doUpdate(leaveId, payload2);
+            };
+
+            const applyFlexibleSplit = async (
+              compensatedDays,
+              deductedDays,
+              lopDays
+            ) => {
+              const c = Number(compensatedDays) || 0;
+              const d = Number(deductedDays) || 0;
+              const l = Number(lopDays) || 0;
+              const EPS2 = 1e-6;
+              if (Math.abs(c + d + l - days) > EPS2) {
+                const msg = `Split values must add up to total requested days (${days}).`;
+                setLopModal((m) => ({ ...m, error: msg }));
+                return { ok: false, message: "validation_failed", body: msg };
+              }
+              const deducted_clamped = Math.min(Number(remaining) || 0, d);
+              if (deducted_clamped + EPS2 < d) {
+                const msg = `Deducted days (${d}) exceed remaining (${remaining}). Please adjust.`;
+                setLopModal((m) => ({ ...m, error: msg }));
+                return {
+                  ok: false,
+                  message: "deducted_exceeds_remaining",
+                  body: msg,
+                };
+              }
+              const preserved_leave_days = Number(
+                Math.max(
+                  0,
+                  Number(remaining) - Number(deducted_clamped)
+                ).toFixed(2)
+              );
+              const payload2 = {
+                status: "Approved",
+                compensated_days: Number(c.toFixed(2)),
+                compensatedDays: Number(c.toFixed(2)),
+                compensated: Number(c.toFixed(2)),
+                deducted_days: Number(deducted_clamped.toFixed(2)),
+                deductedDays: Number(deducted_clamped.toFixed(2)),
+                deducted: Number(deducted_clamped.toFixed(2)),
+                loss_of_pay_days: Number(l.toFixed(2)),
+                lopDays: Number(l.toFixed(2)),
+                loss_of_pay: Number(l.toFixed(2)),
+                preserved_leave_days: preserved_leave_days,
+                preservedLeaveDays: preserved_leave_days,
+                preserved: preserved_leave_days,
+                total_days: Number(days),
+                totalDays: Number(days),
+                is_defaulted: false,
+                isDefaulted: false,
+                _internalOrigin: "system",
+              };
+              return await doUpdate(leaveId, payload2);
+            };
+
+            setLopModal({
+              isVisible: true,
+              leaveId,
+              deficit: Math.max(0, days - remaining),
+              days: Number(days),
+              remaining: Number(remaining),
+              message: `Employee requested ${days} day(s); remaining balance = ${remaining}. Deficit = ${Math.max(
+                0,
+                days - remaining
+              )}. Choose how to allocate the ${days} requested days:`,
+              compensatedDays: 0,
+              deductedDays: Math.min(Number(remaining), Number(days)),
+              lopDays: Math.max(
+                0,
+                Number(days) - Math.min(Number(remaining), Number(days))
+              ),
+              approveDeficit,
+              setAllCompensated,
+              setAllDeducted,
+              applyFlexibleSplit,
+              error: "",
+            });
+
+            return { ok: true, modalOpened: true };
+          }
+
+          // no leave row found -> block and show message
+          showAlert(
+            "Approval requires split but request details unavailable. Try again."
+          );
+          return { ok: false, message: "missing_request_for_prefight" };
+        }
+      }
+
+      // proceed to send fullPayload
       const res = await fetch(url, {
         method: "PUT",
         headers: headersForReq,
@@ -751,7 +989,6 @@ export default function useLeaveRequest() {
       }
 
       if (json && json.success) {
-        // refresh list
         await fetchLeaveRequests();
         return { ok: true, status: res.status, body: json };
       } else {
@@ -817,7 +1054,13 @@ export default function useLeaveRequest() {
    * - modal opened for further input: { modalOpened: true }
    */
   const onUpdate = async (leaveId, leaveObj = null) => {
-    const upd = statusUpdates[leaveId] || {};
+    // sanitize statusUpdates before using (strip any client-supplied default flags)
+    const rawUpd = statusUpdates[leaveId] || {};
+    const upd = { ...rawUpd };
+    delete upd.is_defaulted;
+    delete upd.isDefaulted;
+    delete upd._internalOrigin;
+
     const newStatus = normalizeStatus(upd.status ?? "");
     const serverStatus = normalizeStatus(
       (leaveObj && (leaveObj.status ?? leaveObj.Status)) ?? ""
@@ -847,7 +1090,17 @@ export default function useLeaveRequest() {
         return { ok: false, message: "no_request_found" };
       }
 
-      const days = calculateDays(query.start_date, query.end_date);
+      // Use computeRequestedDays so Half Day semantics match server calculation
+      const hfFlag =
+        query.H_F_day ??
+        query.h_f_day ??
+        query.HF_day ??
+        query.hf_day ??
+        "Full Day";
+      const days = Number(
+        computeRequestedDays(query.start_date, query.end_date, hfFlag)
+      );
+
       const balances = await loadLeaveBalance(query.employee_id);
       const bal = balances.find(
         (r) =>
@@ -887,13 +1140,14 @@ export default function useLeaveRequest() {
 
           is_defaulted: true,
           isDefaulted: true,
+
+          // internal marker to allow server to treat this as defaulted
+          _internalOrigin: "system",
         };
 
         const result = await doUpdate(leaveId, simplePayload);
         if (result && result.ok) {
           showAlert((result.body && result.body.message) || "Leave updated");
-        } else {
-          // doUpdate already showed alert when server returned an error
         }
         return result || { ok: false, message: "update_failed" };
       }
@@ -928,6 +1182,8 @@ export default function useLeaveRequest() {
 
           is_defaulted: false,
           isDefaulted: false,
+
+          _internalOrigin: "system",
         };
 
         const result = await doUpdate(leaveId, payload);
@@ -968,6 +1224,8 @@ export default function useLeaveRequest() {
 
           is_defaulted: false,
           isDefaulted: false,
+
+          _internalOrigin: "system",
         };
 
         const result = await doUpdate(leaveId, payload);
@@ -1017,6 +1275,8 @@ export default function useLeaveRequest() {
 
           is_defaulted: false,
           isDefaulted: false,
+
+          _internalOrigin: "system",
         };
 
         const result = await doUpdate(leaveId, payload);
@@ -1083,6 +1343,8 @@ export default function useLeaveRequest() {
 
           is_defaulted: false,
           isDefaulted: false,
+
+          _internalOrigin: "system",
         };
 
         const result = await doUpdate(leaveId, payload);
@@ -1120,6 +1382,12 @@ export default function useLeaveRequest() {
       ...(statusUpdates[leaveId] || {}),
       status: normalizeStatus(upd.status ?? serverStatus ?? ""),
     };
+
+    // sanitize again
+    delete sendPayload.is_defaulted;
+    delete sendPayload.isDefaulted;
+    delete sendPayload._internalOrigin;
+
     const result = await doUpdate(leaveId, sendPayload);
     if (result && result.ok) {
       showAlert((result.body && result.body.message) || "Leave updated");

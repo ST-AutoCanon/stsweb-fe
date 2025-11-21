@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
@@ -8,10 +7,12 @@ import './SalaryDetails.css';
 import {
   calculateSalaryDetails,
   parseWorkDate,
+  parseApplicableMonth, // Add this import if not already (from SalaryCalculations.js)
 } from "../../../utils/SalaryCalculations.js";
 import { calculateLOPEffect } from "../../../utils/lopCalculations.js";
 import { calculateIncentives } from "../../../utils/IncentiveUtils.js";
 import Modal from "./../../Modal/Modal.js";
+
 const SalaryDetails = () => {
   const [employees, setEmployees] = useState([]);
   const [advances, setAdvances] = useState([]);
@@ -44,6 +45,69 @@ const SalaryDetails = () => {
 
   // Helper to check if employee is approved
   const isApproved = (empId) => approvedIds.includes(String(empId));
+
+  // Helper to calculate monthly bonus pay (from DetailsTab logic)
+  const calculateMonthlyBonusPay = (empCtc, bonusRecords) => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const monthlyCTC = parseFloat(empCtc) / 12;
+
+    const monthlyBonuses = bonusRecords.filter((bonus) => {
+      const date = parseApplicableMonth(bonus.applicable_month);
+      return (
+        date &&
+        date.getFullYear() === currentYear &&
+        (date.getMonth() + 1).toString().padStart(2, '0') === currentMonthStr
+      );
+    });
+
+    return monthlyBonuses.reduce((sum, bonus) => {
+      let bonusAmount = 0;
+      if (bonus.fixed_amount && !isNaN(parseFloat(bonus.fixed_amount))) {
+        bonusAmount = parseFloat(bonus.fixed_amount);
+      } else if (bonus.percentage_ctc && !isNaN(parseFloat(bonus.percentage_ctc))) {
+        bonusAmount = (parseFloat(bonus.percentage_ctc) / 100) * parseFloat(empCtc || 0);
+      } else if (bonus.percentage_monthly_salary && !isNaN(parseFloat(bonus.percentage_monthly_salary))) {
+        bonusAmount = parseFloat(bonus.percentage_monthly_salary) * monthlyCTC;
+      }
+      return sum + bonusAmount;
+    }, 0);
+  };
+
+  // Helper to calculate local gross and net for an employee (matching DetailsTab logic)
+  const calculateLocalGrossNet = (salaryDetails, monthlyBonusPay, lopDeduction, planData) => {
+    if (!salaryDetails) {
+      return { localGross: 0, localNet: 0 };
+    }
+    const monthlyEarningsSum = [
+      salaryDetails.basicSalary || 0,
+      salaryDetails.hra || 0,
+      salaryDetails.ltaAllowance || 0,
+      salaryDetails.otherAllowances || 0,
+      salaryDetails.incentivePay || 0,
+      salaryDetails.overtimePay || 0,
+      salaryDetails.statutoryBonus || 0,
+      monthlyBonusPay
+    ].reduce((sum, val) => sum + parseFloat(val || 0), 0);
+
+    let monthlyDeductionsSum = 0;
+    monthlyDeductionsSum += parseFloat(salaryDetails.advanceRecovery || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.employeePF || 0);
+    if (planData.pfEmployerIncludeInCtc !== false) {
+      monthlyDeductionsSum += parseFloat(salaryDetails.employerPF || 0);
+    }
+    monthlyDeductionsSum += parseFloat(salaryDetails.esic || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.gratuity || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.professionalTax || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.tds || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.insurance || 0);
+    monthlyDeductionsSum += lopDeduction;
+
+    const localGross = monthlyEarningsSum;
+    const localNet = localGross - monthlyDeductionsSum;
+    return { localGross, localNet };
+  };
 
   useEffect(() => {
     const fetchSalaryBreakupData = async () => {
@@ -148,7 +212,7 @@ const SalaryDetails = () => {
       emp.employee_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-const [alertModal, setAlertModal] = useState({
+  const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
@@ -193,11 +257,11 @@ const [alertModal, setAlertModal] = useState({
 
   const handleProceed = async () => {
     if (!hasValidCredentials()) {
-      alert("Missing credentials. Please log in again.");
+      showAlert("Missing credentials. Please log in again.");
       return;
     }
     if (selectedEmployees.size === 0) {
-      alert("Please select at least one employee.");
+      showAlert("Please select at least one employee.");
       return;
     }
     try {
@@ -212,9 +276,9 @@ const [alertModal, setAlertModal] = useState({
     } catch (error) {
       console.error('Error fetching personal details for preview:', error);
       if (error.response?.status === 400 || error.response?.status === 401) {
-        alert('Authentication failed. Please log in again.');
+        showAlert('Authentication failed. Please log in again.');
       } else {
-        alert('Failed to fetch employee details for preview');
+        showAlert('Failed to fetch employee details for preview');
       }
     }
   };
@@ -244,22 +308,30 @@ const [alertModal, setAlertModal] = useState({
         return Array(23).fill('N/A'); // Fallback row
       }
 
+      // Local bonus calculation for monthly (override if needed)
+      const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
+
       const lopData = employeeLopData[emp.employee_id] || {
         currentMonth: { days: 0, value: '0.00', currency: 'INR' },
       };
-      const lopDays = lopData.currentMonth?.days || 0;
-      const lopDeduction = parseFloat(salaryDetails.lopDeduction) || 0;
+      // Use yearly LOP to match DetailsTab
+      const lopDays = parseFloat(lopData.yearly?.days || 0);
+      const lopDeduction = parseFloat(lopData.yearly?.value || '0.00');
+
+      const { localGross, localNet } = calculateLocalGrossNet(salaryDetails, monthlyBonusPay, lopDeduction, emp.plan_data);
 
       return [
         emp.employee_id, emp.full_name,
         emp.ctc ? parseFloat(emp.ctc) : 0,
         salaryDetails.basicSalary || 0, salaryDetails.hra || 0, salaryDetails.ltaAllowance || 0, salaryDetails.otherAllowances || 0,
-        salaryDetails.incentivePay || 0, salaryDetails.overtimePay || 0, salaryDetails.statutoryBonus || 0, salaryDetails.recordBonusPay || 0,
+        salaryDetails.incentivePay || 0, salaryDetails.overtimePay || 0, salaryDetails.statutoryBonus || 0, monthlyBonusPay,  // Use local bonus
         salaryDetails.advanceRecovery || 0, salaryDetails.employeePF || 0,
         salaryDetails.employerPF || 0,
         salaryDetails.esic || 0, salaryDetails.gratuity || 0, salaryDetails.professionalTax || 0, salaryDetails.tds || 0, salaryDetails.insurance || 0,
-        lopDays, lopDeduction, salaryDetails.grossSalary || 0,
-        salaryDetails.netSalary > 0 ? salaryDetails.netSalary : 0
+        lopDays,  // LOP Days: Yearly to match DetailsTab
+        lopDeduction,  // LOP Value: Yearly to match DetailsTab
+        localGross,
+        localNet > 0 ? localNet : 0  // Local Net: Matches DetailsTab
       ];
     });
 
@@ -299,7 +371,15 @@ const [alertModal, setAlertModal] = useState({
         return { row: Array(5).fill('N/A'), netSalary: 0 };
       }
 
-      const netSalary = salaryDetails.netSalary > 0 ? salaryDetails.netSalary : 0;
+      // Local bonus and LOP
+      const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
+      const lopData = employeeLopData[emp.employee_id] || {
+        currentMonth: { days: 0, value: '0.00', currency: 'INR' },
+      };
+      const lopDeduction = parseFloat(lopData.yearly?.value || '0.00');
+
+      const { localNet } = calculateLocalGrossNet(salaryDetails, monthlyBonusPay, lopDeduction, emp.plan_data);
+      const netSalary = localNet > 0 ? localNet : 0;
 
       const personalDetails = personalMap[emp.employee_id] || { pan_number: 'N/A', uan_number: 'N/A' };
       return {
@@ -329,73 +409,73 @@ const [alertModal, setAlertModal] = useState({
     XLSX.writeFile(wb, 'bank-report.xlsx');
   };
 
- const downloadBankReportPDF = () => {
-  const selectedData = getSelectedEmployees();
-  if (selectedData.length === 0) return;
-  const { headers, rows } = generateBankReportData(selectedData);
-  // Clean net salary values: remove rupee symbol and corrupted characters
-  const cleanedRows = rows.map(r => {
-    const formattedRow = r.row.map((cell, idx) => {
-      if (idx === 4) { // Net Salary column index
-        if (typeof cell === "string") {
-          // Remove corrupted characters and rupee symbol, keep only the number or N/A
-          let cleanValue = cell
-            .replace(/₹/g, "") // remove ₹ if exists
-            .replace(/¹/g, "") // remove corrupted symbol
-            .trim();
-          return cleanValue; // Return without rupee symbol
+  const downloadBankReportPDF = () => {
+    const selectedData = getSelectedEmployees();
+    if (selectedData.length === 0) return;
+    const { headers, rows } = generateBankReportData(selectedData);
+    // Clean net salary values: remove rupee symbol and corrupted characters
+    const cleanedRows = rows.map(r => {
+      const formattedRow = r.row.map((cell, idx) => {
+        if (idx === 4) { // Net Salary column index
+          if (typeof cell === "string") {
+            // Remove corrupted characters and rupee symbol, keep only the number or N/A
+            let cleanValue = cell
+              .replace(/₹/g, "") // remove ₹ if exists
+              .replace(/¹/g, "") // remove corrupted symbol
+              .trim();
+            return cleanValue; // Return without rupee symbol
+          }
         }
-      }
-      return cell;
+        return cell;
+      });
+      return { row: formattedRow };
     });
-    return { row: formattedRow };
-  });
-  const doc = new jsPDF("portrait");
-  let y = 20;
-  doc.setFontSize(16);
-  doc.text("Bank Report", 105, y, { align: "center" });
-  y += 10;
-  doc.setFontSize(10);
-  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 10, y);
-  doc.text(`Total Selected: ${selectedData.length}`, 190, y, { align: "right" });
-  y += 14;
-  autoTable(doc, {
-    head: [headers],
-    body: cleanedRows.map(r => r.row),
-    startY: y,
-    theme: "grid",
-    styles: {
-      fontSize: 8,
-      cellPadding: 2,
-      overflow: "linebreak",
-      halign: "center",
-      valign: "middle",
-    },
-    headStyles: {
-      fillColor: [248, 249, 250],
-      textColor: [73, 80, 87],
-      fontStyle: "bold",
-    },
-    columnStyles: {
-      0: { halign: "center", cellWidth: 20 }, // ID
-      1: { halign: "left", cellWidth: 60 }, // Name
-      2: { halign: "center", cellWidth: 30 }, // PAN Number
-      3: { halign: "center", cellWidth: 30 }, // UAN Number
-      4: { halign: "right", cellWidth: 40 }, // Net Payable (increased width to prevent overflow)
-    },
-    margin: { top: y },
-  });
-  doc.save(`bank-report-${new Date().toISOString().split("T")[0]}.pdf`);
-};
+    const doc = new jsPDF("portrait");
+    let y = 20;
+    doc.setFontSize(16);
+    doc.text("Bank Report", 105, y, { align: "center" });
+    y += 10;
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 10, y);
+    doc.text(`Total Selected: ${selectedData.length}`, 190, y, { align: "right" });
+    y += 14;
+    autoTable(doc, {
+      head: [headers],
+      body: cleanedRows.map(r => r.row),
+      startY: y,
+      theme: "grid",
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        overflow: "linebreak",
+        halign: "center",
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: [248, 249, 250],
+        textColor: [73, 80, 87],
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 20 }, // ID
+        1: { halign: "left", cellWidth: 60 }, // Name
+        2: { halign: "center", cellWidth: 30 }, // PAN Number
+        3: { halign: "center", cellWidth: 30 }, // UAN Number
+        4: { halign: "right", cellWidth: 40 }, // Net Payable (increased width to prevent overflow)
+      },
+      margin: { top: y },
+    });
+    doc.save(`bank-report-${new Date().toISOString().split("T")[0]}.pdf`);
+  };
 
   const handleDownloadBankReport = async (format) => {
     if (!hasValidCredentials()) {
-      alert("Missing credentials. Please log in again.");
+      showAlert("Missing credentials. Please log in again.");
       return;
     }
     const selectedData = getSelectedEmployees();
     if (selectedData.length === 0) {
-      alert('No employees selected.');
+      showAlert('No employees selected.');
       return;
     }
     try {
@@ -414,9 +494,9 @@ const [alertModal, setAlertModal] = useState({
     } catch (error) {
       console.error('Error fetching personal details for bank report:', error);
       if (error.response?.status === 400 || error.response?.status === 401) {
-        alert('Authentication failed. Please log in again.');
+        showAlert('Authentication failed. Please log in again.');
       } else {
-        alert('Failed to fetch employee details for bank report');
+        showAlert('Failed to fetch employee details for bank report');
       }
     }
   };
@@ -434,13 +514,13 @@ const [alertModal, setAlertModal] = useState({
 
   const handleSaveData = async () => {
     if (!hasValidCredentials()) {
-      alert("Missing credentials. Please log in again.");
+      showAlert("Missing credentials. Please log in again.");
       return;
     }
     try {
       const selectedData = getSelectedEmployees();
       if (selectedData.length === 0) {
-        alert('No employees selected.');
+        showAlert('No employees selected.');
         return;
       }
 
@@ -467,11 +547,17 @@ const [alertModal, setAlertModal] = useState({
             return null;
           }
 
+          // Local bonus calculation for monthly (override if needed)
+          const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
+
           const lopData = employeeLopData[emp.employee_id] || {
             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
           };
-          const lopDays = lopData.currentMonth?.days || 0;
-          const lopDeduction = parseFloat(salaryDetails.lopDeduction) || 0;
+          // Use yearly LOP to match DetailsTab
+          const lopDays = parseFloat(lopData.yearly?.days || 0);
+          const lopDeduction = parseFloat(lopData.yearly?.value || '0.00');
+
+          const { localGross, localNet } = calculateLocalGrossNet(salaryDetails, monthlyBonusPay, lopDeduction, emp.plan_data);
 
           return {
             employee_id: emp.employee_id,
@@ -484,7 +570,7 @@ const [alertModal, setAlertModal] = useState({
             incentives: salaryDetails.incentivePay || 0,
             overtime: salaryDetails.overtimePay || 0,
             statutory_bonus: salaryDetails.statutoryBonus || 0,
-            bonus: salaryDetails.recordBonusPay || 0,
+            bonus: monthlyBonusPay,  // Use local bonus
             advance_recovery: salaryDetails.advanceRecovery || 0,
             employee_pf: salaryDetails.employeePF || 0,
             employer_pf: salaryDetails.employerPF || 0,
@@ -493,10 +579,10 @@ const [alertModal, setAlertModal] = useState({
             professional_tax: salaryDetails.professionalTax || 0,
             income_tax: salaryDetails.tds || 0,
             insurance: salaryDetails.insurance || 0,
-            lop_days: lopDays,
-            lop_deduction: lopDeduction,
-            gross_salary: salaryDetails.grossSalary || 0,
-            net_salary: salaryDetails.netSalary > 0 ? salaryDetails.netSalary : 0,
+            lop_days: lopDays,  // LOP Days: Yearly to match DetailsTab
+            lop_deduction: lopDeduction,  // LOP Value: Yearly to match DetailsTab
+            gross_salary: localGross,
+            net_salary: localNet > 0 ? localNet : 0,  // Local Net: Matches DetailsTab
             status: 'Approved',
             payslip_generation: 'disabled'
           };
@@ -507,7 +593,7 @@ const [alertModal, setAlertModal] = useState({
       }).filter(data => data !== null);
 
       if (fullSalaryData.length === 0) {
-        alert('Failed to generate salary data for any selected employees. Check console for errors.');
+        showAlert('Failed to generate salary data for any selected employees. Check console for errors.');
         return;
       }
 
@@ -518,7 +604,7 @@ const [alertModal, setAlertModal] = useState({
       );
 
       if (response.data.success) {
-        alert(`Data saved successfully in table: ${response.data.tableName} (${response.data.rowsInserted} rows)`);
+        showAlert(`Data saved successfully in table: ${response.data.tableName} (${response.data.rowsInserted} rows)`);
 
         // Refetch approved IDs
         const approvedRes = await axios.get(`${BASE_URL}/api/salary-details/approved-ids`, { headers: requestHeaders });
@@ -532,14 +618,14 @@ const [alertModal, setAlertModal] = useState({
           return newSet;
         });
       } else {
-        alert(`Error: ${response.data.error}`);
+        showAlert(`Error: ${response.data.error}`);
       }
     } catch (error) {
       console.error("Save error:", error);
       if (error.response?.status === 400 || error.response?.status === 401) {
-        alert(`Authentication failed: ${error.response?.data?.error || 'Please log in again.'}`);
+        showAlert(`Authentication failed: ${error.response?.data?.error || 'Please log in again.'}`);
       } else {
-        alert(`Failed to save data: ${error.response?.data?.error || error.message}`);
+        showAlert(`Failed to save data: ${error.response?.data?.error || error.message}`);
       }
     }
     setShowPreviewModal(false);
@@ -575,11 +661,18 @@ const [alertModal, setAlertModal] = useState({
             );
           }
 
+          // Local bonus calculation for monthly (override if needed)
+          const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
+
           const lopData = employeeLopData[emp.employee_id] || {
             currentMonth: { days: 0, value: '0.00', currency: 'INR' },
           };
-          const lopDays = lopData.currentMonth?.days || 0;
+          // Use yearly LOP to match DetailsTab
+          const lopDays = parseFloat(lopData.yearly?.days || 0);
+          const lopDeduction = parseFloat(lopData.yearly?.value || '0.00');
           const isSelected = selectedEmployees.has(emp.employee_id);
+
+          const { localGross, localNet } = calculateLocalGrossNet(salaryDetails, monthlyBonusPay, lopDeduction, emp.plan_data);
 
           return (
             <tr
@@ -603,26 +696,26 @@ const [alertModal, setAlertModal] = useState({
               <td className="sd-table-cell sd-align-right sd-sticky-col sd-sticky-ctc" style={{ left: '260px', borderRight: '1px solid #dee2e6', zIndex: 10 }}>
                 {emp.ctc ? `₹${parseFloat(emp.ctc).toLocaleString()}` : 'N/A'}
               </td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.basicSalary > 0 ? `₹${salaryDetails.basicSalary.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.hra > 0 ? `₹${salaryDetails.hra.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.ltaAllowance > 0 ? `₹${salaryDetails.ltaAllowance.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.otherAllowances > 0 ? `₹${salaryDetails.otherAllowances.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.incentivePay > 0 ? `₹${salaryDetails.incentivePay.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.overtimePay > 0 ? `₹${salaryDetails.overtimePay.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.statutoryBonus > 0 ? `₹${salaryDetails.statutoryBonus.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.recordBonusPay > 0 ? `₹${salaryDetails.recordBonusPay.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.advanceRecovery > 0 ? `₹${salaryDetails.advanceRecovery.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.employeePF > 0 ? `₹${salaryDetails.employeePF.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.employerPF > 0 ? `₹${salaryDetails.employerPF.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.esic > 0 ? `₹${salaryDetails.esic.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.gratuity > 0 ? `₹${salaryDetails.gratuity.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.professionalTax > 0 ? `₹${salaryDetails.professionalTax.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.tds > 0 ? `₹${salaryDetails.tds.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.insurance > 0 ? `₹${salaryDetails.insurance.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{lopDays}</td>
-              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.lopDeduction > 0 ? `₹${salaryDetails.lopDeduction.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.grossSalary > 0 ? `₹${salaryDetails.grossSalary.toLocaleString()}` : 'N/A'}</td>
-              <td className="sd-table-cell sd-align-right">{salaryDetails.netSalary > 0 ? `₹${salaryDetails.netSalary.toLocaleString()}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{salaryDetails.basicSalary > 0 ? `₹${salaryDetails.basicSalary.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{salaryDetails.hra > 0 ? `₹${salaryDetails.hra.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{salaryDetails.ltaAllowance > 0 ? `₹${salaryDetails.ltaAllowance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{salaryDetails.otherAllowances > 0 ? `₹${salaryDetails.otherAllowances.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{salaryDetails.incentivePay > 0 ? `₹${salaryDetails.incentivePay.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{salaryDetails.overtimePay > 0 ? `₹${salaryDetails.overtimePay.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{salaryDetails.statutoryBonus > 0 ? `₹${salaryDetails.statutoryBonus.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{monthlyBonusPay > 0 ? `₹${monthlyBonusPay.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>  {/* Local Bonus: Monthly Accurate */}
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.advanceRecovery > 0 ? `₹${salaryDetails.advanceRecovery.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.employeePF > 0 ? `₹${salaryDetails.employeePF.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.employerPF > 0 ? `₹${salaryDetails.employerPF.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.esic > 0 ? `₹${salaryDetails.esic.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.gratuity > 0 ? `₹${salaryDetails.gratuity.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.professionalTax > 0 ? `₹${salaryDetails.professionalTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.tds > 0 ? `₹${salaryDetails.tds.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{salaryDetails.insurance > 0 ? `₹${salaryDetails.insurance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right sd-deduction">{lopDays > 0 ? lopDays.toFixed(0) : 'N/A'}</td>  {/* LOP Days: Yearly to match DetailsTab */}
+              <td className="sd-table-cell sd-align-right sd-deduction">{lopDeduction > 0 ? `₹${lopDeduction.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>  {/* LOP Value: Yearly to match DetailsTab */}
+              <td className="sd-table-cell sd-align-right">{localGross > 0 ? `₹${localGross.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>
+              <td className="sd-table-cell sd-align-right">{localNet > 0 ? `₹${localNet.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A'}</td>  {/* Local Net: Matches DetailsTab */}
             </tr>
           );
         })}
@@ -657,7 +750,15 @@ const [alertModal, setAlertModal] = useState({
             );
           }
 
-          const netSalary = salaryDetails.netSalary > 0 ? salaryDetails.netSalary : 0;
+          // Local bonus and LOP
+          const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
+          const lopData = employeeLopData[emp.employee_id] || {
+            currentMonth: { days: 0, value: '0.00', currency: 'INR' },
+          };
+          const lopDeduction = parseFloat(lopData.yearly?.value || '0.00');
+
+          const { localNet } = calculateLocalGrossNet(salaryDetails, monthlyBonusPay, lopDeduction, emp.plan_data);
+          const netSalary = localNet > 0 ? localNet : 0;
 
           return (
             <tr key={emp.employee_id}>
@@ -666,7 +767,7 @@ const [alertModal, setAlertModal] = useState({
               <td className="sd-preview-table-cell">{personalMap[emp.employee_id]?.pan_number || 'N/A'}</td>
               <td className="sd-preview-table-cell">{personalMap[emp.employee_id]?.uan_number || 'N/A'}</td>
               <td className="sd-preview-table-cell sd-align-right">
-                {netSalary > 0 ? `₹${netSalary.toLocaleString()}` : 'N/A'}
+                {netSalary > 0 ? `₹${netSalary.toLocaleString()}` : 'N/A'}  {/* Local Net: Matches DetailsTab */}
               </td>
             </tr>
           );

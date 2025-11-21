@@ -43,7 +43,14 @@ const getFormattedInvoiceNumber = (typeKey, sequence) => {
   }
 };
 
-const ProjectCard = ({ projectData, onUpdate, onViewInvoices, userRole }) => {
+const ProjectCard = ({
+  projectData,
+  onUpdate,
+  onViewInvoices,
+  userRole,
+  userDepartment,
+  canRaiseInvoice,
+}) => {
   const { company, project, startDate, endDate, clientPOC, stsPOC, milestone } =
     projectData;
 
@@ -74,7 +81,7 @@ const ProjectCard = ({ projectData, onUpdate, onViewInvoices, userRole }) => {
       <p className="project-label">Milestone Status</p>
       <p className="project-value">Phase {milestone}</p>
       <p className="project-value">
-        {userRole !== "Employee" && userRole !== "Team Lead" && (
+        {canRaiseInvoice && (
           <button
             className="add-project-button"
             onClick={() => onViewInvoices(projectData)}
@@ -88,7 +95,6 @@ const ProjectCard = ({ projectData, onUpdate, onViewInvoices, userRole }) => {
 };
 
 const ProjectsDashboard = () => {
-  // "projects" or "invoices" controls the view.
   const [currentScreen, setCurrentScreen] = useState("projects");
   const [showForm, setShowForm] = useState(false);
   const [showDownloadForm, setShowDownloadForm] = useState(false);
@@ -105,12 +111,24 @@ const ProjectsDashboard = () => {
   const dashboardData = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   );
+  const userDepartment = dashboardData.department || null;
   const employeeId = dashboardData.employeeId;
+
+  const normalizedRole = (userRole || "").trim();
+  const normalizedDept = (userDepartment || "").trim().toLowerCase();
+
+  const isAdmin = normalizedRole === "Admin";
+  const isFinanceDept = normalizedDept === "finance";
+  const isFinanceManager =
+    isFinanceDept &&
+    (normalizedRole === "Manager" || normalizedRole === "Financial Manager");
+
+  const canAccessGeneralTemplates = isAdmin || isFinanceManager;
 
   const fetchProjects = async () => {
     try {
       let url = `${process.env.REACT_APP_BACKEND_URL}/projects`;
-      if (userRole === "Employee" || userRole === "Team Lead") {
+      if (userRole === "Employee" || userRole === "Manager") {
         url = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects?employeeId=${employeeId}`;
       }
       const response = await fetch(url, {
@@ -146,7 +164,7 @@ const ProjectsDashboard = () => {
   );
 
   useEffect(() => {
-    fetchInvoiceSequence(); // Fetch invoice sequence whenever selectedInvoiceType changes
+    fetchInvoiceSequence();
   }, [selectedInvoiceType]);
 
   const fetchInvoiceSequence = async () => {
@@ -215,7 +233,6 @@ const ProjectsDashboard = () => {
       const filename = `${invoiceNumberDirect}.pdf`;
       pdf.save(filename);
 
-      // 1) record the download in our DB:
       await fetch(`${process.env.REACT_APP_BACKEND_URL}/download-details`, {
         method: "POST",
         headers: {
@@ -305,7 +322,7 @@ const ProjectsDashboard = () => {
             >
               Pending
             </span>
-            {(userRole === "Admin" || userRole === "Financial Manager") && (
+            {canAccessGeneralTemplates && (
               <span
                 className={
                   activeTab === "General Templates" ? "active-tab" : ""
@@ -329,6 +346,8 @@ const ProjectsDashboard = () => {
                       onUpdate={openForm}
                       onViewInvoices={openInvoiceScreen}
                       userRole={userRole}
+                      userDepartment={userDepartment}
+                      canRaiseInvoice={canAccessGeneralTemplates}
                     />
                   ))
               ) : (
@@ -337,58 +356,57 @@ const ProjectsDashboard = () => {
             </div>
           )}
 
-          {activeTab === "General Templates" &&
-            (userRole === "Admin" || userRole === "Financial Manager") && (
-              <div className="general-templates-section">
-                <div className="template-controls">
-                  <label htmlFor="invoiceTypeSelect">Invoice Type: </label>
-                  <select
-                    id="invoiceTypeSelect"
-                    value={selectedInvoiceType}
-                    onChange={(e) => setSelectedInvoiceType(e.target.value)}
-                  >
-                    <option value="Tax Invoice">Tax Invoice</option>
-                    <option value="Proforma Invoice">Proforma Invoice</option>
-                    <option value="Quotation">Quotation</option>
-                  </select>
-                  <button
-                    className="download-form-button"
-                    onClick={() => {
-                      setShowTemplatePreview(false);
-                      setShowDownloadForm(true);
-                    }}
-                  >
-                    Add Details
-                  </button>
-                  <button
-                    className="view-template-button"
-                    onClick={() => {
-                      setShowTemplatePreview((prev) => !prev);
-                      setShowDownloadForm(false);
-                    }}
-                  >
-                    {showTemplatePreview ? "Hide" : "View"}{" "}
-                    <FiEye className="template-icons" />
-                  </button>
-                  <button
-                    className="download-template-button"
-                    onClick={handleDownloadTemplate}
-                  >
-                    Download <FiDownload className="template-icons" />
-                  </button>
-                </div>
-                {showTemplatePreview && (
-                  <div className="template-preview">
-                    <InvoiceTemplate
-                      invoiceType={selectedInvoiceType}
-                      invoiceNumber={invoiceNumberDirect}
-                      downloadDetails={downloadDetails}
-                    />
-                  </div>
-                )}
-                <DownloadDetailsList />
+          {activeTab === "General Templates" && canAccessGeneralTemplates && (
+            <div className="general-templates-section">
+              <div className="template-controls">
+                <label htmlFor="invoiceTypeSelect">Invoice Type: </label>
+                <select
+                  id="invoiceTypeSelect"
+                  value={selectedInvoiceType}
+                  onChange={(e) => setSelectedInvoiceType(e.target.value)}
+                >
+                  <option value="Tax Invoice">Tax Invoice</option>
+                  <option value="Proforma Invoice">Proforma Invoice</option>
+                  <option value="Quotation">Quotation</option>
+                </select>
+                <button
+                  className="download-form-button"
+                  onClick={() => {
+                    setShowTemplatePreview(false);
+                    setShowDownloadForm(true);
+                  }}
+                >
+                  Add Details
+                </button>
+                <button
+                  className="view-template-button"
+                  onClick={() => {
+                    setShowTemplatePreview((prev) => !prev);
+                    setShowDownloadForm(false);
+                  }}
+                >
+                  {showTemplatePreview ? "Hide" : "View"}{" "}
+                  <FiEye className="template-icons" />
+                </button>
+                <button
+                  className="download-template-button"
+                  onClick={handleDownloadTemplate}
+                >
+                  Download <FiDownload className="template-icons" />
+                </button>
               </div>
-            )}
+              {showTemplatePreview && (
+                <div className="template-preview">
+                  <InvoiceTemplate
+                    invoiceType={selectedInvoiceType}
+                    invoiceNumber={invoiceNumberDirect}
+                    downloadDetails={downloadDetails}
+                  />
+                </div>
+              )}
+              <DownloadDetailsList />
+            </div>
+          )}
         </>
       )}
 
