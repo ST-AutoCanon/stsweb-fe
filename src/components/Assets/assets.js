@@ -1685,7 +1685,7 @@ const [showForm, setShowForm] = useState(false);
                         )
                       }
                     >
-                      <option value="Pending">Unassigned</option>
+                      <option value="Unassigned">Unassigned</option>
                       <option value="Assigned">Assigned</option>
                       <option value="Returned">Returned</option>
                       <option value="Decommissioned">Decommissioned</option>

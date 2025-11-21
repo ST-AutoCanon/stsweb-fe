@@ -1077,7 +1077,7 @@ const Vendors = () => {
                 <div className="contact-row three-columns">
                   {renderFileInput("GST Certificate", "gst_certificate", true)}
                   {renderFileInput("PAN Card", "pan_card", true)}
-                  {renderFileInput("Cancelled Cheque", "cancelled_cheque", true)}
+                  {renderFileInput("Cancelled Cheque", "cancelled_cheque")}
                 </div>
                 <div className="contact-row two-columns">
                   {renderFileInput(
