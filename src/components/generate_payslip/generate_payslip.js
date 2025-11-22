@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import generatePayslipPDF from "../../utils/generatePayslipPDF";
+import generatePayslipPDF from "../../utils/generatePayslipPDF2";
 import "./generate_payslip.css";
 import Modal from "../Modal/Modal";
 
@@ -287,46 +287,41 @@ const handleDownloadPDF = async () => {
 
   const preparePayslipData = () => {
   const { grossEarnings, totalDeductions, netSalary } = calculateSummary();
+
   return {
     payrollData: {
-      employee_name: formData.employeeName || "Unknown",
-      employee_id: formData.employeeId || "STS001",
-      designation: formData.designation || "N/A",
-      joining_date: formData.dateOfJoining || new Date().toISOString().split("T")[0],
-      uin_number: formData.uinNo || "N/A",
+      employee_name: formData.employeeName,
+      employee_id: formData.employeeId,
+      designation: formData.designation,
+      joining_date: formData.dateOfJoining,
+      uin_number: formData.uinNo,
       basic_salary: parseFloat(formData.basic) || 0,
       hra: parseFloat(formData.hra) || 0,
-      allowance: parseFloat(formData.otherAllowance) || 0,
+      allowance: parseFloat(formData.otherAllowance) || 0,     // ← This goes to "Other Allowance"
       pf: parseFloat(formData.pf) || 0,
-      insurance: parseFloat(formData.esiInsurance) || 0,
-      pt: parseFloat(formData.professionalTax) || 0,
+      esi: parseFloat(formData.esiInsurance) || 0,             // ← Renamed to esi
+      pt: parseFloat(formData.professionalTax) || 0,           // ← Renamed to pt
       tds: parseFloat(formData.tds) || 0,
-      total_earnings: grossEarnings || 0,
-      total_deductions: totalDeductions || 0,
-      net_salary: netSalary || 0,
-      special_allowance: 0,
-      rnrbonus: 0,
-      advance_taken: 0,
-      advance_recovery: 0,
-      salary_advance: 0,
+      total_earnings: grossEarnings,
+      total_deductions: totalDeductions,
+      net_salary: netSalary,
     },
-    selectedDate: {
-      month: parseInt(selectedMonth) || 1,
-      year: parseInt(selectedYear) || new Date().getFullYear(),
-    },
+    selectedDate: { month: parseInt(selectedMonth), year: parseInt(selectedYear) },
     bankDetails: {
-      account_number: formData.accountNo || "N/A",
-      bank_name: "",
-      esi_number: formData.esiNumber || "",
-      pf_number: formData.pfNumber || "",
+      account_number: formData.accountNo,
+      bank_name: "HDFC Bank", // ← Change this or add input field
+      esi_number: formData.esiNumber,
+      pf_number: formData.pfNumber,
     },
     attendance: {
       total_working_days: parseInt(formData.workingDays) || 0,
       leave_count: parseInt(formData.leavesTaken) || 0,
     },
     employeeDetails: {
-      gender: formData.gender || "N/A",
-      pan_number: formData.panNumber || "N/A",
+      gender: formData.gender,
+      pan_number: formData.panNumber,
+      designation: formData.designation,
+      joining_date: formData.dateOfJoining,
     },
   };
 };

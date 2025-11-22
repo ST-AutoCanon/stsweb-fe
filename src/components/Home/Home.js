@@ -7,8 +7,8 @@ import Services from '../Services/Services';
 import HomologationFirst from '../HomologationFirst/HomologationFirst';
 import './Home.css';
 import H101 from '../../assets/images/H101.png';
-import H106 from '../../assets/images/H106.png';
-import Homepage4 from '../../assets/images/Homepage4.png';
+import H106 from '../../assets/images/chessis.jpeg';
+import Homepage4 from '../../assets/images/whitecar.jpeg';
 import H105 from '../../assets/images/H105.png';
 
 const desktopImages = [H101, H106, Homepage4, H105];

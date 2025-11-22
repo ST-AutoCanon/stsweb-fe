@@ -16,22 +16,32 @@ const OvertimeSupervisor = () => {
 
   const API_KEY = process.env.REACT_APP_API_KEY;
   const BASE_URL = process.env.REACT_APP_BACKEND_URL;
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
-
-  // ← FIXED: was "meApproval" → now correct "meId"
+const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+const dashboardData = JSON.parse(localStorage.getItem("dashboardData") || "{}");
+const myName = dashboardData.employeeName || 
+               dashboardData.full_name || 
+               dashboardData.name || 
+               dashboardData.preferred_name || 
+               "";
   const headers = {
     "x-api-key": API_KEY,
-    "x-employee-id": meId,           // ← This was the bug!
+    "x-employee-id": meId,
     "Content-Type": "application/json",
   };
 
-  const [alertModal, setAlertModal] = useState({ isVisible: false, title: "", message: "" });
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
 
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
 
-  const closeAlert = () => setAlertModal({ isVisible: false, title: "", message: "" });
+  const closeAlert = () => {
+    setAlertModal({ isVisible: false, title: "", message: "" });
+  };
 
   // ---------- DATE HELPERS ----------
   const monthLabel = (offset) => {
@@ -58,7 +68,10 @@ const OvertimeSupervisor = () => {
       let currentYear = now.getFullYear();
       if (tab === "prev1") currentMonth -= 1;
       else if (tab === "prev2") currentMonth -= 2;
-      while (currentMonth < 0) { currentMonth += 12; currentYear -= 1; }
+      while (currentMonth < 0) {
+        currentMonth += 12;
+        currentYear -= 1;
+      }
 
       const periodEnd = new Date(currentYear, currentMonth, cutoff_date);
       const periodStart = new Date(currentYear, currentMonth - 1, cutoff_date);
@@ -66,7 +79,7 @@ const OvertimeSupervisor = () => {
       const startDate = `${periodStart.getFullYear()}-${String(periodStart.getMonth() + 1).padStart(2, "0")}-${String(periodStart.getDate()).padStart(2, "0")}`;
       const endDate = `${periodEnd.getFullYear()}-${String(periodEnd.getMonth() + 1).padStart(2, "0")}-${String(periodEnd.getDate()).padStart(2, "0")}`;
 
-      const [extraRes, summaryRes, assignedRes, planListRes, supervisorRes] = await Promise.all([
+      const [extraRes, summaryRes, assignedRes, planListRes, teamRes] = await Promise.all([
         axios.get(`${BASE_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`, { headers }),
         axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, { headers }),
         axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }),
@@ -74,9 +87,9 @@ const OvertimeSupervisor = () => {
         axios.get(`${BASE_URL}/api/overtime-summary/${meId}`, { headers }),
       ]);
 
-      const supervisorEmployeeIds = new Set((supervisorRes.data?.data || []).map(e => e.employee_id));
+      const teamEmployeeIds = new Set((teamRes.data?.data || []).map(e => e.employee_id));
 
-      // Rate & default hours
+      // Rate & default hours map
       const rateObj = {};
       const hoursObj = {};
       const assignedData = assignedRes.data?.data || [];
@@ -94,9 +107,9 @@ const OvertimeSupervisor = () => {
       setRateMap(rateObj);
       setDefaultHoursMap(hoursObj);
 
-      // Main data
+      // Process overtime data (only team members)
       const mainData = (extraRes.data?.data || [])
-        .filter(item => supervisorEmployeeIds.has(item.employee_id))
+        .filter(item => teamEmployeeIds.has(item.employee_id))
         .map(item => {
           const localDate = toLocalDate(item.work_date);
           const totalHrs = parseFloat(item.total_hours_worked) || 0;
@@ -122,7 +135,7 @@ const OvertimeSupervisor = () => {
       const approved = new Set();
       const summaryData = summaryRes.data?.data || [];
       summaryData.forEach(r => {
-        if (r.employee_id && r.work_date && supervisorEmployeeIds.has(r.employee_id)) {
+        if (r.employee_id && r.work_date && teamEmployeeIds.has(r.employee_id)) {
           approved.add(`${r.employee_id}-${toLocalDate(r.work_date)}`);
         }
       });
@@ -138,7 +151,7 @@ const OvertimeSupervisor = () => {
 
   useEffect(() => { fetchData(); }, [tab]);
 
-  // ---------- FILTER & SELECTION ----------
+  // ---------- FILTER ----------
   const filtered = useMemo(() => {
     if (!search) return data;
     const q = search.toLowerCase();
@@ -149,6 +162,7 @@ const OvertimeSupervisor = () => {
     );
   }, [data, search]);
 
+  // ---------- SELECTION ----------
   const rowKey = (item) => `${item.employee_id}-${item.work_date}`;
   const isApproved = (item) => approvedSet.has(rowKey(item));
   const isRowSelected = (item) => selected.has(rowKey(item));
@@ -168,89 +182,104 @@ const OvertimeSupervisor = () => {
     setSelected(prev => keys.every(k => prev.has(k)) ? new Set() : new Set(keys));
   };
 
-  const isAllSelected = (() => {
-    const keys = filtered.filter(r => !isApproved(r)).map(rowKey);
-    return keys.length > 0 && keys.every(k => selected.has(k));
-  })();
+  const isAllSelected = filtered.filter(r => !isApproved(r)).length > 0 &&
+    filtered.filter(r => !isApproved(r)).every(r => selected.has(rowKey(r)));
 
-  // ---------- PAYLOAD & UPDATE ----------
-  const buildPayload = (sessions, status, parent) => {
-    const key = rowKey(parent);
-    const rate = edited[key]?.rate ?? (rateMap[parent.employee_id] ?? 0);
-    const comments = edited[key]?.comments ?? (parent.comments || "");
+  // ---------- PAYLOAD & UPDATE (THIS WAS THE REAL FIX) ----------
+const buildPayload = (status, parent) => {
+  const groupKey = rowKey(parent);
 
-    return sessions.map(s => ({
-      punch_id: s.punch_id,
+  const effectiveRate =
+    edited[groupKey]?.rate !== undefined
+      ? parseFloat(edited[groupKey].rate)
+      : rateMap[parent.employee_id] ?? 0;
+
+  const effectiveComments = edited[groupKey]?.comments ?? "";
+
+  // CRITICAL FIXES BELOW
+  return [
+    {
+      punch_id: `${parent.employee_id}_${parent.work_date}`, // Consistent format
       work_date: parent.work_date,
       employee_id: parent.employee_id,
-      extra_hours: Number(parseFloat(s.extra_hours) || 0).toFixed(2),
-      rate: Number(rate).toFixed(2),
-      project: parent.projects || parent.project || "",
-      supervisor: parent.supervisors || parent.supervisor || "",
-      comments,
-      status,
-    }));
-  };
+      extra_hours: parseFloat(parent.extra_hours) || 0,
+      rate: effectiveRate ? parseFloat(effectiveRate.toFixed(2)) : 0, // Ensure number + 2 decimals
 
-  const bulkUpdate = async (payload, action) => {
-    if (!payload.length) return;
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/api/compensation/overtime-bulk`,
-        { data: payload },
-        { headers }
-      );
+      project: parent.project_name?.trim() || "",
 
-      if (res.data.success !== false) {
-        showAlert(`Successfully ${action} ${payload.length} record(s)`);
-        await fetchData();
-        setSelected(new Set());
-        setEdited({});
-      } else {
-        throw new Error(res.data.details || "Unknown error");
-      }
-    } catch (err) {
-      console.error("Bulk update error:", err.response?.data || err);
-      const msg = err.response?.data?.details || err.response?.data?.error || err.message;
-      showAlert(`Failed to ${action}: ${msg}`, "Error");
+      // THIS IS THE KEY FIX:
+      supervisor: myName.trim() || meId, // Send NAME, fallback to ID if name missing
+
+      comments: effectiveComments,
+      status: status, // "Approved" or "Rejected"
     }
-  };
+  ];
+};
+
+
+
+
+
+ const bulkUpdate = async (payload, action) => {
+  if (!payload.length) return;
+
+  console.log("FINAL PAYLOAD:", payload);  // <=== add this for testing
+
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/api/compensation/overtime-upsert-supervisor`,
+      { data: payload },
+      { headers }
+    );
+
+    console.log("BACKEND RESPONSE:", res.data);
+
+    showAlert(`Successfully ${action} ${payload.length} record(s)`);
+
+    await fetchData();
+    setSelected(new Set());
+    setEdited({});
+  } catch (err) {
+    console.error("Update error:", err.response?.data || err);
+    showAlert(`Failed: ${err.response?.data?.details || err.message}`);
+  }
+};
 
   const approveAll = () => {
-    const payload = [];
-    filtered.forEach(r => {
-      if (selected.has(rowKey(r))) payload.push(...buildPayload(r.sessions, "Approved", r));
-    });
-    if (payload.length) bulkUpdate(payload, "approved");
-  };
+  const payload = [];
+  filtered.forEach(r => {
+    if (selected.has(rowKey(r))) {
+      payload.push(...buildPayload("Approved", r));
+    }
+  });
 
-  const rejectAll = () => {
-    const payload = [];
-    filtered.forEach(r => {
-      if (selected.has(rowKey(r))) payload.push(...buildPayload(r.sessions, "Rejected", r));
-    });
-    if (payload.length) bulkUpdate(payload, "rejected");
-  };
+  if (payload.length) bulkUpdate(payload, "Approved");
+};
 
-  const approveOne = (row) => {
-    const payload = buildPayload(row.sessions, "Approved", row);
-    bulkUpdate(payload, "approved");
-  };
+const rejectAll = () => {
+  const payload = [];
+  filtered.forEach(r => {
+    if (selected.has(rowKey(r))) {
+      payload.push(...buildPayload("Rejected", r));
+    }
+  });
 
-  const rejectOne = (row) => {
-    const payload = buildPayload(row.sessions, "Rejected", row);
-    bulkUpdate(payload, "rejected");
-  };
+  if (payload.length) bulkUpdate(payload, "Rejected");
+};
+
+const approveOne = (row) => bulkUpdate(buildPayload("Approved", row), "Approved");
+
+const rejectOne = (row) => bulkUpdate(buildPayload("Rejected", row), "Rejected");
 
   // ---------- RENDER ----------
-  if (loading) return <div className="ot-loading">Loading overtime records...</div>;
+  if (loading) return <div className="ot-loading">Loading…</div>;
 
   return (
     <div className="ot-container">
       <h1>Supervisor Overtime Approval</h1>
 
       <div className="ot-tabs">
-        {["prev2", "prev1", "current"].map((t) => (
+        {["prev2", "prev1", "current"].map(t => (
           <button
             key={t}
             className={tab === t ? "ot-tab active" : "ot-tab"}
@@ -280,7 +309,7 @@ const OvertimeSupervisor = () => {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="ot-no-data">No overtime records found for your team.</p>
+        <p className="ot-no-data">No overtime records found for your team</p>
       ) : (
         <div className="ot-table-wrapper">
           <table className="ot-table">
@@ -300,7 +329,7 @@ const OvertimeSupervisor = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row) => {
+              {filtered.map(row => {
                 const key = rowKey(row);
                 const approved = isApproved(row);
                 const sel = isRowSelected(row);
@@ -324,7 +353,7 @@ const OvertimeSupervisor = () => {
                         value={(edited[key]?.rate ?? defaultRate).toFixed(2)}
                         onChange={(e) => {
                           const val = parseFloat(e.target.value) || 0;
-                          setEdited(prev => ({ ...prev, [key]: { ...prev[key], rate: val } }));
+                          setEdited(prev => ({ ...prev, [key]: { ...(prev[key] || {}), rate: val } }));
                         }}
                         disabled={approved}
                         className="ot-input-rate"
@@ -338,10 +367,10 @@ const OvertimeSupervisor = () => {
                     <td className="ot-td ot-td-actions">
                       {!approved && (
                         <>
-                          <button className="ot-btn-icon ot-btn-approve" onClick={() => approveOne(row)} title="Approve">
+                          <button className="ot-btn-icon ot-btn-approve" onClick={() => approveOne(row)}>
                             <i className="fas fa-check"></i>
                           </button>
-                          <button className="ot-btn-icon ot-btn-reject" onClick={() => rejectOne(row)} title="Reject">
+                          <button className="ot-btn-icon ot-btn-reject" onClick={() => rejectOne(row)}>
                             <i className="fas fa-times"></i>
                           </button>
                         </>
