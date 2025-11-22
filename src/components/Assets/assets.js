@@ -843,40 +843,31 @@ const [showForm, setShowForm] = useState(false);
   };
 
   const addAssignmentRow = () => {
-    const currentRows = assignmentRowsByAsset[selectedAssetId] || [];
+  const rows = assignmentRowsByAsset[selectedAssetId] || [];
 
-    // If there's at least one row, validate the top row first
-    if (currentRows.length > 0) {
-      const topRow = currentRows[0];
-
-      const isFilled =
-        topRow.assignedTo &&
-        topRow.startDate &&
-        topRow.returnDate &&
-        topRow.assigningStatus &&
-        topRow.comments;
-
-      if (!isFilled) {
-        showAlert(
-          "Please fill out the current top row before adding a new one."
-        );
-        return;
-      }
+  // Block adding new row if top row is incomplete
+  if (rows.length > 0) {
+    const topRow = rows[0];
+    if (!topRow.assignedTo || !topRow.startDate || topRow.assigningStatus === "Pending") {
+      showAlert("Please complete Assigned To, Start Date, and Status before adding another row.");
+      return;
     }
+  }
 
-    const newRow = {
-      assignedTo: "",
-      startDate: "",
-      returnDate: "",
-      assigningStatus: "Pending",
-      comments: "",
-    };
-
-    setAssignmentRowsByAsset((prev) => ({
-      ...prev,
-      [selectedAssetId]: [newRow, ...(prev[selectedAssetId] || [])],
-    }));
+  const newRow = {
+    assignedTo: "",
+    startDate: selectedAsset?.valuation_date || "",
+    returnDate: "",
+    assigningStatus: "Pending",
+    comments: "",
+    employeeId: "",
   };
+
+  setAssignmentRowsByAsset((prev) => ({
+    ...prev,
+    [selectedAssetId]: [newRow, ...(prev[selectedAssetId] || [])],
+  }));
+};
 
   const updateAssignment = (index, field, value) => {
     setAssignmentRowsByAsset((prev) => {

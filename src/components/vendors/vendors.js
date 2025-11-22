@@ -355,7 +355,7 @@ const Vendors = () => {
     const requiredDocs = [
       { key: "gst_certificate", label: "GST Certificate" },
       { key: "pan_card", label: "PAN Card" },
-      { key: "cancelled_cheque", label: "Cancelled Cheque" },
+      // { key: "cancelled_cheque", label: "Cancelled Cheque" },
     ];
     const missingDocs = requiredDocs.filter(
       (doc) =>
@@ -1077,7 +1077,7 @@ const Vendors = () => {
                 <div className="contact-row three-columns">
                   {renderFileInput("GST Certificate", "gst_certificate", true)}
                   {renderFileInput("PAN Card", "pan_card", true)}
-                  {renderFileInput("Cancelled Cheque", "cancelled_cheque")}
+                  {renderFileInput("Cancelled Cheque", "cancelled_cheque",false)}
                 </div>
                 <div className="contact-row two-columns">
                   {renderFileInput(
