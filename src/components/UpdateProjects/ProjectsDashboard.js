@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import "./ProjectsDashboard.css";
 import ProjectForm from "./ProjectForm";
 import InvoiceTemplate from "./InvoiceTemplate";
@@ -58,7 +58,7 @@ const ProjectCard = ({
     <div className="add-project-card" style={{ cursor: "pointer" }}>
       <div className="company">
         <h3>{company}</h3>
-        {userRole !== "Employee" && (
+        {userRole !== "Employee" ? (
           <MdUpdate
             onClick={(e) => {
               e.stopPropagation();
@@ -66,7 +66,7 @@ const ProjectCard = ({
             }}
             className="pj-update-icon"
           />
-        )}
+        ) : null}
       </div>
       <p className="project-label">Project Name</p>
       <p className="project-value">{project}</p>
@@ -81,14 +81,14 @@ const ProjectCard = ({
       <p className="project-label">Milestone Status</p>
       <p className="project-value">Phase {milestone}</p>
       <p className="project-value">
-        {canRaiseInvoice && (
+        {canRaiseInvoice ? (
           <button
             className="add-project-button"
             onClick={() => onViewInvoices(projectData)}
           >
             + Raise Invoice
           </button>
-        )}
+        ) : null}
       </p>
     </div>
   );
@@ -156,12 +156,56 @@ const ProjectsDashboard = () => {
     fetchProjects();
   };
 
+  const headerRef = useRef(null);
+  const contentRef = useRef(null);
   const printRef = useRef(null);
   const invoiceTypeKey = getInvoiceTypeKey(selectedInvoiceType);
   const invoiceNumber = getFormattedInvoiceNumber(
     invoiceTypeKey,
     invoiceSequence
   );
+
+  useLayoutEffect(() => {
+    if (currentScreen !== "invoices") return;
+    const contentEl = contentRef.current;
+    if (!contentEl) return;
+
+    const prevOverflow = contentEl.style.overflow;
+    contentEl.style.overflow = "hidden";
+
+    contentEl.scrollTop = 0;
+    contentEl.offsetHeight;
+
+    requestAnimationFrame(() => {
+      contentEl.style.overflow = prevOverflow || "auto";
+
+      const invoiceEl = document.getElementById("invoiceScreen");
+      if (invoiceEl) {
+        const target = invoiceEl.offsetTop || 0;
+        contentEl.scrollTo({ top: Math.max(0, target), behavior: "auto" });
+      } else {
+        contentEl.scrollTo({ top: 0, behavior: "auto" });
+      }
+    });
+  }, [currentScreen]);
+
+  useEffect(() => {
+    const adjustHeight = () => {
+      const navbar =
+        document.querySelector("nav") ||
+        document.querySelector(".navbar") ||
+        document.querySelector("#navbar");
+      const navbarHeight = navbar ? navbar.offsetHeight : 0;
+      if (contentRef.current) {
+        contentRef.current.style.height = `${
+          window.innerHeight - navbarHeight
+        }px`;
+      }
+    };
+    adjustHeight();
+    window.addEventListener("resize", adjustHeight);
+    return () => window.removeEventListener("resize", adjustHeight);
+  }, []);
 
   useEffect(() => {
     fetchInvoiceSequence();
@@ -215,10 +259,8 @@ const ProjectsDashboard = () => {
 
   const handleDownloadTemplate = async () => {
     if (!printRef.current) return;
-
     try {
       await fetchInvoiceSequence();
-
       const canvas = await html2canvas(printRef.current, { scale: 2 });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
@@ -229,10 +271,8 @@ const ProjectsDashboard = () => {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
       const filename = `${invoiceNumberDirect}.pdf`;
       pdf.save(filename);
-
       await fetch(`${process.env.REACT_APP_BACKEND_URL}/download-details`, {
         method: "POST",
         headers: {
@@ -245,7 +285,6 @@ const ProjectsDashboard = () => {
           downloadDetails,
         }),
       });
-
       await updateInvoiceNumber();
     } catch (error) {
       console.error("Error generating PDF", error);
@@ -258,22 +297,18 @@ const ProjectsDashboard = () => {
   };
 
   const openInvoiceScreen = (project) => {
+    setTimeout(() => {
+      try {
+        const active = document.activeElement;
+        if (active && typeof active.blur === "function") {
+          active.blur();
+        }
+      } catch (e) {}
+    }, 0);
+
     setSelectedProject(project);
     setCurrentScreen("invoices");
   };
-
-  useEffect(() => {
-    if (currentScreen === "invoices") {
-      setTimeout(() => {
-        const invoiceScreen = document.getElementById("invoiceScreen");
-        if (invoiceScreen) {
-          invoiceScreen.scrollIntoView({ behavior: "smooth" });
-        } else {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      }, 50);
-    }
-  }, [currentScreen]);
 
   const filteredProjects = projects.filter((proj) => {
     if (activeTab === "Completed") return proj.status === "Completed";
@@ -292,159 +327,166 @@ const ProjectsDashboard = () => {
 
   return (
     <div className="project-dashboard">
-      {currentScreen === "projects" && (
-        <>
-          <div className="project-header">
-            <h2>Update Projects</h2>
-            {userRole === "Admin" && (
-              <button className="add-project-button" onClick={() => openForm()}>
-                + Add New Project
-              </button>
-            )}
-          </div>
+      <div className="project-content" ref={contentRef}>
+        {currentScreen === "projects" && (
+          <>
+            <div className="project-header" ref={headerRef}>
+              <h2>Update Projects</h2>
+              {userRole === "Admin" ? (
+                <button
+                  className="add-project-button"
+                  onClick={() => openForm()}
+                >
+                  + Add New Project
+                </button>
+              ) : null}
+            </div>
 
-          <div className="project-tabs">
-            <span
-              className={activeTab === "Current" ? "active-tab" : ""}
-              onClick={() => setActiveTab("Current")}
-            >
-              Current
-            </span>
-            <span
-              className={activeTab === "Completed" ? "active-tab" : ""}
-              onClick={() => setActiveTab("Completed")}
-            >
-              Completed
-            </span>
-            <span
-              className={activeTab === "Pending" ? "active-tab" : ""}
-              onClick={() => setActiveTab("Pending")}
-            >
-              Pending
-            </span>
-            {canAccessGeneralTemplates && (
+            <div className="project-tabs">
               <span
-                className={
-                  activeTab === "General Templates" ? "active-tab" : ""
-                }
-                onClick={() => setActiveTab("General Templates")}
+                className={activeTab === "Current" ? "active-tab" : ""}
+                onClick={() => setActiveTab("Current")}
               >
-                General Templates
+                Current
               </span>
-            )}
-          </div>
-
-          {activeTab !== "General Templates" && (
-            <div className="project-cards-container">
-              {filteredProjects.length > 0 ? (
-                [...filteredProjects]
-                  .sort((a, b) => b.id - a.id)
-                  .map((proj) => (
-                    <ProjectCard
-                      key={proj.id}
-                      projectData={proj}
-                      onUpdate={openForm}
-                      onViewInvoices={openInvoiceScreen}
-                      userRole={userRole}
-                      userDepartment={userDepartment}
-                      canRaiseInvoice={canAccessGeneralTemplates}
-                    />
-                  ))
-              ) : (
-                <p>No projects available.</p>
-              )}
+              <span
+                className={activeTab === "Completed" ? "active-tab" : ""}
+                onClick={() => setActiveTab("Completed")}
+              >
+                Completed
+              </span>
+              <span
+                className={activeTab === "Pending" ? "active-tab" : ""}
+                onClick={() => setActiveTab("Pending")}
+              >
+                Pending
+              </span>
+              {canAccessGeneralTemplates ? (
+                <span
+                  className={
+                    activeTab === "General Templates" ? "active-tab" : ""
+                  }
+                  onClick={() => setActiveTab("General Templates")}
+                >
+                  General Templates
+                </span>
+              ) : null}
             </div>
-          )}
 
-          {activeTab === "General Templates" && canAccessGeneralTemplates && (
-            <div className="general-templates-section">
-              <div className="template-controls">
-                <label htmlFor="invoiceTypeSelect">Invoice Type: </label>
-                <select
-                  id="invoiceTypeSelect"
-                  value={selectedInvoiceType}
-                  onChange={(e) => setSelectedInvoiceType(e.target.value)}
-                >
-                  <option value="Tax Invoice">Tax Invoice</option>
-                  <option value="Proforma Invoice">Proforma Invoice</option>
-                  <option value="Quotation">Quotation</option>
-                </select>
-                <button
-                  className="download-form-button"
-                  onClick={() => {
-                    setShowTemplatePreview(false);
-                    setShowDownloadForm(true);
-                  }}
-                >
-                  Add Details
-                </button>
-                <button
-                  className="view-template-button"
-                  onClick={() => {
-                    setShowTemplatePreview((prev) => !prev);
-                    setShowDownloadForm(false);
-                  }}
-                >
-                  {showTemplatePreview ? "Hide" : "View"}{" "}
-                  <FiEye className="template-icons" />
-                </button>
-                <button
-                  className="download-template-button"
-                  onClick={handleDownloadTemplate}
-                >
-                  Download <FiDownload className="template-icons" />
-                </button>
+            {activeTab !== "General Templates" && (
+              <div className="project-cards-container">
+                {filteredProjects.length > 0 ? (
+                  [...filteredProjects]
+                    .sort((a, b) => b.id - a.id)
+                    .map((proj) => (
+                      <ProjectCard
+                        key={proj.id}
+                        projectData={proj}
+                        onUpdate={openForm}
+                        onViewInvoices={openInvoiceScreen}
+                        userRole={userRole}
+                        userDepartment={userDepartment}
+                        canRaiseInvoice={canAccessGeneralTemplates}
+                      />
+                    ))
+                ) : (
+                  <p>No projects available.</p>
+                )}
               </div>
-              {showTemplatePreview && (
-                <div className="template-preview">
-                  <InvoiceTemplate
-                    invoiceType={selectedInvoiceType}
-                    invoiceNumber={invoiceNumberDirect}
-                    downloadDetails={downloadDetails}
-                  />
+            )}
+
+            {activeTab === "General Templates" && canAccessGeneralTemplates ? (
+              <div className="general-templates-section">
+                <div className="template-controls">
+                  <label htmlFor="invoiceTypeSelect">Invoice Type: </label>
+                  <select
+                    id="invoiceTypeSelect"
+                    value={selectedInvoiceType}
+                    onChange={(e) => setSelectedInvoiceType(e.target.value)}
+                  >
+                    <option value="Tax Invoice">Tax Invoice</option>
+                    <option value="Proforma Invoice">Proforma Invoice</option>
+                    <option value="Quotation">Quotation</option>
+                  </select>
+                  <button
+                    className="download-form-button"
+                    onClick={() => {
+                      setShowTemplatePreview(false);
+                      setShowDownloadForm(true);
+                    }}
+                  >
+                    Add Details
+                  </button>
+                  <button
+                    className="view-template-button"
+                    onClick={() => {
+                      setShowTemplatePreview((prev) => !prev);
+                      setShowDownloadForm(false);
+                    }}
+                  >
+                    {showTemplatePreview ? "Hide" : "View"}{" "}
+                    <FiEye className="template-icons" />
+                  </button>
+                  <button
+                    className="download-template-button"
+                    onClick={handleDownloadTemplate}
+                  >
+                    Download <FiDownload className="template-icons" />
+                  </button>
                 </div>
-              )}
-              <DownloadDetailsList />
+                {showTemplatePreview ? (
+                  <div className="template-preview">
+                    <InvoiceTemplate
+                      invoiceType={selectedInvoiceType}
+                      invoiceNumber={invoiceNumberDirect}
+                      downloadDetails={downloadDetails}
+                    />
+                  </div>
+                ) : null}
+                <DownloadDetailsList />
+              </div>
+            ) : null}
+          </>
+        )}
+
+        {showForm ? (
+          <div className="pj-modal">
+            <div className="pj-modal-content">
+              <ProjectForm
+                projectData={selectedProject}
+                onClose={() => setShowForm(false)}
+                onProjectAdded={handleProjectAdded}
+              />
             </div>
-          )}
-        </>
-      )}
-
-      {showForm && (
-        <div className="pj-modal">
-          <div className="pj-modal-content">
-            <ProjectForm
-              projectData={selectedProject}
-              onClose={() => setShowForm(false)}
-              onProjectAdded={handleProjectAdded}
-            />
           </div>
-        </div>
-      )}
+        ) : null}
 
-      {currentScreen === "invoices" && (
-        <Invoice
-          project={selectedProject}
-          onBack={() => setCurrentScreen("projects")}
-        />
-      )}
+        {currentScreen === "invoices" ? (
+          <Invoice
+            project={selectedProject}
+            onBack={() => setCurrentScreen("projects")}
+          />
+        ) : null}
 
-      {currentScreen === "projects" &&
+        {currentScreen === "projects" &&
         showDownloadForm &&
-        activeTab === "General Templates" && (
+        activeTab === "General Templates" ? (
           <DownloadForm
             onSubmit={handleDownloadFormSubmit}
             onCancel={() => setShowDownloadForm(false)}
           />
-        )}
+        ) : null}
 
-      <div style={{ position: "absolute", top: "-10000px", left: "-10000px" }}>
-        <div ref={printRef}>
-          <InvoiceTemplate
-            invoiceType={selectedInvoiceType}
-            invoiceNumber={invoiceNumberDirect}
-            downloadDetails={downloadDetails}
-          />
+        <div
+          style={{ position: "absolute", top: "-10000px", left: "-10000px" }}
+        >
+          <div ref={printRef}>
+            <InvoiceTemplate
+              invoiceType={selectedInvoiceType}
+              invoiceNumber={invoiceNumberDirect}
+              downloadDetails={downloadDetails}
+            />
+          </div>
         </div>
       </div>
     </div>

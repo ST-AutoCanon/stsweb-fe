@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import "./assets.css";
 import axios from "axios";
@@ -13,25 +14,21 @@ import { FaChair } from "react-icons/fa"; // New Chair Icon
 import { MdStorage } from "react-icons/md"; // Correct Drawers Icon
 import { FaHdd, FaMouse, FaPlug, FaTools } from "react-icons/fa"; // Import necessary icons
 import { MdLaptop } from "react-icons/md"; // Import filled laptop icon
-
 import { Download } from "lucide-react";
 import Modal from "../Modal/Modal";
 import { TableProperties, Chair, Archive, Plug, Hammer } from "lucide-react";
-
 import { Boxes } from "lucide-react";
 import { LayoutPanelLeft, LayoutDashboard } from "lucide-react";
 import { MdOutlineCancel } from "react-icons/md";
-
 const Assets = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
-
   const [assetName, setAssetName] = useState("");
   const [configuration, setConfiguration] = useState("");
   const [valuationDate, setValuationDate] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
-const [assetDocument, setAssetDocument] = useState(null);
+  const [document, setDocument] = useState(null);
   const API_KEY = process.env.REACT_APP_API_KEY;
   const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
@@ -41,12 +38,10 @@ const [assetDocument, setAssetDocument] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [comments, setComments] = useState("");
-
-  const [assigningStatus, setAssigningStatus] = useState("Pending");
-
+  const [assigningStatus, setAssigningStatus] = useState("Unassigned");
+  const [status, setStatus] = useState("In Use"); // Default status
   const [assignedAssets, setAssignedAssets] = useState([]); // New state to store assigned assets
   const [popupSuggestions, setPopupSuggestions] = useState({});
-
   // const togglePopup = () => setShowPopup(!showPopup);
   const togglePopup = () => {
     if (showPopup) {
@@ -55,42 +50,34 @@ const [assetDocument, setAssetDocument] = useState(null);
     }
     setShowPopup(!showPopup);
   };
-
   // const resetForm = () => {
-  //   setAssignedTo("");
-  //   setStartDate("");
-  //   setReturnDate("");
-  //   setComments("");
-  //   setAssigningStatus("Pending");
+  // setAssignedTo("");
+  // setStartDate("");
+  // setReturnDate("");
+  // setComments("");
+  // setAssigningStatus("Pending");
   // };
-
   // const resetFormforaddasset = () => {
-  //   setAssetName("");
-  //   setConfiguration("");
-  //   setValuationDate("");
-  //   setAssignedTo("");
-  //   setDocument(null);
-  //   setSelectedCategory("");
-  //   setSelectedSubCategory("");
-  //   setStatus("In Use");
+  // setAssetName("");
+  // setConfiguration("");
+  // setValuationDate("");
+  // setAssignedTo("");
+  // setDocument(null);
+  // setSelectedCategory("");
+  // setSelectedSubCategory("");
+  // setStatus("In Use");
   // };
-
   const [showAssignPopup, setShowAssignPopup] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [assignments, setAssignments] = useState([]); // Initialize state for assignments
-
   const [assignmentRowsByAsset, setAssignmentRowsByAsset] = useState({});
-
   // NEW STATE FOR SEARCH
   const [employeeSuggestions, setEmployeeSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-
   const [popupMessage, setPopupMessage] = useState("");
-
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
-
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
@@ -100,63 +87,57 @@ const [assetDocument, setAssetDocument] = useState(null);
     message: "",
   });
   // const handleAssignedToChange = async (e) => {
-  //   const value = e.target.value;
-  //   setAssignedTo(value);
-  //   console.log("🔍 Typing:", value);
-
-  //   if (value.length >= 1) {
-  //     try {
-  //       const response = await axios.get(
-  //         `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
-  //         {
-  //           headers,
-  //         }
-  //       );
-  //       // Only keep the names from response
-  //       const namesOnly = response.data.data.map((emp) => emp.name);
-  //       setEmployeeSuggestions(namesOnly);
-  //     } catch (error) {
-  //       console.error("❌ Error fetching suggestions:", error);
-  //     }
-  //   } else {
-  //     setEmployeeSuggestions([]);
-  //   }
+  // const value = e.target.value;
+  // setAssignedTo(value);
+  // console.log("🔍 Typing:", value);
+  // if (value.length >= 1) {
+  // try {
+  // const response = await axios.get(
+  // `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+  // {
+  // headers,
+  // }
+  // );
+  // // Only keep the names from response
+  // const namesOnly = response.data.data.map((emp) => emp.name);
+  // setEmployeeSuggestions(namesOnly);
+  // } catch (error) {
+  // console.error("❌ Error fetching suggestions:", error);
+  // }
+  // } else {
+  // setEmployeeSuggestions([]);
+  // }
   // };
-
   const handleSelectSuggestion = (name) => {
     setAssignedTo(name);
     setEmployeeSuggestions([]); // Hide suggestions
   };
-
   // const handleAssignedToInputChange = async (e, index) => {
-  //   const value = e.target.value;
-  //   updateAssignment(index, "assignedTo", value);
-
-  //   if (value.length >= 1) {
-  //     try {
-  //       const response = await axios.get(
-  //         `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
-  //         {
-  //           headers,
-  //         }
-  //       );
-
-  //       const suggestions = response.data.data.map((emp) => ({
-  //         name: emp.name,
-  //         employeeId: emp.employee_id,
-  //       }));
-  //       setPopupSuggestions((prev) => ({ ...prev, [index]: suggestions }));
-  //     } catch (err) {
-  //       console.error("Suggestion error:", err);
-  //     }
-  //   } else {
-  //     setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
-  //   }
+  // const value = e.target.value;
+  // updateAssignment(index, "assignedTo", value);
+  // if (value.length >= 1) {
+  // try {
+  // const response = await axios.get(
+  // `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
+  // {
+  // headers,
+  // }
+  // );
+  // const suggestions = response.data.data.map((emp) => ({
+  // name: emp.name,
+  // employeeId: emp.employee_id,
+  // }));
+  // setPopupSuggestions((prev) => ({ ...prev, [index]: suggestions }));
+  // } catch (err) {
+  // console.error("Suggestion error:", err);
+  // }
+  // } else {
+  // setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
+  // }
   // };
   const handleAssignedToInputChange = async (e, index) => {
     const value = e.target.value;
     updateAssignment(index, "assignedTo", value);
-
     if (value.length === 0) {
       // Show default location suggestions when input is empty
       setPopupSuggestions((prev) => ({
@@ -171,12 +152,10 @@ const [assetDocument, setAssetDocument] = useState(null);
             headers,
           }
         );
-
         const suggestions = response.data.data.map((emp) => ({
           name: emp.name,
           employeeId: emp.employee_id,
         }));
-
         // Combine default locations + dynamic employee suggestions
         setPopupSuggestions((prev) => ({
           ...prev,
@@ -197,56 +176,40 @@ const [assetDocument, setAssetDocument] = useState(null);
     updateAssignment(index, "employeeId", selectedEmp.employeeId); // Save ID
     setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
   };
-
   useEffect(() => {
     setAssignedTo("");
     fetchAssets();
     fetchAssignedAssets(); // Fetch assigned assets
   }, []);
-
   const { assetId } = useParams(); // Get assetId from the URL
-
   const [selectedAssetId, setSelectedAssetId] = useState(null);
-
- useEffect(() => {
+  useEffect(() => {
     if (assetId) {
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`, {
-        headers,
-      })
-        .then((res) => res.json())
+      fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
+        {
+          method: "GET",
+          headers,
+        }
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch assignments");
+          }
+          return response.json();
+        })
         .then((data) => {
-          if (data.length > 0 && Array.isArray(data[0].assignments)) {
-            const formattedAssignments = data[0].assignments.length
-              ? data[0].assignments.reverse().map((a) => ({
-                  assignedTo: a.name || "",
-                  startDate: a.startDate || "",
-                  returnDate: a.returnDate || "",
-                  assigningStatus: a.status || "Assigned",
-                  comments: a.comments || "",
-                  employeeId: a.employeeId || "",
-                }))
-              : [
-                  {
-                    assignedTo: "",
-                    startDate: "",
-                    returnDate: "",
-                    assigningStatus: "Pending",
-                    comments: "",
-                    employeeId: "",
-                  },
-                ];
-            setAssignments(formattedAssignments);
+          if (data.length > 0 && data[0].assignments) {
+            setAssignments(data[0].assignments);
           } else {
             setAssignments([]);
           }
         })
-        .catch((error) => {
-          console.error("Error fetching assignments:", error);
-          showAlert("Failed to fetch assignments.");
-        });
+        .catch((error) =>
+          console.error("Error fetching assignment data:", error)
+        );
     }
   }, [assetId]);
-
   // Handling employee input changes
   const defaultLocationSuggestions = [
     { name: "sts-belagavi", employeeId: "sts-belagavi" },
@@ -261,7 +224,6 @@ const [assetDocument, setAssetDocument] = useState(null);
   const handleAssignedToChange2 = async (e) => {
     const value = e.target.value;
     setAssignedTo(value);
-
     if (value.length === 0) {
       // Show default location-based suggestions
       setEmployeeSuggestions(defaultLocationSuggestions);
@@ -273,14 +235,11 @@ const [assetDocument, setAssetDocument] = useState(null);
             headers,
           }
         );
-
         console.log("API response:", response.data);
-
         const suggestions = response.data.data.map((emp) => ({
           name: emp.name,
           employeeId: emp.employee_id,
         }));
-
         // Combine default locations + dynamic suggestions
         setEmployeeSuggestions([...defaultLocationSuggestions, ...suggestions]);
       } catch (err) {
@@ -288,15 +247,13 @@ const [assetDocument, setAssetDocument] = useState(null);
       }
     }
   };
-
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
     setSelectedSubCategory("");
   };
-
   const handleFileChange = (e) => {
-  setAssetDocument(e.target.files[0]); // Changed from setDocument
-};
+    setDocument(e.target.files[0]);
+  };
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
@@ -314,21 +271,17 @@ const [assetDocument, setAssetDocument] = useState(null);
         console.error("Error fetching data:", error);
       }
     };
-
     fetchAssignments();
   }, []);
-
   const fetchAssets = async () => {
     try {
       console.log("Fetching assets...");
-
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/assets/list`,
         {
           headers,
         }
       );
-
       console.log("✅ Fetched Assets:", response.data);
       setAssets(response.data);
     } catch (error) {
@@ -339,24 +292,23 @@ const [assetDocument, setAssetDocument] = useState(null);
       showAlert("Failed to fetch assets.");
     }
   };
-
   const resetForm = () => {
     setAssignedTo("");
     setStartDate("");
     setReturnDate("");
     setComments("");
-    setAssigningStatus("Pending");
+    setAssigningStatus("Unassigned");
   };
   const resetFormforaddasset = () => {
     setAssetName("");
     setConfiguration("");
     setValuationDate("");
     setAssignedTo("");
-    setAssetDocument(null);
+    setDocument(null);
     setSelectedCategory("");
     setSelectedSubCategory("");
+    setStatus("In Use");
   };
-
   const closePopup = () => {
     resetForm(); // Clear form when closing popup
     closeAssignPopup(); // Close the popup
@@ -370,7 +322,6 @@ const [assetDocument, setAssetDocument] = useState(null);
           responseType: "blob", // Ensure the file is treated as a blob
         }
       );
-
       // Create a URL and open the document
       const fileURL = window.URL.createObjectURL(new Blob([response.data]));
       window.open(fileURL, "_blank");
@@ -382,11 +333,9 @@ const [assetDocument, setAssetDocument] = useState(null);
       showAlert("Failed to open document.");
     }
   };
-
   const openAssignPopup = (asset) => {
     const assetId = asset.id;
     setSelectedAssetId(assetId);
-
     try {
       let parsed = [];
       if (asset.assigned_to) {
@@ -395,7 +344,6 @@ const [assetDocument, setAssetDocument] = useState(null);
             ? JSON.parse(asset.assigned_to)
             : asset.assigned_to;
       }
-
       // Map backend "name" to frontend "assignedTo" and handle startDate fallback
       const formattedAssignments = parsed.length
         ? parsed.reverse().map((a) => ({
@@ -411,12 +359,11 @@ const [assetDocument, setAssetDocument] = useState(null);
               assignedTo: "",
               startDate: asset.valuation_date || "", // Default to valuation_date
               returnDate: "",
-              assigningStatus: "Pending",
+              assigningStatus: "Unassigned",
               comments: "",
               employeeId: "",
             },
           ];
-
       setAssignmentRowsByAsset((prev) => ({
         ...prev,
         [assetId]: formattedAssignments,
@@ -431,18 +378,16 @@ const [assetDocument, setAssetDocument] = useState(null);
             assignedTo: "",
             startDate: asset.valuation_date || "",
             returnDate: "",
-            assigningStatus: "Pending",
+            assigningStatus: "Unassigned",
             comments: "",
             employeeId: "",
           },
         ],
       }));
     }
-
     setShowAssignPopup(true);
     setSelectedAsset(asset);
   };
-
   const closeAssignPopup = () => {
     setShowAssignPopup(false);
     setSelectedAsset(null);
@@ -450,7 +395,7 @@ const [assetDocument, setAssetDocument] = useState(null);
     setStartDate("");
     setReturnDate("");
     setComments("");
-    setAssigningStatus("Pending");
+    setAssigningStatus("Unassigned");
   };
   const formatDate = (date) => {
     if (!date) return ""; // Handle empty dates
@@ -460,220 +405,184 @@ const [assetDocument, setAssetDocument] = useState(null);
     const year = d.getFullYear();
     return `${year}-${month}-${day}`; // Format: YYYY-MM-DD
   };
-
   const [fieldErrors, setFieldErrors] = useState({});
-
   const handleAssign = async () => {
-  try {
-    const rows = assignmentRowsByAsset[selectedAssetId];
-    if (!rows || rows.length === 0 || !rows[0].assignedTo) {
-      console.error("❌ First row is empty or missing required data");
-      return;
-    }
-
-    const firstAssignment = {
-      assetId: selectedAsset?.asset_id,
-      assignedTo: rows[0].assignedTo,
-      employeeId: rows[0].employeeId,
-      startDate: rows[0].startDate,
-      returnDate: rows[0].returnDate,
-      status: rows[0].assigningStatus,
-      comments: rows[0].comments || "",
-    };
-
-    const requiredFields = ["assetId", "assignedTo", "startDate", "status"];
-    for (const field of requiredFields) {
-      if (!firstAssignment[field]) {
-        console.error(`❌ Missing value for "${field}"`);
-        showAlert(`Missing value for "${field}"`); // Changed from openPopup
+    try {
+      const rows = assignmentRowsByAsset[selectedAssetId];
+      if (!rows || rows.length === 0 || !rows[0].assignedTo) {
+        console.error("❌ First row is empty or missing required data");
         return;
       }
-    }
-
-    if (!firstAssignment.returnDate) {
-      firstAssignment.returnDate = null;
-    }
-
-    console.log("📤 Sending First Assignment:", firstAssignment);
-
-    const response = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
-      firstAssignment,
-      { headers }
-    );
-
-    console.log("✅ Assigned successfully", response.data);
-    showAlert("Asset Assigned successfully ");
-    closeAssignPopup();
-    fetchAssets();
-  } catch (error) {
-    console.error("❌ Error assigning asset:", error.response?.data || error.message);
-    showAlert(error.response?.data?.error || "Assignment failed");
-  }
-};
-
- const handleDownloadDocument = async (documentPath) => {
-  if (!documentPath) {
-    showAlert("No document available.");
-    return;
-  }
-
-  // Check if running in a browser environment
-  if (typeof window === "undefined" || !window.document) {
-    console.error("Cannot download: DOM is not available.");
-    showAlert("Download is not supported in this environment.");
-    return;
-  }
-
-  const fileName = documentPath.split("/").pop().trim();
-  const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`;
-  try {
-    console.log("Downloading document from:", fileUrl);
-
-    const response = await axios.get(fileUrl, {
-      headers,
-      responseType: "blob",
-    });
-
-    if (response.data.type === "text/html") {
-      console.error("Server returned an HTML error page (likely 404).");
-      showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
-      return;
-    }
-
-    const blob = new Blob([response.data]);
-    const url = window.URL.createObjectURL(blob);
-    const link = window.document.createElement("a"); // Use window.document explicitly
-    link.href = url;
-    link.download = fileName;
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error downloading document:", {
-      message: error.message,
-      status: error.response?.status,
-      url: fileUrl,
-    });
-    showAlert("Failed to download file. Please verify the file was uploaded correctly.");
-  }
-};
-
- const handleViewDocument = async (documentPath) => {
-  if (!documentPath) {
-    showAlert("No document available.");
-    return;
-  }
-
-  const fileName = documentPath.split("/").pop().trim(); // Extract file name
-  const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`; // Moved outside try
-  try {
-    console.log("Fetching document from:", fileUrl);
-    console.log("Original documentPath:", documentPath);
-
-    const response = await axios.get(fileUrl, {
-      headers,
-      responseType: "blob",
-    });
-
-    if (response.data.type === "text/html") {
-      console.error("Server returned an HTML error page (likely 404).");
-      showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
-      return;
-    }
-
-    const extension = fileName.split(".").pop().toLowerCase();
-    let mimeType = "application/octet-stream";
-
-    if (extension === "pdf") mimeType = "application/pdf";
-    else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
-    else if (extension === "png") mimeType = "image/png";
-
-    const fileBlob = new Blob([response.data], { type: mimeType });
-    const fileURL = window.URL.createObjectURL(fileBlob);
-    window.open(fileURL, "_blank");
-
-    setTimeout(() => window.URL.revokeObjectURL(fileURL), 1000);
-  } catch (error) {
-    console.error("Error opening document:", {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      url: fileUrl, // Now accessible
-    });
-    showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
-  }
-};
-
- const handleSave = async () => {
-  if (!assetName || !configuration || !valuationDate) {
-    showAlert("Please fill all required fields.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("asset_name", assetName);
-  formData.append("configuration", configuration);
-  formData.append("valuation_date", valuationDate);
-  formData.append("category", selectedCategory);
-  formData.append("sub_category", selectedSubCategory);
-
-  let assignedToArray = [];
-  if (assignedTo && typeof assignedTo === "object" && assignedTo.name && assignedTo.employeeId) {
-    assignedToArray.push({
-      name: assignedTo.name,
-      employeeId: assignedTo.employeeId,
-      startDate: valuationDate || null,
-      returnDate: null,
-      comments: "",
-      status: "Assigned",
-    });
-  } else {
-    assignedToArray.push({ name: "STS" });
-  }
-
-  formData.append("assigned_to", JSON.stringify(assignedToArray));
-
-  if (assetDocument) { // Changed from document
-    console.log("Uploading file:", assetDocument.name, assetDocument.size);
-    formData.append("document", assetDocument); // Changed from document
-  } else {
-    console.log("No document selected for upload");
-  }
-
-  console.log("Sending FormData...");
-  for (let [key, value] of formData.entries()) {
-    console.log(key, value);
-  }
-
-  try {
-    const response = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
-      formData,
-      {
-        headers: { ...headers, "Content-Type": "multipart/form-data" },
+      const firstAssignment = {
+        assetId: selectedAsset?.asset_id,
+        assignedTo: rows[0].assignedTo,
+        employeeId: rows[0].employeeId, // ✅ must be included
+        startDate: rows[0].startDate,
+        returnDate: rows[0].returnDate,
+        status: rows[0].assigningStatus,
+        comments: rows[0].comments || "",
+      };
+      // ✅ Check for missing values
+      // ✅ Check for required fields (excluding optional returnDate)
+      const requiredFields = ["assetId", "assignedTo", "startDate", "status"];
+      for (const field of requiredFields) {
+        if (!firstAssignment[field]) {
+          console.error(`❌ Missing value for "${field}"`);
+          showAlert(`Missing value for "${field}"`);
+          return;
+        }
       }
-    );
-
-    console.log("Server Response:", response.data);
-    showAlert("Asset saved successfully!");
-    resetFormforaddasset();
-    togglePopup();
-    fetchAssets();
-  } catch (error) {
-    console.error("Error saving asset:", error.response?.data || error.message);
-    showAlert(
-      `Failed to save asset: ${
-        error.response?.data?.message || error.message || "Unknown error"
-      }`
-    );
-  }
-};
+      // Set returnDate to null if not provided
+      if (!firstAssignment.returnDate) {
+        firstAssignment.returnDate = null;
+      }
+      console.log("📤 Sending First Assignment:", firstAssignment);
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
+        firstAssignment,
+        {
+          headers,
+        }
+      );
+      console.log("✅ Assigned successfully", response.data);
+      showAlert("Asset Assigned successfully ");
+      closeAssignPopup();
+      fetchAssets();
+    } catch (error) {
+      console.error(
+        "❌ Error assigning asset:",
+        error.response?.data || error.message
+      );
+      showAlert(error.response?.data?.error || "Assignment failed");
+    }
+  };
+  const handleDownloadDocument = async (documentPath) => {
+    if (!documentPath) {
+      showAlert("No document available.");
+      return;
+    }
+    try {
+      const fileName = documentPath.split("/").pop();
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`,
+        {
+          headers,
+          responseType: "blob",
+        }
+      );
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      // ✅ Make sure 'document' is NOT redeclared or overwritten anywhere above
+      const link = window.document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      showAlert("Failed to download file. See console.");
+    }
+  };
+  const handleViewDocument = async (documentPath) => {
+    if (!documentPath) {
+      showAlert("No document available.");
+      return;
+    }
+    try {
+      const fileUrl = `${
+        process.env.REACT_APP_BACKEND_URL
+      }/${documentPath.replace(/^\/?uploads\//, "uploads/")}`;
+      const response = await axios.get(fileUrl, {
+        headers,
+        responseType: "blob", // Get file as Blob
+      });
+      // Get file extension to determine MIME type
+      const extension = documentPath.split(".").pop().toLowerCase();
+      let mimeType = "application/octet-stream"; // default fallback
+      if (extension === "pdf") mimeType = "application/pdf";
+      else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+      else if (extension === "png") mimeType = "image/png";
+      // Create Blob with correct type
+      const fileBlob = new Blob([response.data], { type: mimeType });
+      const fileURL = window.URL.createObjectURL(fileBlob);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error(
+        "Error opening document:",
+        error.response?.data || error.message
+      );
+      showAlert("Failed to open document.");
+    }
+  };
+  const handleSave = async () => {
+    if (!assetName || !configuration || !valuationDate) {
+      showAlert("Please fill all required fields.");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("asset_name", assetName);
+    formData.append("configuration", configuration);
+    formData.append("valuation_date", valuationDate);
+    formData.append("category", selectedCategory);
+    formData.append("sub_category", selectedSubCategory);
+    formData.append("status", status);
+    // Initialize assignedToArray based on whether assignedTo is provided
+    let assignedToArray = [];
+    if (
+      assignedTo &&
+      typeof assignedTo === "object" &&
+      assignedTo.name &&
+      assignedTo.employeeId
+    ) {
+      // If assignedTo is provided, use it
+      assignedToArray.push({
+        name: assignedTo.name,
+        employeeId: assignedTo.employeeId,
+        startDate: valuationDate || null, // Use valuation_date as startDate if available
+        returnDate: null,
+        comments: "",
+        status: "Assigned",
+      });
+    } else {
+      // Otherwise, use default "STS"
+      assignedToArray.push({ name: "STS" });
+    }
+    formData.append("assigned_to", JSON.stringify(assignedToArray));
+    if (document) {
+      formData.append("document", document);
+    }
+    // Debugging
+    console.log("Sending FormData...");
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
+        formData,
+        {
+          headers,
+        }
+      );
+      console.log("Server Response:", response.data);
+      showAlert("Asset saved successfully!");
+      resetFormforaddasset();
+      togglePopup();
+      fetchAssets();
+    } catch (error) {
+      console.error("Error saving asset:", error);
+      showAlert(
+        `Failed to save asset: ${
+          error.response?.data?.message || error.message || "Unknown error"
+        }`
+      );
+    }
+  };
   useEffect(() => {
     fetchAssignedAssets();
   }, []);
-
   const fetchAssignedAssets = async () => {
     try {
       const response = await axios.get(
@@ -682,7 +591,6 @@ const [assetDocument, setAssetDocument] = useState(null);
           headers,
         }
       );
-
       if (response.data && response.data.length > 0) {
         setAssignedAssets(response.data);
       } else {
@@ -695,54 +603,46 @@ const [assetDocument, setAssetDocument] = useState(null);
       );
     }
   };
-
   useEffect(() => {
-  if (assetId) {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`, {
-      headers,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.length > 0 && Array.isArray(data[0].assignments)) {
-          const formattedAssignments = data[0].assignments.length
-            ? data[0].assignments.reverse().map((a) => ({
-                assignedTo: a.name || "",
-                startDate: a.startDate || "",
-                returnDate: a.returnDate || "",
-                assigningStatus: a.status || "Assigned",
-                comments: a.comments || "",
-                employeeId: a.employeeId || "",
-              }))
-            : [
-                {
-                  assignedTo: "",
-                  startDate: "",
-                  returnDate: "",
-                  assigningStatus: "Pending",
-                  comments: "",
-                  employeeId: "",
-                },
-              ];
-          setAssignments(formattedAssignments);
-        } else {
-          setAssignments([]);
+    if (selectedAsset) {
+      fetchAssignedData(selectedAsset.asset_id);
+    }
+  }, [selectedAsset]);
+  const fetchAssignedData = async (assetId) => {
+    try {
+      if (!assetId) {
+        console.error("❌ Asset ID is undefined or missing.");
+        return; // Stop execution if assetId is undefined
+      }
+      const API_KEY =
+        "eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3";
+      console.log(`📡 Fetching data for Asset ID: ${assetId}`);
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
+        {
+          headers,
         }
-      })
-      .catch((error) => {
-        console.error("Error fetching assignments:", error);
-        showAlert("Failed to fetch assignments.");
-      });
-  }
-}, [assetId]);
-
-const [showForm, setShowForm] = useState(false);
-
+      );
+      if (response.data.length === 0) {
+        console.warn("⚠ No assignments found for this asset.");
+        setAssignedAssets([]); // Clear previous data
+        return;
+      }
+      console.log("✅ Assigned Asset Data:", response.data);
+      setAssignedAssets(response.data[0]?.assignments || []);
+    } catch (error) {
+      console.error(
+        "❌ Error fetching assignment data:",
+        error.response?.data || error
+      );
+    }
+  };
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     assetId: "",
     employeeName: "",
     returnDate: "",
   });
-
   // Handle input changes for formData
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -751,7 +651,6 @@ const [showForm, setShowForm] = useState(false);
       [name]: value, // Dynamically set the key and value based on input name
     }));
   };
-
   const handleAssignmentChange = (index, field, value) => {
     setAssignmentRowsByAsset((prev) => {
       const updated = [...prev[selectedAssetId]];
@@ -759,7 +658,6 @@ const [showForm, setShowForm] = useState(false);
       return { ...prev, [selectedAssetId]: updated };
     });
   };
-
   const handleSaveReturnDate = async () => {
     try {
       const response = await axios.put(
@@ -776,11 +674,8 @@ const [showForm, setShowForm] = useState(false);
           },
         }
       );
-
       console.log("📤 Response from Backend:", response.data);
-
       showAlert("Return date updated successfully!");
-
       // Update UI: Change status to "Returned"
       setAssets((prevAssets) =>
         prevAssets.map((asset) =>
@@ -793,7 +688,6 @@ const [showForm, setShowForm] = useState(false);
             : asset
         )
       );
-
       setFormData({ assetId: "", employeeName: "", returnDate: "" });
       setShowForm(false);
     } catch (error) {
@@ -801,9 +695,7 @@ const [showForm, setShowForm] = useState(false);
       showAlert("Failed to update return date. Please try again.");
     }
   };
-
   const [assetCounts, setAssetCounts] = useState([]);
-
   useEffect(() => {
     fetch(`${process.env.REACT_APP_BACKEND_URL}/assets/counts`, {
       headers,
@@ -818,7 +710,6 @@ const [showForm, setShowForm] = useState(false);
       })
       .catch((error) => console.error("Error fetching asset counts:", error));
   }, []);
-
   const submitAssignments = async () => {
     try {
       const response = await fetch("/api/assets/assign", {
@@ -828,11 +719,9 @@ const [showForm, setShowForm] = useState(false);
         },
         body: JSON.stringify(assignments), // assuming 'assignments' is your state
       });
-
       if (!response.ok) {
         throw new Error("Failed to submit assignments");
       }
-
       const result = await response.json();
       console.log("Assignments submitted:", result);
       showAlert("Assets assigned successfully!");
@@ -841,34 +730,36 @@ const [showForm, setShowForm] = useState(false);
       showAlert("Failed to assign assets. Please try again.");
     }
   };
-
   const addAssignmentRow = () => {
-  const rows = assignmentRowsByAsset[selectedAssetId] || [];
-
-  // Block adding new row if top row is incomplete
-  if (rows.length > 0) {
-    const topRow = rows[0];
-    if (!topRow.assignedTo || !topRow.startDate || topRow.assigningStatus === "Pending") {
-      showAlert("Please complete Assigned To, Start Date, and Status before adding another row.");
-      return;
+    const currentRows = assignmentRowsByAsset[selectedAssetId] || [];
+    // If there's at least one row, validate the top row first
+    if (currentRows.length > 0) {
+      const topRow = currentRows[0];
+      const isFilled =
+        topRow.assignedTo &&
+        topRow.startDate &&
+        topRow.returnDate &&
+        topRow.assigningStatus &&
+        topRow.comments;
+      if (!isFilled) {
+        showAlert(
+          "Please fill out the current top row before adding a new one."
+        );
+        return;
+      }
     }
-  }
-
-  const newRow = {
-    assignedTo: "",
-    startDate: selectedAsset?.valuation_date || "",
-    returnDate: "",
-    assigningStatus: "Pending",
-    comments: "",
-    employeeId: "",
+    const newRow = {
+      assignedTo: "",
+      startDate: "",
+      returnDate: "",
+      assigningStatus: "Unassigned",
+      comments: "",
+    };
+    setAssignmentRowsByAsset((prev) => ({
+      ...prev,
+      [selectedAssetId]: [newRow, ...(prev[selectedAssetId] || [])],
+    }));
   };
-
-  setAssignmentRowsByAsset((prev) => ({
-    ...prev,
-    [selectedAssetId]: [newRow, ...(prev[selectedAssetId] || [])],
-  }));
-};
-
   const updateAssignment = (index, field, value) => {
     setAssignmentRowsByAsset((prev) => {
       const updatedRows = [...(prev[selectedAssetId] || [])];
@@ -882,52 +773,42 @@ const [showForm, setShowForm] = useState(false);
       };
     });
   };
-
   useEffect(() => {
-  if (assetId) {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`, {
-      headers,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.length > 0 && Array.isArray(data[0].assignments)) {
-          const formattedAssignments = data[0].assignments.length
-            ? data[0].assignments.reverse().map((a) => ({
-                assignedTo: a.name || "",
-                startDate: a.startDate || "",
-                returnDate: a.returnDate || "",
-                assigningStatus: a.status || "Assigned",
-                comments: a.comments || "",
-                employeeId: a.employeeId || "",
-              }))
-            : [
-                {
-                  assignedTo: "",
-                  startDate: "",
-                  returnDate: "",
-                  assigningStatus: "Pending",
-                  comments: "",
-                  employeeId: "",
-                },
-              ];
-          setAssignments(formattedAssignments);
-        } else {
-          setAssignments([]);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching assignments:", error);
-        showAlert("Failed to fetch assignments.");
-      });
-  }
-}, [assetId]);
-
+    if (assetId) {
+      fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.length > 0 && Array.isArray(data[0].assignments)) {
+            const parsed = data[0].assignments;
+            const formattedAssignments = parsed.length
+              ? parsed.reverse().map((a) => ({
+                  assignedTo: a.name || "",
+                  startDate: a.startDate || "",
+                  returnDate: a.returnDate || "",
+                  assigningStatus: a.status || "Assigned", // Use assigningStatus for the form
+                  comments: a.comments || "",
+                }))
+              : [
+                  {
+                    assignedTo: "",
+                    startDate: "",
+                    returnDate: "",
+                    assigningStatus: "Unassigned",
+                    comments: "",
+                  },
+                ];
+            setAssignments(formattedAssignments);
+          }
+        });
+    }
+  }, [assetId]);
   const handleBlur2 = () => {
     setTimeout(() => {
       setEmployeeSuggestions([]); // Close the popup if nothing selected
     }, 150); // Delay allows time for onClick to register
   };
-
   const handleBlur = () => {
     if (!employeeSuggestions.includes(assignedTo)) {
       setAssignedTo(""); // or keep last valid selection
@@ -941,26 +822,22 @@ const [showForm, setShowForm] = useState(false);
       category_total,
       total_assets,
     } = item;
-
     if (!acc[category]) {
       acc[category] = {
         categoryTotal: category_total,
         subcategories: [],
       };
     }
-
     acc[category].subcategories.push({ sub_category, sub_category_count });
     return acc;
   }, {});
   const [searchTerm, setSearchTerm] = useState("");
-
   // First, sort the assets by asset_code descending
   const sortedAssets = [...assets].sort((a, b) => {
     const numA = parseInt(a.asset_code?.split("-")[2] || "0", 10);
     const numB = parseInt(b.asset_code?.split("-")[2] || "0", 10);
     return numB - numA; // Descending order
   });
-
   // Then filter the sorted assets
   const filteredAssets = sortedAssets.filter(
     (asset) =>
@@ -978,7 +855,6 @@ const [showForm, setShowForm] = useState(false);
     if (words.length <= wordLimit) return text;
     return words.slice(0, wordLimit).join(" ") + "...";
   };
-
   return (
     <div className="assets-container">
       <div className="asset-summary-buttons2">
@@ -990,7 +866,6 @@ const [showForm, setShowForm] = useState(false);
               {assetCounts.length > 0 ? assetCounts[0].total_assets : "0"}
             </span>
           </div>
-
           {/* ✅ Then category buttons */}
           {Object.entries(groupedAssetCounts).map(([category, data]) => (
             <div className="category-button-wrapper" key={category}>
@@ -1007,7 +882,6 @@ const [showForm, setShowForm] = useState(false);
             </div>
           ))}
         </div>
-
         <div className="right-button">
           <button className="add-assets-btn" onClick={togglePopup}>
             <FaNetworkWired style={{ marginRight: "5px" }} />
@@ -1015,7 +889,6 @@ const [showForm, setShowForm] = useState(false);
           </button>
         </div>
       </div>
-
       <caption
         style={{ captionSide: "top", padding: "10px", textAlign: "left" }}
       >
@@ -1029,7 +902,6 @@ const [showForm, setShowForm] = useState(false);
           />
         </div>
       </caption>
-
       {showPopup && (
         <div className="asset-popup-overlay">
           <div className="asset-popup-content">
@@ -1037,7 +909,6 @@ const [showForm, setShowForm] = useState(false);
             <button className="close-btn-addasset" onClick={togglePopup}>
               <MdOutlineCancel className="assetmain-close-popup-icon" />
             </button>
-
             {/* Main Categories */}
             <div className="sticky-options">
               <button
@@ -1076,7 +947,6 @@ const [showForm, setShowForm] = useState(false);
                 Others
               </button>
             </div>
-
             {/* Sub-options based on selected category */}
             {selectedCategory === "System" && (
               <div className="sticky-suboptions">
@@ -1105,7 +975,6 @@ const [showForm, setShowForm] = useState(false);
                 </button>
               </div>
             )}
-
             {selectedCategory === "Furniture" && (
               <div className="sticky-suboptions">
                 <button
@@ -1139,7 +1008,6 @@ const [showForm, setShowForm] = useState(false);
                 </button>
               </div>
             )}
-
             {selectedCategory === "Equipment" && (
               <div className="sticky-suboptions">
                 <button
@@ -1162,7 +1030,6 @@ const [showForm, setShowForm] = useState(false);
                 </button>
               </div>
             )}
-
             {/* Asset Details Form (Shown only when a sub-category is selected) */}
             {selectedSubCategory || selectedCategory === "Others" ? (
               <div className="asset-details-grid">
@@ -1178,7 +1045,6 @@ const [showForm, setShowForm] = useState(false);
                     onChange={(e) => setAssetName(e.target.value)}
                   />
                 </div>
-
                 <div className="row">
                   <label>
                     Configuration
@@ -1191,7 +1057,6 @@ const [showForm, setShowForm] = useState(false);
                     onChange={(e) => setConfiguration(e.target.value)}
                   />
                 </div>
-
                 <div className="row">
                   <label>
                     Purchased Date
@@ -1203,7 +1068,6 @@ const [showForm, setShowForm] = useState(false);
                     onChange={(e) => setValuationDate(e.target.value)}
                   />
                 </div>
-
                 <div className="row" style={{ position: "relative" }}>
                   <label>Assigned To</label>
                   <input
@@ -1215,7 +1079,6 @@ const [showForm, setShowForm] = useState(false);
                     onBlur={handleBlur2}
                     autoComplete="off"
                   />
-
                   {employeeSuggestions.length > 0 && (
                     <ul
                       style={{
@@ -1251,7 +1114,6 @@ const [showForm, setShowForm] = useState(false);
                     </ul>
                   )}
                 </div>
-
                 <div className="row">
                   <label>Upload Document</label>
                   <input type="file" onChange={handleFileChange} />
@@ -1266,12 +1128,10 @@ const [showForm, setShowForm] = useState(false);
                 </div>
               </div>
             ) : null}
-
             {/* Popup Buttons */}
           </div>
         </div>
       )}
-
       {/* Display Assets in Table */}
       <div className="assets-table-wrapper">
         <div className="assets-table">
@@ -1280,18 +1140,15 @@ const [showForm, setShowForm] = useState(false);
               <tr>
                 <th>Asset_ID</th>
                 <th>Asset Code</th>
-
                 <th>Asset Name</th>
                 <th>Configuration</th>
                 <th>Purchased Date</th>
                 <th>Assigned To</th>
                 <th>Category</th>
-
                 <th>Status</th>
                 <th>Document</th>
               </tr>
             </thead>
-
             <tbody>
               {(filteredAssets.length > 0 ? filteredAssets : sortedAssets)
                 .length > 0 ? (
@@ -1306,7 +1163,6 @@ const [showForm, setShowForm] = useState(false);
                               typeof asset.assigned_to === "string"
                                 ? JSON.parse(asset.assigned_to)
                                 : asset.assigned_to;
-
                             if (
                               Array.isArray(assignedData) &&
                               assignedData.length > 0
@@ -1369,26 +1225,22 @@ const [showForm, setShowForm] = useState(false);
                             })()
                           : "N/A"}
                       </td>
-
                       <td className="assigned-to-cell">
                         <span className="assigned-name">
                           {(() => {
                             if (!asset.assigned_to || asset.assigned_to === "")
                               return "Unassigned";
-
                             try {
                               const assignedData =
                                 typeof asset.assigned_to === "string"
                                   ? JSON.parse(asset.assigned_to)
                                   : asset.assigned_to;
-
                               if (
                                 typeof assignedData === "object" &&
                                 !Array.isArray(assignedData)
                               ) {
                                 return assignedData.name || "Unassigned";
                               }
-
                               if (
                                 Array.isArray(assignedData) &&
                                 assignedData.length > 0
@@ -1398,7 +1250,6 @@ const [showForm, setShowForm] = useState(false);
                                   "Unassigned"
                                 );
                               }
-
                               return "Unassigned";
                             } catch (error) {
                               console.error("JSON Parsing Error:", error);
@@ -1414,14 +1265,12 @@ const [showForm, setShowForm] = useState(false);
                                 typeof asset.assigned_to === "string"
                                   ? JSON.parse(asset.assigned_to)
                                   : asset.assigned_to;
-
                               if (
                                 Array.isArray(assignedData) &&
                                 assignedData.length > 0
                               ) {
                                 const latestAssignment =
                                   assignedData[assignedData.length - 1];
-
                                 if (
                                   latestAssignment.status === "Decommissioned"
                                 ) {
@@ -1431,7 +1280,6 @@ const [showForm, setShowForm] = useState(false);
                                   return;
                                 }
                               }
-
                               openAssignPopup(asset);
                             } catch (error) {
                               console.error("JSON Parsing Error:", error);
@@ -1454,7 +1302,6 @@ const [showForm, setShowForm] = useState(false);
                                 typeof asset.assigned_to === "string"
                                   ? JSON.parse(asset.assigned_to)
                                   : asset.assigned_to;
-
                               if (
                                 Array.isArray(assignedData) &&
                                 assignedData.length > 0
@@ -1476,13 +1323,11 @@ const [showForm, setShowForm] = useState(false);
                         {(() => {
                           if (!asset.assigned_to || asset.assigned_to === "")
                             return "Unassigned";
-
                           try {
                             const assignedData =
                               typeof asset.assigned_to === "string"
                                 ? JSON.parse(asset.assigned_to)
                                 : asset.assigned_to;
-
                             if (
                               Array.isArray(assignedData) &&
                               assignedData.length > 0
@@ -1544,7 +1389,6 @@ const [showForm, setShowForm] = useState(false);
           </table>
         </div>
       </div>
-
       {/* Assign Popup */}
       {showAssignPopup && selectedAsset && (
         <div className="assign-popup">
@@ -1557,7 +1401,6 @@ const [showForm, setShowForm] = useState(false);
           </p>
           {/* Other fields like configuration, current status, etc. */}
           {/* Form to assign with fields like name, startDate, status, etc. */}
-
           <div className="assignpopup-overlay">
             <div className="assignpopup-content">
               <h3>Assign Asset</h3>
@@ -1568,10 +1411,8 @@ const [showForm, setShowForm] = useState(false);
               >
                 <MdOutlineCancel className="assign-close-popup-icon" />
               </button>
-
               {/* Asset Info */}
               <div className="row"></div>
-
               {/* Add Row Button */}
               <button className="addrow-btn" onClick={addAssignmentRow}>
                 + Add Row
@@ -1584,7 +1425,6 @@ const [showForm, setShowForm] = useState(false);
                   Assign
                 </button>
               </div>
-
               <div className="assetform-header">
                 <div>Assigned To</div>
                 <div>Start Date</div>
@@ -1609,7 +1449,6 @@ const [showForm, setShowForm] = useState(false);
                         }`}
                         autoComplete="off"
                       />
-
                       {popupSuggestions[index]?.length > 0 && (
                         <ul
                           style={{
@@ -1644,7 +1483,6 @@ const [showForm, setShowForm] = useState(false);
                         </ul>
                       )}
                     </div>
-
                     <input
                       type="date"
                       value={assignment.startDate}
@@ -1665,7 +1503,6 @@ const [showForm, setShowForm] = useState(false);
                         fieldErrors[index]?.returnDate ? "error-border" : ""
                       }`}
                     />
-
                     <select
                       value={assignment.assigningStatus}
                       onChange={(e) =>
@@ -1681,7 +1518,6 @@ const [showForm, setShowForm] = useState(false);
                       <option value="Returned">Returned</option>
                       <option value="Decommissioned">Decommissioned</option>
                     </select>
-
                     <textarea
                       placeholder="Enter comments"
                       value={assignment.comments}
@@ -1694,7 +1530,6 @@ const [showForm, setShowForm] = useState(false);
               )}
             </div>
           </div>
-
           {showForm && (
             <div className="returndateform-container">
               <h3>Enter Return Date</h3>
@@ -1762,5 +1597,4 @@ const [showForm, setShowForm] = useState(false);
     </div>
   );
 };
-
 export default Assets;

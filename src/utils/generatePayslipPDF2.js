@@ -3,35 +3,42 @@ import autoTable from "jspdf-autotable";
 
 // Indian Number to Words
 const convertNumberToWords = (num) => {
+  if (!num || isNaN(num)) return "Zero Rupees Only";
+  num = Math.round(Number(num));
+  if (num === 0) return "Zero Rupees Only";
+
   const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
   const teens = ["Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
   const tens = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-  const thousands = ["", "Thousand", "Lakh", "Crore"];
 
-  if (num === undefined || num === null || isNaN(num) || num < 0) return "Zero Rupees Only";
-  if (num === 0) return "Zero Rupees Only";
-
-  let words = "";
-  const getWords = (n, index) => {
-    if (n > 0) {
-      if (n < 10) words += ones[n] + " ";
-      else if (n === 10) words += tens[1] + " ";
-      else if (n < 20) words += teens[n - 11] + " ";
-      else words += tens[Math.floor(n / 10)] + " " + ones[n % 10] + " ";
-      words += thousands[index] + " ";
-    }
+  const belowTwenty = (n) => {
+    if (n === 0) return "";
+    if (n < 10) return ones[n];
+    if (n < 20) return teens[n - 11];
+    return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
   };
 
-  getWords(Math.floor(num / 10000000), 3);
-  getWords(Math.floor((num % 10000000) / 100000), 2);
-  getWords(Math.floor((num % 100000) / 1000), 1);
-  getWords(Math.floor((num % 1000) / 100), 0);
-  if (num % 100 > 0) getWords(num % 100, 0);
+  const belowHundred = (n) => {
+    if (n < 100) return belowTwenty(n);
+    return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + belowTwenty(n % 100) : "");
+  };
 
-  const result = words.trim();
-  return result ? result + " Rupees Only" : "Zero Rupees Only";
+  let crore = Math.floor(num / 10000000);
+  let lakh = Math.floor((num % 10000000) / 100000);
+  let thousand = Math.floor((num % 100000) / 1000);
+  let hundred = num % 1000;
+
+  let words = "";
+
+  if (crore > 0) words += belowHundred(crore) + " Crore ";
+  if (lakh > 0) words += belowHundred(lakh) + " Lakh ";
+  if (thousand > 0) words += belowHundred(thousand) + " Thousand ";
+  if (hundred > 0) words += belowHundred(hundred);
+
+  words = words.trim();
+  if (!words) return "Zero Rupees Only";
+  return words + " Rupees Only";
 };
-
 function generatePayslipPDF(
   payrollData,
   selectedDate,
@@ -115,7 +122,7 @@ const logoBase64  = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABZCAYAA
     89
   );
 
-  doc.setFont("helvetica", "bold").text("LOP Days:", 110, 96);
+  doc.setFont("helvetica", "bold").text("No of leaves Days:", 110, 96);
   doc.setFont("helvetica", "normal").text(String(attendance.leave_count || 0), 140, 96);
 
   doc.setFont("helvetica", "bold").text("PAN Number:", 110, 103);

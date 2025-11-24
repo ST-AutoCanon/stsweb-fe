@@ -105,8 +105,8 @@ doc
     }`,
     135,
     89
-  );  doc.setFont("helvetica", "bold").text("LOP Days:", 110, 96);
-  doc.setFont("helvetica", "normal").text(`${attendance.lop_days || attendance.leave_count || "0"}`, 135, 96);
+  );  doc.setFont("helvetica", "bold").text("Leaves taken:", 110, 96);
+  doc.setFont("helvetica", "normal").text(`${ attendance.leave_count || "0"}`, 135, 96);
   doc.setFont("helvetica", "bold").text("PAN Number:", 110, 103);
   doc.setFont("helvetica", "normal").text(`${employeeDetails.pan_number || "N/A"}`, 135, 103);
   doc.setFont("helvetica", "bold").text("PF Number:", 110, 110);
