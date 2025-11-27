@@ -16,7 +16,7 @@ export const STATUS_OPTIONS = {
     "Approved/Paid",
   ],
   employees: ["All", "Active", "Inactive"],
-  assets: ["All", "Assigned", " Unassigned", "Returned", "Decommissioned"],
+  assets: ["All", "Assigned", "Unassigned", "Returned", "Decommissioned"],
   attendance: ["All", "Punch In", "Punch Out"],
   tasks_supervisor: [
     "All",
