@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./WeeklyTaskPlanner.css";
 import Modal from "../Modal/Modal";
+import { MdMic, MdMicNone } from "react-icons/md";
 
 const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [weekOffset, setWeekOffset] = useState(0);
@@ -25,21 +26,72 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const formatDateRange = (start, end) => {
     const startDay = start.getDate();
-    const startMonth = start.toLocaleString('default', { month: 'short' });
+    const startMonth = start.toLocaleString("default", { month: "short" });
     const endDay = end.getDate();
-    const endMonth = end.toLocaleString('default', { month: 'short' });
+    const endMonth = end.toLocaleString("default", { month: "short" });
     const year = start.getFullYear();
     return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
   };
   const dateRange = formatDateRange(startDate, endDate);
 
   const getISOWeekNumber = (date) => {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const d = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
     return weekNo;
+  };
+  // --- Speech to Text States ---
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  // Setup speech recognition when mic starts
+  const startListening = () => {
+    if (!("webkitSpeechRecognition" in window)) {
+      alert("Speech Recognition is not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.lang = "en-IN";
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = false;
+
+    recognitionRef.current.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognitionRef.current.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setFormData((prev) => ({
+        ...prev,
+        comment: prev.comment ? prev.comment + " " + transcript : transcript,
+      }));
+    };
+
+    recognitionRef.current.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current.start();
+  };
+
+  // Stop mic
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
   };
 
   const weekId = getISOWeekNumber(startDate); // Dynamic Week ID
@@ -49,7 +101,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   for (let i = 0; i < 7; i++) {
     const d = new Date(startDate);
     d.setDate(startDate.getDate() + i);
-    const dateStr = `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
+    const dateStr = `${d.getDate()} ${d.toLocaleString("default", {
+      month: "short",
+    })}`;
     weekDates.push(dateStr);
   }
 
@@ -62,8 +116,15 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [expandedDates, setExpandedDates] = useState({});
   const [editingTask, setEditingTask] = useState(null);
   const [editingSupStatus, setEditingSupStatus] = useState(null);
-  const [formData, setFormData] = useState({ taskName: "", status: "", comment: "" });
-  const [supFormData, setSupFormData] = useState({ supStatus: "", supComment: "" });
+  const [formData, setFormData] = useState({
+    taskName: "",
+    status: "",
+    comment: "",
+  });
+  const [supFormData, setSupFormData] = useState({
+    supStatus: "",
+    supComment: "",
+  });
   const [showAssignForm, setShowAssignForm] = useState(false);
   const [assignTasks, setAssignTasks] = useState([]);
   const [supReviewMode, setSupReviewMode] = useState(false);
@@ -88,7 +149,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [freezeDays, setFreezeDays] = useState(0);
   const [mobileTooltip, setMobileTooltip] = useState({
     isVisible: false,
-    content: '',
+    content: "",
     position: { x: 0, y: 0 },
     dotId: null,
   });
@@ -98,26 +159,36 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   // Handle window resize for mobile detection
   useEffect(() => {
     const handleResize = () => {
-      console.log('Window width:', window.innerWidth);
+      console.log("Window width:", window.innerWidth);
       setIsMobile(window.innerWidth <= 768);
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Handle click/touch outside to close tooltip
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (isMobile && mobileTooltip.isVisible && tooltipRef.current && !tooltipRef.current.contains(e.target)) {
-        console.log('Closing tooltip due to outside click');
-        setMobileTooltip({ isVisible: false, content: '', position: { x: 0, y: 0 }, dotId: null });
+      if (
+        isMobile &&
+        mobileTooltip.isVisible &&
+        tooltipRef.current &&
+        !tooltipRef.current.contains(e.target)
+      ) {
+        console.log("Closing tooltip due to outside click");
+        setMobileTooltip({
+          isVisible: false,
+          content: "",
+          position: { x: 0, y: 0 },
+          dotId: null,
+        });
       }
     };
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
     return () => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [mobileTooltip.isVisible, isMobile]);
 
@@ -126,10 +197,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isMobile) {
-      console.log('Not mobile view, ignoring click for tooltip');
+      console.log("Not mobile view, ignoring click for tooltip");
       return;
     }
-    console.log('Tooltip element clicked:', { content, dotId });
+    console.log("Tooltip element clicked:", { content, dotId });
     const rect = e.target.getBoundingClientRect();
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
@@ -142,7 +213,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         position: { x: tooltipX, y: tooltipY },
         dotId: prev.dotId === dotId ? null : dotId,
       };
-      console.log('New tooltip state:', newState);
+      console.log("New tooltip state:", newState);
       return newState;
     });
   };
@@ -168,7 +239,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         return await fn();
       } catch (err) {
         if (i === retries - 1) throw err;
-        await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, delay * Math.pow(2, i))
+        );
       }
     }
   };
@@ -184,7 +257,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const isTaskEditable = (taskDate) => {
     if (!taskDate) {
-      console.log(`Task date: ${taskDate}, freezeDays: ${freezeDays}, editable: false (no date)`);
+      console.log(
+        `Task date: ${taskDate}, freezeDays: ${freezeDays}, editable: false (no date)`
+      );
       return false;
     }
     const today = new Date();
@@ -193,7 +268,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     taskDateObj.setHours(0, 0, 0, 0);
     const diffDays = (today - taskDateObj) / (1000 * 3600 * 24);
     const editable = diffDays <= 0 || (diffDays > 0 && diffDays <= freezeDays);
-    console.log(`Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`);
+    console.log(
+      `Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`
+    );
     return editable;
   };
 
@@ -203,7 +280,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
     const taskDate = new Date(year, monthIndex, parseInt(day));
     taskDate.setHours(0, 0, 0, 0);
-    const isApprovedLeave = approvedLeaves.some(leave => {
+    const isApprovedLeave = approvedLeaves.some((leave) => {
       const startDate = new Date(leave.start_date);
       const endDate = new Date(leave.end_date);
       startDate.setHours(0, 0, 0, 0);
@@ -211,30 +288,30 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       return taskDate >= startDate && taskDate <= endDate;
     });
     const isSunday = taskDate.getDay() === 0;
-    const isHoliday = holidays.some(holiday => {
+    const isHoliday = holidays.some((holiday) => {
       const holidayDate = new Date(holiday);
       holidayDate.setHours(0, 0, 0, 0);
       return taskDate.getTime() === holidayDate.getTime();
     });
     if (isApprovedLeave) {
       return {
-        className: 'week-task-day-date week-task-day-date-leave',
-        tooltip: 'Leave'
+        className: "week-task-day-date week-task-day-date-leave",
+        tooltip: "Leave",
       };
     } else if (isHoliday) {
       return {
-        className: 'week-task-day-date week-task-day-date-holiday',
-        tooltip: 'Holiday'
+        className: "week-task-day-date week-task-day-date-holiday",
+        tooltip: "Holiday",
       };
     } else if (isSunday) {
       return {
-        className: 'week-task-day-date week-task-day-date-sunday',
-        tooltip: 'Sunday'
+        className: "week-task-day-date week-task-day-date-sunday",
+        tooltip: "Sunday",
       };
     }
     return {
-      className: 'week-task-day-date week-task-day-date-regular',
-      tooltip: dateStr
+      className: "week-task-day-date week-task-day-date-regular",
+      tooltip: dateStr,
     };
   };
 
@@ -259,26 +336,44 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           },
         })
       );
-      console.log('Config API response:', JSON.stringify(configResponse.data, null, 2));
-      if (!configResponse.data || !configResponse.data.success || !Array.isArray(configResponse.data.data)) {
-        console.error('Invalid API response structure:', configResponse.data);
+      console.log(
+        "Config API response:",
+        JSON.stringify(configResponse.data, null, 2)
+      );
+      if (
+        !configResponse.data ||
+        !configResponse.data.success ||
+        !Array.isArray(configResponse.data.data)
+      ) {
+        console.error("Invalid API response structure:", configResponse.data);
         setFreezeDays(0);
-        showAlert('Invalid config API response. Freezing all past tasks.');
+        showAlert("Invalid config API response. Freezing all past tasks.");
       } else {
         const configData = configResponse.data.data;
-        const freezeDaysConfig = configData.find(item => item.key === 'freeze_days_employee');
+        const freezeDaysConfig = configData.find(
+          (item) => item.key === "freeze_days_employee"
+        );
         if (!freezeDaysConfig) {
-          console.error('freeze_days_employee key not found in config data:', configData);
+          console.error(
+            "freeze_days_employee key not found in config data:",
+            configData
+          );
           setFreezeDays(0);
-          showAlert('freeze_days_employee not found. Freezing all past tasks.');
+          showAlert("freeze_days_employee not found. Freezing all past tasks.");
         } else {
           const days = Number(freezeDaysConfig.value);
           if (isNaN(days) || days < 0) {
-            console.error(`Invalid freeze_days_employee value: ${freezeDaysConfig.value}`);
+            console.error(
+              `Invalid freeze_days_employee value: ${freezeDaysConfig.value}`
+            );
             setFreezeDays(0);
-            showAlert('Invalid freeze_days_employee value. Freezing all past tasks.');
+            showAlert(
+              "Invalid freeze_days_employee value. Freezing all past tasks."
+            );
           } else {
-            console.log(`freeze_days_employee value: ${freezeDaysConfig.value}, parsed days: ${days}`);
+            console.log(
+              `freeze_days_employee value: ${freezeDaysConfig.value}, parsed days: ${days}`
+            );
             setFreezeDays(days);
           }
         }
@@ -296,9 +391,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         })
       );
       const holidayData = Array.isArray(holidaysRes.data.holidays)
-        ? holidaysRes.data.holidays.map(holiday => holiday.date)
+        ? holidaysRes.data.holidays.map((holiday) => holiday.date)
         : [];
-      setHolidays(holidayData.length > 0 ? holidayData : ['2025-12-25']);
+      setHolidays(holidayData.length > 0 ? holidayData : ["2025-12-25"]);
       console.log("Holidays:", holidayData);
 
       const leavesUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
@@ -312,7 +407,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         })
       );
       const approvedLeavesData = Array.isArray(leavesRes.data.data)
-        ? leavesRes.data.data.filter(leave => leave.status === "Approved")
+        ? leavesRes.data.data.filter((leave) => leave.status === "Approved")
         : [];
       setApprovedLeaves(approvedLeavesData);
       console.log("Approved Leaves:", approvedLeavesData);
@@ -338,7 +433,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       console.log("Fetching tasks from:", tasksUrl);
       const tasksRes = await withRetry(() =>
         axios.get(tasksUrl, {
-          headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+          },
         })
       );
       let tasks = Array.isArray(tasksRes.data) ? tasksRes.data : [];
@@ -352,20 +449,30 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         date,
         tasks: filteredTasks.filter((task) => {
           const taskDate = new Date(task.task_date);
-          return `${taskDate.getDate()} ${taskDate.toLocaleString('default', { month: 'short' })}` === date;
+          return (
+            `${taskDate.getDate()} ${taskDate.toLocaleString("default", {
+              month: "short",
+            })}` === date
+          );
         }),
       }));
       setTasksData(groupedTasks);
     } catch (err) {
       console.error("Error fetching data:", err.message, err.response?.status);
       if (err.response?.status === 404) {
-        showAlert("API endpoint not found. Please check if the backend server is running and the routes are correctly configured.");
+        showAlert(
+          "API endpoint not found. Please check if the backend server is running and the routes are correctly configured."
+        );
       } else if (err.response?.status === 401) {
         showAlert("Invalid API key. Please check your configuration.");
       } else {
-        showAlert(`Failed to fetch data: ${err.response?.status || ''} ${err.message}. Please check the backend server or network.`);
+        showAlert(
+          `Failed to fetch data: ${err.response?.status || ""} ${
+            err.message
+          }. Please check the backend server or network.`
+        );
       }
-      setHolidays(['2025-12-25']);
+      setHolidays(["2025-12-25"]);
       setApprovedLeaves([]);
       setFreezeDays(0);
     } finally {
@@ -398,7 +505,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const handleEditClick = (task) => {
     if (userRole !== "employee") return;
     if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      showAlert(
+        `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+      );
       return;
     }
     if (task.sup_review_status === "suspended_review") {
@@ -410,14 +519,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setFormData({ taskName: "", status: "", comment: "" });
     } else {
       setEditingTask(task.task_id);
-      setFormData({ taskName: task.task_name, status: task.emp_status, comment: task.emp_comment || "" });
+      setFormData({
+        taskName: task.task_name,
+        status: task.emp_status,
+        comment: task.emp_comment || "",
+      });
     }
   };
 
   const handleSupStatusEditClick = (task) => {
     if (userRole !== "supervisor") return;
     if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      showAlert(
+        `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+      );
       return;
     }
     if (task.sup_review_status === "suspended_review") {
@@ -429,7 +544,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setSupFormData({ supStatus: "", supComment: "" });
     } else {
       setEditingSupStatus(task.task_id);
-      setSupFormData({ supStatus: task.sup_status || "incomplete", supComment: task.sup_comment || "" });
+      setSupFormData({
+        supStatus: task.sup_status || "incomplete",
+        supComment: task.sup_comment || "",
+      });
     }
   };
 
@@ -439,7 +557,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      showAlert(
+        `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+      );
       return;
     }
     if (task.sup_review_status === "suspended_review") {
@@ -460,15 +580,26 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: task.star_rating,
         replacement_task: task.replacement_task,
       };
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, updatedTask, {
-        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-      });
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
+        updatedTask,
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+          },
+        }
+      );
       setTasksData((prev) =>
         prev.map((day) => ({
           ...day,
           tasks: day.tasks.map((t) =>
             t.task_id === taskId
-              ? { ...t, task_name: formData.taskName, emp_status: formData.status, emp_comment: formData.comment }
+              ? {
+                  ...t,
+                  task_name: formData.taskName,
+                  emp_status: formData.status,
+                  emp_comment: formData.comment,
+                }
               : t
           ),
         }))
@@ -494,7 +625,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      showAlert(
+        `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+      );
       return;
     }
     if (task.sup_review_status === "suspended_review") {
@@ -515,15 +648,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: task.star_rating,
         replacement_task: task.replacement_task,
       };
-      if (supFormData.supStatus === 're-work') {
+      if (supFormData.supStatus === "re-work") {
         const taskDate = new Date(task.task_date || new Date());
         if (isNaN(taskDate.getTime())) taskDate = new Date();
         taskDate.setHours(0, 0, 0, 0);
         const nextDay = new Date(taskDate);
         nextDay.setDate(taskDate.getDate() + 1);
-        const nextDayString = nextDay.toLocaleDateString('en-CA');
+        const nextDayString = nextDay.toLocaleDateString("en-CA");
         if (!isTaskEditable(nextDayString)) {
-          showAlert(`Cannot create new task: Next day is before the ${freezeDays}-day editable period.`);
+          showAlert(
+            `Cannot create new task: Next day is before the ${freezeDays}-day editable period.`
+          );
           return;
         }
         const nextDayWeekId = getISOWeekNumber(nextDay);
@@ -535,36 +670,55 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           project_name: task.project_name,
           task_name: newTaskName,
           employee_id: task.employee_id,
-          emp_status: 'not started',
-          sup_status: 'incomplete',
+          emp_status: "not started",
+          sup_status: "incomplete",
           emp_comment: null,
           sup_comment: null,
-          sup_review_status: 'pending',
+          sup_review_status: "pending",
           star_rating: 0,
           parent_task_id: task.task_id,
         };
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
           newTaskData,
-          { headers: { 'x-api-key': process.env.REACT_APP_API_KEY || "abc123xyz" }, timeout: 10000 }
+          {
+            headers: {
+              "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            },
+            timeout: 10000,
+          }
         );
-        updateData.sup_status = 're-work';
+        updateData.sup_status = "re-work";
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
           updateData,
-          { headers: { 'x-api-key': process.env.REACT_APP_API_KEY || "abc123xyz" }, timeout: 10000 }
+          {
+            headers: {
+              "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            },
+            timeout: 10000,
+          }
         );
-        showAlert(response.data.message || 'New task created successfully');
+        showAlert(response.data.message || "New task created successfully");
         if (response.data.newTask) {
           const newTask = {
             ...response.data.newTask,
-            employee_name: 'Unknown',
-            employee_id: response.data.newTask.employee_id?.trim().toUpperCase(),
-            emp_status: response.data.newTask.emp_status || 'not started',
+            employee_name: "Unknown",
+            employee_id: response.data.newTask.employee_id
+              ?.trim()
+              .toUpperCase(),
+            emp_status: response.data.newTask.emp_status || "not started",
           };
           setTasksData((prev) => {
             const newData = [...prev];
-            const dayIndex = newData.findIndex((d) => d.date === formatDateRange(new Date(nextDayString), new Date(nextDayString)));
+            const dayIndex = newData.findIndex(
+              (d) =>
+                d.date ===
+                formatDateRange(
+                  new Date(nextDayString),
+                  new Date(nextDayString)
+                )
+            );
             if (dayIndex > -1) {
               newData[dayIndex] = {
                 ...newData[dayIndex],
@@ -580,17 +734,27 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           }
         }
       } else {
-        await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, updateData, {
-          headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-        });
-        showAlert('Task updated successfully');
+        await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
+          updateData,
+          {
+            headers: {
+              "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            },
+          }
+        );
+        showAlert("Task updated successfully");
       }
       setTasksData((prev) =>
         prev.map((day) => ({
           ...day,
           tasks: day.tasks.map((t) =>
             t.task_id === taskId
-              ? { ...t, sup_status: supFormData.supStatus, sup_comment: supFormData.supComment }
+              ? {
+                  ...t,
+                  sup_status: supFormData.supStatus,
+                  sup_comment: supFormData.supComment,
+                }
               : t
           ),
         }))
@@ -628,7 +792,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      showAlert(
+        `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+      );
       return;
     }
     if (task.sup_review_status === "suspended_review") {
@@ -636,18 +802,26 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       return;
     }
     try {
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
-        ...task,
-        sup_review_status: "approved",
-        sup_status: task.sup_status || "incomplete",
-        replacement_task: task.replacement_task,
-      }, {
-        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-      });
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
+        {
+          ...task,
+          sup_review_status: "approved",
+          sup_status: task.sup_status || "incomplete",
+          replacement_task: task.replacement_task,
+        },
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+          },
+        }
+      );
       setTasksData((prev) =>
         prev.map((day) => ({
           ...day,
-          tasks: day.tasks.map((t) => (t.task_id === taskId ? { ...t, sup_review_status: "approved" } : t)),
+          tasks: day.tasks.map((t) =>
+            t.task_id === taskId ? { ...t, sup_review_status: "approved" } : t
+          ),
         }))
       );
       showAlert("Task approved successfully!");
@@ -663,22 +837,34 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      showAlert(
+        `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+      );
       return;
     }
     try {
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
-        ...task,
-        sup_review_status: "suspended_review",
-        sup_status: task.sup_status || "incomplete",
-        replacement_task: task.replacement_task,
-      }, {
-        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-      });
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
+        {
+          ...task,
+          sup_review_status: "suspended_review",
+          sup_status: task.sup_status || "incomplete",
+          replacement_task: task.replacement_task,
+        },
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+          },
+        }
+      );
       setTasksData((prev) =>
         prev.map((day) => ({
           ...day,
-          tasks: day.tasks.map((t) => (t.task_id === taskId ? { ...t, sup_review_status: "suspended_review" } : t)),
+          tasks: day.tasks.map((t) =>
+            t.task_id === taskId
+              ? { ...t, sup_review_status: "suspended_review" }
+              : t
+          ),
         }))
       );
       showAlert("Task suspended successfully!");
@@ -694,7 +880,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       .flatMap((day) => day.tasks)
       .find((t) => t.task_id === taskId);
     if (!isTaskEditable(task.task_date)) {
-      showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+      showAlert(
+        `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+      );
       return;
     }
     if (task.sup_review_status === "suspended_review") {
@@ -702,22 +890,37 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       return;
     }
     try {
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`, {
-        ...task,
-        sup_review_status: "struck",
-        sup_status: task.sup_status || "incomplete",
-        replacement_task: null,
-      }, {
-        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-      });
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
+        {
+          ...task,
+          sup_review_status: "struck",
+          sup_status: task.sup_status || "incomplete",
+          replacement_task: null,
+        },
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+          },
+        }
+      );
       setTasksData((prev) =>
         prev.map((day) => ({
           ...day,
-          tasks: day.tasks.map((t) => (t.task_id === taskId ? { ...t, sup_review_status: "struck", replacement_task: null } : t)),
+          tasks: day.tasks.map((t) =>
+            t.task_id === taskId
+              ? { ...t, sup_review_status: "struck", replacement_task: null }
+              : t
+          ),
         }))
       );
       setStrikeTaskId(taskId);
-      setReplacementData({ projectId: "", projectName: "", taskName: "", date: dayDate });
+      setReplacementData({
+        projectId: "",
+        projectName: "",
+        taskName: "",
+        date: dayDate,
+      });
     } catch (err) {
       showAlert(`Failed to strike task: ${err.message}`);
       console.error(err);
@@ -739,11 +942,17 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       return;
     }
     try {
-      const dayIndex = tasksData.findIndex((d) => d.date === replacementData.date);
-      const taskIndex = tasksData[dayIndex].tasks.findIndex((t) => t.task_id === strikeTaskId);
+      const dayIndex = tasksData.findIndex(
+        (d) => d.date === replacementData.date
+      );
+      const taskIndex = tasksData[dayIndex].tasks.findIndex(
+        (t) => t.task_id === strikeTaskId
+      );
       const task = tasksData[dayIndex].tasks[taskIndex];
       if (!isTaskEditable(task.task_date)) {
-        showAlert(`Cannot edit: Task is before the ${freezeDays}-day editable period.`);
+        showAlert(
+          `Cannot edit: Task is before the ${freezeDays}-day editable period.`
+        );
         return;
       }
       if (task.sup_review_status === "suspended_review") {
@@ -763,13 +972,21 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: task.star_rating,
         replacement_task: replacementData.taskName,
       };
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${strikeTaskId}`, updatedTask, {
-        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-      });
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${strikeTaskId}`,
+        updatedTask,
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+          },
+        }
+      );
       const [day, monthName] = replacementData.date.split(" ");
       const year = startDate.getFullYear();
       const month = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
-      const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const formattedDate = `${year}-${String(month).padStart(2, "0")}-${String(
+        day
+      ).padStart(2, "0")}`;
       const newTask = {
         week_id: weekId,
         task_date: formattedDate,
@@ -785,9 +1002,15 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         star_rating: null,
         replacement_task: null,
       };
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`, newTask, {
-        headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
+        newTask,
+        {
+          headers: {
+            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+          },
+        }
+      );
       setTasksData((prev) =>
         prev.map((day, i) =>
           i === dayIndex
@@ -809,7 +1032,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setNoTasks(false);
       showAlert("Replacement task added successfully!");
       setStrikeTaskId(null);
-      setReplacementData({ projectId: "", projectName: "", taskName: "", date: "" });
+      setReplacementData({
+        projectId: "",
+        projectName: "",
+        taskName: "",
+        date: "",
+      });
     } catch (err) {
       showAlert(`Failed to add replacement task: ${err.message}`);
       console.error(err);
@@ -817,7 +1045,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
 
   const handleAssignClick = () => {
-    console.log("Assign New Tasks button clicked, setting showAssignForm to true");
+    console.log(
+      "Assign New Tasks button clicked, setting showAssignForm to true"
+    );
     setShowAssignForm(true);
     setAssignTasks([
       {
@@ -891,18 +1121,29 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       (task) => task.projectId && task.taskName && task.dates.length > 0
     );
     if (validTasks.length === 0) {
-      showAlert("Please fill in at least one valid task with at least one date, project ID, and task name.");
+      showAlert(
+        "Please fill in at least one valid task with at least one date, project ID, and task name."
+      );
       return;
     }
     try {
       for (const task of validTasks) {
         for (const date of task.dates) {
           const [day, month] = date.split(" ");
-          const monthIndex = new Date(Date.parse(`${month} 1, 2025`)).getMonth();
+          const monthIndex = new Date(
+            Date.parse(`${month} 1, 2025`)
+          ).getMonth();
           const taskDate = new Date(2025, monthIndex, parseInt(day));
           taskDate.setHours(0, 0, 0, 0);
           const taskDateStr = formatDateIST(taskDate);
-          console.log("Assigning task for date:", date, "Parsed Date:", taskDate, "Formatted Date:", taskDateStr);
+          console.log(
+            "Assigning task for date:",
+            date,
+            "Parsed Date:",
+            taskDate,
+            "Formatted Date:",
+            taskDateStr
+          );
           const newTask = {
             week_id: weekId,
             task_date: taskDateStr,
@@ -918,17 +1159,33 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             star_rating: null,
             replacement_task: null,
           };
-          const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`, newTask, {
-            headers: { "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz" },
-          });
+          const response = await axios.post(
+            `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
+            newTask,
+            {
+              headers: {
+                "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+              },
+            }
+          );
           setTasksData((prev) => {
             const newData = [...prev];
             const dayIndex = newData.findIndex((d) => d.date === date);
-            console.log("Day Index:", dayIndex, "Date:", date, "Task:", newTask);
+            console.log(
+              "Day Index:",
+              dayIndex,
+              "Date:",
+              date,
+              "Task:",
+              newTask
+            );
             if (dayIndex > -1) {
               newData[dayIndex] = {
                 ...newData[dayIndex],
-                tasks: [...newData[dayIndex].tasks, { ...newTask, task_id: response.data.taskId }],
+                tasks: [
+                  ...newData[dayIndex].tasks,
+                  { ...newTask, task_id: response.data.taskId },
+                ],
               };
             } else {
               console.error("No matching day found for date:", date);
@@ -1036,34 +1293,57 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button> */}
-            <div className="week-task-week-navigation">
-  <button
-    onClick={handlePreviousWeek}
-    className="week-task-nav-button-task"
-    disabled={weekOffset <= -3}
-    title={weekOffset <= -3 ? "Cannot view earlier than 3 weeks ago" : "Previous Week"}
-  >
-    <svg className="week-task-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  </button>
+          <div className="week-task-week-navigation">
+            <button
+              onClick={handlePreviousWeek}
+              className="week-task-nav-button-task"
+              disabled={weekOffset <= -3}
+              title={
+                weekOffset <= -3
+                  ? "Cannot view earlier than 3 weeks ago"
+                  : "Previous Week"
+              }
+            >
+              <svg
+                className="week-task-nav-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
 
-  {/* Week ID and Date Range in the middle */}
-  <span className="week-task-week-id-nav">
-    Week {weekId}: {dateRange}
-  </span>
+            {/* Week ID and Date Range in the middle */}
+            <span className="week-task-week-id-nav">
+              Week {weekId}: {dateRange}
+            </span>
 
-  <button
-    onClick={handleNextWeek}
-    className="week-task-nav-button-task"
-    disabled={weekOffset >= 3}
-    title={weekOffset >= 3 ? "Cannot view beyond 3 weeks ahead" : "Next Week"}
-  >
-    <svg className="week-task-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  </button>
-
+            <button
+              onClick={handleNextWeek}
+              className="week-task-nav-button-task"
+              disabled={weekOffset >= 3}
+              title={
+                weekOffset >= 3
+                  ? "Cannot view beyond 3 weeks ahead"
+                  : "Next Week"
+              }
+            >
+              <svg
+                className="week-task-nav-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
           </div>
         </h2>
         <div className="week-task-header-buttons">
@@ -1077,19 +1357,27 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             Create new task
           </button>
           {userRole === "supervisor" && !supReviewMode && (
-            <button className="week-task-review-button" onClick={handleEnterReview}>
+            <button
+              className="week-task-review-button"
+              onClick={handleEnterReview}
+            >
               Supervisor Review
             </button>
           )}
           {userRole === "supervisor" && supReviewMode && (
-            <button className="week-task-exit-review-button" onClick={handleExitReview}>
+            <button
+              className="week-task-exit-review-button"
+              onClick={handleExitReview}
+            >
               Exit Review
             </button>
           )}
         </div>
       </div>
 
-      {loading || loadingHolidays || loadingLeaves ? <div>Loading data...</div> : null}
+      {loading || loadingHolidays || loadingLeaves ? (
+        <div>Loading data...</div>
+      ) : null}
       {error && (
         <div className="error-message">
           {error}
@@ -1111,7 +1399,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           style={{
             top: `${mobileTooltip.position.y}px`,
             left: `${mobileTooltip.position.x}px`,
-            position: 'absolute',
+            position: "absolute",
             zIndex: 1000,
           }}
         >
@@ -1125,7 +1413,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           <div className="week-task-assign-form-empdriven">
             <div className="week-task-form-header">
               <h3>Create New Tasks</h3>
-              <button className="week-task-close-button" onClick={handleAssignCancel}>×</button>
+              <button
+                className="week-task-close-button"
+                onClick={handleAssignCancel}
+              >
+                ×
+              </button>
             </div>
             <div className="week-task-tasks-form-container">
               {assignTasks.map((task, index) => (
@@ -1151,22 +1444,31 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                           {task.dates.length > 0
                             ? task.dates.join(", ")
                             : "-- Select Dates --"}
-                          <span className="arrow">{dropdownOpen[index] ? "▲" : "▼"}</span>
+                          <span className="arrow">
+                            {dropdownOpen[index] ? "▲" : "▼"}
+                          </span>
                         </div>
                         {dropdownOpen[index] && (
                           <div className="week-task-dropdown-list">
                             {weekDates.map((date) => {
                               const dateStyle = getTaskDateStyle(date);
                               return (
-                                <label key={date} className="week-task-checkbox-label">
+                                <label
+                                  key={date}
+                                  className="week-task-checkbox-label"
+                                >
                                   <input
                                     type="checkbox"
                                     checked={task.dates.includes(date)}
-                                    onChange={() => handleAssignChange(index, "dates", date)}
+                                    onChange={() =>
+                                      handleAssignChange(index, "dates", date)
+                                    }
                                   />
                                   {date}
                                   {dateStyle.tooltip !== date && (
-                                    <span className={`week-task-date-status ${dateStyle.className}`}>
+                                    <span
+                                      className={`week-task-date-status ${dateStyle.className}`}
+                                    >
                                       {dateStyle.tooltip}
                                     </span>
                                   )}
@@ -1196,22 +1498,33 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                       <input
                         type="text"
                         value={task.taskName}
-                        onChange={(e) => handleAssignChange(index, "taskName", e.target.value)}
+                        onChange={(e) =>
+                          handleAssignChange(index, "taskName", e.target.value)
+                        }
                         placeholder="Enter task"
                       />
                     </div>
                   </div>
                 </div>
               ))}
-              <button onClick={handleAddTask} className="week-task-add-task-button">
+              <button
+                onClick={handleAddTask}
+                className="week-task-add-task-button"
+              >
                 + Add Another Task
               </button>
             </div>
             <div className="week-task-form-actions">
-              <button onClick={handleAssignCancel} className="week-task-cancel-button">
+              <button
+                onClick={handleAssignCancel}
+                className="week-task-cancel-button"
+              >
                 Cancel
               </button>
-              <button onClick={handleAssignSubmit} className="week-task-save-button">
+              <button
+                onClick={handleAssignSubmit}
+                className="week-task-save-button"
+              >
                 Save All Tasks
               </button>
             </div>
@@ -1224,14 +1537,21 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           <div className="week-task-replacement-form">
             <div className="week-task-form-header">
               <h4>Replace Struck Task</h4>
-              <button className="week-task-close-button" onClick={() => setStrikeTaskId(null)}>×</button>
+              <button
+                className="week-task-close-button"
+                onClick={() => setStrikeTaskId(null)}
+              >
+                ×
+              </button>
             </div>
             <div className="week-task-form-grid">
               <div className="week-task-form-group-task">
                 <label>Project</label>
                 <select
                   value={replacementData.projectId}
-                  onChange={(e) => handleReplacementChange("projectId", e.target.value)}
+                  onChange={(e) =>
+                    handleReplacementChange("projectId", e.target.value)
+                  }
                 >
                   <option value="">Select Project</option>
                   {Object.entries(projects).map(([id, name]) => (
@@ -1246,16 +1566,24 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                 <input
                   type="text"
                   value={replacementData.taskName}
-                  onChange={(e) => handleReplacementChange("taskName", e.target.value)}
+                  onChange={(e) =>
+                    handleReplacementChange("taskName", e.target.value)
+                  }
                   placeholder="Enter replacement task name"
                 />
               </div>
             </div>
             <div className="week-task-form-actions">
-              <button onClick={handleAddReplacement} className="week-task-save-button">
+              <button
+                onClick={handleAddReplacement}
+                className="week-task-save-button"
+              >
                 Add Replacement
               </button>
-              <button onClick={() => setStrikeTaskId(null)} className="week-task-cancel-button">
+              <button
+                onClick={() => setStrikeTaskId(null)}
+                className="week-task-cancel-button"
+              >
                 Cancel
               </button>
             </div>
@@ -1264,72 +1592,161 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       )}
 
       {/* --- TASK CARDS --- */}
-      {!loading && !error && !noTasks && tasksData.map((day) => {
-        const isExpanded = expandedDates[day.date] || false;
-        const visibleTasks = isExpanded ? day.tasks : day.tasks.slice(0, 3);
-        const dateStyle = getTaskDateStyle(day.date);
-        return (
-          <div key={day.date} className="week-task-day-card">
-            <div className="week-task-day-left-column">
-              <span
-                className={dateStyle.className}
-                title={isMobile ? '' : dateStyle.tooltip}
-                onClick={(e) => handleTooltipClick(e, dateStyle.tooltip, `date-${day.date}`)}
-                onTouchStart={(e) => handleTooltipClick(e, dateStyle.tooltip, `date-${day.date}`)}
-                style={{ cursor: isMobile ? 'pointer' : 'default' }}
-              >
-                {day.date}
-              </span>
-              <div className="week-task-projects-column">
-                {visibleTasks.map((task) => (
-                  <div key={task.task_id} className="week-task-circle-container">
+      {!loading &&
+        !error &&
+        !noTasks &&
+        tasksData.map((day) => {
+          const isExpanded = expandedDates[day.date] || false;
+          const visibleTasks = isExpanded ? day.tasks : day.tasks.slice(0, 3);
+          const dateStyle = getTaskDateStyle(day.date);
+          return (
+            <div key={day.date} className="week-task-day-card">
+              <div className="week-task-day-left-column">
+                <span
+                  className={dateStyle.className}
+                  title={isMobile ? "" : dateStyle.tooltip}
+                  onClick={(e) =>
+                    handleTooltipClick(e, dateStyle.tooltip, `date-${day.date}`)
+                  }
+                  onTouchStart={(e) =>
+                    handleTooltipClick(e, dateStyle.tooltip, `date-${day.date}`)
+                  }
+                  style={{ cursor: isMobile ? "pointer" : "default" }}
+                >
+                  {day.date}
+                </span>
+                <div className="week-task-projects-column">
+                  {visibleTasks.map((task) => (
                     <div
-                      className="week-task-project-circle"
-                      title={isMobile ? '' : task.project_name}
-                      onClick={(e) => handleTooltipClick(e, task.project_name, `project-${task.task_id}`)}
-                      onTouchStart={(e) => handleTooltipClick(e, task.project_name, `project-${task.task_id}`)}
-                      style={{ cursor: isMobile ? 'pointer' : 'default' }}
+                      key={task.task_id}
+                      className="week-task-circle-container"
                     >
-                      {task.project_id}
+                      <div
+                        className="week-task-project-circle"
+                        title={isMobile ? "" : task.project_name}
+                        onClick={(e) =>
+                          handleTooltipClick(
+                            e,
+                            task.project_name,
+                            `project-${task.task_id}`
+                          )
+                        }
+                        onTouchStart={(e) =>
+                          handleTooltipClick(
+                            e,
+                            task.project_name,
+                            `project-${task.task_id}`
+                          )
+                        }
+                        style={{ cursor: isMobile ? "pointer" : "default" }}
+                      >
+                        {task.project_id}
+                      </div>
+                      <div
+                        className="week-task-task-id-circle"
+                        title={isMobile ? "" : `Task ID: ${task.task_id}`}
+                        onClick={(e) =>
+                          handleTooltipClick(
+                            e,
+                            `Task ID: ${task.task_id}`,
+                            `task-${task.task_id}`
+                          )
+                        }
+                        onTouchStart={(e) =>
+                          handleTooltipClick(
+                            e,
+                            `Task ID: ${task.task_id}`,
+                            `task-${task.task_id}`
+                          )
+                        }
+                        style={{ cursor: isMobile ? "pointer" : "default" }}
+                      >
+                        {task.task_id}
+                      </div>
                     </div>
-                    <div
-                      className="week-task-task-id-circle"
-                      title={isMobile ? '' : `Task ID: ${task.task_id}`}
-                      onClick={(e) => handleTooltipClick(e, `Task ID: ${task.task_id}`, `task-${task.task_id}`)}
-                      onTouchStart={(e) => handleTooltipClick(e, `Task ID: ${task.task_id}`, `task-${task.task_id}`)}
-                      style={{ cursor: isMobile ? 'pointer' : 'default' }}
-                    >
-                      {task.task_id}
-                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="week-task-tasks-section">
+                <div className="week-task-tasks-header">
+                  <div className="week-task-header-task">Tasks</div>
+                  <div className="week-task-header-employee">
+                    Employee Update
                   </div>
-                ))}
-              </div>
-            </div>
-            <div className="week-task-tasks-section">
-              <div className="week-task-tasks-header">
-                <div className="week-task-header-task">Tasks</div>
-                <div className="week-task-header-employee">Employee Update</div>
-                <div className="week-task-header-supervisor">Supervisor Feedback</div>
-              </div>
-              <div className="week-task-tasks-list">
-                {visibleTasks.map((task) => {
-                  const editable = isTaskEditable(task.task_date);
-                  const isFrozen = task.sup_review_status === "suspended_review";
-                  const effectiveEditable = editable && !isFrozen;
-                  console.log(`Rendering task ${task.task_id}: date=${task.task_date}, editable=${editable}, frozen=${isFrozen}, effectiveEditable=${effectiveEditable}, class=${!effectiveEditable ? 'task-frozen' : ''}`);
-                  return (
-                    <div key={task.task_id} className={`week-task-task-row ${!effectiveEditable ? 'task-frozen' : ''}`}>
-                      <div className="week-task-task-name">
-                        {task.sup_review_status === "struck" ? (
-                          <>
-                            <span style={{ textDecoration: "line-through", color: "#a0a0a0" }}>
+                  <div className="week-task-header-supervisor">
+                    Supervisor Feedback
+                  </div>
+                </div>
+                <div className="week-task-tasks-list">
+                  {visibleTasks.map((task) => {
+                    const editable = isTaskEditable(task.task_date);
+                    const isFrozen =
+                      task.sup_review_status === "suspended_review";
+                    const effectiveEditable = editable && !isFrozen;
+                    console.log(
+                      `Rendering task ${task.task_id}: date=${
+                        task.task_date
+                      }, editable=${editable}, frozen=${isFrozen}, effectiveEditable=${effectiveEditable}, class=${
+                        !effectiveEditable ? "task-frozen" : ""
+                      }`
+                    );
+                    return (
+                      <div
+                        key={task.task_id}
+                        className={`week-task-task-row ${
+                          !effectiveEditable ? "task-frozen" : ""
+                        }`}
+                      >
+                        <div className="week-task-task-name">
+                          {task.sup_review_status === "struck" ? (
+                            <>
+                              <span
+                                style={{
+                                  textDecoration: "line-through",
+                                  color: "#a0a0a0",
+                                }}
+                              >
+                                {task.task_name}
+                              </span>
+                              {task.replacement_task && (
+                                <span
+                                  style={{
+                                    color: "#007bff",
+                                    marginLeft: "10px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <span
+                                    className={`week-task-review-status-icon ${task.sup_review_status}`}
+                                    style={{
+                                      color:
+                                        reviewColors[task.sup_review_status],
+                                      marginRight: "5px",
+                                    }}
+                                    title={
+                                      task.sup_review_status === "approved"
+                                        ? "Approved"
+                                        : task.sup_review_status === "struck"
+                                        ? "Struck"
+                                        : "Suspended"
+                                    }
+                                  >
+                                    {reviewIcons[task.sup_review_status]}
+                                  </span>
+                                  {task.replacement_task}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <>
                               {task.task_name}
-                            </span>
-                            {task.replacement_task && (
-                              <span style={{ color: "#007bff", marginLeft: "10px", display: "inline-flex", alignItems: "center" }}>
+                              {task.sup_review_status !== "pending" && (
                                 <span
                                   className={`week-task-review-status-icon ${task.sup_review_status}`}
-                                  style={{ color: reviewColors[task.sup_review_status], marginRight: "5px" }}
+                                  style={{
+                                    color: reviewColors[task.sup_review_status],
+                                  }}
                                   title={
                                     task.sup_review_status === "approved"
                                       ? "Approved"
@@ -1340,228 +1757,233 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                 >
                                   {reviewIcons[task.sup_review_status]}
                                 </span>
-                                {task.replacement_task}
-                              </span>
+                              )}
+                            </>
+                          )}
+                          {userRole === "supervisor" &&
+                            supReviewMode &&
+                            task.sup_review_status === "pending" && (
+                              <div
+                                className="week-task-review-action-icons"
+                                style={{ opacity: effectiveEditable ? 1 : 0.5 }}
+                              >
+                                <svg
+                                  className="week-task-action-icon approve"
+                                  onClick={() => handleApprove(task.task_id)}
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="green"
+                                  strokeWidth="2"
+                                  style={{
+                                    cursor: effectiveEditable
+                                      ? "pointer"
+                                      : "not-allowed",
+                                  }}
+                                >
+                                  <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                                <svg
+                                  className="week-task-action-icon strike"
+                                  onClick={() =>
+                                    handleStrike(task.task_id, day.date)
+                                  }
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="red"
+                                  strokeWidth="2"
+                                  style={{
+                                    cursor: effectiveEditable
+                                      ? "pointer"
+                                      : "not-allowed",
+                                  }}
+                                >
+                                  <path d="M18 6L6 18" />
+                                </svg>
+                                <svg
+                                  className="week-task-action-icon suspend"
+                                  onClick={() =>
+                                    handleSuspendReview(task.task_id)
+                                  }
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="orange"
+                                  strokeWidth="2"
+                                  style={{
+                                    cursor: effectiveEditable
+                                      ? "pointer"
+                                      : "not-allowed",
+                                  }}
+                                >
+                                  <circle cx="12" cy="12" r="10" />
+                                  <line x1="15" y1="9" x2="9" y2="15" />
+                                  <line x1="9" y1="9" x2="15" y2="15" />
+                                </svg>
+                              </div>
                             )}
-                          </>
-                        ) : (
-                          <>
-                            {task.task_name}
-                            {task.sup_review_status !== "pending" && (
-                              <span
-                                className={`week-task-review-status-icon ${task.sup_review_status}`}
-                                style={{ color: reviewColors[task.sup_review_status] }}
-                                title={
-                                  task.sup_review_status === "approved"
-                                    ? "Approved"
-                                    : task.sup_review_status === "struck"
-                                    ? "Struck"
-                                    : "Suspended"
-                                }
-                              >
-                                {reviewIcons[task.sup_review_status]}
-                              </span>
-                            )}
-                          </>
-                        )}
-                        {userRole === "supervisor" && supReviewMode && task.sup_review_status === "pending" && (
-                          <div className="week-task-review-action-icons" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
-                            <svg
-                              className="week-task-action-icon approve"
-                              onClick={() => handleApprove(task.task_id)}
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="green"
-                              strokeWidth="2"
-                              style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
-                            >
-                              <path d="M20 6L9 17l-5-5" />
-                            </svg>
-                            <svg
-                              className="week-task-action-icon strike"
-                              onClick={() => handleStrike(task.task_id, day.date)}
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="red"
-                              strokeWidth="2"
-                              style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
-                            >
-                              <path d="M18 6L6 18" />
-                            </svg>
-                            <svg
-                              className="week-task-action-icon suspend"
-                              onClick={() => handleSuspendReview(task.task_id)}
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="orange"
-                              strokeWidth="2"
-                              style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
-                            >
-                              <circle cx="12" cy="12" r="10" />
-                              <line x1="15" y1="9" x2="9" y2="15" />
-                              <line x1="9" y1="9" x2="15" y2="15" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <div className="week-task-update-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
-                        {editingTask === task.task_id && userRole === "employee" && (
-                          <div className="week-task-edit-popup">
-                            <div className="week-task-checkbox-group">
-                              {["completed", "not started", "working"].map((status) => (
-                                <label key={status} className="week-task-checkbox-label">
-                                  <input
-                                    type="radio"
-                                    name="emp-status"
-                                    value={status}
-                                    checked={formData.status === status}
-                                    onChange={(e) =>
-                                      setFormData({ ...formData, status: e.target.value })
-                                    }
-                                    disabled={!effectiveEditable}
-                                  />
-                                  {statusLabels[status] || status}
-                                </label>
-                              ))}
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Add comment"
-                              value={formData.comment}
-                              onChange={(e) =>
-                                setFormData({ ...formData, comment: e.target.value })
-                              }
-                              className="week-task-edit-comment-input"
-                              disabled={!effectiveEditable}
-                            />
-                            <div className="week-task-edit-actions">
-                              <button
-                                onClick={handleCancelEdit}
-                                className="week-task-cancel-button"
-                                disabled={!effectiveEditable}
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={() => handleSave(task.task_id)}
-                                className="week-task-edit-save-button"
-                                disabled={!effectiveEditable}
-                              >
-                                Save
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        <div className="week-task-status-container">
-                          <span className="week-task-comment">{task.emp_comment || "N/A"}</span>
-                          <div className="week-task-status-dots">
-                            <span
-                              className="week-task-status-dot"
-                              style={{
-                                backgroundColor: statusColors[task.emp_status] || "#888",
-                                cursor: isMobile ? 'pointer' : 'default',
-                              }}
-                              title={isMobile ? '' : (statusLabels[task.emp_status] || task.emp_status)}
-                              onClick={(e) => handleTooltipClick(e, statusLabels[task.emp_status] || task.emp_status, `emp-${task.task_id}`)}
-                              onTouchStart={(e) => handleTooltipClick(e, statusLabels[task.emp_status] || task.emp_status, `emp-${task.task_id}`)}
-                            ></span>
-                            {userRole === "employee" && (
-                              <svg
-                                className="week-task-edit-icon"
-                                onClick={() => handleEditClick(task)}
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#007bff"
-                                strokeWidth="2"
-                                style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
-                              >
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
-                            )}
-                          </div>
                         </div>
-                      </div>
-                      <div className="week-task-supervisor-section" style={{ opacity: effectiveEditable ? 1 : 0.5 }}>
-                        {userRole === "supervisor" && supReviewMode && editingSupStatus === task.task_id ? (
-                          <div className="week-task-edit-section">
-                            <div className="week-task-checkbox-group">
-                              {["completed", "add on", "re-work", "incomplete"].map((status) => (
-                                <label key={status} className="week-task-checkbox-label">
+                        <div
+                          className="week-task-update-section"
+                          style={{ opacity: effectiveEditable ? 1 : 0.5 }}
+                        >
+                          {editingTask === task.task_id &&
+                            userRole === "employee" && (
+                              <div className="week-task-edit-popup">
+                                <div className="week-task-checkbox-group">
+                                  {["completed", "not started", "working"].map(
+                                    (status) => (
+                                      <label
+                                        key={status}
+                                        className="week-task-checkbox-label"
+                                      >
+                                        <input
+                                          type="radio"
+                                          name="emp-status"
+                                          value={status}
+                                          checked={formData.status === status}
+                                          onChange={(e) =>
+                                            setFormData({
+                                              ...formData,
+                                              status: e.target.value,
+                                            })
+                                          }
+                                          disabled={!effectiveEditable}
+                                        />
+                                        {statusLabels[status] || status}
+                                      </label>
+                                    )
+                                  )}
+                                </div>
+                                <div className="week-task-comment-mic-wrapper">
                                   <input
-                                    type="radio"
-                                    name="sup-status"
-                                    value={status}
-                                    checked={supFormData.supStatus === status}
+                                    type="text"
+                                    placeholder="Add comment"
+                                    value={formData.comment}
                                     onChange={(e) =>
-                                      setSupFormData({ ...supFormData, supStatus: e.target.value })
+                                      setFormData({
+                                        ...formData,
+                                        comment: e.target.value,
+                                      })
                                     }
+                                    className="week-task-edit-comment-input"
                                     disabled={!effectiveEditable}
                                   />
-                                  {statusLabels[status] || status}
-                                </label>
-                              ))}
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Add supervisor comment"
-                              value={supFormData.supComment}
-                              onChange={(e) =>
-                                setSupFormData({ ...supFormData, supComment: e.target.value })
-                              }
-                              className="week-task-edit-comment-input"
-                              disabled={!effectiveEditable}
-                            />
-                            <div className="week-task-edit-actions">
-                              <button
-                                onClick={handleSupStatusCancel}
-                                className="week-task-cancel-button"
-                                disabled={!effectiveEditable}
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={() => handleSupStatusSave(task.task_id)}
-                                className="week-task-edit-save-button"
-                                disabled={!effectiveEditable}
-                              >
-                                Save
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
+
+                                  {/* Microphone Icon */}
+                                  {/* <span
+  className="week-task-mic-icon"
+  onClick={isListening ? stopListening : startListening}
+  style={{ cursor: "pointer", marginLeft: "8px", fontSize: "22px" }}
+>
+  {isListening ? <MdMicNone style={{ color: "red" }} /> : <MdMic style={{ color: "#007bff" }} />}
+</span> */}
+                                  <span
+                                    className="week-task-mic-icon"
+                                    onClick={
+                                      isListening
+                                        ? stopListening
+                                        : startListening
+                                    }
+                                    style={{
+                                      cursor: "pointer",
+                                      marginLeft: "8px",
+                                      fontSize: "22px",
+                                    }}
+                                  >
+                                    {isListening ? (
+                                      <MdMicNone className="mic-listening" />
+                                    ) : (
+                                      <MdMic className="mic-idle" />
+                                    )}
+                                  </span>
+
+                                  {isListening && (
+                                    <span
+                                      style={{
+                                        marginLeft: "6px",
+                                        color: "red",
+                                        fontSize: "14px",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Listening…
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="week-task-edit-actions">
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="week-task-cancel-button"
+                                    disabled={!effectiveEditable}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => handleSave(task.task_id)}
+                                    className="week-task-edit-save-button"
+                                    disabled={!effectiveEditable}
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           <div className="week-task-status-container">
-                            <span className="week-task-comment">{task.sup_comment || "N/A"}</span>
+                            <span className="week-task-comment">
+                              {task.emp_comment || "N/A"}
+                            </span>
                             <div className="week-task-status-dots">
                               <span
                                 className="week-task-status-dot"
                                 style={{
-                                  backgroundColor: statusColors[task.sup_status] || "#888",
-                                  cursor: isMobile ? 'pointer' : 'default',
+                                  backgroundColor:
+                                    statusColors[task.emp_status] || "#888",
+                                  cursor: isMobile ? "pointer" : "default",
                                 }}
-                                title={isMobile ? '' : (statusLabels[task.sup_status] || task.sup_status)}
-                                onClick={(e) => handleTooltipClick(e, statusLabels[task.sup_status] || task.sup_status, `sup-${task.task_id}`)}
-                                onTouchStart={(e) => handleTooltipClick(e, statusLabels[task.sup_status] || task.sup_status, `sup-${task.task_id}`)}
+                                title={
+                                  isMobile
+                                    ? ""
+                                    : statusLabels[task.emp_status] ||
+                                      task.emp_status
+                                }
+                                onClick={(e) =>
+                                  handleTooltipClick(
+                                    e,
+                                    statusLabels[task.emp_status] ||
+                                      task.emp_status,
+                                    `emp-${task.task_id}`
+                                  )
+                                }
+                                onTouchStart={(e) =>
+                                  handleTooltipClick(
+                                    e,
+                                    statusLabels[task.emp_status] ||
+                                      task.emp_status,
+                                    `emp-${task.task_id}`
+                                  )
+                                }
                               ></span>
-                              {userRole === "supervisor" && supReviewMode && (
+                              {userRole === "employee" && (
                                 <svg
                                   className="week-task-edit-icon"
-                                  onClick={() => handleSupStatusEditClick(task)}
+                                  onClick={() => handleEditClick(task)}
                                   width="16"
                                   height="16"
                                   viewBox="0 0 24 24"
                                   fill="none"
                                   stroke="#007bff"
                                   strokeWidth="2"
-                                  style={{ cursor: effectiveEditable ? 'pointer' : 'not-allowed' }}
+                                  style={{
+                                    cursor: effectiveEditable
+                                      ? "pointer"
+                                      : "not-allowed",
+                                  }}
                                 >
                                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -1569,34 +1991,163 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                               )}
                             </div>
                           </div>
-                        )}
+                        </div>
+                        <div
+                          className="week-task-supervisor-section"
+                          style={{ opacity: effectiveEditable ? 1 : 0.5 }}
+                        >
+                          {userRole === "supervisor" &&
+                          supReviewMode &&
+                          editingSupStatus === task.task_id ? (
+                            <div className="week-task-edit-section">
+                              <div className="week-task-checkbox-group">
+                                {[
+                                  "completed",
+                                  "add on",
+                                  "re-work",
+                                  "incomplete",
+                                ].map((status) => (
+                                  <label
+                                    key={status}
+                                    className="week-task-checkbox-label"
+                                  >
+                                    <input
+                                      type="radio"
+                                      name="sup-status"
+                                      value={status}
+                                      checked={supFormData.supStatus === status}
+                                      onChange={(e) =>
+                                        setSupFormData({
+                                          ...supFormData,
+                                          supStatus: e.target.value,
+                                        })
+                                      }
+                                      disabled={!effectiveEditable}
+                                    />
+                                    {statusLabels[status] || status}
+                                  </label>
+                                ))}
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Add supervisor comment"
+                                value={supFormData.supComment}
+                                onChange={(e) =>
+                                  setSupFormData({
+                                    ...supFormData,
+                                    supComment: e.target.value,
+                                  })
+                                }
+                                className="week-task-edit-comment-input"
+                                disabled={!effectiveEditable}
+                              />
+                              <div className="week-task-edit-actions">
+                                <button
+                                  onClick={handleSupStatusCancel}
+                                  className="week-task-cancel-button"
+                                  disabled={!effectiveEditable}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleSupStatusSave(task.task_id)
+                                  }
+                                  className="week-task-edit-save-button"
+                                  disabled={!effectiveEditable}
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="week-task-status-container">
+                              <span className="week-task-comment">
+                                {task.sup_comment || "N/A"}
+                              </span>
+                              <div className="week-task-status-dots">
+                                <span
+                                  className="week-task-status-dot"
+                                  style={{
+                                    backgroundColor:
+                                      statusColors[task.sup_status] || "#888",
+                                    cursor: isMobile ? "pointer" : "default",
+                                  }}
+                                  title={
+                                    isMobile
+                                      ? ""
+                                      : statusLabels[task.sup_status] ||
+                                        task.sup_status
+                                  }
+                                  onClick={(e) =>
+                                    handleTooltipClick(
+                                      e,
+                                      statusLabels[task.sup_status] ||
+                                        task.sup_status,
+                                      `sup-${task.task_id}`
+                                    )
+                                  }
+                                  onTouchStart={(e) =>
+                                    handleTooltipClick(
+                                      e,
+                                      statusLabels[task.sup_status] ||
+                                        task.sup_status,
+                                      `sup-${task.task_id}`
+                                    )
+                                  }
+                                ></span>
+                                {userRole === "supervisor" && supReviewMode && (
+                                  <svg
+                                    className="week-task-edit-icon"
+                                    onClick={() =>
+                                      handleSupStatusEditClick(task)
+                                    }
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#007bff"
+                                    strokeWidth="2"
+                                    style={{
+                                      cursor: effectiveEditable
+                                        ? "pointer"
+                                        : "not-allowed",
+                                    }}
+                                  >
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+                {day.tasks.length > 3 && (
+                  <svg
+                    className="week-task-expand-icon-task"
+                    onClick={() => toggleExpand(day.date)}
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#28a745"
+                    strokeWidth="2"
+                  >
+                    {isExpanded ? (
+                      <path d="M19 9l-7-7-7 7" />
+                    ) : (
+                      <path d="M5 15l7 7 7-7" />
+                    )}
+                  </svg>
+                )}
               </div>
-              {day.tasks.length > 3 && (
-                <svg
-                  className="week-task-expand-icon-task"
-                  onClick={() => toggleExpand(day.date)}
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#28a745"
-                  strokeWidth="2"
-                >
-                  {isExpanded ? (
-                    <path d="M19 9l-7-7-7 7" />
-                  ) : (
-                    <path d="M5 15l7 7 7-7" />
-                  )}
-                </svg>
-              )}
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
 
       <Modal
         isVisible={alertModal.isVisible}

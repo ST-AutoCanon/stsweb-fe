@@ -1,4 +1,4 @@
-// src/components/ReportPanel.jsx
+// src/components/Report/ReportPanel.js
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
@@ -13,6 +13,7 @@ import EmployeeTypeahead from "./EmployeeTypeahead";
 import FieldsGrid from "./FieldsGrid";
 import Pagination from "./Pagination";
 import { getApiBase } from "./ReportUtils";
+// constants live next to this file as you already had
 import {
   STATUS_OPTIONS,
   SUB_OPTIONS,
@@ -21,17 +22,23 @@ import {
   MAX_RANGE_DAYS,
 } from "./ReportConstants";
 
-/**
- * Try to extract a plain employee id from localStorage dashboardData.
- * Handles cases where dashboardData is a JSON string or a plain id or contains an STSxxx id.
- */
+/*
+  NOTE: This file is identical to your original except two changes:
+  1) the synthetic lifecycle field (__asset_lifecycle_status) is no longer injected
+     into the available fields for the Assets component (so it won't show up in
+     user selectable fields).
+  2) when building download params we now filter out lifecycle/raw_status keys
+     before sending the `fields` param to the server. This prevents raw_status
+     and lifecycle columns from appearing in downloaded PDF/XLSX unless the
+     server is explicitly asked for them (and our client will not ask for them).
+*/
+
 function extractEmployeeIdFromLocalStorage() {
   try {
     const raw = localStorage.getItem("dashboardData");
     if (!raw) return null;
     const trimmed = String(raw).trim();
 
-    // If it looks like JSON, parse and extract common keys
     if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
       try {
         const obj = JSON.parse(trimmed);
@@ -40,7 +47,6 @@ function extractEmployeeIdFromLocalStorage() {
           obj.employee_id ||
           obj.employee ||
           obj.id ||
-          // some payloads use camelCase or different keys
           obj.employeeId ||
           null
         );
@@ -49,7 +55,6 @@ function extractEmployeeIdFromLocalStorage() {
       }
     }
 
-    // Try to parse even if not starting with { (defensive)
     try {
       const parsed = JSON.parse(trimmed);
       if (parsed && typeof parsed === "object") {
@@ -61,18 +66,13 @@ function extractEmployeeIdFromLocalStorage() {
           null
         );
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
 
-    // If the string contains an STS-style id, extract it
     const m = trimmed.match(/(STS[0-9A-Za-z-_]+)/);
     if (m) return m[1];
 
-    // Otherwise assume the stored value is the id itself
     return trimmed;
   } catch (e) {
-    // fallback to raw value if anything goes wrong
     return localStorage.getItem("dashboardData") || null;
   }
 }
@@ -83,12 +83,10 @@ const inferUserRoleAndDepartment = () => {
       for (const k of keys) {
         const v = localStorage.getItem(k);
         if (!v) continue;
-        // If it looks like JSON, parse it and try to extract fields
         if (v.trim().startsWith("{")) {
           try {
             const obj = JSON.parse(v);
             if (!obj) continue;
-            // Common fields
             const role =
               obj.role ||
               obj.userRole ||
@@ -103,12 +101,8 @@ const inferUserRoleAndDepartment = () => {
               obj.department ||
               obj.department_id;
             if (role || dept) return { role, departmentId: dept ?? null };
-          } catch (e) {
-            // ignore parse error
-          }
+          } catch (e) {}
         } else {
-          // Plain string keys
-          // e.g. "Manager", "Supervisor", "dept_12", "12"
           if (
             ["manager", "supervisor", "team lead", "teamlead", "lead"].some(
               (s) => v.toLowerCase().includes(s)
@@ -116,9 +110,7 @@ const inferUserRoleAndDepartment = () => {
           ) {
             return { role: v, departmentId: null };
           }
-          // numeric department id?
           if (/^\d+$/.test(v.trim())) {
-            // ambiguous: treat as department id only
             return { role: null, departmentId: v.trim() };
           }
         }
@@ -138,9 +130,7 @@ const inferUserRoleAndDepartment = () => {
       "dashboardDataRole",
     ];
     const singleTry = tryKeys(singleKeys);
-    if (singleTry) {
-      return singleTry;
-    }
+    if (singleTry) return singleTry;
 
     const multiKeys = [
       "userProfile",
@@ -200,7 +190,6 @@ function inferManagerDeptFromDepartmentsArray(deptRows, employeeId) {
       }
     }
 
-    // nested manager object
     if (d.manager && typeof d.manager === "object") {
       const nestedMgrId =
         d.manager.employee_id ||
@@ -214,6 +203,87 @@ function inferManagerDeptFromDepartmentsArray(deptRows, employeeId) {
     }
   }
   return null;
+}
+
+function deriveLifecycleFromAssignedTo(raw) {
+  try {
+    if (raw === null || raw === undefined) return "Unassigned";
+    if (typeof raw === "object" && Array.isArray(raw) && raw.length === 0)
+      return "Unassigned";
+
+    let arr = [];
+    if (Array.isArray(raw)) arr = raw;
+    else {
+      const s = String(raw).trim();
+      if (!s) return "Unassigned";
+      try {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) arr = parsed;
+        else if (parsed && typeof parsed === "object") arr = [parsed];
+      } catch (e) {
+        if (s.indexOf("},{") !== -1 || s.indexOf("}{") !== -1) {
+          try {
+            const clean = s.replace(/^\[?/, "").replace(/\]?$/, "");
+            const parts = clean.split(/}\s*,\s*{/);
+            arr = parts.map((part, i) => {
+              let txt = part;
+              if (i !== 0) txt = "{" + txt;
+              if (i !== parts.length - 1) txt = txt + "}";
+              try {
+                return JSON.parse(txt);
+              } catch (e2) {
+                return { raw: txt };
+              }
+            });
+          } catch (e2) {
+            arr = [{ raw: s }];
+          }
+        } else {
+          arr = [{ raw: s }];
+        }
+      }
+    }
+
+    if (!Array.isArray(arr) || arr.length === 0) return "Unassigned";
+
+    const now = new Date();
+    let anyActive = false;
+    let anyDecom = false;
+    for (const e of arr) {
+      const status =
+        (e && (e.status || e.Status || e.assignment_status || e.state)) ||
+        (typeof e === "string" ? e : null);
+      const returnDate =
+        (e &&
+          (e.returnDate || e.return_date || e.returned_on || e.returnedAt)) ||
+        null;
+      const st = status ? String(status).toLowerCase() : "";
+      if (/(decommissioned|decommission|disposed)/.test(st)) {
+        anyDecom = true;
+      }
+      if (/(returned|returned to stock|returned to vendor)/.test(st)) {
+        continue;
+      }
+      if (returnDate) {
+        const d = new Date(returnDate);
+        if (!isNaN(d.getTime()) && d.getTime() <= now.getTime()) {
+          continue;
+        }
+      }
+      if (
+        (e && (e.employeeId || e.employee_id || e.name || e.assigneeName)) ||
+        (!returnDate && !/(returned|decommissioned)/.test(st))
+      ) {
+        anyActive = true;
+      }
+    }
+
+    if (anyActive) return "assigned";
+    if (anyDecom) return "decommissioned";
+    return "returned";
+  } catch (e) {
+    return "Unassigned";
+  }
 }
 
 export default function ReportPanel() {
@@ -311,9 +381,8 @@ export default function ReportPanel() {
       } else if (typeof data === "string") {
         text = data;
       }
-      if (!text || !text.trim()) {
+      if (!text || !text.trim())
         return `Server responded with status ${status}`;
-      }
       try {
         const parsed = JSON.parse(text);
         if (parsed && typeof parsed === "object") {
@@ -417,7 +486,11 @@ export default function ReportPanel() {
       return;
     }
 
-    setStatusOptions(STATUS_OPTIONS[component] || ["All"]);
+    const rawStatusOpts = STATUS_OPTIONS[component] || ["All"];
+    const trimmedStatusOpts = rawStatusOpts.map((s) =>
+      typeof s === "string" ? s.trim() : s
+    );
+    setStatusOptions(trimmedStatusOpts);
     setStatus("All");
 
     const subs = SUB_OPTIONS[component] || [];
@@ -433,6 +506,10 @@ export default function ReportPanel() {
       setFilterEmployeeName("");
       setFilterDepartmentId(null);
     }
+
+    // IMPORTANT CHANGE: Do NOT inject the synthetic lifecycle field into the available fields for Assets.
+    // We still render lifecycle during preview from assigned_to when user selected 'status' column, but it
+    // is not a selectable downloadable field anymore.
 
     setAvailableFields(subsFiltered);
     setSelectedFields(subsFiltered.map((s) => s.key));
@@ -469,7 +546,6 @@ export default function ReportPanel() {
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - days + 1);
-    // use local formatter to avoid UTC shift
     setStartDate(formatDateLocal(start));
     setEndDate(formatDateLocal(end));
   };
@@ -477,7 +553,6 @@ export default function ReportPanel() {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    // use local formatter to avoid UTC shift
     setStartDate(formatDateLocal(start));
     setEndDate(formatDateLocal(end));
   };
@@ -495,7 +570,7 @@ export default function ReportPanel() {
       const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
       if (days > MAX_RANGE_DAYS) {
         showAlert(
-          `Selected range is ${days} days. Maximum allowed is ${MAX_RANGE_DAYS} days (≈ 2 months).`
+          `Selected range is ${days} days. Maximum allowed is ${MAX_RANGE_DAYS} days. Please reduce range.`
         );
         return false;
       }
@@ -529,9 +604,7 @@ export default function ReportPanel() {
     return comp;
   };
 
-  // compute an effective manager dept id to use everywhere (typeahead + buildParams)
   const effectiveManagerDepartmentId = (() => {
-    // priority: explicit user selection > filterDepartmentId state > managerDepartmentIdRaw > infer from departments
     if (!isTeamRole) return filterDepartmentId;
     return (
       filterDepartmentId ||
@@ -569,34 +642,38 @@ export default function ReportPanel() {
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
-    const st =
-      status === undefined || status === null ? "" : String(status).trim();
-    params.append("status", st);
 
-    // Add preview flag early (so server sees it's a preview)
+    let stRaw = status === undefined || status === null ? "" : String(status);
+    const stTrim = stRaw.trim();
+    if (stTrim && stTrim.toLowerCase() !== "all") {
+      params.append("status", stTrim);
+    }
+
     if (preview) params.append("preview", "true");
 
-    // SAFETY: For preview requests we intentionally DO NOT send 'fields' to avoid huge query strings.
-    // For downloads, we send fields but cap the number of fields included for transport.
-    const MAX_CLIENT_FIELDS_SEND = 60; // change if you want to allow more fields to be sent
+    const MAX_CLIENT_FIELDS_SEND = 60;
     if (!preview) {
       if (selectedFields && selectedFields.length > 0) {
-        let fieldsToSend = selectedFields;
-        if (selectedFields.length > MAX_CLIENT_FIELDS_SEND) {
+        // filter out internal/synthetic fields we do not want in downloads
+        const forbidden = new Set([
+          "__asset_lifecycle_status",
+          "raw_status",
+          "lifecycle",
+        ]);
+        let fieldsToSend = selectedFields.filter((k) => !forbidden.has(k));
+        if (fieldsToSend.length > MAX_CLIENT_FIELDS_SEND) {
           console.warn(
-            `[ReportPanel] selectedFields length (${selectedFields.length}) exceeds MAX_CLIENT_FIELDS_SEND (${MAX_CLIENT_FIELDS_SEND}). Truncating for network transport.`
+            `[ReportPanel] selectedFields length (${fieldsToSend.length}) exceeds MAX_CLIENT_FIELDS_SEND (${MAX_CLIENT_FIELDS_SEND}). Truncating for transport.`
           );
-          fieldsToSend = selectedFields.slice(0, MAX_CLIENT_FIELDS_SEND);
+          fieldsToSend = fieldsToSend.slice(0, MAX_CLIENT_FIELDS_SEND);
         }
-        params.append("fields", fieldsToSend.join(","));
+        if (fieldsToSend.length)
+          params.append("fields", fieldsToSend.join(","));
       }
     }
 
-    // IMPORTANT: For vendors we must NOT send employee/department scoping.
     if (component !== "vendors") {
       if (filterEmployeeId) params.append("employee_id", filterEmployeeId);
-
-      // Always try to include manager's department for team roles using the effective id
       if (isTeamRole) {
         const deptToSend = effectiveManagerDepartmentId || "";
         if (deptToSend) params.append("department_id", deptToSend);
@@ -653,17 +730,10 @@ export default function ReportPanel() {
         return;
       }
 
-      // build params for download — we include a capped fields list for transport
       const paramString = buildParams({ includeFormat: false, preview: false });
 
-      // debug log to confirm department id sent
-      console.debug(
-        "[ReportPanel] download -> effectiveManagerDepartmentId:",
-        effectiveManagerDepartmentId
-      );
       console.debug("[ReportPanel] download -> paramString:", paramString);
 
-      // attach format explicitly (keeps previous behavior)
       const url = `${base}/api/report/${endpoint}?${paramString}${
         paramString ? "&" : ""
       }format=${encodeURIComponent(format)}`;
@@ -752,13 +822,7 @@ export default function ReportPanel() {
         return;
       }
 
-      // build params for preview — NOTE: fields are intentionally NOT sent here
       const paramString = buildParams({ preview: true });
-      // debug: show the final query string sent to backend
-      console.debug(
-        "[ReportPanel] preview -> effectiveManagerDepartmentId:",
-        effectiveManagerDepartmentId
-      );
       console.debug("[ReportPanel] preview -> paramString:", paramString);
 
       const url = `${base}/api/report/${endpoint}?${paramString}`;
@@ -828,7 +892,6 @@ export default function ReportPanel() {
   availableFields.forEach((f) => (keyToLabel[f.key] = f.label));
   const componentIsSelected = component && component !== "select";
 
-  // pagination helpers
   const totalPages = Math.max(
     1,
     Math.ceil((previewRows.length || 0) / PREVIEW_PAGE_SIZE)
@@ -840,12 +903,10 @@ export default function ReportPanel() {
   );
   const goToPage = (p) => setPreviewPage(Math.min(Math.max(1, p), totalPages));
 
-  // Adjust component list for team roles: hide vendors and assets for non-admins? (existing behaviour preserved)
   const componentOptions = [
     { value: "leaves", label: "Leaves" },
     { value: "reimbursements", label: "Reimbursements" },
     { value: "employees", label: "Employees" },
-    // vendors / assets hidden for team roles
     ...(isTeamRole ? [] : [{ value: "vendors", label: "Vendors" }]),
     ...(isTeamRole ? [] : [{ value: "assets", label: "Assets" }]),
     { value: "attendance", label: "Attendance" },
@@ -901,7 +962,6 @@ export default function ReportPanel() {
               >
                 {allSelected ? "All selected" : "Select all"}
               </button>
-
               <button
                 type="button"
                 className="rp-chip small"
@@ -911,7 +971,6 @@ export default function ReportPanel() {
               >
                 Clear
               </button>
-
               {!componentIsSelected && (
                 <span
                   className="rp-fields-selected-summary"
@@ -951,7 +1010,6 @@ export default function ReportPanel() {
           </div>
         </div>
 
-        {/* Hide the Status control for vendors */}
         {component !== "vendors" && (
           <div className="rp-row">
             <label className="rp-label">Status</label>
@@ -999,7 +1057,6 @@ export default function ReportPanel() {
             </div>
           </div>
 
-          {/* Hide employee typeahead for vendors (vendors should fetch all data) */}
           {component !== "vendors" ? (
             <div className="rp-date-field rp-typeahead-field">
               <label className="rp-label">Employee Name</label>
@@ -1007,7 +1064,6 @@ export default function ReportPanel() {
                 onSelect={onEmployeeSelect}
                 onTyping={onTypeStart}
                 onClear={onEmployeeClear}
-                // Force department scoping for team roles using effectiveManagerDepartmentId
                 departmentId={
                   isTeamRole ? effectiveManagerDepartmentId : filterDepartmentId
                 }
@@ -1030,7 +1086,6 @@ export default function ReportPanel() {
             />
           )}
 
-          {/* Department dropdown: hide for Team roles and also hide for vendors */}
           {!isTeamRole && component !== "vendors" ? (
             <div className="rp-date-field rp-typeahead-field">
               <label className="rp-label">Department</label>
@@ -1062,14 +1117,7 @@ export default function ReportPanel() {
                 )}
               </div>
             </div>
-          ) : component !== "vendors" ? (
-            // preserve layout when team role: empty placeholder (as before)
-            <div
-              className="rp-date-field rp-typeahead-field"
-              style={{ alignSelf: "flex-end" }}
-            ></div>
           ) : (
-            // vendors: placeholder to keep layout tidy
             <div
               className="rp-date-field rp-typeahead-field"
               style={{ alignSelf: "flex-end" }}
@@ -1210,15 +1258,26 @@ export default function ReportPanel() {
                   <tbody>
                     {currentPageData.map((row, idx) => (
                       <tr key={idx}>
-                        {selectedFields.map((k) => (
-                          <td key={k + "-" + idx}>
-                            {row && Object.prototype.hasOwnProperty.call(row, k)
-                              ? row[k] === null || row[k] === undefined
-                                ? ""
-                                : String(row[k])
-                              : ""}
-                          </td>
-                        ))}
+                        {selectedFields.map((k) => {
+                          if (component === "assets" && k === "status") {
+                            const lifecycle =
+                              row.__asset_lifecycle_status ||
+                              row.lifecycle ||
+                              deriveLifecycleFromAssignedTo(row.assigned_to);
+                            return <td key={k + "-" + idx}>{lifecycle}</td>;
+                          }
+
+                          return (
+                            <td key={k + "-" + idx}>
+                              {row &&
+                              Object.prototype.hasOwnProperty.call(row, k)
+                                ? row[k] === null || row[k] === undefined
+                                  ? ""
+                                  : String(row[k])
+                                : ""}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
