@@ -1,7 +1,14 @@
 .project-dashboard {
-  padding: 20px;
-  min-height: 100vh;
+  position: relative;
   font-family: Arial, sans-serif;
+}
+
+.project-content {
+  position: relative;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px;
+  max-height: 500px;
 }
 
 .project-header {
@@ -29,7 +36,7 @@
 }
 
 .add-project-button:hover {
-  background-color: #68a822; /* slightly darker for hover */
+  background-color: #68a822;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -43,7 +50,6 @@
   outline-offset: 2px;
 }
 
-/* For the update icon, you can add a hover effect if needed */
 .pj-update-icon {
   font-size: xx-large;
   color: #004dc6;
@@ -147,7 +153,6 @@
   cursor: pointer;
 }
 
-/* Container for the entire set of controls in the General Templates tab */
 .template-controls {
   display: flex;
   flex-wrap: wrap;
@@ -159,13 +164,11 @@
   margin-bottom: 1rem;
 }
 
-/* Style for the dropdown label */
 .template-controls label {
   font-weight: bold;
   margin-right: 0.5rem;
 }
 
-/* Style for the dropdown select element */
 .template-controls select {
   padding: 0.5rem;
   font-size: 1rem;
@@ -187,7 +190,6 @@
   align-items: center;
 }
 
-/* Specific style for the View Template button */
 .template-controls .view-template-button {
   background-color: #b2b3b3;
   border: 1px solid #848585;
@@ -215,7 +217,6 @@
   margin: 0 0 0 5%;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .project-dashboard {
     padding: 30px;
