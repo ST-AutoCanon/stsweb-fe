@@ -1846,7 +1846,7 @@ const handleInputChange = (field, value) => {
                   >
                     <option value="">Select</option>
                     <option value="basic">Basic Salary</option>
-                    <option value="gross">Gross Salary</option>
+                    
                   </select>
                 </div>
               </div>
@@ -1892,7 +1892,7 @@ const handleInputChange = (field, value) => {
                   >
                     <option value="">Select</option>
                     <option value="basic">Basic Salary</option>
-                    <option value="gross">Gross Salary</option>
+                    
                   </select>
                 </div>
               </div>

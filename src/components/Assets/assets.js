@@ -517,10 +517,10 @@ const Assets = () => {
     }
   };
   const handleSave = async () => {
-    if (!assetName || !configuration || !valuationDate) {
-      showAlert("Please fill all required fields.");
-      return;
-    }
+  if (!assetName || !configuration || !valuationDate || !assignedTo) {
+  showAlert("Please fill all required fields: Asset Name, Configuration, Purchased Date, and Assigned To.");
+  return;
+}
     const formData = new FormData();
     formData.append("asset_name", assetName);
     formData.append("configuration", configuration);
@@ -1069,16 +1069,17 @@ const Assets = () => {
                   />
                 </div>
                 <div className="row" style={{ position: "relative" }}>
-                  <label>Assigned To</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Assignee Name"
-                    value={assignedTo?.name || assignedTo || ""} // Handles both object or plain string
-                    onChange={handleAssignedToChange2}
-                    // onBlur={handleBlur}
-                    onBlur={handleBlur2}
-                    autoComplete="off"
-                  />
+  <label>
+    Assigned To <span className="assets-required-asterisk">*</span>
+  </label>
+  <input
+    type="text"
+    placeholder="Enter Assignee Name or Location (e.g. sts-belagavi)"
+    value={assignedTo?.name || assignedTo || ""}
+    onChange={handleAssignedToChange2}
+    onBlur={handleBlur2}
+    autoComplete="off"
+  />
                   {employeeSuggestions.length > 0 && (
                     <ul
                       style={{
