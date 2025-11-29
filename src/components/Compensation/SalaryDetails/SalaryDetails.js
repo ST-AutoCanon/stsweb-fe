@@ -577,7 +577,7 @@ const SalaryDetails = () => {
             esic: salaryDetails.esic || 0,
             gratuity: salaryDetails.gratuity || 0,
             professional_tax: salaryDetails.professionalTax || 0,
-            income_tax: salaryDetails.tds || 0,
+tds: salaryDetails.tds || 0,
             insurance: salaryDetails.insurance || 0,
             lop_days: lopDays,  // LOP Days: Yearly to match DetailsTab
             lop_deduction: lopDeduction,  // LOP Value: Yearly to match DetailsTab
