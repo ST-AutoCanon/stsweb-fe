@@ -313,7 +313,7 @@ const Assets = () => {
     resetForm(); // Clear form when closing popup
     closeAssignPopup(); // Close the popup
   };
-  const viewDocument = async (path) => {
+ const viewDocument = async (path) => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/uploads/${path}`,
@@ -322,6 +322,7 @@ const Assets = () => {
           responseType: "blob", // Ensure the file is treated as a blob
         }
       );
+
       // Create a URL and open the document
       const fileURL = window.URL.createObjectURL(new Blob([response.data]));
       window.open(fileURL, "_blank");
@@ -333,69 +334,67 @@ const Assets = () => {
       showAlert("Failed to open document.");
     }
   };
-  const openAssignPopup = (asset) => {
-    const assetId = asset.id;
-    setSelectedAssetId(assetId);
+
+ const openAssignPopup = (asset) => {
+  const assetId = asset.id;
+  setSelectedAssetId(assetId);
+  setSelectedAsset(asset);
+
+  let formattedAssignments = [];
+
+  // Parse existing assigned_to data safely
+  if (asset.assigned_to && asset.assigned_to !== "null" && asset.assigned_to !== "") {
     try {
-      let parsed = [];
-      if (asset.assigned_to) {
-        parsed =
-          typeof asset.assigned_to === "string"
-            ? JSON.parse(asset.assigned_to)
-            : asset.assigned_to;
+      const parsed =
+        typeof asset.assigned_to === "string"
+          ? JSON.parse(asset.assigned_to)
+          : asset.assigned_to;
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Reverse so latest is on top
+        formattedAssignments = parsed.reverse().map((a) => ({
+          assignedTo: a.name || "",
+          employeeId: a.employeeId || a.employee_id || "",
+          startDate: a.startDate || asset.valuation_date || "",
+          returnDate: a.returnDate || "",
+          assigningStatus: a.status || "Assigned",
+          comments: a.comments || "",
+        }));
       }
-      // Map backend "name" to frontend "assignedTo" and handle startDate fallback
-      const formattedAssignments = parsed.length
-        ? parsed.reverse().map((a) => ({
-            assignedTo: a.name || "",
-            startDate: a.startDate || asset.valuation_date || "", // Fallback to valuation_date
-            returnDate: a.returnDate || "",
-            assigningStatus: a.status || "Assigned",
-            comments: a.comments || "",
-            employeeId: a.employeeId || "", // Include employeeId if available
-          }))
-        : [
-            {
-              assignedTo: "",
-              startDate: asset.valuation_date || "", // Default to valuation_date
-              returnDate: "",
-              assigningStatus: "Unassigned",
-              comments: "",
-              employeeId: "",
-            },
-          ];
-      setAssignmentRowsByAsset((prev) => ({
-        ...prev,
-        [assetId]: formattedAssignments,
-      }));
     } catch (err) {
-      console.error("Error parsing assigned_to:", err);
-      // Fallback to a default row with valuation_date
-      setAssignmentRowsByAsset((prev) => ({
-        ...prev,
-        [assetId]: [
-          {
-            assignedTo: "",
-            startDate: asset.valuation_date || "",
-            returnDate: "",
-            assigningStatus: "Unassigned",
-            comments: "",
-            employeeId: "",
-          },
-        ],
-      }));
+      console.error("Error parsing assigned_to JSON:", err);
+      // Don't break — fall back to empty
     }
-    setShowAssignPopup(true);
-    setSelectedAsset(asset);
-  };
+  }
+
+  // ONLY add a blank row if there are NO previous assignments
+  // This prevents "extra row" when reopening popup
+  if (formattedAssignments.length === 0) {
+    formattedAssignments = [
+      {
+        assignedTo: "",
+        employeeId: "",
+        startDate: asset.valuation_date || new Date().toISOString().split("T")[0],
+        returnDate: "",
+        assigningStatus: "Unassigned", // or "Assigned" — your choice
+        comments: "",
+      },
+    ];
+  }
+
+  // Always overwrite with fresh data — no merging old stale rows
+  setAssignmentRowsByAsset((prev) => ({
+    ...prev,
+    [assetId]: formattedAssignments,
+  }));
+
+  setShowAssignPopup(true);
+};
+
   const closeAssignPopup = () => {
     setShowAssignPopup(false);
-    setSelectedAsset(null);
-    setAssignedTo("");
-    setStartDate("");
-    setReturnDate("");
-    setComments("");
-    setAssigningStatus("Unassigned");
+  setSelectedAsset(null);
+  setSelectedAssetId(null);
   };
   const formatDate = (date) => {
     if (!date) return ""; // Handle empty dates
@@ -485,37 +484,52 @@ const Assets = () => {
       showAlert("Failed to download file. See console.");
     }
   };
-  const handleViewDocument = async (documentPath) => {
-    if (!documentPath) {
-      showAlert("No document available.");
+ const handleViewDocument = async (documentPath) => {
+  if (!documentPath) {
+    showAlert("No document available.");
+    return;
+  }
+
+  const fileName = documentPath.split("/").pop().trim(); // Extract file name
+  const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`; // Moved outside try
+  try {
+    console.log("Fetching document from:", fileUrl);
+    console.log("Original documentPath:", documentPath);
+
+    const response = await axios.get(fileUrl, {
+      headers,
+      responseType: "blob",
+    });
+
+    if (response.data.type === "text/html") {
+      console.error("Server returned an HTML error page (likely 404).");
+      showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
       return;
     }
-    try {
-      const fileUrl = `${
-        process.env.REACT_APP_BACKEND_URL
-      }/${documentPath.replace(/^\/?uploads\//, "uploads/")}`;
-      const response = await axios.get(fileUrl, {
-        headers,
-        responseType: "blob", // Get file as Blob
-      });
-      // Get file extension to determine MIME type
-      const extension = documentPath.split(".").pop().toLowerCase();
-      let mimeType = "application/octet-stream"; // default fallback
-      if (extension === "pdf") mimeType = "application/pdf";
-      else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
-      else if (extension === "png") mimeType = "image/png";
-      // Create Blob with correct type
-      const fileBlob = new Blob([response.data], { type: mimeType });
-      const fileURL = window.URL.createObjectURL(fileBlob);
-      window.open(fileURL, "_blank");
-    } catch (error) {
-      console.error(
-        "Error opening document:",
-        error.response?.data || error.message
-      );
-      showAlert("Failed to open document.");
-    }
-  };
+
+    const extension = fileName.split(".").pop().toLowerCase();
+    let mimeType = "application/octet-stream";
+
+    if (extension === "pdf") mimeType = "application/pdf";
+    else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+    else if (extension === "png") mimeType = "image/png";
+
+    const fileBlob = new Blob([response.data], { type: mimeType });
+    const fileURL = window.URL.createObjectURL(fileBlob);
+    window.open(fileURL, "_blank");
+
+    setTimeout(() => window.URL.revokeObjectURL(fileURL), 1000);
+  } catch (error) {
+    console.error("Error opening document:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: fileUrl, // Now accessible
+    });
+    showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
+  }
+};
+
   const handleSave = async () => {
   if (!assetName || !configuration || !valuationDate || !assignedTo) {
   showAlert("Please fill all required fields: Asset Name, Configuration, Purchased Date, and Assigned To.");
