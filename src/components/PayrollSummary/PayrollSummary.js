@@ -269,7 +269,7 @@ const PayrollSummary = () => {
     <td>Overtime</td>
     <td>₹{(parseFloat(payrollData.overtime) || 0).toLocaleString()}</td>
     <td>TDS</td>
-<td>₹{(parseFloat(payrollData.income_tax) || 0).toLocaleString()}</td>
+<td>₹{(parseFloat(payrollData.tds) || 0).toLocaleString()}</td>
   </tr>
   <tr>
     <td>Statutory Bonus</td>
