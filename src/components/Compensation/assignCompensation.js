@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./assignCompensation.css";
@@ -20,8 +19,9 @@ const AssignCompensation = () => {
   const [compensationSearchTerm, setCompensationSearchTerm] = useState("");
   const [selectedCompensation, setSelectedCompensation] = useState("");
   const [employeesByDepartment, setEmployeesByDepartment] = useState({});
-  const [originalEmployeesByDepartment, setOriginalEmployeesByDepartment] = useState({});
-  const [selectionType, setSelectionType] = useState("employee"); // 'employee' or 'department'
+  const [originalEmployeesByDepartment, setOriginalEmployeesByDepartment] =
+    useState({});
+  const [selectionType, setSelectionType] = useState("employee");
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
@@ -30,7 +30,9 @@ const AssignCompensation = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
 
   const showAlert = (message, title = "Alert") => {
     setAlertModal({ isVisible: true, title, message });
@@ -40,7 +42,6 @@ const AssignCompensation = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
 
-  // Fetch employee names from backend
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
       try {
@@ -57,7 +58,9 @@ const AssignCompensation = () => {
         }
       } catch (error) {
         console.error("Error fetching employee details:", error);
-        showAlert(`Failed to fetch employees: ${error.message || "Network error"}`);
+        showAlert(
+          `Failed to fetch employees: ${error.message || "Network error"}`
+        );
       } finally {
         setIsLoading(false);
       }
@@ -66,7 +69,6 @@ const AssignCompensation = () => {
     fetchEmployeeDetails();
   }, [API_KEY, meId]);
 
-  // Fetch department names from backend
   useEffect(() => {
     const fetchDepartmentDetails = async () => {
       try {
@@ -79,11 +81,15 @@ const AssignCompensation = () => {
           setDepartmentList(response.data.data || []);
           setFilteredDepartments(response.data.data || []);
         } else {
-          throw new Error(response.data.message || "Failed to fetch departments");
+          throw new Error(
+            response.data.message || "Failed to fetch departments"
+          );
         }
       } catch (error) {
         console.error("Error fetching department details:", error);
-        showAlert(`Failed to fetch departments: ${error.message || "Network error"}`);
+        showAlert(
+          `Failed to fetch departments: ${error.message || "Network error"}`
+        );
       } finally {
         setIsLoading(false);
       }
@@ -92,7 +98,6 @@ const AssignCompensation = () => {
     fetchDepartmentDetails();
   }, [API_KEY, meId]);
 
-  // Fetch compensation plans from backend
   useEffect(() => {
     const fetchCompensations = async () => {
       try {
@@ -111,15 +116,18 @@ const AssignCompensation = () => {
                   !isNaN(parseInt(comp.id))
               )
             : [];
-          console.log("Fetched compensations:", validCompensations); // Debug log
           setCompensationList(validCompensations);
           setFilteredCompensations(validCompensations);
         } else {
-          throw new Error(response.data.message || "Failed to fetch compensations");
+          throw new Error(
+            response.data.message || "Failed to fetch compensations"
+          );
         }
       } catch (error) {
         console.error("Error fetching compensations:", error);
-        showAlert(`Failed to fetch compensations: ${error.message || "Network error"}`);
+        showAlert(
+          `Failed to fetch compensations: ${error.message || "Network error"}`
+        );
       } finally {
         setIsLoading(false);
       }
@@ -128,7 +136,6 @@ const AssignCompensation = () => {
     fetchCompensations();
   }, [API_KEY, meId]);
 
-  // Filter employees based on search term
   useEffect(() => {
     const filtered = employeeList.filter(
       (emp) =>
@@ -139,7 +146,6 @@ const AssignCompensation = () => {
     setFilteredEmployees(filtered);
   }, [searchTerm, employeeList]);
 
-  // Filter departments based on search term
   useEffect(() => {
     const filtered = departmentList.filter(
       (dept) =>
@@ -150,40 +156,39 @@ const AssignCompensation = () => {
     setFilteredDepartments(filtered);
   }, [departmentSearchTerm, departmentList]);
 
-  // Filter compensations based on search term
   useEffect(() => {
     const filtered = compensationList.filter(
       (comp) =>
         comp &&
         typeof comp.compensation_plan_name === "string" &&
-        comp.compensation_plan_name.toLowerCase().includes(compensationSearchTerm.toLowerCase())
+        comp.compensation_plan_name
+          .toLowerCase()
+          .includes(compensationSearchTerm.toLowerCase())
     );
     setFilteredCompensations(filtered);
   }, [compensationSearchTerm, compensationList]);
 
-  // Handle employee dropdown selection
   const handleEmployeeSelect = (e) => {
-    console.log("Selected employee ID:", e.target.value); // Debug log
     setSelectedEmployee(e.target.value);
   };
 
-  // Handle department dropdown selection
   const handleDepartmentSelect = (e) => {
-    console.log("Selected department ID:", e.target.value); // Debug log
     setSelectedDepartment(e.target.value);
   };
 
-  // Handle compensation dropdown selection
   const handleCompensationSelect = (e) => {
-    console.log("Selected compensation ID:", e.target.value); // Debug log
     setSelectedCompensation(e.target.value);
   };
 
-  // Handle double-click to add employee to selected list
   const handleEmployeeDoubleClick = () => {
     if (selectedEmployee && selectionType === "employee") {
-      const employee = employeeList.find((emp) => emp.employee_id === selectedEmployee);
-      if (employee && !selectedEmployees.some((e) => e.employee_id === employee.employee_id)) {
+      const employee = employeeList.find(
+        (emp) => emp.employee_id === selectedEmployee
+      );
+      if (
+        employee &&
+        !selectedEmployees.some((e) => e.employee_id === employee.employee_id)
+      ) {
         setSelectedEmployees([employee, ...selectedEmployees]);
         setSelectedEmployee("");
       } else if (!employee) {
@@ -192,23 +197,30 @@ const AssignCompensation = () => {
         showAlert("Employee already selected.");
       }
     } else {
-      showAlert("Please select an employee and ensure 'Employee' option is chosen.");
+      showAlert(
+        "Please select an employee and ensure 'Employee' option is chosen."
+      );
     }
   };
 
-  // Handle double-click to add department to selected list
   const handleDepartmentDoubleClick = async () => {
     if (!selectedDepartment || selectionType !== "department") {
-      showAlert("Please select a department and ensure 'Department' option is chosen.");
+      showAlert(
+        "Please select a department and ensure 'Department' option is chosen."
+      );
       return;
     }
 
-    const department = departmentList.find((dept) => String(dept.id) === String(selectedDepartment));
+    const department = departmentList.find(
+      (dept) => String(dept.id) === String(selectedDepartment)
+    );
     if (!department) {
       showAlert("Please select a valid department.");
       return;
     }
-    if (selectedDepartments.some((d) => String(d.id) === String(department.id))) {
+    if (
+      selectedDepartments.some((d) => String(d.id) === String(department.id))
+    ) {
       showAlert("Department already selected.");
       return;
     }
@@ -216,17 +228,19 @@ const AssignCompensation = () => {
     try {
       setIsLoading(true);
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensations/employees/by-department/${selectedDepartment}`;
-      console.log(`Fetching employees for department ${selectedDepartment}: ${url}`);
       const response = await axios.get(url, {
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
 
-      console.log("API response:", response.data);
       if (!response.data.success) {
-        throw new Error(response.data.message || "Failed to fetch employees for department");
+        throw new Error(
+          response.data.message || "Failed to fetch employees for department"
+        );
       }
 
-      const employees = Array.isArray(response.data.data) ? response.data.data : [];
+      const employees = Array.isArray(response.data.data)
+        ? response.data.data
+        : [];
       if (employees.length === 0) {
         showAlert("No employees found in this department.");
         return;
@@ -244,19 +258,26 @@ const AssignCompensation = () => {
       setSelectedDepartment("");
     } catch (error) {
       console.error("Error fetching employees:", error);
-      showAlert(`Error fetching employees for department: ${error.message || "Network error"}`);
+      showAlert(
+        `Error fetching employees for department: ${
+          error.message || "Network error"
+        }`
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle double-click to add compensation to selected list
   const handleCompensationDoubleClick = () => {
     if (selectedCompensation) {
-      const compensation = compensationList.find((comp) => String(comp.id) === selectedCompensation);
+      const compensation = compensationList.find(
+        (comp) => String(comp.id) === selectedCompensation
+      );
       if (compensation && !isNaN(parseInt(selectedCompensation))) {
         setSelectedCompensation(String(compensation.id));
-        showAlert("Compensation plan selected. Only one plan can be assigned at a time.");
+        showAlert(
+          "Compensation plan selected. Only one plan can be assigned at a time."
+        );
       } else {
         showAlert("Please select a valid compensation plan with a numeric ID.");
       }
@@ -265,14 +286,16 @@ const AssignCompensation = () => {
     }
   };
 
-  // Remove employee from selected list
   const removeEmployee = (employeeId) => {
-    setSelectedEmployees(selectedEmployees.filter((emp) => emp.employee_id !== employeeId));
+    setSelectedEmployees(
+      selectedEmployees.filter((emp) => emp.employee_id !== employeeId)
+    );
   };
 
-  // Remove department from selected list
   const removeDepartment = (departmentId) => {
-    setSelectedDepartments(selectedDepartments.filter((dept) => dept.id !== departmentId));
+    setSelectedDepartments(
+      selectedDepartments.filter((dept) => dept.id !== departmentId)
+    );
     setEmployeesByDepartment((prev) => {
       const updated = { ...prev };
       delete updated[departmentId];
@@ -285,13 +308,16 @@ const AssignCompensation = () => {
     });
   };
 
-  // Remove employee from a specific department's employee list
   const removeEmployeeFromDepartment = (departmentId, employeeId) => {
     setEmployeesByDepartment((prev) => {
       const updated = { ...prev };
-      updated[departmentId] = updated[departmentId].filter((emp) => emp.employee_id !== employeeId);
+      updated[departmentId] = updated[departmentId].filter(
+        (emp) => emp.employee_id !== employeeId
+      );
       if (updated[departmentId].length === 0) {
-        setSelectedDepartments(selectedDepartments.filter((dept) => dept.id !== departmentId));
+        setSelectedDepartments(
+          selectedDepartments.filter((dept) => dept.id !== departmentId)
+        );
         delete updated[departmentId];
         setOriginalEmployeesByDepartment((origPrev) => {
           const origUpdated = { ...origPrev };
@@ -303,16 +329,19 @@ const AssignCompensation = () => {
     });
   };
 
-  // Handle save button click
   const handleSave = async () => {
     if (!selectedCompensation) {
       showAlert("Please select a compensation plan.");
       return;
     }
 
-    const compensation = compensationList.find((comp) => String(comp.id) === selectedCompensation);
+    const compensation = compensationList.find(
+      (comp) => String(comp.id) === selectedCompensation
+    );
     if (!compensation || isNaN(parseInt(selectedCompensation))) {
-      showAlert("Invalid compensation plan selected. Please select a valid plan.");
+      showAlert(
+        "Invalid compensation plan selected. Please select a valid plan."
+      );
       return;
     }
 
@@ -324,7 +353,6 @@ const AssignCompensation = () => {
     try {
       setIsLoading(true);
 
-      // Collect all employee IDs
       const allEmployees = [
         ...selectedEmployees,
         ...Object.values(employeesByDepartment).flat(),
@@ -333,26 +361,29 @@ const AssignCompensation = () => {
         new Map(allEmployees.map((emp) => [emp.employee_id, emp])).values()
       );
       const employeeIds = uniqueEmployees.map((emp) => emp.employee_id);
-      console.log("Employee IDs to check:", employeeIds);
 
-      // Fetch existing assignments
       const checkUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`;
-      console.log("Check URL:", checkUrl);
       const checkResponse = await axios.get(checkUrl, {
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
-      console.log("Assignment check response:", checkResponse.data);
 
       if (!checkResponse.data.success) {
-        throw new Error(checkResponse.data.error || "Failed to fetch assigned compensations");
+        throw new Error(
+          checkResponse.data.error || "Failed to fetch assigned compensations"
+        );
       }
 
-      // Check for existing assignments
       const assignedData = checkResponse.data.data || [];
       const employeesWithAssignments = uniqueEmployees
-        .filter((emp) => assignedData.some((assignment) => assignment.employee_id === emp.employee_id))
+        .filter((emp) =>
+          assignedData.some(
+            (assignment) => assignment.employee_id === emp.employee_id
+          )
+        )
         .map((emp) => {
-          const assignment = assignedData.find((a) => a.employee_id === emp.employee_id);
+          const assignment = assignedData.find(
+            (a) => a.employee_id === emp.employee_id
+          );
           return {
             name: emp.full_name,
             plan: assignment.compensation_plan_name || "Unknown Plan",
@@ -361,13 +392,15 @@ const AssignCompensation = () => {
 
       if (employeesWithAssignments.length > 0) {
         const message = employeesWithAssignments
-          .map((emp) => `Employee ${emp.name} already has a compensation plan (${emp.plan}) assigned and cannot be assigned again.`)
+          .map(
+            (emp) =>
+              `Employee ${emp.name} already has a compensation plan (${emp.plan}) assigned and cannot be assigned again.`
+          )
           .join("\n");
         showAlert(message, "Cannot Assign Compensation");
         return;
       }
 
-      // Prepare department and employee IDs for payload
       const partialEmployeeIds = [];
       const fullDepartmentIds = [];
       selectedDepartments.forEach((dept) => {
@@ -384,7 +417,6 @@ const AssignCompensation = () => {
         ...partialEmployeeIds,
       ];
 
-      // Prepare payload for assignment
       const payload = {
         compensationId: parseInt(selectedCompensation),
         compensationPlanName: compensation.compensation_plan_name,
@@ -393,15 +425,11 @@ const AssignCompensation = () => {
         assignedBy: meId,
         assignedDate: new Date().toISOString(),
       };
-      console.log("Assignment payload:", payload);
 
-      // Assign compensation
       const assignUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assign`;
-      console.log("Assign URL:", assignUrl);
       const assignResponse = await axios.post(assignUrl, payload, {
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
-      console.log("Assign response:", assignResponse.data);
 
       if (assignResponse.data.success) {
         showAlert("Compensation assigned successfully!", "Success");
@@ -416,9 +444,14 @@ const AssignCompensation = () => {
         throw new Error(assignResponse.data.error || "Assignment unsuccessful");
       }
     } catch (error) {
-      console.error("Error assigning compensation:", error.response?.data || error.message);
+      console.error(
+        "Error assigning compensation:",
+        error.response?.data || error.message
+      );
       showAlert(
-        `Failed to assign compensation: ${error.response?.data?.error || error.message || "Network error"}`,
+        `Failed to assign compensation: ${
+          error.response?.data?.error || error.message || "Network error"
+        }`,
         "Error"
       );
     } finally {
@@ -469,11 +502,17 @@ const AssignCompensation = () => {
               )}
             </select>
             <div className="ac-selected-compensations-container">
-              <h3 className="ac-subsection-title">Selected Compensation Plan</h3>
+              <h3 className="ac-subsection-title">
+                Selected Compensation Plan
+              </h3>
               {selectedCompensation ? (
                 <ul className="ac-selected-compensations-list">
                   <li className="ac-selected-compensation-item">
-                    {compensationList.find((comp) => String(comp.id) === selectedCompensation)?.compensation_plan_name}
+                    {
+                      compensationList.find(
+                        (comp) => String(comp.id) === selectedCompensation
+                      )?.compensation_plan_name
+                    }
                     <span
                       className="ac-compensation-remove-icon"
                       onClick={() => setSelectedCompensation("")}
@@ -566,7 +605,10 @@ const AssignCompensation = () => {
                 {selectedEmployees.length > 0 ? (
                   <ul className="ac-selected-employees-list">
                     {selectedEmployees.map((emp) => (
-                      <li key={emp.employee_id} className="ac-selected-employee-item">
+                      <li
+                        key={emp.employee_id}
+                        className="ac-selected-employee-item"
+                      >
                         {emp.full_name}
                         <span
                           className="ac-remove-icon"
@@ -636,11 +678,19 @@ const AssignCompensation = () => {
                         {employeesByDepartment[dept.id]?.length > 0 ? (
                           <ul className="ac-selected-employees-list">
                             {employeesByDepartment[dept.id].map((emp) => (
-                              <li key={emp.employee_id} className="ac-selected-employee-item">
+                              <li
+                                key={emp.employee_id}
+                                className="ac-selected-employee-item"
+                              >
                                 {emp.full_name}
                                 <span
                                   className="ac-remove-icon"
-                                  onClick={() => removeEmployeeFromDepartment(dept.id, emp.employee_id)}
+                                  onClick={() =>
+                                    removeEmployeeFromDepartment(
+                                      dept.id,
+                                      emp.employee_id
+                                    )
+                                  }
                                 >
                                   ✕
                                 </span>
@@ -661,7 +711,11 @@ const AssignCompensation = () => {
           </div>
         )}
         <div className="ac-save-section">
-          <button className="ac-save-button" onClick={handleSave} disabled={isLoading}>
+          <button
+            className="ac-save-button"
+            onClick={handleSave}
+            disabled={isLoading}
+          >
             {isLoading ? "Saving..." : "Save"}
           </button>
         </div>

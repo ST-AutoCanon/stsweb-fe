@@ -45,26 +45,17 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
     (latest.punchout_location &&
       typeof latest.punchout_location === "string" &&
       latest.punchout_location.trim().toLowerCase().includes("office hq"));
-  console.log(`isOfficeHQ for ${firstName} ${lastName}:`, isOfficeHQ, {
-    punchin_location: latest.punchin_location,
-    punchout_location: latest.punchout_location,
-  });
+
   const cardClass = isOfficeHQ
     ? "employee-card-hover bg-office-hq"
     : "employee-card-hover bg-default";
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    console.log(`Avatar setup for ${firstName} ${lastName}:`, {
-      photoUrl,
-      role,
-      gender,
-    });
     let imageUrl = null;
 
     if (photoUrl) {
       const url = `${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`;
-      console.log("Fetching image from:", url);
       axios
         .get(url, {
           headers,
@@ -355,13 +346,10 @@ const EmployeeLogin = () => {
           url = `${backendUrl}/api/employeelogin/punches?from=${fromDate}&to=${toDate}`;
         }
 
-        console.log("Fetching punch data from:", url, { headers });
         const response = await axios.get(url, {
           headers,
           withCredentials: true,
         });
-
-        console.log("Punch data response:", response.data);
 
         const data = Array.isArray(response.data)
           ? response.data
@@ -446,7 +434,6 @@ const EmployeeLogin = () => {
       });
     }
 
-    console.log("Grouped by Day and Employee:", grouped);
     return grouped;
   };
 
@@ -482,7 +469,6 @@ const EmployeeLogin = () => {
       slotMap[slotLabel].push(sorted);
     });
 
-    console.log("Grouped by Hour Slots:", slotMap);
     return slotMap;
   };
 
@@ -526,21 +512,11 @@ const EmployeeLogin = () => {
       if (!meId) throw new Error("Employee ID is missing.");
 
       const url = `${backendUrl}/api/emp-excelsheet?from=${fromDate}&to=${toDate}`;
-      console.log("Downloading Excel from:", url, {
-        headers,
-        employeeId: meId,
-      });
 
       const response = await axios.get(url, {
         headers,
         withCredentials: true,
         responseType: "blob",
-      });
-
-      console.log("Download response:", {
-        status: response.status,
-        headers: response.headers,
-        contentType: response.headers["content-type"],
       });
 
       const contentType = response.headers["content-type"];
@@ -584,7 +560,6 @@ const EmployeeLogin = () => {
       if (err.response?.data instanceof Blob) {
         try {
           const text = await err.response.data.text();
-          console.log("Error response text:", text);
           const parsed = JSON.parse(text);
           errorMessage = parsed.message || errorMessage;
         } catch (parseErr) {

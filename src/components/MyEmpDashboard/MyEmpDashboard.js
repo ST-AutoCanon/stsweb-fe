@@ -38,7 +38,6 @@ const MyEmpDashboard = () => {
             (device) => device.kind === "videoinput"
           );
           if (!hasCamera) {
-            console.log("No camera found, skipping face registration popup.");
             return; // Skip if no camera
           }
 
@@ -68,7 +67,6 @@ const MyEmpDashboard = () => {
 
     const checkFaceRegistration = async () => {
       try {
-        console.log("Calling API for employeeId:", employeeId);
         const checkResponse = await axios.get(
           `${BACKEND_URL}/api/face/check/${employeeId}`,
 
@@ -76,7 +74,6 @@ const MyEmpDashboard = () => {
             headers,
           }
         );
-        console.log("API response:", checkResponse.data);
         if (checkResponse.data.isRegistered === false) {
           setShowPopup(true);
         }

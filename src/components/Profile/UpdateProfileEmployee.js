@@ -40,10 +40,8 @@ export default function UpdateProfileEmployee({
         },
       });
       const updated = res.data?.data || null;
-      console.log("About to call onSaved", updated);
       // Make sure we wait for parent to finish (it marks notification read)
       if (onSaved) await onSaved(updated);
-      console.log("Called onSaved (awaited)");
 
       return updated;
     } catch (err) {

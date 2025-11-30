@@ -1,4 +1,3 @@
-// src/components/SocketContext.js
 import React, {
   createContext,
   useContext,
@@ -14,7 +13,6 @@ export const useSocket = () => useContext(SocketContext);
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
 
-  // 1) read employeeId out of your dashboardData
   let userId = null;
   try {
     const dd = JSON.parse(localStorage.getItem("dashboardData"));
@@ -23,7 +21,6 @@ export function SocketProvider({ children }) {
     console.warn("SocketProvider: dashboardData is missing or malformed");
   }
 
-  // 2) determine backend URL
   const BACKEND_URL =
     process.env.REACT_APP_BACKEND_URL || window.location.origin;
 
@@ -33,16 +30,14 @@ export function SocketProvider({ children }) {
       return;
     }
 
-     // 3) create socket and connect
-    const sock = io(process.env.REACT_APP_BACKEND_URL.replace('/api', ''), {
+    const sock = io(process.env.REACT_APP_BACKEND_URL.replace("/api", ""), {
       path: "/api/socket.io",
       query: { userId },
       transports: ["websocket"],
       reconnectionAttempts: 5,
       timeout: 20000,
     });
-    
-    // optional: log connection status
+
     sock.on("connect", () => {
       console.log(`Socket connected as ${sock.id} (userId=${userId})`);
     });
@@ -52,14 +47,12 @@ export function SocketProvider({ children }) {
 
     setSocket(sock);
 
-    // cleanup on unmount
     return () => {
       sock.disconnect();
       setSocket(null);
     };
   }, [userId, BACKEND_URL]);
 
-  // 4) until we have a socket, don’t render children
   if (!socket) {
     return <div>Connecting to chat…</div>;
   }

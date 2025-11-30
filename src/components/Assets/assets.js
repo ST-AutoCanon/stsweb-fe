@@ -1,19 +1,18 @@
-
 import React, { useState, useEffect } from "react";
 import "./assets.css";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { UserCheck } from "lucide-react"; // Import the icon
-import { Eye } from "lucide-react"; // Import the icon
+import { UserCheck } from "lucide-react";
+import { Eye } from "lucide-react";
 import { FaNetworkWired } from "react-icons/fa";
 import { Monitor, Wrench, Package } from "lucide-react";
-import { GiOfficeChair, GiTable, GiArchiveRegister } from "react-icons/gi"; // Chair, Table, Cabinet
-import { Laptop2, Computer, Server } from "lucide-react"; // Import icons
-import { FaDesktop, FaServer } from "react-icons/fa"; // Font Awesome Icons
-import { FaChair } from "react-icons/fa"; // New Chair Icon
-import { MdStorage } from "react-icons/md"; // Correct Drawers Icon
-import { FaHdd, FaMouse, FaPlug, FaTools } from "react-icons/fa"; // Import necessary icons
-import { MdLaptop } from "react-icons/md"; // Import filled laptop icon
+import { GiOfficeChair, GiTable, GiArchiveRegister } from "react-icons/gi";
+import { Laptop2, Computer, Server } from "lucide-react";
+import { FaDesktop, FaServer } from "react-icons/fa";
+import { FaChair } from "react-icons/fa";
+import { MdStorage } from "react-icons/md";
+import { FaHdd, FaMouse, FaPlug, FaTools } from "react-icons/fa";
+import { MdLaptop } from "react-icons/md";
 import { Download } from "lucide-react";
 import Modal from "../Modal/Modal";
 import { TableProperties, Chair, Archive, Plug, Hammer } from "lucide-react";
@@ -34,44 +33,27 @@ const Assets = () => {
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-  const [assets, setAssets] = useState([]); // Store fetched assets
+  const [assets, setAssets] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [comments, setComments] = useState("");
   const [assigningStatus, setAssigningStatus] = useState("Unassigned");
-  const [status, setStatus] = useState("In Use"); // Default status
-  const [assignedAssets, setAssignedAssets] = useState([]); // New state to store assigned assets
+  const [status, setStatus] = useState("In Use");
+  const [assignedAssets, setAssignedAssets] = useState([]);
   const [popupSuggestions, setPopupSuggestions] = useState({});
-  // const togglePopup = () => setShowPopup(!showPopup);
+
   const togglePopup = () => {
     if (showPopup) {
-      // When closing the popup, reset the form
       resetFormforaddasset();
     }
     setShowPopup(!showPopup);
   };
-  // const resetForm = () => {
-  // setAssignedTo("");
-  // setStartDate("");
-  // setReturnDate("");
-  // setComments("");
-  // setAssigningStatus("Pending");
-  // };
-  // const resetFormforaddasset = () => {
-  // setAssetName("");
-  // setConfiguration("");
-  // setValuationDate("");
-  // setAssignedTo("");
-  // setDocument(null);
-  // setSelectedCategory("");
-  // setSelectedSubCategory("");
-  // setStatus("In Use");
-  // };
+
   const [showAssignPopup, setShowAssignPopup] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
-  const [assignments, setAssignments] = useState([]); // Initialize state for assignments
+  const [assignments, setAssignments] = useState([]);
   const [assignmentRowsByAsset, setAssignmentRowsByAsset] = useState({});
-  // NEW STATE FOR SEARCH
+
   const [employeeSuggestions, setEmployeeSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -86,60 +68,16 @@ const Assets = () => {
     title: "",
     message: "",
   });
-  // const handleAssignedToChange = async (e) => {
-  // const value = e.target.value;
-  // setAssignedTo(value);
-  // console.log("🔍 Typing:", value);
-  // if (value.length >= 1) {
-  // try {
-  // const response = await axios.get(
-  // `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
-  // {
-  // headers,
-  // }
-  // );
-  // // Only keep the names from response
-  // const namesOnly = response.data.data.map((emp) => emp.name);
-  // setEmployeeSuggestions(namesOnly);
-  // } catch (error) {
-  // console.error("❌ Error fetching suggestions:", error);
-  // }
-  // } else {
-  // setEmployeeSuggestions([]);
-  // }
-  // };
+
   const handleSelectSuggestion = (name) => {
     setAssignedTo(name);
-    setEmployeeSuggestions([]); // Hide suggestions
+    setEmployeeSuggestions([]);
   };
-  // const handleAssignedToInputChange = async (e, index) => {
-  // const value = e.target.value;
-  // updateAssignment(index, "assignedTo", value);
-  // if (value.length >= 1) {
-  // try {
-  // const response = await axios.get(
-  // `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
-  // {
-  // headers,
-  // }
-  // );
-  // const suggestions = response.data.data.map((emp) => ({
-  // name: emp.name,
-  // employeeId: emp.employee_id,
-  // }));
-  // setPopupSuggestions((prev) => ({ ...prev, [index]: suggestions }));
-  // } catch (err) {
-  // console.error("Suggestion error:", err);
-  // }
-  // } else {
-  // setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
-  // }
-  // };
+
   const handleAssignedToInputChange = async (e, index) => {
     const value = e.target.value;
     updateAssignment(index, "assignedTo", value);
     if (value.length === 0) {
-      // Show default location suggestions when input is empty
       setPopupSuggestions((prev) => ({
         ...prev,
         [index]: defaultLocationSuggestions,
@@ -156,14 +94,12 @@ const Assets = () => {
           name: emp.name,
           employeeId: emp.employee_id,
         }));
-        // Combine default locations + dynamic employee suggestions
         setPopupSuggestions((prev) => ({
           ...prev,
           [index]: [...defaultLocationSuggestions, ...suggestions],
         }));
       } catch (err) {
         console.error("Suggestion error:", err);
-        // Fallback to default location suggestions on error
         setPopupSuggestions((prev) => ({
           ...prev,
           [index]: defaultLocationSuggestions,
@@ -173,15 +109,15 @@ const Assets = () => {
   };
   const handleSuggestionSelect = (selectedEmp, index) => {
     updateAssignment(index, "assignedTo", selectedEmp.name);
-    updateAssignment(index, "employeeId", selectedEmp.employeeId); // Save ID
+    updateAssignment(index, "employeeId", selectedEmp.employeeId);
     setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
   };
   useEffect(() => {
     setAssignedTo("");
     fetchAssets();
-    fetchAssignedAssets(); // Fetch assigned assets
+    fetchAssignedAssets();
   }, []);
-  const { assetId } = useParams(); // Get assetId from the URL
+  const { assetId } = useParams();
   const [selectedAssetId, setSelectedAssetId] = useState(null);
   useEffect(() => {
     if (assetId) {
@@ -210,7 +146,6 @@ const Assets = () => {
         );
     }
   }, [assetId]);
-  // Handling employee input changes
   const defaultLocationSuggestions = [
     { name: "sts-belagavi", employeeId: "sts-belagavi" },
     { name: "sts-dharwad", employeeId: "sts-dharwad" },
@@ -219,13 +154,12 @@ const Assets = () => {
   const handleBlurAssignPopup = (index) => {
     setTimeout(() => {
       setPopupSuggestions((prev) => ({ ...prev, [index]: [] }));
-    }, 150); // Delay allows time for onClick to register
+    }, 150);
   };
   const handleAssignedToChange2 = async (e) => {
     const value = e.target.value;
     setAssignedTo(value);
     if (value.length === 0) {
-      // Show default location-based suggestions
       setEmployeeSuggestions(defaultLocationSuggestions);
     } else {
       try {
@@ -235,12 +169,10 @@ const Assets = () => {
             headers,
           }
         );
-        console.log("API response:", response.data);
         const suggestions = response.data.data.map((emp) => ({
           name: emp.name,
           employeeId: emp.employee_id,
         }));
-        // Combine default locations + dynamic suggestions
         setEmployeeSuggestions([...defaultLocationSuggestions, ...suggestions]);
       } catch (err) {
         console.error("Suggestion error:", err);
@@ -275,14 +207,12 @@ const Assets = () => {
   }, []);
   const fetchAssets = async () => {
     try {
-      console.log("Fetching assets...");
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/assets/list`,
         {
           headers,
         }
       );
-      console.log("✅ Fetched Assets:", response.data);
       setAssets(response.data);
     } catch (error) {
       console.error(
@@ -310,20 +240,19 @@ const Assets = () => {
     setStatus("In Use");
   };
   const closePopup = () => {
-    resetForm(); // Clear form when closing popup
-    closeAssignPopup(); // Close the popup
+    resetForm();
+    closeAssignPopup();
   };
- const viewDocument = async (path) => {
+  const viewDocument = async (path) => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/uploads/${path}`,
         {
           headers,
-          responseType: "blob", // Ensure the file is treated as a blob
+          responseType: "blob",
         }
       );
 
-      // Create a URL and open the document
       const fileURL = window.URL.createObjectURL(new Blob([response.data]));
       window.open(fileURL, "_blank");
     } catch (error) {
@@ -335,74 +264,73 @@ const Assets = () => {
     }
   };
 
- const openAssignPopup = (asset) => {
-  const assetId = asset.id;
-  setSelectedAssetId(assetId);
-  setSelectedAsset(asset);
+  const openAssignPopup = (asset) => {
+    const assetId = asset.id;
+    setSelectedAssetId(assetId);
+    setSelectedAsset(asset);
 
-  let formattedAssignments = [];
+    let formattedAssignments = [];
 
-  // Parse existing assigned_to data safely
-  if (asset.assigned_to && asset.assigned_to !== "null" && asset.assigned_to !== "") {
-    try {
-      const parsed =
-        typeof asset.assigned_to === "string"
-          ? JSON.parse(asset.assigned_to)
-          : asset.assigned_to;
+    if (
+      asset.assigned_to &&
+      asset.assigned_to !== "null" &&
+      asset.assigned_to !== ""
+    ) {
+      try {
+        const parsed =
+          typeof asset.assigned_to === "string"
+            ? JSON.parse(asset.assigned_to)
+            : asset.assigned_to;
 
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Reverse so latest is on top
-        formattedAssignments = parsed.reverse().map((a) => ({
-          assignedTo: a.name || "",
-          employeeId: a.employeeId || a.employee_id || "",
-          startDate: a.startDate || asset.valuation_date || "",
-          returnDate: a.returnDate || "",
-          assigningStatus: a.status || "Assigned",
-          comments: a.comments || "",
-        }));
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          formattedAssignments = parsed.reverse().map((a) => ({
+            assignedTo: a.name || "",
+            employeeId: a.employeeId || a.employee_id || "",
+            startDate: a.startDate || asset.valuation_date || "",
+            returnDate: a.returnDate || "",
+            assigningStatus: a.status || "Assigned",
+            comments: a.comments || "",
+          }));
+        }
+      } catch (err) {
+        console.error("Error parsing assigned_to JSON:", err);
       }
-    } catch (err) {
-      console.error("Error parsing assigned_to JSON:", err);
-      // Don't break — fall back to empty
     }
-  }
 
-  // ONLY add a blank row if there are NO previous assignments
-  // This prevents "extra row" when reopening popup
-  if (formattedAssignments.length === 0) {
-    formattedAssignments = [
-      {
-        assignedTo: "",
-        employeeId: "",
-        startDate: asset.valuation_date || new Date().toISOString().split("T")[0],
-        returnDate: "",
-        assigningStatus: "Unassigned", // or "Assigned" — your choice
-        comments: "",
-      },
-    ];
-  }
+    if (formattedAssignments.length === 0) {
+      formattedAssignments = [
+        {
+          assignedTo: "",
+          employeeId: "",
+          startDate:
+            asset.valuation_date || new Date().toISOString().split("T")[0],
+          returnDate: "",
+          assigningStatus: "Unassigned",
+          comments: "",
+        },
+      ];
+    }
 
-  // Always overwrite with fresh data — no merging old stale rows
-  setAssignmentRowsByAsset((prev) => ({
-    ...prev,
-    [assetId]: formattedAssignments,
-  }));
+    setAssignmentRowsByAsset((prev) => ({
+      ...prev,
+      [assetId]: formattedAssignments,
+    }));
 
-  setShowAssignPopup(true);
-};
+    setShowAssignPopup(true);
+  };
 
   const closeAssignPopup = () => {
     setShowAssignPopup(false);
-  setSelectedAsset(null);
-  setSelectedAssetId(null);
+    setSelectedAsset(null);
+    setSelectedAssetId(null);
   };
   const formatDate = (date) => {
-    if (!date) return ""; // Handle empty dates
+    if (!date) return "";
     const d = new Date(date);
     const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
-    return `${year}-${month}-${day}`; // Format: YYYY-MM-DD
+    return `${year}-${month}-${day}`;
   };
   const [fieldErrors, setFieldErrors] = useState({});
   const handleAssign = async () => {
@@ -415,14 +343,13 @@ const Assets = () => {
       const firstAssignment = {
         assetId: selectedAsset?.asset_id,
         assignedTo: rows[0].assignedTo,
-        employeeId: rows[0].employeeId, // ✅ must be included
+        employeeId: rows[0].employeeId,
         startDate: rows[0].startDate,
         returnDate: rows[0].returnDate,
         status: rows[0].assigningStatus,
         comments: rows[0].comments || "",
       };
-      // ✅ Check for missing values
-      // ✅ Check for required fields (excluding optional returnDate)
+
       const requiredFields = ["assetId", "assignedTo", "startDate", "status"];
       for (const field of requiredFields) {
         if (!firstAssignment[field]) {
@@ -431,11 +358,9 @@ const Assets = () => {
           return;
         }
       }
-      // Set returnDate to null if not provided
       if (!firstAssignment.returnDate) {
         firstAssignment.returnDate = null;
       }
-      console.log("📤 Sending First Assignment:", firstAssignment);
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
         firstAssignment,
@@ -443,7 +368,6 @@ const Assets = () => {
           headers,
         }
       );
-      console.log("✅ Assigned successfully", response.data);
       showAlert("Asset Assigned successfully ");
       closeAssignPopup();
       fetchAssets();
@@ -471,7 +395,6 @@ const Assets = () => {
       );
       const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);
-      // ✅ Make sure 'document' is NOT redeclared or overwritten anywhere above
       const link = window.document.createElement("a");
       link.href = url;
       link.download = fileName;
@@ -484,57 +407,60 @@ const Assets = () => {
       showAlert("Failed to download file. See console.");
     }
   };
- const handleViewDocument = async (documentPath) => {
-  if (!documentPath) {
-    showAlert("No document available.");
-    return;
-  }
-
-  const fileName = documentPath.split("/").pop().trim(); // Extract file name
-  const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`; // Moved outside try
-  try {
-    console.log("Fetching document from:", fileUrl);
-    console.log("Original documentPath:", documentPath);
-
-    const response = await axios.get(fileUrl, {
-      headers,
-      responseType: "blob",
-    });
-
-    if (response.data.type === "text/html") {
-      console.error("Server returned an HTML error page (likely 404).");
-      showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
+  const handleViewDocument = async (documentPath) => {
+    if (!documentPath) {
+      showAlert("No document available.");
       return;
     }
 
-    const extension = fileName.split(".").pop().toLowerCase();
-    let mimeType = "application/octet-stream";
+    const fileName = documentPath.split("/").pop().trim();
+    const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`;
+    try {
+      const response = await axios.get(fileUrl, {
+        headers,
+        responseType: "blob",
+      });
 
-    if (extension === "pdf") mimeType = "application/pdf";
-    else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
-    else if (extension === "png") mimeType = "image/png";
+      if (response.data.type === "text/html") {
+        console.error("Server returned an HTML error page (likely 404).");
+        showAlert(
+          "Document not found on the server. Please verify the file was uploaded correctly."
+        );
+        return;
+      }
 
-    const fileBlob = new Blob([response.data], { type: mimeType });
-    const fileURL = window.URL.createObjectURL(fileBlob);
-    window.open(fileURL, "_blank");
+      const extension = fileName.split(".").pop().toLowerCase();
+      let mimeType = "application/octet-stream";
 
-    setTimeout(() => window.URL.revokeObjectURL(fileURL), 1000);
-  } catch (error) {
-    console.error("Error opening document:", {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      url: fileUrl, // Now accessible
-    });
-    showAlert("Document not found on the server. Please verify the file was uploaded correctly.");
-  }
-};
+      if (extension === "pdf") mimeType = "application/pdf";
+      else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
+      else if (extension === "png") mimeType = "image/png";
+
+      const fileBlob = new Blob([response.data], { type: mimeType });
+      const fileURL = window.URL.createObjectURL(fileBlob);
+      window.open(fileURL, "_blank");
+
+      setTimeout(() => window.URL.revokeObjectURL(fileURL), 1000);
+    } catch (error) {
+      console.error("Error opening document:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        url: fileUrl,
+      });
+      showAlert(
+        "Document not found on the server. Please verify the file was uploaded correctly."
+      );
+    }
+  };
 
   const handleSave = async () => {
-  if (!assetName || !configuration || !valuationDate || !assignedTo) {
-  showAlert("Please fill all required fields: Asset Name, Configuration, Purchased Date, and Assigned To.");
-  return;
-}
+    if (!assetName || !configuration || !valuationDate || !assignedTo) {
+      showAlert(
+        "Please fill all required fields: Asset Name, Configuration, Purchased Date, and Assigned To."
+      );
+      return;
+    }
     const formData = new FormData();
     formData.append("asset_name", assetName);
     formData.append("configuration", configuration);
@@ -542,7 +468,6 @@ const Assets = () => {
     formData.append("category", selectedCategory);
     formData.append("sub_category", selectedSubCategory);
     formData.append("status", status);
-    // Initialize assignedToArray based on whether assignedTo is provided
     let assignedToArray = [];
     if (
       assignedTo &&
@@ -550,27 +475,22 @@ const Assets = () => {
       assignedTo.name &&
       assignedTo.employeeId
     ) {
-      // If assignedTo is provided, use it
       assignedToArray.push({
         name: assignedTo.name,
         employeeId: assignedTo.employeeId,
-        startDate: valuationDate || null, // Use valuation_date as startDate if available
+        startDate: valuationDate || null,
         returnDate: null,
         comments: "",
         status: "Assigned",
       });
     } else {
-      // Otherwise, use default "STS"
       assignedToArray.push({ name: "STS" });
     }
     formData.append("assigned_to", JSON.stringify(assignedToArray));
     if (document) {
       formData.append("document", document);
     }
-    // Debugging
-    console.log("Sending FormData...");
     for (let [key, value] of formData.entries()) {
-      console.log(key, value);
     }
     try {
       const response = await axios.post(
@@ -580,7 +500,6 @@ const Assets = () => {
           headers,
         }
       );
-      console.log("Server Response:", response.data);
       showAlert("Asset saved successfully!");
       resetFormforaddasset();
       togglePopup();
@@ -626,11 +545,9 @@ const Assets = () => {
     try {
       if (!assetId) {
         console.error("❌ Asset ID is undefined or missing.");
-        return; // Stop execution if assetId is undefined
+        return;
       }
-      const API_KEY =
-        "eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3";
-      console.log(`📡 Fetching data for Asset ID: ${assetId}`);
+
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
         {
@@ -639,10 +556,9 @@ const Assets = () => {
       );
       if (response.data.length === 0) {
         console.warn("⚠ No assignments found for this asset.");
-        setAssignedAssets([]); // Clear previous data
+        setAssignedAssets([]);
         return;
       }
-      console.log("✅ Assigned Asset Data:", response.data);
       setAssignedAssets(response.data[0]?.assignments || []);
     } catch (error) {
       console.error(
@@ -657,12 +573,11 @@ const Assets = () => {
     employeeName: "",
     returnDate: "",
   });
-  // Handle input changes for formData
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value, // Dynamically set the key and value based on input name
+      [name]: value,
     }));
   };
   const handleAssignmentChange = (index, field, value) => {
@@ -688,9 +603,7 @@ const Assets = () => {
           },
         }
       );
-      console.log("📤 Response from Backend:", response.data);
       showAlert("Return date updated successfully!");
-      // Update UI: Change status to "Returned"
       setAssets((prevAssets) =>
         prevAssets.map((asset) =>
           asset.assetId === formData.assetId
@@ -731,13 +644,12 @@ const Assets = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(assignments), // assuming 'assignments' is your state
+        body: JSON.stringify(assignments),
       });
       if (!response.ok) {
         throw new Error("Failed to submit assignments");
       }
       const result = await response.json();
-      console.log("Assignments submitted:", result);
       showAlert("Assets assigned successfully!");
     } catch (error) {
       console.error("Error submitting assignments:", error);
@@ -746,7 +658,6 @@ const Assets = () => {
   };
   const addAssignmentRow = () => {
     const currentRows = assignmentRowsByAsset[selectedAssetId] || [];
-    // If there's at least one row, validate the top row first
     if (currentRows.length > 0) {
       const topRow = currentRows[0];
       const isFilled =
@@ -801,7 +712,7 @@ const Assets = () => {
                   assignedTo: a.name || "",
                   startDate: a.startDate || "",
                   returnDate: a.returnDate || "",
-                  assigningStatus: a.status || "Assigned", // Use assigningStatus for the form
+                  assigningStatus: a.status || "Assigned",
                   comments: a.comments || "",
                 }))
               : [
@@ -820,12 +731,12 @@ const Assets = () => {
   }, [assetId]);
   const handleBlur2 = () => {
     setTimeout(() => {
-      setEmployeeSuggestions([]); // Close the popup if nothing selected
-    }, 150); // Delay allows time for onClick to register
+      setEmployeeSuggestions([]);
+    }, 150);
   };
   const handleBlur = () => {
     if (!employeeSuggestions.includes(assignedTo)) {
-      setAssignedTo(""); // or keep last valid selection
+      setAssignedTo("");
     }
   };
   const groupedAssetCounts = assetCounts.reduce((acc, item) => {
@@ -846,13 +757,11 @@ const Assets = () => {
     return acc;
   }, {});
   const [searchTerm, setSearchTerm] = useState("");
-  // First, sort the assets by asset_code descending
   const sortedAssets = [...assets].sort((a, b) => {
     const numA = parseInt(a.asset_code?.split("-")[2] || "0", 10);
     const numB = parseInt(b.asset_code?.split("-")[2] || "0", 10);
-    return numB - numA; // Descending order
+    return numB - numA;
   });
-  // Then filter the sorted assets
   const filteredAssets = sortedAssets.filter(
     (asset) =>
       (asset.asset_name?.toLowerCase() || "").includes(
@@ -873,14 +782,12 @@ const Assets = () => {
     <div className="assets-container">
       <div className="asset-summary-buttons2">
         <div className="left-buttons">
-          {/* ✅ Total Assets First */}
           <div className="total-assets-box">
             <strong>Total Assets:</strong>{" "}
             <span>
               {assetCounts.length > 0 ? assetCounts[0].total_assets : "0"}
             </span>
           </div>
-          {/* ✅ Then category buttons */}
           {Object.entries(groupedAssetCounts).map(([category, data]) => (
             <div className="category-button-wrapper" key={category}>
               <button className="category-button">
@@ -923,7 +830,6 @@ const Assets = () => {
             <button className="close-btn-addasset" onClick={togglePopup}>
               <MdOutlineCancel className="assetmain-close-popup-icon" />
             </button>
-            {/* Main Categories */}
             <div className="sticky-options">
               <button
                 className={selectedCategory === "System" ? "active" : ""}
@@ -961,7 +867,6 @@ const Assets = () => {
                 Others
               </button>
             </div>
-            {/* Sub-options based on selected category */}
             {selectedCategory === "System" && (
               <div className="sticky-suboptions">
                 <button
@@ -1044,7 +949,6 @@ const Assets = () => {
                 </button>
               </div>
             )}
-            {/* Asset Details Form (Shown only when a sub-category is selected) */}
             {selectedSubCategory || selectedCategory === "Others" ? (
               <div className="asset-details-grid">
                 <div className="row">
@@ -1083,17 +987,18 @@ const Assets = () => {
                   />
                 </div>
                 <div className="row" style={{ position: "relative" }}>
-  <label>
-    Assigned To <span className="assets-required-asterisk">*</span>
-  </label>
-  <input
-    type="text"
-    placeholder="Enter Assignee Name or Location (e.g. sts-belagavi)"
-    value={assignedTo?.name || assignedTo || ""}
-    onChange={handleAssignedToChange2}
-    onBlur={handleBlur2}
-    autoComplete="off"
-  />
+                  <label>
+                    Assigned To{" "}
+                    <span className="assets-required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter Assignee Name or Location (e.g. sts-belagavi)"
+                    value={assignedTo?.name || assignedTo || ""}
+                    onChange={handleAssignedToChange2}
+                    onBlur={handleBlur2}
+                    autoComplete="off"
+                  />
                   {employeeSuggestions.length > 0 && (
                     <ul
                       style={{
@@ -1123,7 +1028,6 @@ const Assets = () => {
                           }}
                         >
                           {emp.name} ({emp.employeeId}){" "}
-                          {/* Displaying name and employee ID */}
                         </li>
                       ))}
                     </ul>
@@ -1143,11 +1047,9 @@ const Assets = () => {
                 </div>
               </div>
             ) : null}
-            {/* Popup Buttons */}
           </div>
         </div>
       )}
-      {/* Display Assets in Table */}
       <div className="assets-table-wrapper">
         <div className="assets-table">
           <table>
@@ -1187,24 +1089,19 @@ const Assets = () => {
                               if (
                                 latestAssignment.status === "Decommissioned"
                               ) {
-                                return "#e7d9d9"; // Light red background for decommissioned rows
+                                return "#e7d9d9";
                               }
                             }
                           } catch (error) {
                             console.error("Row style JSON parse error:", error);
                           }
-                          return "transparent"; // default row background
+                          return "transparent";
                         })(),
                       }}
                     >
                       <td>{asset.asset_id}</td>
                       <td>{asset.asset_code}</td>
-                      {/* <td data-full-text={asset.asset_name}>
-          {asset.asset_name}
-        </td>
-        <td data-full-text={asset.configuration}>
-          {asset.configuration}
-        </td> */}
+
                       <td title={asset.asset_name}>
                         {truncateWords(asset.asset_name, 3)}
                       </td>
@@ -1216,10 +1113,8 @@ const Assets = () => {
                           ? (() => {
                               try {
                                 const date = new Date(asset.valuation_date);
-                                // Check if the date is valid
                                 if (isNaN(date.getTime()))
                                   return "Invalid Date";
-                                // Format as YYYY-MM-DD without timezone conversion
                                 const year = date.getFullYear();
                                 const month = String(
                                   date.getMonth() + 1
@@ -1404,7 +1299,6 @@ const Assets = () => {
           </table>
         </div>
       </div>
-      {/* Assign Popup */}
       {showAssignPopup && selectedAsset && (
         <div className="assign-popup">
           <h3>Assign Asset: {selectedAsset.asset_name}</h3>
@@ -1414,8 +1308,7 @@ const Assets = () => {
           <p>
             <strong>Category:</strong> {selectedAsset.category}
           </p>
-          {/* Other fields like configuration, current status, etc. */}
-          {/* Form to assign with fields like name, startDate, status, etc. */}
+
           <div className="assignpopup-overlay">
             <div className="assignpopup-content">
               <h3>Assign Asset</h3>
@@ -1426,9 +1319,7 @@ const Assets = () => {
               >
                 <MdOutlineCancel className="assign-close-popup-icon" />
               </button>
-              {/* Asset Info */}
               <div className="row"></div>
-              {/* Add Row Button */}
               <button className="addrow-btn" onClick={addAssignmentRow}>
                 + Add Row
               </button>
@@ -1447,8 +1338,7 @@ const Assets = () => {
                 <div>Status</div>
                 <div>Comments</div>
               </div>
-              {/* Form Rows */}
-              {/* Form Rows */}
+
               {assignmentRowsByAsset[selectedAssetId]?.map(
                 (assignment, index) => (
                   <div key={index} className="assetform-row">
@@ -1458,7 +1348,7 @@ const Assets = () => {
                         placeholder="Assigned To"
                         value={assignment.assignedTo}
                         onChange={(e) => handleAssignedToInputChange(e, index)}
-                        onBlur={() => handleBlurAssignPopup(index)} // Add blur handler
+                        onBlur={() => handleBlurAssignPopup(index)}
                         className={`input-style ${
                           fieldErrors[index]?.assignedTo ? "error-border" : ""
                         }`}
@@ -1558,7 +1448,7 @@ const Assets = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, assetId: e.target.value })
                     }
-                    maxLength={50} // Adjust the maximum length according to your requirement
+                    maxLength={50}
                   />
                 </div>
                 <div>
@@ -1601,7 +1491,6 @@ const Assets = () => {
           )}
         </div>
       )}
-      {/* Alert Modal for displaying messages */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

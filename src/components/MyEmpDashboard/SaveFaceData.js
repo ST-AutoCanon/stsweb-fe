@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import * as faceapi from "face-api.js";
 import "./SaveFaceData.css";
@@ -141,7 +140,6 @@ function SaveFaceData({ onClose }) {
         }
       );
       const checkData = await checkResponse.json();
-      console.log("Check response:", checkData);
 
       if (checkData.exists) {
         showAlert("Face data already exists for this Employee ID.");
@@ -248,68 +246,58 @@ function SaveFaceData({ onClose }) {
 
     return total / (frame.data.length / 4);
   }
-const saveCapturedFace = async (capturedDescriptors) => {
-  const faceData = {
-    employee_id: userName,
-    label: userName,
-    descriptors: capturedDescriptors,
-  };
+  const saveCapturedFace = async (capturedDescriptors) => {
+    const faceData = {
+      employee_id: userName,
+      label: userName,
+      descriptors: capturedDescriptors,
+    };
 
-  console.log("Face data to be saved:", JSON.stringify(faceData, null, 2));
+    const API_KEY = process.env.REACT_APP_API_KEY;
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+    const meId = JSON.parse(
+      localStorage.getItem("dashboardData") || "{}"
+    ).employeeId;
 
-  const API_KEY = process.env.REACT_APP_API_KEY;
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+    if (!API_KEY || !BACKEND_URL) {
+      showAlert("API Key or Backend URL is missing.");
+      return;
+    }
 
-  console.log("API_KEY:", API_KEY);
-  console.log("BACKEND_URL:", BACKEND_URL);
-  console.log("Employee ID:", meId);
+    if (!meId) {
+      showAlert("Employee ID is missing from dashboard data.");
+      return;
+    }
 
-  if (!API_KEY || !BACKEND_URL) {
-    showAlert("API Key or Backend URL is missing.");
-    return;
-  }
+    const headers = {
+      "x-api-key": API_KEY,
+      "x-employee-id": meId,
+      "Content-Type": "application/json",
+    };
 
-  if (!meId) {
-    showAlert("Employee ID is missing from dashboard data.");
-    return;
-  }
-
-  const headers = {
-    "x-api-key": API_KEY,
-    "x-employee-id": meId,
-    "Content-Type": "application/json",
-  };
-
-  try {
-    const response = await fetch(
-      `${BACKEND_URL}/api/face/save-face-data`,
-      {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/face/save-face-data`, {
         method: "POST",
         headers,
         body: JSON.stringify(faceData),
+      });
+
+      if (response.ok) {
+        showAlert(`${data.message}`);
+        setTimeout(() => {
+          closeAlert();
+          onClose?.();
+        }, 2000);
+      } else {
+        showAlert(`Error: ${data.error || "Unknown error occurred"}`);
       }
-    );
-
-    console.log("Response status:", response.status);
-    console.log("Response headers:", [...response.headers.entries()]);
-    const data = await response.json();
-    console.log("Response body:", data);
-
-    if (response.ok) {
-      showAlert(`${data.message}`);
-      setTimeout(() => {
-        closeAlert();
-        onClose?.();
-      }, 2000);
-    } else {
-      showAlert(`Error: ${data.error || "Unknown error occurred"}`);
+    } catch (error) {
+      console.error("Error saving face data:", error);
+      showAlert(
+        `Failed to save face data: ${error.message || "Network error"}`
+      );
     }
-  } catch (error) {
-    console.error("Error saving face data:", error);
-    showAlert(`Failed to save face data: ${error.message || "Network error"}`);
-  }
-};
+  };
   const handleRecognition = () => {
     setIsRecognizing((prev) => !prev);
     if (!isRecognizing) {

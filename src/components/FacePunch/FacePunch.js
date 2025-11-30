@@ -122,12 +122,8 @@ const FacePunch = () => {
             videoRef.current.videoWidth * videoRef.current.videoHeight;
           const faceCoverage = area / frameArea;
 
-          console.log("Detection score:", score);
-          console.log("Face coverage:", faceCoverage.toFixed(2));
-
           // Adjust thresholds for typical webcam use
           if (score < 0.85) {
-            console.log("Face detection score too low:", score);
             toast.warn("Face not clear. Please face the camera properly.", {
               autoClose: 2000,
             });
@@ -135,29 +131,20 @@ const FacePunch = () => {
           }
 
           if (faceCoverage < 0.06) {
-            console.log(
-              "Face too far or small in frame. Coverage:",
-              faceCoverage
-            );
             toast.warn("Come closer to the camera.", { autoClose: 2000 });
             return;
           }
 
           // All checks passed, proceed
-          console.log("Face detected properly, initiating punch...");
           await captureAndPunch(detection);
           setLastPunchTime(Date.now());
           setCooldownRemaining(COOLDOWN_PERIOD / 1000);
         } else if (detections.length > 1) {
-          console.log(
-            "Multiple faces detected. Please ensure only one person is in frame."
-          );
           toast.warn(
             "Multiple faces detected. Only one person should be visible.",
             { autoClose: 2000 }
           );
         } else {
-          console.log("No face detected.");
         }
       } catch (err) {
         console.error("Detection error:", err);
@@ -175,10 +162,6 @@ const FacePunch = () => {
 
   const getLastPunchStatus = async (descriptorArray) => {
     try {
-      console.log(
-        "Fetching last punch status with descriptor:",
-        descriptorArray
-      );
       const response = await axios.post(
         `${BACKEND_URL}/last-punch-status`,
         { descriptor: descriptorArray },
@@ -189,7 +172,6 @@ const FacePunch = () => {
           },
         }
       );
-      console.log("Last punch status response:", response.data);
       return response.data.status || null;
     } catch (error) {
       console.error(
@@ -201,14 +183,12 @@ const FacePunch = () => {
   };
 
   const speakPunchStatus = (name, status) => {
-    console.log("speakPunchStatus called with:", { name, status });
     const announcement = `${name} ${status}`;
     const utterance = new SpeechSynthesisUtterance(announcement);
     utterance.lang = "en-US";
     utterance.volume = 1;
     utterance.rate = 1;
     utterance.pitch = 1;
-    console.log("Announcing:", announcement);
     window.speechSynthesis.speak(utterance);
   };
 
@@ -216,11 +196,8 @@ const FacePunch = () => {
     const descriptorArray = Array.from(detection.descriptor);
     try {
       const lastStatus = await getLastPunchStatus(descriptorArray);
-      console.log("Determined lastStatus:", lastStatus);
       const punchType = lastStatus === "punch-in" ? "punch-out" : "punch-in";
-      console.log("Calculated punchType:", punchType);
 
-      console.log(`Sending ${punchType} request to backend`);
       const response = await axios.post(
         `${BACKEND_URL}/face-punch`,
         {
@@ -234,8 +211,6 @@ const FacePunch = () => {
           headers,
         }
       );
-
-      console.log("Full punch response:", response.data);
 
       // Extract status from response.data.message
       const message = response.data.message
@@ -258,14 +233,9 @@ const FacePunch = () => {
         announcementStatus =
           punchType === "punch-in" ? "punched in" : "punched out";
       }
-      console.log(
-        "Extracted announcementStatus from message:",
-        announcementStatus
-      );
 
       // Update lastPunchStatus with confirmed punchType from backend or calculated
       const confirmedPunchType = response.data.punchType || punchType;
-      console.log("Confirmed punchType:", confirmedPunchType);
       setLastPunchStatus(confirmedPunchType);
 
       // Store employee info and announce

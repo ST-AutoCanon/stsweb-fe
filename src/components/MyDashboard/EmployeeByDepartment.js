@@ -50,7 +50,6 @@ const EmployeeByDepartment = () => {
         }
 
         const jsonData = await response.json();
-        console.log("Full API Response:", jsonData); // Debugging output
 
         // Ensure the response contains `categories`
         if (

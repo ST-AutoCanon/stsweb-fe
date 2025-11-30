@@ -1,4 +1,3 @@
-// src/components/MemberListModal.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import UserAvatar from "../EmployeeQueries/UserAvatar";
@@ -29,7 +28,6 @@ export default function MemberListModal({
     "x-employee-id": meId,
   };
 
-  // helper to open our confirm modal
   const showAlert = ({ title, message, onConfirm }) => {
     setAlertModal({ isVisible: true, title, message, onConfirm });
   };
@@ -41,7 +39,6 @@ export default function MemberListModal({
       onConfirm: null,
     });
 
-  // load members + detect creator
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/rooms/${roomId}/members`, {
@@ -49,13 +46,11 @@ export default function MemberListModal({
       })
       .then((res) => {
         setMembers(res.data);
-        // first in array is the creatorId
         setCreatorId(res.data[0]?.creatorId);
       })
       .catch(console.error);
   }, [roomId, setMembers]);
 
-  // load all employees for suggestions
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, { headers })
@@ -63,7 +58,6 @@ export default function MemberListModal({
       .catch(console.error);
   }, []);
 
-  // suggestions = those not already in members
   const suggestions = allEmployees.filter(
     (u) =>
       (u.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -71,7 +65,6 @@ export default function MemberListModal({
       !members.some((m) => m.employee_id === u.employee_id)
   );
 
-  // add a member
   const addMember = async (empId) => {
     setAdding(empId);
     try {
@@ -93,7 +86,6 @@ export default function MemberListModal({
     }
   };
 
-  // remove member via our custom confirm modal
   const confirmRemove = (empId) => {
     showAlert({
       message: "This will remove them from the group. Continue?",
@@ -197,7 +189,6 @@ export default function MemberListModal({
         </div>
       </div>
 
-      {/* Custom confirm dialog */}
       <Modal
         isVisible={alertModal.isVisible}
         title={alertModal.title}

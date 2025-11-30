@@ -1,5 +1,3 @@
-// DownloadDetailsList.jsx
-
 import React, { useState, useEffect } from "react";
 import "./DownloadDetailsList.css";
 
@@ -66,7 +64,6 @@ const DownloadDetailsList = () => {
 
           <tbody>
             {records.map((r, idx) => {
-              // Ensure numeric values
               const totalInc = Number(r.totalIncludingTax || 0);
               return (
                 <React.Fragment key={r.id}>

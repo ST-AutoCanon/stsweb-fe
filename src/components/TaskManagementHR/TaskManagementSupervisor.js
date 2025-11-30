@@ -1,4 +1,3 @@
-// TaskManagementSupervisor.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -68,7 +67,6 @@ const TaskManagementSupervisor = () => {
     return getISOWeek(taskDate);
   };
 
-  /* ------------------- SUPERVISOR ID ------------------- */
   useEffect(() => {
     const data = localStorage.getItem("dashboardData");
     if (data) {
@@ -89,7 +87,6 @@ const TaskManagementSupervisor = () => {
     }
   }, []);
 
-  /* ------------------- FETCH DATA ------------------- */
   useEffect(() => {
     if (!supervisorId) return;
 
@@ -303,7 +300,6 @@ const TaskManagementSupervisor = () => {
     fetchProjects();
   }, [selectedEmployee]);
 
-  /* ------------------- FREEZE DAYS – NOW WORKING ------------------- */
   const fetchConfig = async () => {
     setLoadingConfig(true);
     try {
@@ -318,12 +314,12 @@ const TaskManagementSupervisor = () => {
         }
       );
       const configData = response.data.data || [];
-      const freezeDaysSupervisor = configData.find(
-        (item) => item.key === "freeze_days_supervisor"
-      )?.value || "";
-      const freezeDaysEmployee = configData.find(
-        (item) => item.key === "freeze_days_employee"
-      )?.value || "";
+      const freezeDaysSupervisor =
+        configData.find((item) => item.key === "freeze_days_supervisor")
+          ?.value || "";
+      const freezeDaysEmployee =
+        configData.find((item) => item.key === "freeze_days_employee")?.value ||
+        "";
       setConfigModal({
         isVisible: true,
         freezeDaysSupervisor,
@@ -332,7 +328,11 @@ const TaskManagementSupervisor = () => {
     } catch (err) {
       const msg = err.response?.data?.error || err.message;
       showAlert(`Failed to load freeze days: ${msg}`);
-      setConfigModal({ isVisible: true, freezeDaysSupervisor: "", freezeDaysEmployee: "" });
+      setConfigModal({
+        isVisible: true,
+        freezeDaysSupervisor: "",
+        freezeDaysEmployee: "",
+      });
     } finally {
       setLoadingConfig(false);
     }
@@ -340,7 +340,10 @@ const TaskManagementSupervisor = () => {
 
   const updateConfig = async () => {
     const { freezeDaysSupervisor, freezeDaysEmployee } = configModal;
-    if (!/^\d+$/.test(freezeDaysSupervisor) || !/^\d+$/.test(freezeDaysEmployee)) {
+    if (
+      !/^\d+$/.test(freezeDaysSupervisor) ||
+      !/^\d+$/.test(freezeDaysEmployee)
+    ) {
       showAlert("Both values must be positive integers.");
       return;
     }
@@ -381,14 +384,12 @@ const TaskManagementSupervisor = () => {
     }
   };
 
-  /* ------------------- TASK EDITING (STILL READ-ONLY) ------------------- */
   const updateTaskField = () => {};
   const handleReviewChange = () => {};
   const saveTaskField = async () => {
     showAlert("Task updates are currently disabled.");
   };
 
-  /* ------------------- UTILS ------------------- */
   const statusColor = (status) => {
     switch (status) {
       case "completed":
@@ -499,7 +500,6 @@ const TaskManagementSupervisor = () => {
     }
   };
 
-  /* ------------------- WEEK NAVIGATION (UNCHANGED) ------------------- */
   const weekIds = [...new Set(tasks.map((task) => task.week_id))].sort(
     (a, b) => a - b
   );
@@ -559,7 +559,6 @@ const TaskManagementSupervisor = () => {
 
   const tasksByDate = getTasksByDate();
 
-  /* ------------------- RENDER ------------------- */
   if (!supervisorId) {
     return (
       <div className="task-management-wrapper">
@@ -581,99 +580,33 @@ const TaskManagementSupervisor = () => {
         <p>{alertModal.message}</p>
       </Modal>
 
-      {/* ---- FREEZE DAYS MODAL (NOW FUNCTIONAL) ---- */}
       {configModal.isVisible && (
-  <div
-    className="task-management-freeze-modal-overlay"
-    onClick={() => setConfigModal({ ...configModal, isVisible: false })}
-  >
-    <form
-      className="task-management-freeze-modal"
-      onClick={(e) => e.stopPropagation()}
-      onSubmit={(e) => e.preventDefault()}
-    >
-      {/* ---------- Header ---------- */}
-      <div className="task-management-freeze-modal-header">
-        <h3>Update Freeze Days</h3>
-        <button
-          type="button"
-          className="task-management-freeze-modal-close"
-          onClick={() => setConfigModal({ ...configModal, isVisible: false })}
-          disabled={loadingConfig}
-        >
-         X 
-        </button>
-      </div>
-
-      {/* ---------- Content ---------- */}
-      <div className="task-management-freeze-modal-content">
-        <div className="task-management-freeze-input-group">
-          <label>Supervisor Freeze Days</label>
-          <input
-            type="number"
-            min="0"
-            value={configModal.freezeDaysSupervisor}
-            onChange={(e) =>
-              setConfigModal({
-                ...configModal,
-                freezeDaysSupervisor: e.target.value,
-              })
-            }
-            disabled={loadingConfig}
-          />
-        </div>
-
-        <div className="task-management-freeze-input-group">
-          <label>Employee Freeze Days</label>
-          <input
-            type="number"
-            min="0"
-            value={configModal.freezeDaysEmployee}
-            onChange={(e) =>
-              setConfigModal({
-                ...configModal,
-                freezeDaysEmployee: e.target.value,
-              })
-            }
-            disabled={loadingConfig}
-          />
-        </div>
-      </div>
-
-      {/* ---------- Footer ---------- */}
-      <div className="task-management-freeze-modal-footer">
-        <button
-          type="button"
-          onClick={() => setConfigModal({ ...configModal, isVisible: false })}
-          disabled={loadingConfig}
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          onClick={updateConfig}
-          disabled={loadingConfig}
-        >
-          {loadingConfig ? 'Saving...' : 'Save'}
-        </button>
-      </div>
-    </form>
-  </div>
-)}
-      {/* {configModal.isVisible && (
         <div
-          className="task-management-modal-overlay"
+          className="task-management-freeze-modal-overlay"
           onClick={() => setConfigModal({ ...configModal, isVisible: false })}
         >
-          <div
-            className="task-management-modal"
+          <form
+            className="task-management-freeze-modal"
             onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => e.preventDefault()}
           >
-            <h3>Update Freeze Days</h3>
-            <div className="task-management-config-content">
-              <label>
-                Supervisor Freeze Days
+            <div className="task-management-freeze-modal-header">
+              <h3>Update Freeze Days</h3>
+              <button
+                type="button"
+                className="task-management-freeze-modal-close"
+                onClick={() =>
+                  setConfigModal({ ...configModal, isVisible: false })
+                }
+                disabled={loadingConfig}
+              >
+                X
+              </button>
+            </div>
+
+            <div className="task-management-freeze-modal-content">
+              <div className="task-management-freeze-input-group">
+                <label>Supervisor Freeze Days</label>
                 <input
                   type="number"
                   min="0"
@@ -686,9 +619,10 @@ const TaskManagementSupervisor = () => {
                   }
                   disabled={loadingConfig}
                 />
-              </label>
-              <label>
-                Employee Freeze Days
+              </div>
+
+              <div className="task-management-freeze-input-group">
+                <label>Employee Freeze Days</label>
                 <input
                   type="number"
                   min="0"
@@ -701,10 +635,12 @@ const TaskManagementSupervisor = () => {
                   }
                   disabled={loadingConfig}
                 />
-              </label>
+              </div>
             </div>
-            <div className="task-management-modal-buttons">
+
+            <div className="task-management-freeze-modal-footer">
               <button
+                type="button"
                 onClick={() =>
                   setConfigModal({ ...configModal, isVisible: false })
                 }
@@ -712,15 +648,19 @@ const TaskManagementSupervisor = () => {
               >
                 Cancel
               </button>
-              <button onClick={updateConfig} disabled={loadingConfig}>
+
+              <button
+                type="button"
+                onClick={updateConfig}
+                disabled={loadingConfig}
+              >
                 {loadingConfig ? "Saving..." : "Save"}
               </button>
             </div>
-          </div>
+          </form>
         </div>
-      )} */}
+      )}
 
-      {/* ---- FREEZE DAYS BUTTON (NOW ENABLED) ---- */}
       <div className="task-management-header">
         <button
           className="task-management-config-button"
@@ -732,7 +672,6 @@ const TaskManagementSupervisor = () => {
         </button>
       </div>
 
-      {/* ---- EMPLOYEE LIST ---- */}
       <div className="task-management-employee-list">
         <h3>Employees</h3>
         <input
@@ -766,7 +705,6 @@ const TaskManagementSupervisor = () => {
         )}
       </div>
 
-      {/* ---- TASK DETAILS ---- */}
       <div className="task-management-task-details">
         {loadingTasks || loadingProjects ? (
           <p>Loading tasks or projects...</p>
@@ -874,7 +812,8 @@ const TaskManagementSupervisor = () => {
                                   <span className="task-management-status-icon">
                                     {effectiveReviewStatus === "approved" &&
                                       "Check mark"}
-                                    {effectiveReviewStatus === "struck" && "Pencil"}
+                                    {effectiveReviewStatus === "struck" &&
+                                      "Pencil"}
                                     {effectiveReviewStatus ===
                                       "suspended_review" && "Prohibited"}
                                   </span>
@@ -920,7 +859,6 @@ const TaskManagementSupervisor = () => {
                                 allowed.
                               </div>
                             )}
-                            {/* ---- EDIT SECTION (READ-ONLY) ---- */}
                             <div
                               className={`task-management-edit-section ${
                                 isFrozen

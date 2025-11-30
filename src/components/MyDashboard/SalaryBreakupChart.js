@@ -35,7 +35,6 @@ const EmployeeSalaryBreakup = () => {
         }
 
         const jsonData = await response.json();
-        console.log("Full API Response:", jsonData);
 
         if (!jsonData || !jsonData.message || !jsonData.message.labels) {
           throw new Error(

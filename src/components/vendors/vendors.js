@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./vendors.css";
@@ -282,13 +281,11 @@ const Vendors = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate Company Name
     if (!formData.company_name || formData.company_name.trim() === "") {
       showAlert("Company name is required and cannot be empty");
       return;
     }
 
-    // Validate Years of Experience
     const years = formData.years_of_experience;
     if (!years) {
       setError("Years of Experience is required");
@@ -303,7 +300,6 @@ const Vendors = () => {
       return;
     }
 
-    // Validate Contact Details - 1
     if (!formData.contact1_name || formData.contact1_name.trim() === "") {
       showAlert("Contact 1 Name is required and cannot be empty");
       return;
@@ -324,7 +320,6 @@ const Vendors = () => {
       return;
     }
 
-    // Validate mobile numbers and emails on submit
     ["contact1_mobile", "contact2_mobile", "contact3_mobile"].forEach(
       (name, index) => {
         if (formData[name]) {
@@ -340,7 +335,6 @@ const Vendors = () => {
       }
     );
 
-    // Check if there are any errors
     if (mobileErrors.some((err) => err) || emailErrors.some((err) => err)) {
       showAlert(
         "Please correct the errors in mobile numbers or email addresses."
@@ -348,20 +342,20 @@ const Vendors = () => {
       return;
     }
 
-    // Validate required documents
     const currentVendor = vendors.find(
       (vendor) => vendor.vendor_id === editingVendorId
     );
     const requiredDocs = [
       { key: "gst_certificate", label: "GST Certificate" },
       { key: "pan_card", label: "PAN Card" },
-      // { key: "cancelled_cheque", label: "Cancelled Cheque" },
     ];
-    const missingDocs = requiredDocs.filter(
-      (doc) =>
-        !files[doc.key] &&
-        (!isEditing || !currentVendor || !currentVendor[doc.key])
-    ).map((doc) => doc.label);
+    const missingDocs = requiredDocs
+      .filter(
+        (doc) =>
+          !files[doc.key] &&
+          (!isEditing || !currentVendor || !currentVendor[doc.key])
+      )
+      .map((doc) => doc.label);
     if (missingDocs.length > 0) {
       showAlert(
         `Please upload the following required documents: ${missingDocs.join(
@@ -375,14 +369,13 @@ const Vendors = () => {
     for (const key in formData) {
       data.append(key, formData[key]);
     }
-    // Append files or existing paths
     for (const key in files) {
       if (files[key] instanceof File) {
-        data.append(key, files[key]); // New file uploaded
+        data.append(key, files[key]);
       } else if (files[key]) {
-        data.append(key, files[key]); // Existing path from files state
+        data.append(key, files[key]);
       } else if (isEditing && currentVendor && currentVendor[key]) {
-        data.append(key, currentVendor[key]); // Preserve original path from vendor data
+        data.append(key, currentVendor[key]);
       }
     }
 
@@ -423,14 +416,12 @@ const Vendors = () => {
       console.warn("normalizeFilePath: Empty filePath received");
       return null;
     }
-    console.log("Original filePath:", filePath);
     let normalized = filePath.replace(/\\/g, "/");
     normalized = normalized.replace(/^\.\//, "").replace(/\/+/g, "/");
     normalized = normalized.replace(/^uploads\//i, "Uploads/");
     if (!normalized.startsWith("Uploads/")) {
       normalized = `Uploads/${normalized}`;
     }
-    console.log("Normalized filePath:", normalized);
     return normalized;
   };
 
@@ -565,7 +556,9 @@ const Vendors = () => {
     <div className="contact-field">
       <label htmlFor={name}>
         {label}
-        {!isEditing && required && <span className="vendor-required-asterisk">*</span>}
+        {!isEditing && required && (
+          <span className="vendor-required-asterisk">*</span>
+        )}
       </label>
       {isEditing && files[name] && !(files[name] instanceof File) ? (
         <div className="existing-file">
@@ -1077,7 +1070,11 @@ const Vendors = () => {
                 <div className="contact-row three-columns">
                   {renderFileInput("GST Certificate", "gst_certificate", true)}
                   {renderFileInput("PAN Card", "pan_card", true)}
-                  {renderFileInput("Cancelled Cheque", "cancelled_cheque",false)}
+                  {renderFileInput(
+                    "Cancelled Cheque",
+                    "cancelled_cheque",
+                    false
+                  )}
                 </div>
                 <div className="contact-row two-columns">
                   {renderFileInput(

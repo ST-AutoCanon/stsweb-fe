@@ -45,12 +45,9 @@ const EmpWorkDays = () => {
 
       try {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/attendance/${employeeId}`;
-        console.log("API Request URL:", apiUrl);
         const response = await axios.get(apiUrl, {
           headers,
         });
-
-        console.log("API Response:", response.data);
 
         if (response.status === 200 && response.data.attendanceStats) {
           const {

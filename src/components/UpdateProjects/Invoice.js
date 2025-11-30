@@ -282,8 +282,6 @@ const Invoice = ({ onBack, project }) => {
     setShowInvoiceForm(true);
   };
 
-  // --- inside your component ---
-
   const handleDownloadInvoiceWithSeal = async () => {
     setShowSealModal(false);
 

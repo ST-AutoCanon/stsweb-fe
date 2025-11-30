@@ -29,8 +29,8 @@ const CircularDesignEngg = () => {
       link: "styling-product-design",
       content: <StylingProductDesign />,
       degree: isMobile ? 5 : 385,
-      reverse: false, // Image first, then text
-      offsetX: isMobile ? 45 :230,
+      reverse: false,
+      offsetX: isMobile ? 45 : 230,
       offsetY: isMobile ? 45 : 30,
       lineClass: "line-1-engg",
     },
@@ -39,7 +39,7 @@ const CircularDesignEngg = () => {
       link: "cae-analysis",
       content: <CAEAnalysis />,
       degree: isMobile ? 300 : 30,
-      reverse: false, // Image first, then text
+      reverse: false,
       offsetX: isMobile ? 195 : 380,
       offsetY: isMobile ? 310 : 200,
       lineClass: "line-2-engg",
@@ -49,7 +49,7 @@ const CircularDesignEngg = () => {
       link: "tooling",
       content: <Tooling />,
       degree: isMobile ? 56 : 90,
-      reverse: false, // Image first, then text
+      reverse: false,
       offsetX: isMobile ? 120 : 390,
       offsetY: isMobile ? 150 : 290,
       lineClass: "line-3-engg",
@@ -59,7 +59,7 @@ const CircularDesignEngg = () => {
       link: "consulting-expertise",
       content: <ConsultingExpertise />,
       degree: isMobile ? 180 : 150,
-      reverse: true, // Text first, then image
+      reverse: true,
       offsetX: isMobile ? 180 : 70,
       offsetY: isMobile ? 180 : 200,
       lineClass: "line-4-engg",
@@ -69,7 +69,7 @@ const CircularDesignEngg = () => {
       link: "export-homologation",
       content: <ExportHomologation />,
       degree: isMobile ? 240 : 210,
-      reverse: true, // Text first, then image
+      reverse: true,
       offsetX: isMobile ? 110 : 100,
       offsetY: isMobile ? 190 : 170,
       lineClass: "line-5-engg",
@@ -78,14 +78,13 @@ const CircularDesignEngg = () => {
       text: "Domestic Type Approval",
       link: "domestic-type-approval",
       content: <DomesticTypeApproval />,
-      degree: isMobile ? 170: 270,
-      reverse: true, // Text first, then image
+      degree: isMobile ? 170 : 270,
+      reverse: true,
       offsetX: isMobile ? 180 : -30,
       offsetY: isMobile ? 250 : 590,
       lineClass: "line-6-engg",
     },
   ];
-  
 
   const handleButtonClick = (section) => {
     setActiveSection(section);
@@ -114,23 +113,23 @@ const CircularDesignEngg = () => {
           >
             <div className={`line-engg ${item.lineClass}`}></div>
             <button
-  className={`circular-button-engg ${
-    activeSection === item.link ? "active-button-engg" : ""
-  } ${item.reverse ? "reverse" : ""}`}
-  onClick={() => handleButtonClick(item.link)}
->
-  {item.reverse ? (
-    <>
-      <p>{item.text}</p>
-      <img src="/images/GreenCircle.png" alt={item.text} />
-    </>
-  ) : (
-    <>
-      <img src="/images/GreenCircle.png" alt={item.text} />
-      <p>{item.text}</p>
-    </>
-  )}
-</button>
+              className={`circular-button-engg ${
+                activeSection === item.link ? "active-button-engg" : ""
+              } ${item.reverse ? "reverse" : ""}`}
+              onClick={() => handleButtonClick(item.link)}
+            >
+              {item.reverse ? (
+                <>
+                  <p>{item.text}</p>
+                  <img src="/images/GreenCircle.png" alt={item.text} />
+                </>
+              ) : (
+                <>
+                  <img src="/images/GreenCircle.png" alt={item.text} />
+                  <p>{item.text}</p>
+                </>
+              )}
+            </button>
           </div>
         ))}
       </div>

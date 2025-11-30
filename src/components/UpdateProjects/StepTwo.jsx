@@ -1,4 +1,3 @@
-// StepTwo.jsx
 import React from "react";
 import { MdSearch } from "react-icons/md";
 
@@ -19,7 +18,7 @@ const StepTwo = ({
   handleStsOwnerChange,
   handleChange,
   formData,
-  filterType, // <- new prop to control which filter is selected
+  filterType,
 }) => {
   return (
     <div className="pj-step-two">

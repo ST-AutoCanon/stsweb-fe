@@ -244,7 +244,6 @@ export default function useProjectForm({
       ...prev,
       employee_list: selectedEmployees.map((emp) => emp.employee_id),
     }));
-    console.log("Updated Employee List in Form:", selectedEmployees);
   }, [selectedEmployees]);
 
   useEffect(() => {
@@ -991,7 +990,6 @@ export default function useProjectForm({
         },
         body: submissionData,
       });
-      console.log("Submitting formData:", formData);
       if (!response.ok) {
         const text = await response.text().catch(() => null);
         throw new Error(text || "Failed to save project");

@@ -51,7 +51,7 @@ const SupervisorPlanViewerAdmin = () => {
 
   const formatWeekId = (weekId) => {
     if (weekId === null) return "N/A";
-    const currentYear = new Date().getFullYear(); // Use current year (2025)
+    const currentYear = new Date().getFullYear();
     const startDate = startOfISOWeek(new Date(currentYear, 0, 1));
     const weekStart = new Date(
       startDate.getTime() + (weekId - 1) * 7 * 24 * 60 * 60 * 1000
@@ -68,7 +68,6 @@ const SupervisorPlanViewerAdmin = () => {
     return getISOWeek(taskDate);
   };
 
-  // Speech Recognition States
   const recognitionRef = useRef(null);
   const [listeningTaskId, setListeningTaskId] = useState(null);
   const [liveComments, setLiveComments] = useState({});
@@ -81,7 +80,6 @@ const SupervisorPlanViewerAdmin = () => {
       return;
     }
 
-    // Stop old instance safely
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -92,9 +90,8 @@ const SupervisorPlanViewerAdmin = () => {
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
 
-    // 🔥 KEY FIX for long speech
-    recognition.continuous = true; // keeps listening
-    recognition.interimResults = true; // live transcription
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = "en-US";
 
     setListeningTaskId(taskId);
@@ -125,7 +122,6 @@ const SupervisorPlanViewerAdmin = () => {
       updateTaskField(taskId, "sup_comment", combined);
     };
 
-    // 🔥 KEY FIX — auto-restart if browser closes it
     recognition.onend = () => {
       if (listeningTaskId === taskId) {
         try {
@@ -637,14 +633,12 @@ const SupervisorPlanViewerAdmin = () => {
         showAlert("Task updated successfully");
       }
 
-      // Clear pending review change
       setPendingReviewChanges((prev) => {
         const newPrev = { ...prev };
         delete newPrev[taskId];
         return newPrev;
       });
 
-      // Refresh tasks
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
         {
@@ -787,13 +781,13 @@ const SupervisorPlanViewerAdmin = () => {
   const getReviewStatusColor = (status) => {
     switch (status) {
       case "approved":
-        return "#28a745"; // Green
+        return "#28a745";
       case "struck":
-        return "#ffc107"; // Amber
+        return "#ffc107";
       case "suspended_review":
-        return "#dc3545"; // Red
+        return "#dc3545";
       default:
-        return "#6c757d"; // Gray
+        return "#6c757d";
     }
   };
 
@@ -818,7 +812,6 @@ const SupervisorPlanViewerAdmin = () => {
     emp.employee_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Generate week days
   const generateWeekDays = () => {
     if (!selectedWeekId) return [];
     const currentYear = new Date().getFullYear();
@@ -836,7 +829,6 @@ const SupervisorPlanViewerAdmin = () => {
 
   const weekDays = generateWeekDays();
 
-  // Group tasks by date
   const getTasksByDate = () => {
     const tasksByDate = {};
     weekDays.forEach(({ dateStr }) => {

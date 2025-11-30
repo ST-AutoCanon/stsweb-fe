@@ -4,7 +4,6 @@ import "./SoftwareDevelopment.css";
 const SoftwareDevelopment = () => {
   return (
     <div className="software-development-container">
-      {/* Left Section - Image */}
       <div className="software-development-image">
         <img
           src="./images/software.png"
@@ -13,46 +12,59 @@ const SoftwareDevelopment = () => {
         />
       </div>
 
-      {/* Right Section - Content */}
       <div className="software-development-text">
         <h1>Software Development Services</h1>
-        <p>We specialize in building, customizing, and maintaining software solutions that meet business needs:</p>
+        <p>
+          We specialize in building, customizing, and maintaining software
+          solutions that meet business needs:
+        </p>
         <ul className="services-list">
           <li>
-            <strong> Software Products:</strong> Developing web, mobile, and enterprise applications.
+            <strong> Software Products:</strong> Developing web, mobile, and
+            enterprise applications.
           </li>
           <li>
-            <strong>Customization & Integration:</strong> Tailoring software and integrating systems to improve processes.
+            <strong>Customization & Integration:</strong> Tailoring software and
+            integrating systems to improve processes.
           </li>
           <li>
-            <strong>Testing & Quality Assurance:</strong> Ensuring functionality, security, and bug-free software.
+            <strong>Testing & Quality Assurance:</strong> Ensuring
+            functionality, security, and bug-free software.
           </li>
           <li>
-            <strong>Maintenance & Updates:</strong> Ongoing support with patches, updates, and fixes.
+            <strong>Maintenance & Updates:</strong> Ongoing support with
+            patches, updates, and fixes.
           </li>
           <li>
-            <strong>Business Process Support:</strong> Automating and enhancing business operations.
+            <strong>Business Process Support:</strong> Automating and enhancing
+            business operations.
           </li>
         </ul>
         <h2>Key Features:</h2>
         <ul className="services-list">
           <li>
-            <strong>Technological Stack:</strong> Using modern languages, frameworks, databases, and cloud infrastructure.
+            <strong>Technological Stack:</strong> Using modern languages,
+            frameworks, databases, and cloud infrastructure.
           </li>
           <li>
-            <strong>Agile Methodology:</strong> Iterative development with sprints and continuous feedback.
+            <strong>Agile Methodology:</strong> Iterative development with
+            sprints and continuous feedback.
           </li>
           <li>
-            <strong>Version Control & CI/CD:</strong> Git for collaboration and automated build/deployment.
+            <strong>Version Control & CI/CD:</strong> Git for collaboration and
+            automated build/deployment.
           </li>
           <li>
-            <strong>UI/UX Design:</strong> Focus on user-friendly and intuitive interfaces.
+            <strong>UI/UX Design:</strong> Focus on user-friendly and intuitive
+            interfaces.
           </li>
           <li>
-            <strong>Security:</strong> Secure coding practices with strong authentication mechanisms.
+            <strong>Security:</strong> Secure coding practices with strong
+            authentication mechanisms.
           </li>
           <li>
-            <strong>Scalability & Performance:</strong> Scalable systems designed for high traffic and optimized for speed.
+            <strong>Scalability & Performance:</strong> Scalable systems
+            designed for high traffic and optimized for speed.
           </li>
         </ul>
       </div>

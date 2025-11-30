@@ -27,7 +27,6 @@ const SalaryStatementWrapper = () => {
     setShowPopup(true);
   }, []);
 
-  // Define event handlers outside useEffect to prevent recreation
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
       setShowPopup(false);
@@ -55,17 +54,15 @@ const SalaryStatementWrapper = () => {
 
   useEffect(() => {
     if (!showPopup || !modalRef.current || !firstButtonRef.current) {
-      return; // Skip if modal is not visible or refs are not set
+      return;
     }
 
-    console.log("Adding event listeners for modal");
     firstButtonRef.current.focus();
 
     document.addEventListener("keydown", handleKeyDown);
     modalRef.current.addEventListener("keydown", trapFocus);
 
     return () => {
-      console.log("Removing event listeners for modal");
       document.removeEventListener("keydown", handleKeyDown);
       if (modalRef.current) {
         modalRef.current.removeEventListener("keydown", trapFocus);
@@ -76,7 +73,6 @@ const SalaryStatementWrapper = () => {
   const handleSelection = (view) => {
     setSelectedView(view);
     setShowPopup(false);
-    // Optionally persist selection
     localStorage.setItem("selectedView", view);
   };
 
@@ -88,7 +84,6 @@ const SalaryStatementWrapper = () => {
 
   return (
     <div style={styles.wrapper}>
-      {/* Popup Modal */}
       {showPopup && (
         <div
           style={styles.overlay}
@@ -120,7 +115,6 @@ const SalaryStatementWrapper = () => {
         </div>
       )}
 
-      {/* Display selected content */}
       {selectedView === "statement" && (
         <ErrorBoundary>
           <Salary_Statement />

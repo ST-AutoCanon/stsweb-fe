@@ -1,19 +1,17 @@
-/* Main container */
 .cae-analysis-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 80px;
-  background-color: #fff; /* Set background to white */
+  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   gap: 20px;
 }
 
-/* Left Section - Content */
 .cae-analysis-text {
   width: 60%;
-  order: 1; /* Place content on the left */
+  order: 1;
   margin-top: -30px;
 }
 
@@ -49,11 +47,10 @@
   color: #333;
 }
 
-/* Right Section - Image */
 .cae-analysis-image {
   position: relative;
   width: 32%;
-  order: 2; /* Place image on the right */
+  order: 2;
   margin-top: 60px;
 }
 
@@ -61,10 +58,8 @@
   width: 100%;
   height: auto;
   border-radius: 8px;
-
 }
 
-/* Button */
 .cae-analysis-button {
   background-color: #00c853;
   color: white;
@@ -81,10 +76,9 @@
   background-color: #009624;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .cae-analysis-container {
-    flex-direction: column; /* Stack items for smaller screens */
+    flex-direction: column;
     align-items: center;
     text-align: left;
     gap: 20px;
@@ -92,64 +86,58 @@
 
   .cae-analysis-text {
     width: 145%;
-    order: 1; /* Maintain order for responsive layout */
+    order: 1;
   }
-
-  
 
   .services-list li {
     width: 100%;
   }
-  /* Right Section - Image */
-.cae-analysis-image {
-  position: relative;
-  width: 150%;
-  margin-top:70px;
-  order: 1; /* Place image on the right */
+  .cae-analysis-image {
+    position: relative;
+    width: 150%;
+    margin-top: 70px;
+    order: 1;
+  }
+
+  .services-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
 }
 
-.services-image {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-}
-
-
-/* For 1920x1080 screen size */
 @media (min-width: 1920px) and (max-width: 1920px) {
   .cae-analysis-container {
-    padding: 100px; /* Increase padding for larger screens */
+    padding: 100px;
   }
 
   .cae-analysis-text {
-    width: 58%; /* Adjust width for content */
+    width: 58%;
   }
 
   .cae-analysis-image {
-    width: 38%; /* Adjust image width */
+    width: 38%;
   }
 
   .services-list li {
-    width: 40%; /* Adjust list item width */
+    width: 40%;
   }
 }
 
-/* For screens between 1380px and 1919px */
 @media (min-width: 1380px) and (max-width: 1919px) {
   .cae-analysis-container {
-    padding: 80px; /* Adjust padding */
+    padding: 80px;
   }
 
   .cae-analysis-text {
-    width: 59%; /* Adjust content width */
+    width: 59%;
   }
 
   .cae-analysis-image {
-    width: 28%; /* Adjust image width */
+    width: 28%;
   }
 
   .services-list li {
-    width: 44%; /* Adjust list item width */
+    width: 44%;
   }
 }

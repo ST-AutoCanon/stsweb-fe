@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -7,9 +6,9 @@ import "./EmpTaskManagement.css";
 import WeeklyTaskPlanner from "../WeeklyTaskPlanner/WeeklyTaskPlanner";
 
 const getProgressColor = (p) => {
-  if (p < 40) return "#ef4444"; // red-500
-  if (p < 70) return "#f59e0b"; // amber-500
-  return "#10b981"; // emerald-500
+  if (p < 40) return "#ef4444";
+  if (p < 70) return "#f59e0b";
+  return "#10b981";
 };
 
 const parseDate = (dateStr) => {
@@ -95,7 +94,7 @@ const EmpTaskManagement = () => {
       "in progress": "In Progress",
       "on-hold": "On-Hold",
       "on hold": "On-Hold",
-      "completed": "Completed",
+      completed: "Completed",
     };
     return statusMap[normalized] || "Yet to Start";
   };
@@ -106,7 +105,10 @@ const EmpTaskManagement = () => {
       try {
         const parsed = JSON.parse(data);
         if (parsed.employeeId) setEmployeeId(parsed.employeeId);
-        else setError("No employeeId found in dashboardData. Please log in again.");
+        else
+          setError(
+            "No employeeId found in dashboardData. Please log in again."
+          );
       } catch (e) {
         setError("Failed to parse dashboardData. Please log in again.");
       }
@@ -127,7 +129,8 @@ const EmpTaskManagement = () => {
           { headers: { "x-employee-id": employeeId } }
         );
         const tasksData = response.data;
-        if (!Array.isArray(tasksData)) throw new Error("Expected tasks to be an array");
+        if (!Array.isArray(tasksData))
+          throw new Error("Expected tasks to be an array");
         const tasksWithPhotos = tasksData.map((task) => ({
           id: `Task-${task.task_id}`,
           title: task.task_title || "Untitled Task",
@@ -142,11 +145,15 @@ const EmpTaskManagement = () => {
         setTasks(tasksWithPhotos);
       } catch (err) {
         if (err.response && err.response.status === 404) {
-          setTasks([]); // Set tasks to empty array for 404
+          setTasks([]);
         } else {
           let errorMessage = "Failed to fetch tasks";
-          if (err.response) errorMessage = `Server Error ${err.response.status}: ${err.response.data?.message || "Unknown"}`;
-          else if (err.request) errorMessage = "Network error: Unable to connect to the server.";
+          if (err.response)
+            errorMessage = `Server Error ${err.response.status}: ${
+              err.response.data?.message || "Unknown"
+            }`;
+          else if (err.request)
+            errorMessage = "Network error: Unable to connect to the server.";
           else errorMessage = `Request setup error: ${err.message}`;
           setError(errorMessage);
         }
@@ -163,11 +170,15 @@ const EmpTaskManagement = () => {
       setLoadingMessages(true);
       try {
         const taskId = selectedTaskId.split("-")[1];
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`, {
-          headers: { "x-employee-id": employeeId },
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`,
+          {
+            headers: { "x-employee-id": employeeId },
+          }
+        );
         if (response.data.success) {
-          const { progressMessages = [], clarificationMessages = [] } = response.data;
+          const { progressMessages = [], clarificationMessages = [] } =
+            response.data;
           const allMessages = [
             ...progressMessages.map((msg) => ({
               text: msg.text,
@@ -194,20 +205,35 @@ const EmpTaskManagement = () => {
                     messages: allMessages,
                     progress: allMessages
                       .filter((msg) => msg.type === "Progress")
-                      .reduce((max, msg) => (isNaN(parseInt(msg.text)) ? max : Math.max(max, parseInt(msg.text))), task.progress),
+                      .reduce(
+                        (max, msg) =>
+                          isNaN(parseInt(msg.text))
+                            ? max
+                            : Math.max(max, parseInt(msg.text)),
+                        task.progress
+                      ),
                   }
                 : task
             )
           );
           setError(null);
-        } else throw new Error(response.data.message || "Failed to fetch messages");
+        } else
+          throw new Error(response.data.message || "Failed to fetch messages");
       } catch (err) {
         if (err.response && err.response.status === 404) {
-          setTasks((prevTasks) => prevTasks.map((task) => (task.id === selectedTaskId ? { ...task, messages: [] } : task)));
+          setTasks((prevTasks) =>
+            prevTasks.map((task) =>
+              task.id === selectedTaskId ? { ...task, messages: [] } : task
+            )
+          );
         } else {
           let errorMessage = "Failed to fetch messages";
-          if (err.response) errorMessage = `Error ${err.response.status}: ${err.response.data?.message || "Unknown"}`;
-          else if (err.request) errorMessage = "Network error: Unable to connect.";
+          if (err.response)
+            errorMessage = `Error ${err.response.status}: ${
+              err.response.data?.message || "Unknown"
+            }`;
+          else if (err.request)
+            errorMessage = "Network error: Unable to connect.";
           else errorMessage = `Request setup error: ${err.message}`;
           setError(errorMessage);
         }
@@ -226,7 +252,9 @@ const EmpTaskManagement = () => {
             ? {
                 ...task,
                 messages: task.messages.map((msg) =>
-                  msg.sender === "Supervisor" && msg.type === activeTab ? { ...msg, isRead: true } : msg
+                  msg.sender === "Supervisor" && msg.type === activeTab
+                    ? { ...msg, isRead: true }
+                    : msg
                 ),
               }
             : task
@@ -245,11 +273,17 @@ const EmpTaskManagement = () => {
     []
   );
 
-  const dropdownColumns = useMemo(() => columns.filter((col) => col.key !== "Completed"), [columns]);
+  const dropdownColumns = useMemo(
+    () => columns.filter((col) => col.key !== "Completed"),
+    [columns]
+  );
 
-  const selectedTask = useMemo(() => tasks.find((t) => t.id === selectedTaskId) || null, [tasks, selectedTaskId]);
+  const selectedTask = useMemo(
+    () => tasks.find((t) => t.id === selectedTaskId) || null,
+    [tasks, selectedTaskId]
+  );
 
-  const currentDate = new Date(2025, 8, 17, 1, 23); // 12:23 AM IST, September 17, 2025
+  const currentDate = new Date(2025, 8, 17, 1, 23);
 
   const openDetails = (taskId) => {
     setSelectedTaskId(taskId);
@@ -279,32 +313,54 @@ const EmpTaskManagement = () => {
   const handleSliderChange = (e) => {
     const newProgress = parseInt(e.target.value, 10);
     setTempProgress(newProgress);
-    setTasks((prev) => prev.map((t) => (t.id === selectedTask.id ? { ...t, progress: newProgress } : t)));
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === selectedTask.id ? { ...t, progress: newProgress } : t
+      )
+    );
   };
 
   const handleStatusChange = (e) => {
     const newStatus = e.target.value;
     setTempStatus(newStatus);
-    setTasks((prev) => prev.map((t) => (t.id === selectedTask.id ? { ...t, status: newStatus } : t)));
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === selectedTask.id ? { ...t, status: newStatus } : t
+      )
+    );
   };
 
   const saveProgress = async () => {
     if (!selectedTask || !employeeId) return;
     try {
       const taskId = selectedTask.id.split("-")[1];
-      const updateData = { status: tempStatus, percentage: tempProgress, progress_percentage: tempProgress };
+      const updateData = {
+        status: tempStatus,
+        percentage: tempProgress,
+        progress_percentage: tempProgress,
+      };
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/employee-tasks/update/${taskId}`,
         updateData,
-        { headers: { "x-employee-id": employeeId, "x-api-key": process.env.REACT_APP_API_KEY } }
+        {
+          headers: {
+            "x-employee-id": employeeId,
+            "x-api-key": process.env.REACT_APP_API_KEY,
+          },
+        }
       );
       if (response.data.success || response.data.status === "success") {
         setTasks((prev) =>
-          prev.map((t) => (t.id === selectedTask.id ? { ...t, status: tempStatus, progress: tempProgress } : t))
+          prev.map((t) =>
+            t.id === selectedTask.id
+              ? { ...t, status: tempStatus, progress: tempProgress }
+              : t
+          )
         );
         setError(null);
         setEditingProgress(false);
-        if (tempProgress !== selectedTask.progress) await sendProgressMessage(tempProgress);
+        if (tempProgress !== selectedTask.progress)
+          await sendProgressMessage(tempProgress);
         alert("Task updated successfully");
       } else {
         throw new Error(response.data.message || "Unexpected server response");
@@ -314,7 +370,13 @@ const EmpTaskManagement = () => {
       setEditingProgress(false);
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === selectedTask.id ? { ...t, progress: selectedTask.progress, status: selectedTask.status } : t
+          t.id === selectedTask.id
+            ? {
+                ...t,
+                progress: selectedTask.progress,
+                status: selectedTask.status,
+              }
+            : t
         )
       );
     }
@@ -324,7 +386,13 @@ const EmpTaskManagement = () => {
     setEditingProgress(false);
     setTasks((prev) =>
       prev.map((t) =>
-        t.id === selectedTask.id ? { ...t, progress: selectedTask.progress, status: selectedTask.status } : t
+        t.id === selectedTask.id
+          ? {
+              ...t,
+              progress: selectedTask.progress,
+              status: selectedTask.status,
+            }
+          : t
       )
     );
   };
@@ -334,10 +402,19 @@ const EmpTaskManagement = () => {
     const text = `${percentage}%`;
     try {
       const taskId = selectedTask.id.split("-")[1];
-      const messageData = { taskId, sender: employeeId, type: "Progress", text };
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/messages`, messageData, {
-        headers: { "x-employee-id": employeeId },
-      });
+      const messageData = {
+        taskId,
+        sender: employeeId,
+        type: "Progress",
+        text,
+      };
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
+        messageData,
+        {
+          headers: { "x-employee-id": employeeId },
+        }
+      );
       if (response.data.success) {
         setTasks((prev) =>
           prev.map((t) =>
@@ -372,9 +449,13 @@ const EmpTaskManagement = () => {
     try {
       const taskId = selectedTask.id.split("-")[1];
       const messageData = { taskId, sender: employeeId, type: activeTab, text };
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/messages`, messageData, {
-        headers: { "x-employee-id": employeeId },
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
+        messageData,
+        {
+          headers: { "x-employee-id": employeeId },
+        }
+      );
       if (response.data.success) {
         setTasks((prev) =>
           prev.map((t) =>
@@ -392,7 +473,9 @@ const EmpTaskManagement = () => {
                       isRead: true,
                     },
                   ].sort((a, b) => new Date(a.time) - new Date(b.time)),
-                  ...(activeTab === "Progress" && !isNaN(parseInt(text)) ? { progress: parseInt(text) } : {}),
+                  ...(activeTab === "Progress" && !isNaN(parseInt(text))
+                    ? { progress: parseInt(text) }
+                    : {}),
                 }
               : t
           )
@@ -402,7 +485,10 @@ const EmpTaskManagement = () => {
       } else throw new Error(response.data.message || "Failed to send message");
     } catch (err) {
       let errorMessage = "Failed to send message";
-      if (err.response) errorMessage = `Error ${err.response.status}: ${err.response.data?.message || "Unknown"}`;
+      if (err.response)
+        errorMessage = `Error ${err.response.status}: ${
+          err.response.data?.message || "Unknown"
+        }`;
       else if (err.request) errorMessage = "Network error: Unable to connect.";
       else errorMessage = `Request setup error: ${err.message}`;
       setError(errorMessage);
@@ -424,13 +510,17 @@ const EmpTaskManagement = () => {
     <div className="emp-task-board-container-1">
       <div className="emp-task-sections">
         <button
-          className={`emp-section-btn ${activeSection === "Tasks" ? "emp-active" : ""}`}
+          className={`emp-section-btn ${
+            activeSection === "Tasks" ? "emp-active" : ""
+          }`}
           onClick={() => setActiveSection("Tasks")}
         >
           Supervisor Driven
         </button>
         <button
-          className={`emp-section-btn ${activeSection === "WeeklyTasks" ? "emp-active" : ""}`}
+          className={`emp-section-btn ${
+            activeSection === "WeeklyTasks" ? "emp-active" : ""
+          }`}
           onClick={() => setActiveSection("WeeklyTasks")}
         >
           Employee Driven
@@ -439,35 +529,66 @@ const EmpTaskManagement = () => {
       {activeSection === "Tasks" ? (
         <>
           {error && <div className="emp-task-error-message">{error}</div>}
-          {loadingTasks && <div className="emp-task-loading-message">Loading tasks...</div>}
+          {loadingTasks && (
+            <div className="emp-task-loading-message">Loading tasks...</div>
+          )}
           {!loadingTasks && tasks.length === 0 && !error && (
             <div className="emp-task-no-tasks">No tasks assigned yet</div>
           )}
           <div className="emp-task-board">
             {columns.map((col) => {
-              const colTasks = tasks.filter((t) => t.status === col.key).sort((a, b) => new Date(a.endDate || 0) - new Date(b.endDate || 0));
+              const colTasks = tasks
+                .filter((t) => t.status === col.key)
+                .sort(
+                  (a, b) => new Date(a.endDate || 0) - new Date(b.endDate || 0)
+                );
               return (
                 <div className="emp-task-column" key={col.key}>
-                  <div className="emp-task-column-header" style={{ backgroundColor: col.color }}>
+                  <div
+                    className="emp-task-column-header"
+                    style={{ backgroundColor: col.color }}
+                  >
                     <span>{col.title}</span>
-                    <span className="emp-task-count-badge">{colTasks.length}</span>
+                    <span className="emp-task-count-badge">
+                      {colTasks.length}
+                    </span>
                   </div>
                   <div className="emp-task-list">
                     {colTasks.length === 0 && !loadingTasks && !error ? (
-                      <div className="emp-task-no-tasks">No {col.title.toLowerCase()} tasks</div>
+                      <div className="emp-task-no-tasks">
+                        No {col.title.toLowerCase()} tasks
+                      </div>
                     ) : (
                       colTasks.map((task) => {
-                        const isOverdue = task.status !== "Completed" && new Date(task.endDate) < currentDate;
-                        const ringColor = isOverdue ? "#ef4444" : getProgressColor(task.progress);
+                        const isOverdue =
+                          task.status !== "Completed" &&
+                          new Date(task.endDate) < currentDate;
+                        const ringColor = isOverdue
+                          ? "#ef4444"
+                          : getProgressColor(task.progress);
                         return (
-                          <div className="emp-task-card" key={task.id} onClick={() => openDetails(task.id)}>
+                          <div
+                            className="emp-task-card"
+                            key={task.id}
+                            onClick={() => openDetails(task.id)}
+                          >
                             <div className="emp-task-header">
                               <div className="emp-task-title-group">
-                                <div className="emp-task-title">{task.title}</div>
-                                <div className="emp-task-id-chip">{task.id}</div>
+                                <div className="emp-task-title">
+                                  {task.title}
+                                </div>
+                                <div className="emp-task-id-chip">
+                                  {task.id}
+                                </div>
                               </div>
-                              <div className="emp-task-progress-wrapper" title={`${task.progress}%`}>
-                                <svg viewBox="0 0 36 36" className="emp-task-progress-ring">
+                              <div
+                                className="emp-task-progress-wrapper"
+                                title={`${task.progress}%`}
+                              >
+                                <svg
+                                  viewBox="0 0 36 36"
+                                  className="emp-task-progress-ring"
+                                >
                                   <path
                                     className="emp-task-circle-bg"
                                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -501,14 +622,20 @@ const EmpTaskManagement = () => {
                             </div>
                             <div className="emp-task-dates">
                               <div className="emp-task-date-group">
-                                <span className="emp-task-date-label">Start</span>
-                                <span className="emp-task-date-pill emp-task-start">{displayDate(task.startDate)}</span>
+                                <span className="emp-task-date-label">
+                                  Start
+                                </span>
+                                <span className="emp-task-date-pill emp-task-start">
+                                  {displayDate(task.startDate)}
+                                </span>
                               </div>
                               <span className="emp-task-arrow">→</span>
                               <div className="emp-task-date-group">
                                 <span className="emp-task-date-label">End</span>
                                 <span
-                                  className={`emp-task-date-pill emp-task-end ${isOverdue ? "emp-task-overdue" : ""}`}
+                                  className={`emp-task-date-pill emp-task-end ${
+                                    isOverdue ? "emp-task-overdue" : ""
+                                  }`}
                                 >
                                   {displayDate(task.endDate)}
                                 </span>
@@ -516,8 +643,15 @@ const EmpTaskManagement = () => {
                             </div>
                             <div className="emp-task-footer">
                               <div className="emp-task-spacer" />
-                              <div className="emp-task-msg-wrap" title="Open messages">
-                                <span className="emp-task-message-icon" role="img" aria-label="messages">
+                              <div
+                                className="emp-task-msg-wrap"
+                                title="Open messages"
+                              >
+                                <span
+                                  className="emp-task-message-icon"
+                                  role="img"
+                                  aria-label="messages"
+                                >
                                   💬
                                 </span>
                               </div>
@@ -532,13 +666,20 @@ const EmpTaskManagement = () => {
             })}
             {selectedTask && (
               <div className="emp-task-details-backdrop" onClick={closeDetails}>
-                <div className="emp-task-details" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="emp-task-details"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="emp-task-details-header">
                     <div className="emp-task-details-title">
                       <div className="emp-task-pill">{selectedTask.id}</div>
                       <h3>{selectedTask.title}</h3>
                     </div>
-                    <button className="emp-task-close-btn" onClick={closeDetails} aria-label="Close">
+                    <button
+                      className="emp-task-close-btn"
+                      onClick={closeDetails}
+                      aria-label="Close"
+                    >
                       ✕
                     </button>
                   </div>
@@ -546,10 +687,15 @@ const EmpTaskManagement = () => {
                     <div className="emp-task-meta-row">
                       <div className="emp-task-status-line">
                         <span className="emp-task-label">Status:</span>
-                        <span className="emp-task-value">{selectedTask.status}</span>
+                        <span className="emp-task-value">
+                          {selectedTask.status}
+                        </span>
                       </div>
                       <div className="emp-task-progress-wrapper">
-                        <svg viewBox="0 0 36 36" className="emp-task-progress-ring">
+                        <svg
+                          viewBox="0 0 36 36"
+                          className="emp-task-progress-ring"
+                        >
                           <path
                             className="emp-task-circle-bg"
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -563,7 +709,8 @@ const EmpTaskManagement = () => {
                             strokeDashoffset={100 - selectedTask.progress}
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             stroke={
-                              selectedTask.status !== "Completed" && new Date(selectedTask.endDate) < currentDate
+                              selectedTask.status !== "Completed" &&
+                              new Date(selectedTask.endDate) < currentDate
                                 ? "#ef4444"
                                 : getProgressColor(selectedTask.progress)
                             }
@@ -590,7 +737,13 @@ const EmpTaskManagement = () => {
                           onClick={startEditingProgress}
                           title="Edit Progress"
                         >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
                             <path
                               d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                               stroke="#6b7280"
@@ -622,7 +775,9 @@ const EmpTaskManagement = () => {
                             onChange={handleSliderChange}
                             className="emp-task-progress-slider"
                           />
-                          <span className="emp-task-slider-value">{tempProgress}%</span>
+                          <span className="emp-task-slider-value">
+                            {tempProgress}%
+                          </span>
                         </div>
                         <div className="emp-task-status-container">
                           <label htmlFor="status-select">Status</label>
@@ -640,10 +795,16 @@ const EmpTaskManagement = () => {
                           </select>
                         </div>
                         <div className="emp-task-editor-actions">
-                          <button onClick={saveProgress} className="emp-task-save-btn">
+                          <button
+                            onClick={saveProgress}
+                            className="emp-task-save-btn"
+                          >
                             Update Progress
                           </button>
-                          <button onClick={cancelEditing} className="emp-task-cancel-btn">
+                          <button
+                            onClick={cancelEditing}
+                            className="emp-task-cancel-btn"
+                          >
                             Cancel
                           </button>
                         </div>
@@ -656,7 +817,8 @@ const EmpTaskManagement = () => {
                       <span className="emp-task-arrow">→</span>
                       <span
                         className={`emp-task-date-pill emp-task-end ${
-                          selectedTask.status !== "Completed" && new Date(selectedTask.endDate) < currentDate
+                          selectedTask.status !== "Completed" &&
+                          new Date(selectedTask.endDate) < currentDate
                             ? "emp-task-overdue"
                             : ""
                         }`}
@@ -667,25 +829,33 @@ const EmpTaskManagement = () => {
                     <div className="emp-task-description">
                       <h4>Description</h4>
                       <p>
-                        {selectedTask.description.split("\n").map((line, idx) => (
-                          <span key={idx}>
-                            {line.startsWith("- ") ? `• ${line.slice(2)}` : line}
-                            <br />
-                          </span>
-                        ))}
+                        {selectedTask.description
+                          .split("\n")
+                          .map((line, idx) => (
+                            <span key={idx}>
+                              {line.startsWith("- ")
+                                ? `• ${line.slice(2)}`
+                                : line}
+                              <br />
+                            </span>
+                          ))}
                       </p>
                     </div>
                   </div>
                   <div className="emp-task-tabs">
                     <div className="emp-task-tab-header">
                       <button
-                        className={`emp-task-tab-btn ${activeTab === "Progress" ? "emp-task-active" : ""}`}
+                        className={`emp-task-tab-btn ${
+                          activeTab === "Progress" ? "emp-task-active" : ""
+                        }`}
                         onClick={() => setActiveTab("Progress")}
                       >
                         Progress
                       </button>
                       <button
-                        className={`emp-task-tab-btn ${activeTab === "Clarification" ? "emp-task-active" : ""}`}
+                        className={`emp-task-tab-btn ${
+                          activeTab === "Clarification" ? "emp-task-active" : ""
+                        }`}
                         onClick={() => setActiveTab("Clarification")}
                       >
                         Clarification
@@ -696,17 +866,27 @@ const EmpTaskManagement = () => {
                         <div className="emp-task-progress-tab">
                           <h4>Progress Updates</h4>
                           {loadingMessages ? (
-                            <p className="emp-task-loading-message">Loading progress messages...</p>
-                          ) : selectedTask.messages.filter((msg) => msg.type === "Progress").length > 0 ? (
+                            <p className="emp-task-loading-message">
+                              Loading progress messages...
+                            </p>
+                          ) : selectedTask.messages.filter(
+                              (msg) => msg.type === "Progress"
+                            ).length > 0 ? (
                             <div className="emp-task-messages">
                               {selectedTask.messages
                                 .filter((msg) => msg.type === "Progress")
                                 .map((msg, idx) => (
                                   <div
                                     key={idx}
-                                    className={`emp-task-message ${msg.sender === employeeId ? "emp-task-sent" : "emp-task-received"}`}
+                                    className={`emp-task-message ${
+                                      msg.sender === employeeId
+                                        ? "emp-task-sent"
+                                        : "emp-task-received"
+                                    }`}
                                   >
-                                    <div className="emp-task-message-content">{msg.text}</div>
+                                    <div className="emp-task-message-content">
+                                      {msg.text}
+                                    </div>
                                     <div className="emp-task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
                                       <span>{msg.senderName}</span>
@@ -715,9 +895,14 @@ const EmpTaskManagement = () => {
                                 ))}
                             </div>
                           ) : (
-                            <p className="emp-task-no-msg">No progress updates yet.</p>
+                            <p className="emp-task-no-msg">
+                              No progress updates yet.
+                            </p>
                           )}
-                          <form className="emp-task-chat-input" onSubmit={handleAddMessage}>
+                          <form
+                            className="emp-task-chat-input"
+                            onSubmit={handleAddMessage}
+                          >
                             <input
                               type="text"
                               placeholder="Type a progress comment…"
@@ -735,17 +920,27 @@ const EmpTaskManagement = () => {
                         <div className="emp-task-clarification-tab">
                           <h4>Clarification</h4>
                           {loadingMessages ? (
-                            <p className="emp-task-loading-message">Loading clarification messages...</p>
-                          ) : selectedTask.messages.filter((msg) => msg.type === "Clarification").length > 0 ? (
+                            <p className="emp-task-loading-message">
+                              Loading clarification messages...
+                            </p>
+                          ) : selectedTask.messages.filter(
+                              (msg) => msg.type === "Clarification"
+                            ).length > 0 ? (
                             <div className="emp-task-messages">
                               {selectedTask.messages
                                 .filter((msg) => msg.type === "Clarification")
                                 .map((msg, idx) => (
                                   <div
                                     key={idx}
-                                    className={`emp-task-message ${msg.sender === employeeId ? "emp-task-sent" : "emp-task-received"}`}
+                                    className={`emp-task-message ${
+                                      msg.sender === employeeId
+                                        ? "emp-task-sent"
+                                        : "emp-task-received"
+                                    }`}
                                   >
-                                    <div className="emp-task-message-content">{msg.text}</div>
+                                    <div className="emp-task-message-content">
+                                      {msg.text}
+                                    </div>
                                     <div className="emp-task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
                                       <span>{msg.senderName}</span>
@@ -754,9 +949,14 @@ const EmpTaskManagement = () => {
                                 ))}
                             </div>
                           ) : (
-                            <p className="emp-task-no-msg">No clarifications yet.</p>
+                            <p className="emp-task-no-msg">
+                              No clarifications yet.
+                            </p>
                           )}
-                          <form className="emp-task-chat-input" onSubmit={handleAddMessage}>
+                          <form
+                            className="emp-task-chat-input"
+                            onSubmit={handleAddMessage}
+                          >
                             <input
                               type="text"
                               placeholder="Type a clarification message…"

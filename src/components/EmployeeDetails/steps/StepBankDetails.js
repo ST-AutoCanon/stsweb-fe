@@ -1,4 +1,3 @@
-// ./steps/StepBankDetails.jsx
 import React from "react";
 
 const ACCOUNT_TYPES = ["Savings", "Current", "Salary", "Other"];

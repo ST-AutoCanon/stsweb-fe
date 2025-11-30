@@ -1,4 +1,3 @@
-
 import * as XLSX from "xlsx";
 import axios from "axios";
 import "./Salary_Statement.css";
@@ -18,7 +17,9 @@ const Salary_Statement = () => {
   const [error, setError] = useState("");
   const [uploadMessage, setUploadMessage] = useState("");
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
   const [showPopup, setShowPopup] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -150,12 +151,7 @@ const Salary_Statement = () => {
       const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
       const worksheet = workbook.Sheets[sheetName];
       const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-      rows.forEach((row, index) => {
-        console.log(`Row ${index + 1}:`);
-        console.log("Professional Tax raw value:", row["Professional Tax"], "| Type:", typeof row["Professional Tax"]);
-        console.log("ESIC raw value:", row["ESIC"], "| Type:", typeof row["ESIC"]);
-        console.log("Income Tax raw value:", row["Income Tax"], "| Type:", typeof row["Income Tax"]);
-      });
+      rows.forEach((row, index) => {});
       const cleanKeys = (obj) => {
         const cleaned = {};
         Object.keys(obj).forEach((key) => {
@@ -188,8 +184,9 @@ const Salary_Statement = () => {
         setUpdatedCells(new Map());
         return;
       }
-      console.log("Extracted Headers:", extractedHeaders);
-      const validData = jsonData.slice(1).filter((row) => row && row.length > 0);
+      const validData = jsonData
+        .slice(1)
+        .filter((row) => row && row.length > 0);
       const previousData = prevTableData.length ? prevTableData : validData;
       const { invalidCells, updatedCells } = validateData(
         validData,
@@ -266,7 +263,7 @@ const Salary_Statement = () => {
           "lop deduction",
           "gross salary",
           "net salary",
-          "lop days"
+          "lop days",
         ].includes(h)
       ) {
         return "number";
@@ -329,7 +326,7 @@ const Salary_Statement = () => {
             "LOP Deduction",
             "Gross Salary",
             "Net Salary",
-            "LOP Days"
+            "LOP Days",
           ].includes(columnName)
         ) {
           if (isNaN(cell) || cell === "") {
@@ -345,19 +342,19 @@ const Salary_Statement = () => {
         }
 
         if (isInvalid) {
-          if (!invalidCells.has(rowIndex)) invalidCells.set(rowIndex, new Set());
+          if (!invalidCells.has(rowIndex))
+            invalidCells.set(rowIndex, new Set());
           invalidCells.get(rowIndex).add(colIndex);
         }
 
         if (isUpdated) {
-          if (!updatedCells.has(rowIndex)) updatedCells.set(rowIndex, new Set());
+          if (!updatedCells.has(rowIndex))
+            updatedCells.set(rowIndex, new Set());
           updatedCells.get(rowIndex).add(colIndex);
         }
       });
     });
 
-    console.log("🚨 Debug: Invalid Cells Map:", invalidCells);
-    console.log("🟢 Debug: Updated Cells Map:", updatedCells);
     return { invalidCells, updatedCells };
   };
 
@@ -368,7 +365,9 @@ const Salary_Statement = () => {
     }
     try {
       const excelEpoch = new Date(1900, 0, 1);
-      const date = new Date(excelEpoch.setDate(excelEpoch.getDate() + serial - 2));
+      const date = new Date(
+        excelEpoch.setDate(excelEpoch.getDate() + serial - 2)
+      );
       return date.toISOString().split("T")[0];
     } catch (error) {
       console.error("❌ Error converting date for:", serial, error);
@@ -397,154 +396,162 @@ const Salary_Statement = () => {
     return !isNaN(Date.parse(dateString));
   };
 
- // Frontend: Salary_Statement.js (Enhanced with logging in handleTogglePayslip)
-const handleTogglePayslip = async (employeeId, currentValue) => {
-  const newValue = currentValue === 0 ? 1 : 0;
-  const action = newValue === 1 ? "enable" : "disable";
-  console.log(`🔄 Toggling payslip for ${employeeId}: ${currentValue} -> ${newValue} (${action})`);
-  try {
-    const response = await axios.post(
-      `${BASE_URL}/api/salary-statement/update-payslip/${selectedMonth.toLowerCase()}/${selectedYear}/${employeeId}`,
-      { payslip_generated: newValue },
-      { headers }
-    );
-    console.log(`📥 Backend response:`, response.data);
-    if (response.data.success) {
-      setSalaryData((prev) =>
-        prev.map((row) =>
-          row.employee_id === employeeId
-            ? { ...row, payslip_generated: newValue }
-            : row
-        )
+  const handleTogglePayslip = async (employeeId, currentValue) => {
+    const newValue = currentValue === 0 ? 1 : 0;
+    const action = newValue === 1 ? "enable" : "disable";
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/salary-statement/update-payslip/${selectedMonth.toLowerCase()}/${selectedYear}/${employeeId}`,
+        { payslip_generated: newValue },
+        { headers }
       );
-      showAlert(`Payslip ${action}d successfully`, "Success");
-    } else {
-      throw new Error(response.data.error || "Update failed");
+      if (response.data.success) {
+        setSalaryData((prev) =>
+          prev.map((row) =>
+            row.employee_id === employeeId
+              ? { ...row, payslip_generated: newValue }
+              : row
+          )
+        );
+        showAlert(`Payslip ${action}d successfully`, "Success");
+      } else {
+        throw new Error(response.data.error || "Update failed");
+      }
+    } catch (err) {
+      console.error("❌ Error updating payslip status:", err);
+      console.error(
+        "❌ Full error details:",
+        err.response?.data || err.message
+      );
+      showAlert(
+        `Failed to ${action} payslip: ${
+          err.response?.data?.error || err.message
+        }`,
+        "Error"
+      );
     }
-  } catch (err) {
-    console.error("❌ Error updating payslip status:", err);
-    console.error("❌ Full error details:", err.response?.data || err.message);
-    showAlert(`Failed to ${action} payslip: ${err.response?.data?.error || err.message}`, "Error");
-  }
-};
+  };
   const handleUpload = async () => {
-  console.log("📂 handleUpload() called. File:", file?.name);
-  if (!file || excelData.length === 0) {
-    setError("❌ Please select a valid file to upload!");
-    setTableData([]);
-    setSelectedMonthYearData([]);
-    setSelectedMonth("");
-    setSelectedYear("");
-    setIsMonthYearSelected(false);
-    setTableData([]);
-    showAlert("❌ Please select a valid file to upload!", "No File Selected");
-    return;
-  }
-
-  // Extract month and year from filename
-  const fileNameLower = file.name.toLowerCase();
-  const monthMatch = fileNameLower.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
-  const yearMatch = fileNameLower.match(/(\d{4})/);
-  const month = monthMatch ? monthMatch[1].toLowerCase() : "";
-  const year = yearMatch ? yearMatch[1] : "";
-
-  if (!month || !year) {
-    setError("❌ Could not extract month/year from filename");
-    showAlert("❌ Invalid filename format", "Error");
-    return;
-  }
-
-  // Verify no invalid cells
-  console.log("🔍 Checking invalidCells:", invalidCells);
-  if (invalidCells.size > 0) {
-    let errorMessage = "❌ Cannot save due to invalid data in the following cells:\n";
-    invalidCells.forEach((colSet, rowIndex) => {
-      colSet.forEach((colIndex) => {
-        const columnName = tableHeaders[colIndex] || `Column ${colIndex + 1}`;
-        errorMessage += `- Row ${rowIndex + 2}, ${columnName}\n`;
-      });
-    });
-    errorMessage += "Please correct the highlighted (red) cells in the table and try again.";
-    setError(errorMessage);
-    showAlert(errorMessage, "Invalid Data Detected");
-    return;
-  }
-
-  try {
-    // Process the excelData to match the backend expected format
-    const fullSalaryData = excelData.map((row) => ({
-      employee_id: row["ID"] || "",
-      full_name: row["Name"] || "",
-      annual_ctc: parseFloat(row["Annual CTC"] || 0),
-      basic_salary: parseFloat(row["Basic Salary"] || 0),
-      hra: parseFloat(row["HRA"] || 0),
-      lta: parseFloat(row["LTA"] || 0),
-      other_allowances: parseFloat(row["Other Allowances"] || 0),
-      incentives: parseFloat(row["Incentives"] || 0),
-      overtime: parseFloat(row["Overtime"] || 0),
-      statutory_bonus: parseFloat(row["Statutory Bonus"] || 0),
-      bonus: parseFloat(row["Bonus"] || 0),
-      advance_recovery: parseFloat(row["Advance Recovery"] || 0),
-      employee_pf: parseFloat(row["Employee PF"] || 0),
-      employer_pf: parseFloat(row["Employer PF"] || 0),
-      esic: parseFloat(row["ESIC"] || 0),
-      gratuity: parseFloat(row["Gratuity"] || 0),
-      professional_tax: parseFloat(row["Professional Tax"] || 0),
-      income_tax: parseFloat(row["Income Tax"] || 0),
-      insurance: parseFloat(row["Insurance"] || 0),
-      lop_days: parseInt(row["LOP Days"] || 0),
-      lop_deduction: parseFloat(row["LOP Deduction"] || 0),
-      gross_salary: parseFloat(row["Gross Salary"] || 0),
-      net_salary: parseFloat(row["Net Salary"] || 0) > 0 ? parseFloat(row["Net Salary"] || 0) : 0,
-      payslip_generated: 0,
-    })).filter((item) => item.employee_id && item.full_name); // Filter out invalid rows
-
-    console.log("📤 Sending fullSalaryData:", fullSalaryData);
-
-    const response = await axios.post(
-      `${BASE_URL}/api/salary-details/save`,
-      { salaryData: fullSalaryData, month, year },
-      { headers }
-    );
-    console.log("📥 Backend Response:", response.data);
-
-    if (response.data.success) {
-      console.log("✅ Success: Data uploaded successfully");
-      // Handle success response
-      const successMessage = `Data saved successfully in table: ${response.data.tableName}`;
-      setError(""); // Clear any previous error
-      showAlert(successMessage, "Upload Successful");
-      setIsFileUploaded(true);
-      setIsMonthYearSelected(false);
-      // Clear states after successful save
-      setFile(null);
-      setFileName("No file chosen");
+    if (!file || excelData.length === 0) {
+      setError("❌ Please select a valid file to upload!");
       setTableData([]);
-      setHeader([]);
-      setInvalidCells(new Map());
-      setUpdatedCells(new Map());
-      setExcelData([]);
-      setPrevTableData([]);
-      setShowNote(true);
-    } else {
-      console.log("❌ Failure: Backend returned an error");
-      const errorMsg = response.data.error || "Unknown error";
+      setSelectedMonthYearData([]);
+      setSelectedMonth("");
+      setSelectedYear("");
+      setIsMonthYearSelected(false);
+      setTableData([]);
+      showAlert("❌ Please select a valid file to upload!", "No File Selected");
+      return;
+    }
+
+    const fileNameLower = file.name.toLowerCase();
+    const monthMatch = fileNameLower.match(
+      /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i
+    );
+    const yearMatch = fileNameLower.match(/(\d{4})/);
+    const month = monthMatch ? monthMatch[1].toLowerCase() : "";
+    const year = yearMatch ? yearMatch[1] : "";
+
+    if (!month || !year) {
+      setError("❌ Could not extract month/year from filename");
+      showAlert("❌ Invalid filename format", "Error");
+      return;
+    }
+
+    if (invalidCells.size > 0) {
+      let errorMessage =
+        "❌ Cannot save due to invalid data in the following cells:\n";
+      invalidCells.forEach((colSet, rowIndex) => {
+        colSet.forEach((colIndex) => {
+          const columnName = tableHeaders[colIndex] || `Column ${colIndex + 1}`;
+          errorMessage += `- Row ${rowIndex + 2}, ${columnName}\n`;
+        });
+      });
+      errorMessage +=
+        "Please correct the highlighted (red) cells in the table and try again.";
+      setError(errorMessage);
+      showAlert(errorMessage, "Invalid Data Detected");
+      return;
+    }
+
+    try {
+      const fullSalaryData = excelData
+        .map((row) => ({
+          employee_id: row["ID"] || "",
+          full_name: row["Name"] || "",
+          annual_ctc: parseFloat(row["Annual CTC"] || 0),
+          basic_salary: parseFloat(row["Basic Salary"] || 0),
+          hra: parseFloat(row["HRA"] || 0),
+          lta: parseFloat(row["LTA"] || 0),
+          other_allowances: parseFloat(row["Other Allowances"] || 0),
+          incentives: parseFloat(row["Incentives"] || 0),
+          overtime: parseFloat(row["Overtime"] || 0),
+          statutory_bonus: parseFloat(row["Statutory Bonus"] || 0),
+          bonus: parseFloat(row["Bonus"] || 0),
+          advance_recovery: parseFloat(row["Advance Recovery"] || 0),
+          employee_pf: parseFloat(row["Employee PF"] || 0),
+          employer_pf: parseFloat(row["Employer PF"] || 0),
+          esic: parseFloat(row["ESIC"] || 0),
+          gratuity: parseFloat(row["Gratuity"] || 0),
+          professional_tax: parseFloat(row["Professional Tax"] || 0),
+          income_tax: parseFloat(row["Income Tax"] || 0),
+          insurance: parseFloat(row["Insurance"] || 0),
+          lop_days: parseInt(row["LOP Days"] || 0),
+          lop_deduction: parseFloat(row["LOP Deduction"] || 0),
+          gross_salary: parseFloat(row["Gross Salary"] || 0),
+          net_salary:
+            parseFloat(row["Net Salary"] || 0) > 0
+              ? parseFloat(row["Net Salary"] || 0)
+              : 0,
+          payslip_generated: 0,
+        }))
+        .filter((item) => item.employee_id && item.full_name);
+
+      const response = await axios.post(
+        `${BASE_URL}/api/salary-details/save`,
+        { salaryData: fullSalaryData, month, year },
+        { headers }
+      );
+
+      if (response.data.success) {
+        const successMessage = `Data saved successfully in table: ${response.data.tableName}`;
+        setError("");
+        showAlert(successMessage, "Upload Successful");
+        setIsFileUploaded(true);
+        setIsMonthYearSelected(false);
+        setFile(null);
+        setFileName("No file chosen");
+        setTableData([]);
+        setHeader([]);
+        setInvalidCells(new Map());
+        setUpdatedCells(new Map());
+        setExcelData([]);
+        setPrevTableData([]);
+        setShowNote(true);
+      } else {
+        const errorMsg = response.data.error || "Unknown error";
+        setError(`❌ Upload failed: ${errorMsg}`);
+        showAlert(`❌ Upload failed: ${errorMsg}`, "Upload Error");
+      }
+    } catch (error) {
+      console.error("❌ Error uploading data:", error);
+      const errorMsg =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Unknown server error";
       setError(`❌ Upload failed: ${errorMsg}`);
       showAlert(`❌ Upload failed: ${errorMsg}`, "Upload Error");
     }
-  } catch (error) {
-    console.error("❌ Error uploading data:", error);
-    const errorMsg =
-      error.response?.data?.error ||
-      error.response?.data?.message ||
-      error.message ||
-      "Unknown server error";
-    setError(`❌ Upload failed: ${errorMsg}`);
-    showAlert(`❌ Upload failed: ${errorMsg}`, "Upload Error");
-  }
-};
+  };
   const calculateTotalSalary = () => {
-    if (!tableData || tableData.length === 0 || !tableHeaders || tableHeaders.length === 0) {
+    if (
+      !tableData ||
+      tableData.length === 0 ||
+      !tableHeaders ||
+      tableHeaders.length === 0
+    ) {
       return 0;
     }
     const netSalaryIndex = tableHeaders.findIndex(
@@ -555,7 +562,9 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
     }
     let total = 0;
     tableData.forEach((row) => {
-      const salary = parseFloat(row[netSalaryIndex]?.toString().replace(/,/g, ""));
+      const salary = parseFloat(
+        row[netSalaryIndex]?.toString().replace(/,/g, "")
+      );
       if (!isNaN(salary)) {
         total += salary;
       }
@@ -580,7 +589,6 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
 
   useEffect(() => {
     if (salaryData.length > 0) {
-      console.log("🔹 Total Net Salary:", calculateTotalNetSalary());
     }
   }, [salaryData]);
 
@@ -606,7 +614,6 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
     setIsMonthYearSelected(true);
     setIsFileUploaded(false);
     setError("");
-    console.log("Selected Month & Year:", month, year);
     await fetchSalaryStatement(month, year);
   };
 
@@ -614,10 +621,11 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
     if (!month || !year) return;
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/salary-statement/${month.toLowerCase()}/${year}`,
+        `${
+          process.env.REACT_APP_BACKEND_URL
+        }/api/salary-statement/${month.toLowerCase()}/${year}`,
         { headers }
       );
-      console.log("Salary statement response:", response.data);
       if (response.data && response.data.length > 0) {
         setTableData(response.data);
         setHeader(Object.keys(response.data[0]));
@@ -634,7 +642,6 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
     const link = document.createElement("a");
     link.href = templateUrl;
     link.download = "Salary_Statement_Template.xlsx";
-    console.log("linkherf",link.href);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -663,21 +670,17 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
   }, [selectedMonth, selectedYear]);
 
   const fetchSalaryData = async (month, yr) => {
-    console.log("Fetching Salary Data for:", month, yr);
     try {
       const apiUrl = `${
         process.env.REACT_APP_BACKEND_URL
       }/api/salary-statement/${month.toLowerCase()}/${yr}`;
-      console.log("API Request URL:", apiUrl);
       const response = await axios.get(apiUrl, { headers });
-      console.log("Full API Response:", response.data);
       if (
         response.data &&
         response.data.salary_statement &&
         response.data.salary_statement.length > 0
       ) {
         setSalaryData(response.data.salary_statement);
-        console.log("Salary Data Set:", response.data.salary_statement);
       } else {
         setSalaryData([]);
         console.warn("⚠ Debug: No salary data found");
@@ -695,10 +698,11 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
     return header.charAt(0).toUpperCase() + header.slice(1).toLowerCase();
   };
 
-  // Get display keys excluding payslip_generated
   const getDisplayKeys = () => {
     if (salaryData.length === 0) return [];
-    return Object.keys(salaryData[0]).filter((key) => key !== "payslip_generated");
+    return Object.keys(salaryData[0]).filter(
+      (key) => key !== "payslip_generated"
+    );
   };
 
   return (
@@ -747,9 +751,14 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
             )}
           </div>
         </div>
-        <div style={{ minHeight: "30px", display: "flex", alignItems: "center" }}>
+        <div
+          style={{ minHeight: "30px", display: "flex", alignItems: "center" }}
+        >
           {error && (
-            <p className="error-message-for-uploadfile" style={{ whiteSpace: "pre-wrap" }}>
+            <p
+              className="error-message-for-uploadfile"
+              style={{ whiteSpace: "pre-wrap" }}
+            >
               {error}
             </p>
           )}
@@ -792,32 +801,34 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(searchTerm ? filteredData : tableData).map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {row.map((cell, colIndex) => {
-                        const isInvalid =
-                          invalidCells.has(rowIndex) &&
-                          invalidCells.get(rowIndex).has(colIndex);
-                        const isUpdated =
-                          updatedCells.has(rowIndex) &&
-                          updatedCells.get(rowIndex).has(colIndex);
-                        return (
-                          <td
-                            key={colIndex}
-                            style={{
-                              backgroundColor: isInvalid
-                                ? "red"
-                                : isUpdated
-                                ? "lightgreen"
-                                : "white",
-                            }}
-                          >
-                            {cell}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                  {(searchTerm ? filteredData : tableData).map(
+                    (row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, colIndex) => {
+                          const isInvalid =
+                            invalidCells.has(rowIndex) &&
+                            invalidCells.get(rowIndex).has(colIndex);
+                          const isUpdated =
+                            updatedCells.has(rowIndex) &&
+                            updatedCells.get(rowIndex).has(colIndex);
+                          return (
+                            <td
+                              key={colIndex}
+                              style={{
+                                backgroundColor: isInvalid
+                                  ? "red"
+                                  : isUpdated
+                                  ? "lightgreen"
+                                  : "white",
+                              }}
+                            >
+                              {cell}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    )
+                  )}
                 </tbody>
                 <tfoot>
                   <tr>
@@ -836,7 +847,8 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
             <div className="table-scroll-wrapper">
               <div className="table-header">
                 <h2 className="table-title">
-                  Salary Statement - {selectedMonth.toUpperCase()} {selectedYear}
+                  Salary Statement - {selectedMonth.toUpperCase()}{" "}
+                  {selectedYear}
                 </h2>
                 <input
                   type="text"
@@ -856,21 +868,30 @@ const handleTogglePayslip = async (employeeId, currentValue) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(searchTerm ? filteredData : salaryData).map((row, index) => (
-                      <tr key={index}>
-                        {getDisplayKeys().map((key, idx) => (
-                          <td key={idx}>{row[key] ?? "N/A"}</td>
-                        ))}
-                        <td>
-                          <button
-                            className="toggle-btn"
-                            onClick={() => handleTogglePayslip(row.employee_id, row.payslip_generated)}
-                          >
-                            {row.payslip_generated === 0 ? "Enable" : "Disable"}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {(searchTerm ? filteredData : salaryData).map(
+                      (row, index) => (
+                        <tr key={index}>
+                          {getDisplayKeys().map((key, idx) => (
+                            <td key={idx}>{row[key] ?? "N/A"}</td>
+                          ))}
+                          <td>
+                            <button
+                              className="toggle-btn"
+                              onClick={() =>
+                                handleTogglePayslip(
+                                  row.employee_id,
+                                  row.payslip_generated
+                                )
+                              }
+                            >
+                              {row.payslip_generated === 0
+                                ? "Enable"
+                                : "Disable"}
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    )}
                   </tbody>
                   <tfoot>
                     <tr>

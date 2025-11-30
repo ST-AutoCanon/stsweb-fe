@@ -9,7 +9,6 @@
   position: relative;
 }
 
-/* Header for Config Button */
 .supervisor-plan-admin-header {
   position: absolute;
   top: 0;
@@ -21,7 +20,6 @@
   justify-content: flex-end;
 }
 
-/* Config Button */
 .supervisor-plan-admin-config-button {
   padding: 8px 16px;
   background-color: #28a745;
@@ -44,7 +42,6 @@
   cursor: not-allowed;
 }
 
-/* Search Input */
 .supervisor-plan-admin-search-input {
   width: 100%;
   padding: 8px;
@@ -67,7 +64,6 @@
   color: #888;
 }
 
-/* Left panel - Employee list */
 .supervisor-plan-admin-employee-list {
   width: 160px;
   max-width: 100%;
@@ -138,7 +134,6 @@
   color: white;
 }
 
-/* Right panel - Task details */
 .supervisor-plan-admin-task-details {
   flex: 1;
   padding: 20px;
@@ -155,14 +150,12 @@
   font-weight: 600;
 }
 
-/* Week Navigation */
 .supervisor-plan-admin-week-navigation {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 15px;
   position: sticky;
-  /* top: 60px; */
   background-color: #f0f2f5;
   z-index: 10;
   padding: 10px 0;
@@ -196,7 +189,6 @@
   color: #333;
 }
 
-/* Tasks Container */
 .supervisor-plan-admin-tasks-container {
   display: flex;
   flex-direction: column;
@@ -222,8 +214,6 @@
   background: #28a745;
   border-radius: 4px;
 }
-
-/* Task Card */
 .supervisor-plan-admin-task-card {
   background-color: #fff;
   border-radius: 10px;
@@ -233,7 +223,6 @@
   max-width: 100%;
 }
 
-/* Task Header */
 .supervisor-plan-admin-task-header {
   display: flex;
   align-items: center;
@@ -274,7 +263,6 @@
   margin-right: 8px;
 }
 
-/* Task Body */
 .supervisor-plan-admin-task-body {
   margin-bottom: 10px;
 }
@@ -287,7 +275,6 @@
   max-width: 100%;
 }
 
-/* Project ID Circle */
 .supervisor-plan-admin-project-circle-wrapper {
   position: relative;
 }
@@ -305,7 +292,6 @@
   font-weight: 500;
 }
 
-/* Status Dot */
 .supervisor-plan-admin-status-dot-wrapper {
   position: relative;
 }
@@ -317,7 +303,6 @@
   border-radius: 50%;
 }
 
-/* Tooltip for Project Circle and Status Dot */
 .supervisor-plan-admin-tooltip {
   visibility: hidden;
   background-color: #333;
@@ -340,7 +325,6 @@
   visibility: visible;
 }
 
-/* Star Rating */
 .supervisor-plan-admin-star-rating {
   display: flex;
   gap: 3px;
@@ -357,7 +341,6 @@
   color: #ffc107;
 }
 
-/* Edit Section */
 .supervisor-plan-admin-edit-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -410,8 +393,6 @@
   color: red;
   padding: 10px;
 }
-
-/* Modal Styling */
 .supervisor-plan-admin-modal {
   position: fixed;
   top: 50%;
@@ -518,7 +499,6 @@
   z-index: 999;
 }
 
-/* Ensure responsiveness */
 @media (max-width: 768px) {
   .supervisor-plan-admin-config-button {
     padding: 6px 12px;
@@ -575,7 +555,7 @@
 .supervisor-plan-admin-tasks-container {
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Space between day groups */
+  gap: 20px;
   padding: 10px;
   overflow-y: auto;
 }
@@ -602,7 +582,6 @@
   font-size: 13px;
 }
 
-/* Space between tasks in the same day */
 .supervisor-plan-admin-day-group > .supervisor-plan-admin-task-card {
   margin-bottom: 15px;
 }
@@ -610,7 +589,6 @@
   margin-bottom: 0;
 }
 
-/* Ensure task cards have margin/gap */
 .supervisor-plan-admin-task-card {
   background: #fff;
   border-radius: 6px;
@@ -618,7 +596,6 @@
   border: 1px solid #eee;
 }
 
-/* Date styles (copy from non-admin, prefix if needed) */
 .supervisor-plan-task-date {
   font-size: 12px;
   padding: 2px 5px;

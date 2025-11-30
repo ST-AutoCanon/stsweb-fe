@@ -7,17 +7,14 @@ import { MdMic, MdMicNone } from "react-icons/md";
 const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // DYNAMIC TODAY - November 4, 2025 (or any current date)
-  const today = new Date(); // Uses real current date
+  const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Calculate Monday of the current week (ISO week starts on Monday)
-  const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-  const offsetToMonday = (dayOfWeek + 6) % 7; // Days to subtract to get Monday
+  const dayOfWeek = today.getDay();
+  const offsetToMonday = (dayOfWeek + 6) % 7;
   const startOfCurrentWeek = new Date(today);
   startOfCurrentWeek.setDate(today.getDate() - offsetToMonday);
 
-  // Apply weekOffset to get the displayed week's Monday
   const startDate = new Date(startOfCurrentWeek);
   startDate.setDate(startOfCurrentWeek.getDate() + weekOffset * 7);
 
@@ -44,11 +41,9 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
     return weekNo;
   };
-  // --- Speech to Text States ---
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
 
-  // Setup speech recognition when mic starts
   const startListening = () => {
     if (!("webkitSpeechRecognition" in window)) {
       alert("Speech Recognition is not supported in this browser.");
@@ -86,7 +81,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     recognitionRef.current.start();
   };
 
-  // Stop mic
   const stopListening = () => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
@@ -94,8 +88,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     setIsListening(false);
   };
 
-  const weekId = getISOWeekNumber(startDate); // Dynamic Week ID
-  console.log("Week ID:", weekId, "Employee ID:", employeeId);
+  const weekId = getISOWeekNumber(startDate);
 
   const weekDates = [];
   for (let i = 0; i < 7; i++) {
@@ -156,17 +149,14 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const tooltipRef = useRef(null);
 
-  // Handle window resize for mobile detection
   useEffect(() => {
     const handleResize = () => {
-      console.log("Window width:", window.innerWidth);
       setIsMobile(window.innerWidth <= 768);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Handle click/touch outside to close tooltip
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -175,7 +165,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         tooltipRef.current &&
         !tooltipRef.current.contains(e.target)
       ) {
-        console.log("Closing tooltip due to outside click");
         setMobileTooltip({
           isVisible: false,
           content: "",
@@ -192,15 +181,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     };
   }, [mobileTooltip.isVisible, isMobile]);
 
-  // Handle tooltip click/touch for all elements
   const handleTooltipClick = (e, content, dotId) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isMobile) {
-      console.log("Not mobile view, ignoring click for tooltip");
       return;
     }
-    console.log("Tooltip element clicked:", { content, dotId });
     const rect = e.target.getBoundingClientRect();
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
@@ -213,12 +199,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         position: { x: tooltipX, y: tooltipY },
         dotId: prev.dotId === dotId ? null : dotId,
       };
-      console.log("New tooltip state:", newState);
       return newState;
     });
   };
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -257,9 +241,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const isTaskEditable = (taskDate) => {
     if (!taskDate) {
-      console.log(
-        `Task date: ${taskDate}, freezeDays: ${freezeDays}, editable: false (no date)`
-      );
       return false;
     }
     const today = new Date();
@@ -268,9 +249,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     taskDateObj.setHours(0, 0, 0, 0);
     const diffDays = (today - taskDateObj) / (1000 * 3600 * 24);
     const editable = diffDays <= 0 || (diffDays > 0 && diffDays <= freezeDays);
-    console.log(
-      `Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`
-    );
+
     return editable;
   };
 
@@ -331,15 +310,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config`, {
           headers: {
             "x-employee-id": employeeId,
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
             "Content-Type": "application/json",
           },
         })
       );
-      console.log(
-        "Config API response:",
-        JSON.stringify(configResponse.data, null, 2)
-      );
+
       if (
         !configResponse.data ||
         !configResponse.data.success ||
@@ -371,20 +347,16 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               "Invalid freeze_days_employee value. Freezing all past tasks."
             );
           } else {
-            console.log(
-              `freeze_days_employee value: ${freezeDaysConfig.value}, parsed days: ${days}`
-            );
             setFreezeDays(days);
           }
         }
       }
 
       const holidaysUrl = `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`;
-      console.log("Fetching holidays from:", holidaysUrl);
       const holidaysRes = await withRetry(() =>
         axios.get(holidaysUrl, {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
             "x-employee-id": employeeId,
             "Content-Type": "application/json",
           },
@@ -394,14 +366,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         ? holidaysRes.data.holidays.map((holiday) => holiday.date)
         : [];
       setHolidays(holidayData.length > 0 ? holidayData : ["2025-12-25"]);
-      console.log("Holidays:", holidayData);
 
       const leavesUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
-      console.log("Fetching leaves from:", leavesUrl);
       const leavesRes = await withRetry(() =>
         axios.get(leavesUrl, {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
             "Content-Type": "application/json",
           },
         })
@@ -410,15 +380,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         ? leavesRes.data.data.filter((leave) => leave.status === "Approved")
         : [];
       setApprovedLeaves(approvedLeavesData);
-      console.log("Approved Leaves:", approvedLeavesData);
 
       const projectsUrl = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`;
-      console.log("Fetching projects from:", projectsUrl);
       const projectsRes = await withRetry(() =>
         axios.get(projectsUrl, {
           params: { employeeId },
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
             "Content-Type": "application/json",
           },
         })
@@ -430,11 +398,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       setProjects(newProjects);
 
       const tasksUrl = `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/employee/${employeeId}`;
-      console.log("Fetching tasks from:", tasksUrl);
       const tasksRes = await withRetry(() =>
         axios.get(tasksUrl, {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         })
       );
@@ -490,7 +457,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     }
   }, [employeeId, weekId, weekOffset]);
 
-  // DYNAMIC NAVIGATION: ±3 weeks from today
   const handlePreviousWeek = () => {
     setWeekOffset((prev) => Math.max(prev - 1, -3));
   };
@@ -585,7 +551,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         updatedTask,
         {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         }
       );
@@ -683,7 +649,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           newTaskData,
           {
             headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+              "x-api-key": process.env.REACT_APP_API_KEY,
             },
             timeout: 10000,
           }
@@ -694,7 +660,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           updateData,
           {
             headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+              "x-api-key": process.env.REACT_APP_API_KEY,
             },
             timeout: 10000,
           }
@@ -739,7 +705,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           updateData,
           {
             headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+              "x-api-key": process.env.REACT_APP_API_KEY,
             },
           }
         );
@@ -812,7 +778,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         },
         {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         }
       );
@@ -853,7 +819,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         },
         {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         }
       );
@@ -900,7 +866,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         },
         {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         }
       );
@@ -977,7 +943,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         updatedTask,
         {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         }
       );
@@ -1007,7 +973,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         newTask,
         {
           headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+            "x-api-key": process.env.REACT_APP_API_KEY,
           },
         }
       );
@@ -1045,9 +1011,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
 
   const handleAssignClick = () => {
-    console.log(
-      "Assign New Tasks button clicked, setting showAssignForm to true"
-    );
     setShowAssignForm(true);
     setAssignTasks([
       {
@@ -1116,7 +1079,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
 
   const handleAssignSubmit = async () => {
-    console.log("Submitting assign tasks:", assignTasks);
     const validTasks = assignTasks.filter(
       (task) => task.projectId && task.taskName && task.dates.length > 0
     );
@@ -1136,14 +1098,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           const taskDate = new Date(2025, monthIndex, parseInt(day));
           taskDate.setHours(0, 0, 0, 0);
           const taskDateStr = formatDateIST(taskDate);
-          console.log(
-            "Assigning task for date:",
-            date,
-            "Parsed Date:",
-            taskDate,
-            "Formatted Date:",
-            taskDateStr
-          );
+
           const newTask = {
             week_id: weekId,
             task_date: taskDateStr,
@@ -1164,21 +1119,14 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             newTask,
             {
               headers: {
-                "x-api-key": process.env.REACT_APP_API_KEY || "abc123xyz",
+                "x-api-key": process.env.REACT_APP_API_KEY,
               },
             }
           );
           setTasksData((prev) => {
             const newData = [...prev];
             const dayIndex = newData.findIndex((d) => d.date === date);
-            console.log(
-              "Day Index:",
-              dayIndex,
-              "Date:",
-              date,
-              "Task:",
-              newTask
-            );
+
             if (dayIndex > -1) {
               newData[dayIndex] = {
                 ...newData[dayIndex],
@@ -1210,7 +1158,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   };
 
   const handleAssignCancel = () => {
-    console.log("Cancel assign form, resetting state");
     setShowAssignForm(false);
     setAssignTasks([]);
     setDropdownOpen({});
@@ -1248,51 +1195,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       <div className="week-task-planner-header">
         <h2>
           Weekly Task Planner{" "}
-          {/* <span className="week-task-week-id">
-            Week {weekId}: {dateRange}
-          </span> */}
-          {/* <div className="week-task-week-navigation">
-            <button
-              onClick={handlePreviousWeek}
-              className="week-task-nav-button-task"
-              disabled={weekOffset <= -3}
-              title={weekOffset <= -3 ? "Cannot view earlier than 3 weeks ago" : "Previous Week"}
-            >
-              <svg
-                className="week-task-nav-icon"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <div className="week-task-nav-dots">
-              <span className="week-task-dot"></span>
-              <span className="week-task-dot"></span>
-              <span className="week-task-dot"></span>
-            </div>
-            <button
-              onClick={handleNextWeek}
-              className="week-task-nav-button-task"
-              disabled={weekOffset >= 3}
-              title={weekOffset >= 3 ? "Cannot view beyond 3 weeks ahead" : "Next Week"}
-            >
-              <svg
-                className="week-task-nav-icon"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button> */}
           <div className="week-task-week-navigation">
             <button
               onClick={handlePreviousWeek}
@@ -1317,7 +1219,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               </svg>
             </button>
 
-            {/* Week ID and Date Range in the middle */}
             <span className="week-task-week-id-nav">
               Week {weekId}: {dateRange}
             </span>
@@ -1350,7 +1251,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           <button
             className="week-task-assign-task-button"
             onClick={() => {
-              console.log("Assign New Tasks button clicked");
               handleAssignClick();
             }}
           >
@@ -1407,7 +1307,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         </div>
       )}
 
-      {/* --- MODALS & FORMS (unchanged) --- */}
       {showAssignForm && (
         <div className="week-task-assign-form-modal">
           <div className="week-task-assign-form-empdriven">
@@ -1591,7 +1490,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         </div>
       )}
 
-      {/* --- TASK CARDS --- */}
       {!loading &&
         !error &&
         !noTasks &&
@@ -1683,13 +1581,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                     const isFrozen =
                       task.sup_review_status === "suspended_review";
                     const effectiveEditable = editable && !isFrozen;
-                    console.log(
-                      `Rendering task ${task.task_id}: date=${
-                        task.task_date
-                      }, editable=${editable}, frozen=${isFrozen}, effectiveEditable=${effectiveEditable}, class=${
-                        !effectiveEditable ? "task-frozen" : ""
-                      }`
-                    );
+
                     return (
                       <div
                         key={task.task_id}
@@ -1874,14 +1766,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                                     disabled={!effectiveEditable}
                                   />
 
-                                  {/* Microphone Icon */}
-                                  {/* <span
-  className="week-task-mic-icon"
-  onClick={isListening ? stopListening : startListening}
-  style={{ cursor: "pointer", marginLeft: "8px", fontSize: "22px" }}
->
-  {isListening ? <MdMicNone style={{ color: "red" }} /> : <MdMic style={{ color: "#007bff" }} />}
-</span> */}
                                   <span
                                     className="week-task-mic-icon"
                                     onClick={

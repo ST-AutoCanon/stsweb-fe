@@ -5,7 +5,6 @@ import { numberToWords } from "./numberToWords";
 const InvoiceTemplate = React.forwardRef((props, ref) => {
   const { invoiceType = "", invoiceNumber = "", downloadDetails = {} } = props;
 
-  // Destructure all relevant details from downloadDetails
   const {
     to,
     address,
@@ -19,20 +18,17 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
     withSeal,
     lineItems,
     subTotal,
-    gst, // GST percentage, for example "18"
-    gstAmount, // Total GST amount
-    advance, // Advance paid
+    gst,
+    gstAmount,
+    advance,
     totalExcludingTax,
     totalIncludingTax,
     terms,
-    // Optionally additional fields if needed
   } = downloadDetails;
 
-  // Ensure that lineItems is an array
   const parsedLineItems =
     Array.isArray(lineItems) && lineItems.length > 0 ? lineItems : [];
 
-  // Calculate totals if not provided
   const totals = parsedLineItems.reduce(
     (acc, item) => {
       acc.quantity += Number(item.quantity || 0);
@@ -43,16 +39,13 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
     { quantity: 0, amount: 0, total: 0 }
   );
 
-  // Calculate total GST from line items if not provided
   const totalGST = parsedLineItems.reduce(
     (acc, item) => acc + (Number(item.total || 0) * Number(gst || 0)) / 100,
     0
   );
 
-  // Use provided totals if available; otherwise compute gross total
   const grossTotal = totals.total + totalGST;
 
-  // For invoices from Karnataka, compute half GST values
   const halfGSTRate =
     gst && Number(gst) > 0 ? (Number(gst) / 2).toFixed(2) : "0.00";
   const halfGSTAmount =
@@ -60,7 +53,6 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
       ? (Number(gstAmount) / 2).toFixed(2)
       : (totalGST / 2).toFixed(2);
 
-  // Fixed rows logic: if you want a fixed 8 rows, create empty rows if needed.
   const fixedRows = 8;
   const emptyRowCount = fixedRows - parsedLineItems.length;
   const emptyRows =
@@ -95,7 +87,6 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
           </h4>
         </div>
         <div className="emp-bill-data">
-          {/* Recipient / Bill To Details */}
           <div className="emp-bill-to">
             <strong>
               <p className="emp-project-company">{to || "_________"}</p>
@@ -105,7 +96,6 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
             <p>GSTIN : {companyGst || "_________"}</p>
             <p>State: {state || "_________"}</p>
           </div>
-          {/* Invoice Details */}
           <div className="emp-inv-details">
             <p>
               <span className="temp-label">
@@ -359,4 +349,3 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
 });
 
 export default InvoiceTemplate;
-

@@ -8,16 +8,15 @@ const Feedbackform = ({ onClose }) => {
   const [rating, setRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
- const closeModal = () => {
-  onClose();
-};
+  const closeModal = () => {
+    onClose();
+  };
   const handleRating = (value) => {
     setRating(value);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Feedback submitted:", { name, email, message, rating });
     setSubmitted(true);
   };
 
@@ -40,9 +39,7 @@ const Feedbackform = ({ onClose }) => {
         {submitted ? (
           <div className="feedback-success">
             <h2>Thank you for your feedback!</h2>
-            <button onClick={handleClose} className="close-button">
-            
-            </button>
+            <button onClick={handleClose} className="close-button"></button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="feedback-form">
