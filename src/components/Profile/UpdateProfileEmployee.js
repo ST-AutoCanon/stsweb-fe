@@ -1,4 +1,3 @@
-// ./UpdateProfileEmployee.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import EmployeeFormEmployee from "./EmployeeFormEmployee";
@@ -40,7 +39,6 @@ export default function UpdateProfileEmployee({
         },
       });
       const updated = res.data?.data || null;
-      // Make sure we wait for parent to finish (it marks notification read)
       if (onSaved) await onSaved(updated);
 
       return updated;

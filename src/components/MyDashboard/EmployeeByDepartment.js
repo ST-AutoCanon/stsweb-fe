@@ -11,7 +11,6 @@ import {
 } from "chart.js";
 import "./EmployeeByDepartment.css";
 
-// Register chart components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -51,7 +50,6 @@ const EmployeeByDepartment = () => {
 
         const jsonData = await response.json();
 
-        // Ensure the response contains `categories`
         if (
           !jsonData ||
           !jsonData.categories ||
@@ -62,7 +60,6 @@ const EmployeeByDepartment = () => {
           );
         }
 
-        // Filter and map departments
         const departments = jsonData.categories.filter((dept) =>
           dept.department_name?.trim()
         );
@@ -112,10 +109,10 @@ const EmployeeByDepartment = () => {
         },
       },
       tooltip: {
-        enabled: true, // Show tooltips on hover
+        enabled: true,
       },
       datalabels: {
-        display: false, // Completely hide data labels on bars
+        display: false,
       },
     },
     scales: {
@@ -147,7 +144,7 @@ const EmployeeByDepartment = () => {
         grid: { display: false },
         ticks: {
           beginAtZero: true,
-          stepSize: 1, // Ensure only whole numbers are displayed
+          stepSize: 1,
           callback: function (value) {
             return Number.isInteger(value) ? value : "";
           },

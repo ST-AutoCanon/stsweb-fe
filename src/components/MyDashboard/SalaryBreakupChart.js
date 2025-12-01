@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import "./SalaryBreakupChart.css"; // Ensure this points to the updated CSS file
+import "./SalaryBreakupChart.css";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -56,13 +56,13 @@ const EmployeeSalaryBreakup = () => {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, // Allow custom sizing
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: true,
         position: "bottom",
         layout: {
-          padding: 10, // Add padding inside the chart box
+          padding: 10,
         },
         labels: {
           boxWidth: 10,
@@ -78,7 +78,7 @@ const EmployeeSalaryBreakup = () => {
         align: "center",
         font: {
           weight: "bold",
-          size: 14, // Bigger labels
+          size: 14,
         },
       },
     },
@@ -97,8 +97,8 @@ const EmployeeSalaryBreakup = () => {
             data={data}
             options={options}
             plugins={[ChartDataLabels]}
-            width={250} // Increase width of the chart
-            height={250} // Increase height of the chart
+            width={250}
+            height={250}
           />
         )}
       </div>

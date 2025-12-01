@@ -17,7 +17,6 @@
   margin: 0 0 1rem 0;
 }
 
-/* Search & Filters */
 .search-container {
   display: flex;
   align-items: center;
@@ -36,7 +35,6 @@
   align-items: center;
 }
 
-/* Add Employee Button */
 .add-employee-button {
   display: inline-flex;
   align-items: center;
@@ -64,7 +62,6 @@
   border: 1px solid #ddd;
 }
 
-/* Employee Table */
 .employee-table {
   width: 100%;
   border-collapse: collapse;
@@ -137,7 +134,6 @@
   color: #e53e3e;
 }
 
-/* Force the input (and select/textarea) to start on its own line */
 .file-input label input,
 .step-education label input,
 .step-education label select,
@@ -155,8 +151,8 @@
 .step-bank label select,
 .step-bank label textarea {
   display: block;
-  margin-top: 0.5em; /* space between label and field */
-  width: 95%; /* full‑width under the label */
+  margin-top: 0.5em;
+  width: 95%;
   box-sizing: border-box;
   background-color: #fff;
   border: 1px solid #000;
@@ -169,7 +165,6 @@
   border: 1px solid #79c42b;
 }
 
-/* Action Buttons */
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -193,31 +188,26 @@
 }
 
 .actions button:nth-child(1) {
-  /* Back */
   background-color: #ccc;
   color: #000;
 }
 
 .actions button:nth-child(2) {
-  /* Next */
   background-color: #79c42b;
   color: #fff;
 }
 
 .actions button:nth-child(3) {
-  /* Submit */
   background-color: #79c42b;
   color: #fff;
 }
 
-/* Error Message */
 .error {
   color: red;
   font-size: 0.9rem;
   text-align: center;
 }
 
-/* Overlay backdrop */
 .emp-form-overlay {
   position: fixed;
   top: 0;
@@ -231,7 +221,6 @@
   z-index: 1000;
 }
 
-/* Modal container */
 .emp-form-modal {
   background-color: #fff;
   width: 85%;
@@ -245,7 +234,6 @@
   flex-direction: column;
 }
 
-/* Container and header */
 .employee-form {
   width: 100%;
   background: #e8e9ea;
@@ -254,7 +242,6 @@
   box-sizing: border-box;
 }
 
-/* Modal header */
 .emp-form-title {
   display: flex;
   justify-content: space-between;
@@ -291,7 +278,6 @@
   margin-left: 2rem;
 }
 
-/* Form grid */
 .employee-form .form-grid,
 .employee-form .step-personal {
   display: grid;
@@ -386,7 +372,6 @@
   margin: 1% 2%;
 }
 
-/* File attachments */
 .employee-form .attachment-group,
 .employee-form .pj-attachment,
 .employee-form .pj-attachment-wrapper {
@@ -415,7 +400,6 @@
   font-size: 14px;
 }
 
-/* Buttons */
 .actions,
 .employee-form .pj-form-buttons {
   display: flex;
@@ -523,7 +507,7 @@
   color: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
-  pointer-events: none; /* prevent clicks */
+  pointer-events: none;
 }
 
 .edit {
@@ -608,7 +592,7 @@
 }
 
 .emp-search-text:hover {
-  background-color: #68a822; /* Slightly darker shade */
+  background-color: #68a822;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -632,7 +616,6 @@
   padding: 0;
 }
 
-/* Popup overlay */
 .ed-popup-overlay {
   position: fixed;
   top: 0;
@@ -646,7 +629,6 @@
   z-index: 1000;
 }
 
-/* Popup container */
 .ed-popup-content {
   background: #fff;
   width: 90%;
@@ -657,7 +639,6 @@
   animation: popupFadeIn 0.2s ease-out;
 }
 
-/* Header */
 .ed-popup-header {
   display: flex;
   align-items: center;
@@ -674,7 +655,6 @@
   color: #fff;
 }
 
-/* Close button */
 .ed-popup-close {
   background: transparent;
   border: none;
@@ -688,7 +668,6 @@
   color: #fff;
 }
 
-/* Change to a grid with two columns: labels and values */
 .detail-list {
   display: grid;
   grid-template-columns: 0.6fr 1fr;
@@ -701,7 +680,6 @@
   margin: 0;
 }
 
-/* Style labels (dt) and values (dd) */
 .detail-list dt {
   background: #ecebeb;
   font-weight: 600;
@@ -717,7 +695,6 @@
   padding: 2%;
 }
 
-/* Optional: add a subtle border/padding to the entire body */
 .ed-popup-body {
   padding: 1.5rem;
   border-top: 1px solid #e1e1e1;
@@ -753,7 +730,6 @@
   padding: 8px 4px;
 }
 
-/* Keyframes for gentle fade-in */
 @keyframes popupFadeIn {
   from {
     opacity: 0;
@@ -765,7 +741,6 @@
   }
 }
 
-/* Responsive Adjustments */
 @media (max-width: 600px) {
   .header-container,
   .steps-indicator {

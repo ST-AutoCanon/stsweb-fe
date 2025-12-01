@@ -54,13 +54,11 @@
   margin-right: 0.5rem;
 }
 
-/* when the Mic icon has className="recording" */
 .add-panel-footer-icons .recording {
-  background-color: #38a169; /* green */
+  background-color: #38a169;
   animation: pulse 1s infinite;
 }
 
-/* simple pulse keyframes */
 @keyframes pulse {
   0% {
     transform: scale(1);

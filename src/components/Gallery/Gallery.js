@@ -4,7 +4,7 @@ import "./Gallery.css";
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSection, setSelectedSection] = useState(""); // To track which section the image is from
+  const [selectedSection, setSelectedSection] = useState("");
 
   const images = [
     "./images/gallery2.jpg",
@@ -43,12 +43,15 @@ const Gallery = () => {
 
   return (
     <div>
-      {/* First Page: Image Stack and Info Section */}
       <div className="gallery-container">
         <div className="image-stack">
           {images.map((src, index) => (
             <div
-              className={`image-item ${selectedImage === index && selectedSection === "first" ? "active" : ""}`}
+              className={`image-item ${
+                selectedImage === index && selectedSection === "first"
+                  ? "active"
+                  : ""
+              }`}
               key={index}
               onClick={() => handleImageClick(index, "first")}
             >
@@ -58,11 +61,14 @@ const Gallery = () => {
         </div>
 
         <div className="info-section">
-          <h2>{selectedImage !== null ? "Selected Idea" : "Our Creative Vision and Innovation"}</h2>
+          <h2>
+            {selectedImage !== null
+              ? "Selected Idea"
+              : "Our Creative Vision and Innovation"}
+          </h2>
         </div>
       </div>
 
-      {/* Modal for Enlarged Image */}
       {isModalOpen && (
         <div className="modal" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -84,13 +90,13 @@ const Gallery = () => {
         </div>
       )}
 
-      {/* Second Page Section: Team Celebration Event */}
       <div className="second-gallery-container">
         <div className="second-gallery-content">
           <div className="second-left-info">
             <h2>A Glimpse Of Our Team</h2>
             <p>
-              Employees gather for a joyous team event, stronger connections, Happier Faces and lasting memories.
+              Employees gather for a joyous team event, stronger connections,
+              Happier Faces and lasting memories.
             </p>
           </div>
           <div className="second-right-images">
@@ -100,14 +106,17 @@ const Gallery = () => {
                 className="second-side-image-container"
                 onClick={() => handleImageClick(index, "second")}
               >
-                <img src={src} alt={`Idea ${index + 1}`} className="second-side-image" />
+                <img
+                  src={src}
+                  alt={`Idea ${index + 1}`}
+                  className="second-side-image"
+                />
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Third Page Section: Another Team Event */}
       <div className="third-gallery-container">
         <div className="third-gallery-content">
           <div className="third-left-images">
@@ -117,14 +126,20 @@ const Gallery = () => {
                 className="third-side-image-container"
                 onClick={() => handleImageClick(index, "third")}
               >
-                <img src={src} alt={`Idea ${index + 1}`} className="third-side-image" />
+                <img
+                  src={src}
+                  alt={`Idea ${index + 1}`}
+                  className="third-side-image"
+                />
               </div>
             ))}
           </div>
           <div className="third-right-info">
             <h2> Team Event</h2>
             <p>
-              Join us in celebrating another milestone with our team, filled with joy, collaboration, and memorable moments that strengthen our bond and commitment.
+              Join us in celebrating another milestone with our team, filled
+              with joy, collaboration, and memorable moments that strengthen our
+              bond and commitment.
             </p>
           </div>
         </div>

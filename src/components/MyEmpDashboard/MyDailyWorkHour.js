@@ -159,7 +159,6 @@ const MyDailyWorkHour = () => {
               className={view === option ? "active" : ""}
               onClick={() => setView(option)}
             >
-              {/* {option} */}
               {option === "Monthly" ? "Prev-Month" : option}
             </button>
           ))}

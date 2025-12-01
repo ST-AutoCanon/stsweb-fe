@@ -65,12 +65,10 @@ const EmployeeQuery = () => {
 
   const selectedThreadIdRef = useRef(null);
 
-  // whenever selectedQuery changes, update the ref
   useEffect(() => {
     selectedThreadIdRef.current = selectedQuery?.id ?? null;
   }, [selectedQuery]);
 
-  // useEffect: init socket only when employeeId exists
   useEffect(() => {
     if (!employeeId) {
       console.warn("[socket] skipping connect because employeeId is missing");
@@ -80,8 +78,6 @@ const EmployeeQuery = () => {
     socketRef.current = io(BACKEND_URL, {
       query: { userId: employeeId },
       auth: { apiKey: API_KEY },
-      // optional: you may force websocket transport during debugging
-      // transports: ["websocket"],
     });
 
     const socket = socketRef.current;
@@ -121,7 +117,7 @@ const EmployeeQuery = () => {
       socket.off("error");
       socket.disconnect();
     };
-  }, [BACKEND_URL, API_KEY, employeeId]); // will re-run only when employeeId changes
+  }, [BACKEND_URL, API_KEY, employeeId]);
 
   const fetchEmpQueries = async () => {
     try {
@@ -143,11 +139,9 @@ const EmployeeQuery = () => {
     if (employeeId) fetchEmpQueries();
   }, [employeeId]);
 
-  // Join room when a thread is selected
   useEffect(() => {
     if (!selectedQuery) return;
     socketRef.current.emit("joinThread", selectedQuery.id);
-    // Fetch history once
     axios
       .get(`${BACKEND_URL}/threads/${selectedQuery.id}/messages`, { headers })
       .then((res) => setMessages(res.data.data))
@@ -155,7 +149,6 @@ const EmployeeQuery = () => {
   }, [selectedQuery]);
 
   useEffect(() => {
-    // Scroll to bottom
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
@@ -258,7 +251,6 @@ const EmployeeQuery = () => {
   const handleSendMessage = async () => {
     if (!selectedQuery) return;
 
-    // 1️⃣ Attachment via REST+Multer
     if (attachmentFile) {
       const formData = new FormData();
       formData.append("attachment", attachmentFile);
@@ -279,11 +271,9 @@ const EmployeeQuery = () => {
           }
         );
 
-        // *** HERE IS THE NEW CODE ***
-        const { message: newMsg } = res.data.data; // <- your handler returns { data: { message: newMessage } }
+        const { message: newMsg } = res.data.data;
         setMessages((prev) => [...prev, newMsg]);
 
-        // reset UI
         setInputMessage("");
         setAttachmentFile(null);
         setAttachmentName("");
@@ -307,7 +297,6 @@ const EmployeeQuery = () => {
       message: inputMessage,
     };
 
-    // If socket is connected, use it with ack callback. Otherwise fallback to REST.
     if (socketRef.current && socketRef.current.connected) {
       socketRef.current.emit("sendQueryMessage", payload, (resp) => {
         if (resp && resp.success && resp.message) {
@@ -318,7 +307,6 @@ const EmployeeQuery = () => {
           showAlert(
             "Failed to send message via socket. Trying REST fallback..."
           );
-          // Try REST fallback:
           (async () => {
             try {
               const res = await axios.post(
@@ -342,7 +330,6 @@ const EmployeeQuery = () => {
         }
       });
     } else {
-      // REST fallback when socket not connected
       try {
         const res = await axios.post(
           `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
@@ -440,7 +427,6 @@ const EmployeeQuery = () => {
         </button>
       </div>
       <div className="emp-query-content">
-        {/* Sidebar */}
         <div className="emp-sidebar">
           <div className="toggle-switch">
             <div
@@ -679,7 +665,6 @@ const EmployeeQuery = () => {
           </div>
         )}
 
-        {/* Chat Container */}
         <div className="emp-chat-container">
           {selectedQuery ? (
             <>

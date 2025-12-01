@@ -1,19 +1,17 @@
-// TextNoteFlow.jsx
 import React, { useState, useEffect } from "react";
-import "./VoiceNoteFlow.css"; // for styling
+import "./VoiceNoteFlow.css";
 import { prompts } from "./Prompts";
 
 export default function TextNoteFlow({
   step,
   answers,
   isLoading = false,
-  onSave, // (updatedAnswers) => void
-  onCancel, // () => void
+  onSave,
+  onCancel,
 }) {
   const [drafts, setDrafts] = useState(answers);
   const [isEditingAll, setIsEditingAll] = useState(false);
 
-  // whenever parent clears or steps change, sync
   useEffect(() => {
     setDrafts(answers);
   }, [answers]);
@@ -50,7 +48,6 @@ export default function TextNoteFlow({
 
       {isLoading && <p className="loading-text">Saving…</p>}
 
-      {/* between 1 and N-1: show Next/Cancel */}
       {!isLast ? (
         <div className="button-row">
           <button className="btn cancel" onClick={onCancel}>
@@ -65,7 +62,6 @@ export default function TextNoteFlow({
           </button>
         </div>
       ) : (
-        // final step: full Cancel/Edit/Save
         <div className="button-row">
           {!isEditingAll ? (
             <>

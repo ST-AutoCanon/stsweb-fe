@@ -1,4 +1,3 @@
-// File: src/components/FileInput.jsx
 import React, { useState, useRef } from "react";
 import Modal from "../Modal/Modal";
 
@@ -9,13 +8,12 @@ export default function FileInput({
   existingUrl,
   required = false,
   multiple = false,
-  onChange, // (fieldName: string, File|File[]) => void
+  onChange,
 }) {
   const [pendingFile, setPendingFile] = useState(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const inputRef = useRef();
 
-  // Normalize existingUrl into a boolean that treats empty arrays/strings as "no existing"
   const hasExisting = Array.isArray(existingUrl)
     ? existingUrl.length > 0
     : Boolean(existingUrl);
@@ -26,7 +24,6 @@ export default function FileInput({
 
     if (!multiple) {
       const file = files[0];
-      // use hasExisting instead of plain existingUrl
       if (hasExisting) {
         setPendingFile(file);
         setConfirmVisible(true);
@@ -34,7 +31,6 @@ export default function FileInput({
         onChange(name, file);
       }
     } else {
-      // this is the key for other_docs
       onChange(name, files);
     }
   };
@@ -62,7 +58,6 @@ export default function FileInput({
             accept={accept}
             multiple={multiple}
             onChange={handleFileSelect}
-            // treat empty existingUrl as "no existing" for required logic too
             {...(required && !hasExisting ? { required: true } : {})}
           />
         </label>

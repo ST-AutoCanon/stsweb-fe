@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./ReimbursementHR.css"; // Make sure this file contains the full CSS below
+import "./ReimbursementHR.css";
 import { MdOutlineRemoveRedEye, MdOutlineCancel } from "react-icons/md";
 import { FaSearch, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
@@ -620,7 +620,6 @@ const ReimbursementHR = () => {
                                   )}
                                 </td>
 
-                                {/* ONLY UPDATE BUTTON IS FROZEN + DISABLED */}
                                 <td className="HR-rb-admin-actions-sticky">
                                   <FaFileInvoice
                                     size={24}
@@ -678,7 +677,6 @@ const ReimbursementHR = () => {
         <Reimbursement />
       )}
 
-      {/* Payment Modal */}
       {isPaymentModalOpen && (
         <Modal
           isVisible={isPaymentModalOpen}
@@ -756,8 +754,6 @@ const ReimbursementHR = () => {
         </Modal>
       )}
 
-      {/* Attachments Modal – Identical to Admin Version */}
-      {/* Attachments Modal – NOW 100% IDENTICAL TO ADMIN SIDE */}
       {isModalOpen && (
         <div className="HR-rb-admin-att-modal-overlay">
           <div className="HR-rb-admin-att-modal-content">
@@ -798,7 +794,6 @@ const ReimbursementHR = () => {
           </div>
         </div>
       )}
-      {/* Alert Modal */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

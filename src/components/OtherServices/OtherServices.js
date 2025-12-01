@@ -4,7 +4,6 @@ import "./OtherServices.css";
 const OtherServices = () => {
   return (
     <div className="other-services-container">
-      {/* Left Section */}
       <div className="other-services-text">
         <h1>Other Services</h1>
         <p>Our Other Services Include</p>
@@ -23,14 +22,12 @@ const OtherServices = () => {
         <button className="other-services-button">Know More</button>
       </div>
 
-      {/* Right Section */}
       <div className="other-services-image">
         <img
           src="./images/OtherService.png"
           alt="Other Services"
           className="services-image"
         />
-        {/* <div className="overlay-text">Other Services</div> */}
       </div>
     </div>
   );

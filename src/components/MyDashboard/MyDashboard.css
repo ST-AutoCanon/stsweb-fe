@@ -2,18 +2,18 @@
   display: flex;
   margin-top: 5%;
   gap: 20px;
-  flex-direction: row; /* Arrange cards in a row */
+  flex-direction: row;
   justify-content: center;
 }
 .admindashboardpiecharts {
   display: flex;
-  flex-direction: row; /* Arrange cards in a row */
-  justify-content: center; /* Center the cards horizontally */
-  align-items: center; /* Align them vertically */
-  gap: 25px; /* Space between cards */
-  width: 100%; /* Ensures it spans the full width */
-  max-width: 1200px; /* Prevents stretching on larger screens */
-  margin: 1% auto; /* Centers the container */
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 1% auto;
   margin-top: 2.5%;
 }
 
@@ -22,14 +22,14 @@
   margin-top: 1%;
   margin-left: 0%;
   gap: 5px;
-  flex-direction: row; /* Arrange cards in a row */
-  justify-content: center; /* Center the cards horizontally */
+  flex-direction: row;
+  justify-content: center;
 }
 
 .dashboard-Projecttable {
   display: flex;
   margin-top: 5%;
   gap: 20px;
-  flex-direction: row; /* Arrange cards in a row */
-  justify-content: center; /* Center the cards horizontally */
+  flex-direction: row;
+  justify-content: center;
 }

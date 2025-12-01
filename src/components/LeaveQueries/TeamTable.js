@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { parseLocalDate, calculateDays } from "./leaveUtils";
 
-/**
- * TeamTable — hardened success detection + debug logging
- *
- * If this still doesn't flip to "Updated", open the browser console (F12) and
- * paste the logged `onUpdate result for <id> : <result>` line here so I can
- * adapt detection to your parent handler's exact return shape.
- */
-
 const normalizeStatus = (s) => {
   if (s === null || s === undefined) return "";
   const str = String(s).trim();
@@ -37,17 +29,15 @@ export default function TeamTable({
   showAlerts = false,
   onUpdateError,
 }) {
-  // Hooks — unconditional
-  const [localUpdates, setLocalUpdates] = useState({}); // keys: string id
-  const [loadingRows, setLoadingRows] = useState({}); // keys: string id
-  const [updatedRows, setUpdatedRows] = useState({}); // keys: string id (local "updated" marker)
+  const [localUpdates, setLocalUpdates] = useState({});
+  const [loadingRows, setLoadingRows] = useState({});
+  const [updatedRows, setUpdatedRows] = useState({});
 
   const updates = {
     ...normalizeKeyed(statusUpdates),
     ...localUpdates,
   };
 
-  // Auto-clear locally-updated markers when server shows row as non-pending
   useEffect(() => {
     if (!leaveRequests?.team || !Object.keys(updatedRows).length) return;
 
@@ -71,7 +61,6 @@ export default function TeamTable({
         return copy;
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leaveRequests, updatedRows]);
 
   if (!canViewTeam) return null;
@@ -130,14 +119,11 @@ export default function TeamTable({
     });
   };
 
-  // Very forgiving success detector.
   const detectSuccess = (result, requestedStatus) => {
-    // quick primitives
     if (result === true) return true;
     if (result === "ok") return true;
 
     if (result && typeof result === "object") {
-      // common explicit flags
       if (
         result.ok === true ||
         result.success === true ||
@@ -145,7 +131,6 @@ export default function TeamTable({
       )
         return true;
 
-      // axios-like: numeric HTTP status code
       const httpStatus = result.status || result.statusCode;
       if (
         typeof httpStatus === "number" &&
@@ -154,7 +139,6 @@ export default function TeamTable({
       )
         return true;
 
-      // check nested `.data`, `.body`, `.result`
       const nest = result.data ?? result.body ?? result.result ?? result;
       if (nest && typeof nest === "object") {
         if (nest.ok === true || nest.success === true || nest.updated === true)
@@ -172,7 +156,6 @@ export default function TeamTable({
         }
       }
     }
-    // otherwise no success detected
     return false;
   };
 
@@ -184,7 +167,6 @@ export default function TeamTable({
       return;
     }
 
-    // Build merged payload: server leave object overridden by any local edits
     const local = updates[idKey] || {};
     const mergedLeave = { ...leave, ...local };
 
@@ -206,14 +188,12 @@ export default function TeamTable({
 
       let result;
       try {
-        // We call parent with the merged row (so parent sees changed status & comments)
         result = await onUpdate(id, mergedLeave);
       } catch (err) {
         console.error("[TeamTable] parent onUpdate threw:", err);
         result = { ok: false, error: err };
       }
 
-      // DEBUG: show what parent returned — paste this if detection still fails
       console.debug("[TeamTable] onUpdate result for", id, ":", result);
 
       if (result === undefined) {
@@ -234,7 +214,6 @@ export default function TeamTable({
       const ok = detectSuccess(result, requestedStatus);
 
       if (ok) {
-        // success: mark locally-updated, clear local edits
         setUpdatedRows((s) => ({ ...s, [idKey]: true }));
         clearLocalForId(idKey);
         setLoadingRows((s) => ({ ...s, [idKey]: false }));

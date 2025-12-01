@@ -4,7 +4,6 @@ import FileInput from "../FileInput";
 export default function StepGovernmentDocs({ data, onChange }) {
   return (
     <div className="step-personal">
-      {/* Aadhaar */}
       <label>
         Aadhaar Number<span className="required">*</span>
         <input
@@ -26,7 +25,6 @@ export default function StepGovernmentDocs({ data, onChange }) {
         onChange={onChange}
       />
 
-      {/* PAN */}
       <label>
         PAN Number<span className="required">*</span>
         <input
@@ -48,7 +46,6 @@ export default function StepGovernmentDocs({ data, onChange }) {
         onChange={onChange}
       />
 
-      {/* Passport */}
       <label>
         Passport Number
         <input
@@ -130,7 +127,6 @@ export default function StepGovernmentDocs({ data, onChange }) {
         />
       </label>
 
-      {/* ESI Number */}
       <label>
         ESI Number
         <input

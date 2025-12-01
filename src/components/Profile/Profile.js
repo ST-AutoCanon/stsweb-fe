@@ -60,19 +60,11 @@ const Profile = ({ onClose, notificationId = null }) => {
     family_details: [{ key: "marital_status", label: "Marital Status" }],
   };
 
-  // ---------- Helpers ----------
   const API_KEY = process.env.REACT_APP_API_KEY;
   const BASE_URL = process.env.REACT_APP_BACKEND_URL;
   const dashboardData = JSON.parse(localStorage.getItem("dashboardData")) || {};
   const employeeId = dashboardData.employeeId || null;
 
-  /**
-   * normalizeInputUrl:
-   * - returns `null` for empty arrays
-   * - recurses into first element for non-empty arrays
-   * - returns string url/path/file when available
-   * - avoids JSON.stringify for arrays/objects so empty arrays don't become "[]"
-   */
   const normalizeInputUrl = (maybe) => {
     if (maybe === undefined || maybe === null) return null;
 
@@ -81,28 +73,22 @@ const Profile = ({ onClose, notificationId = null }) => {
     }
 
     if (Array.isArray(maybe)) {
-      // empty array -> no url
       if (maybe.length === 0) return null;
-      // non-empty -> normalize first element
       return normalizeInputUrl(maybe[0]);
     }
 
     if (typeof maybe === "object") {
-      // common shapes
       if (typeof maybe.url === "string" && maybe.url) return maybe.url;
       if (typeof maybe.path === "string" && maybe.path) return maybe.path;
       if (typeof maybe.file === "string" && maybe.file) return maybe.file;
-      // If object has keys and is not one of above, we can't treat it as a usable url.
-      // Return null to avoid treating plain objects as valid documents.
+
       if (Object.keys(maybe).length === 0) return null;
-      // As a last resort, try to extract string-like properties:
       for (const k of ["link", "href", "download"]) {
         if (typeof maybe[k] === "string" && maybe[k]) return maybe[k];
       }
       return null;
     }
 
-    // fallback for numbers/booleans etc - stringify them
     try {
       return String(maybe);
     } catch {
@@ -110,7 +96,6 @@ const Profile = ({ onClose, notificationId = null }) => {
     }
   };
 
-  // robust isMissing: treat undefined, null, empty string, empty array, empty object as missing
   const isMissing = (val) => {
     if (val === undefined || val === null) return true;
     if (typeof val === "string" && val.trim() === "") return true;
@@ -121,7 +106,6 @@ const Profile = ({ onClose, notificationId = null }) => {
     return false;
   };
 
-  // helper boolean: does this value look like a usable URL or file reference?
   const hasValue = (maybe) => {
     const norm = normalizeInputUrl(maybe);
     if (norm === null || norm === undefined) return false;
@@ -138,9 +122,7 @@ const Profile = ({ onClose, notificationId = null }) => {
         try {
           const pathname = new URL(u).pathname || "";
           return decodeURIComponent(pathname.split("/").pop() || "document");
-        } catch (e) {
-          /* fallthrough */
-        }
+        } catch (e) {}
       }
       const last = u.split("/").pop() || "document";
       return decodeURIComponent(last.replace(/[?#].*$/, ""));
@@ -171,7 +153,6 @@ const Profile = ({ onClose, notificationId = null }) => {
     return new Blob([res.data], { type: res.headers["content-type"] });
   };
 
-  // ---------- missing fields detection ----------
   const getMissingFields = (p = {}) => {
     if (!p) return [...REQUIRED_FIELDS.personal.map((f) => f.label)];
     const missing = [];
@@ -195,7 +176,6 @@ const Profile = ({ onClose, notificationId = null }) => {
     return missing;
   };
 
-  // ---------- view & download ----------
   const viewDoc = async (maybeUrl) => {
     const raw = normalizeInputUrl(maybeUrl);
     if (!raw) return showAlert("No document URL");
@@ -288,13 +268,11 @@ const Profile = ({ onClose, notificationId = null }) => {
         { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
       );
 
-      // inform other parts of the app (Notifications dropdown) that this id was read
       try {
         window.dispatchEvent(
           new CustomEvent("notification-read", { detail: { id } })
         );
       } catch (e) {
-        // non-fatal
         console.warn("notification-read event dispatch failed", e);
       }
     } catch (err) {
@@ -325,12 +303,10 @@ const Profile = ({ onClose, notificationId = null }) => {
           });
         }
 
-        // If opened from a notification and there are missing fields, auto-open Update form
         if (notificationId && missing.length > 0) {
           setShowUpdateModal(true);
         }
 
-        // use hasValue so empty arrays won't be treated as present
         if (hasValue(data.photo_url)) {
           try {
             const blob = await fetchBlob(data.photo_url);
@@ -370,19 +346,16 @@ const Profile = ({ onClose, notificationId = null }) => {
     } else {
       setLoading(false);
     }
-  }, [employeeId, notificationId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [employeeId, notificationId]);
 
   if (loading) return <div className="profile-popup">Loading...</div>;
   if (!profile) return <div className="profile-popup">No data.</div>;
 
   const handleProfileSaved = async (updatedProfile) => {
-    // update local profile only if server returned an object
     if (updatedProfile && typeof updatedProfile === "object") {
       setProfile(updatedProfile);
     }
 
-    // mark the originating notification read AFTER successful update attempt,
-    // even if the server didn't return the full updated object.
     if (notificationId) {
       try {
         await markNotificationReadById(notificationId);

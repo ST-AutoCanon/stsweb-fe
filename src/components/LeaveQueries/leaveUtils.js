@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/leaveUtils.js
 export const parseLocalDate = (dateStr) => {
   if (!dateStr) return "";
   if (typeof dateStr === "string" && dateStr.length === 10) return dateStr;
@@ -38,7 +37,6 @@ export const calculateDays = (startDate, endDate, h_f_day = "") => {
 };
 
 export const getAdvanceNoticeDays = (setting) => {
-  // Accept numeric/string values and multiple key name variations
   if (!setting) return 0;
   const raw =
     setting?.advance_notice_days ??

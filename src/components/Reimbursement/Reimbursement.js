@@ -1,4 +1,3 @@
-// src/components/Reimbursement/Reimbursement.js
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { FaSearch } from "react-icons/fa";
@@ -13,7 +12,7 @@ import {
 import { GiKnifeFork, GiPencilBrush } from "react-icons/gi";
 import { TbTriangleSquareCircle } from "react-icons/tb";
 import "./Reimbursement.css";
-import Modal from "../Modal/Modal"; // Alert modal component
+import Modal from "../Modal/Modal";
 
 const claimTypes = [
   {
@@ -95,7 +94,6 @@ const Reimbursement = () => {
     return `${day}-${month}-${year}`;
   };
 
-  // Confirm / Alert modals
   const [confirmModal, setConfirmModal] = useState({
     isVisible: false,
     message: "",
@@ -116,7 +114,6 @@ const Reimbursement = () => {
   const closeAlert = () =>
     setAlertModal({ isVisible: false, title: "", message: "" });
 
-  // Fetch reimbursements and projects ONCE
   const fetchReimbursements = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -135,7 +132,6 @@ const Reimbursement = () => {
         : response.data || [];
       setReimbursements(reimbursementsData);
 
-      // Fetch attachments for each reimbursement (keeps previous attachments intact if error)
       const attachmentsData = {};
       await Promise.all(
         reimbursementsData.map(async (claim) => {
@@ -206,10 +202,8 @@ const Reimbursement = () => {
   useEffect(() => {
     fetchReimbursements();
     fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------------ Date handling/filtering logic ------------
   const tryParseDate = (s) => {
     if (!s && s !== 0) return null;
     if (s instanceof Date && !isNaN(s)) return s;
@@ -347,7 +341,6 @@ const Reimbursement = () => {
     applyFilters();
   }, [reimbursements, fromDate, toDate, statusFilter, applyFilters]);
 
-  // --------------- Form handlers & helpers ---------------
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -508,7 +501,7 @@ const Reimbursement = () => {
     try {
       const fd = new FormData();
       Object.keys(formData).forEach((k) => {
-        if (k === "attachments") return; // handled separately
+        if (k === "attachments") return;
         const val = formData[k];
         if (val !== null && val !== undefined) fd.append(k, val);
       });
@@ -540,7 +533,6 @@ const Reimbursement = () => {
       showAlert(
         response?.data?.message || "Reimbursement submitted successfully!"
       );
-      // reset form
       setFormData({
         employeeId: employeeId,
         department_id: departmentId,
@@ -672,7 +664,6 @@ const Reimbursement = () => {
     }
   };
 
-  // Use filteredReimbursements (NOT reimbursements) for display and totals
   const filterClaims = filteredReimbursements || [];
 
   const totalAmount = (filteredReimbursements || []).reduce((sum, claim) => {
@@ -1236,7 +1227,6 @@ const Reimbursement = () => {
     }
   };
 
-  // ------------ Render ------------
   return (
     <div className="reimbursement-container">
       <div className="rb-form-header">
@@ -1446,7 +1436,6 @@ const Reimbursement = () => {
           </tfoot>
         </table>
 
-        {/* Mobile cards */}
         <div className="rb-reimbursement-cards">
           {filterClaims.map((claim, index) => (
             <div className="rb-reimbursement-card" key={claim.id}>
@@ -1511,7 +1500,6 @@ const Reimbursement = () => {
         </div>
       </div>
 
-      {/* Form modal */}
       {showForm && (
         <div className="rb-modal">
           <div className="rb-modal-content">
@@ -1586,7 +1574,6 @@ const Reimbursement = () => {
         </div>
       )}
 
-      {/* Attachments modal */}
       {isModalOpen && (
         <div className="att-modal-overlay">
           <div className="att-modal-content">

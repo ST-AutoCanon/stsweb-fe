@@ -4,7 +4,6 @@ import "./MainAboutSecond.css";
 const MainAboutSecond = () => {
   return (
     <div className="about-second-container">
-      {/* Left Column */}
       <div className="about-second-left">
         <h1>About Us</h1>
         <p>
@@ -19,12 +18,11 @@ const MainAboutSecond = () => {
         <h2>Our Mission</h2>
         <p>
           Delighting the customers by uncompromisingly dynamic technological
-          developments & modernization that becomes vital to stay ahead of
-          their competition at reasonable cost.
+          developments & modernization that becomes vital to stay ahead of their
+          competition at reasonable cost.
         </p>
       </div>
 
-      {/* Right Column */}
       <div className="about-second-right">
         <h2>Why Choose Sukalpa Tech?</h2>
         <ul>
@@ -47,8 +45,8 @@ const MainAboutSecond = () => {
           </li>
           <li>
             <strong>Expert Guidance:</strong> Our team of specialists offers
-            tailored advice, guiding you through each step from documentation
-            to testing and approval.
+            tailored advice, guiding you through each step from documentation to
+            testing and approval.
           </li>
           <li>
             <strong>Accelerated Market Entry:</strong> With our efficient

@@ -13,7 +13,6 @@ const meId = employeeData?.employeeId;
 const headersBase = {
   "x-api-key": API_KEY,
   "Content-Type": "application/json",
-  // note: x-employee-id header added per-request when actorId known
   "x-employee-id": meId,
 };
 
@@ -50,7 +49,6 @@ const normalizeStatus = (s) => {
 };
 
 export default function useLeaveRequest() {
-  // UI state
   const [isFormVisible, setFormVisible] = useState(false);
   const [formData, setFormData] = useState({
     reason: "",
@@ -72,28 +70,22 @@ export default function useLeaveRequest() {
     onConfirm: null,
   });
 
-  // Filters/team
   const [filters, setFilters] = useState({ from_date: "", to_date: "" });
   const [teamSearch, setTeamSearch] = useState("");
   const [teamStatus, setTeamStatus] = useState("");
 
-  // data
   const [balances, setBalances] = useState([]);
   const [policies, setPolicies] = useState([]);
   const [activePolicy, setActivePolicy] = useState(null);
   const [leaveRequests, setLeaveRequests] = useState({ self: [], team: [] });
 
-  // status updates for TeamTable editing
-  // shape: { [leaveId]: { status?: 'Pending'|'Approved'|'Rejected', comments?: '...' } }
   const [statusUpdates, setStatusUpdates] = useState({});
 
-  // venn state
   const now = new Date();
   const [lopMonth, setLopMonth] = useState(now.getMonth() + 1);
   const [lopYear, setLopYear] = useState(now.getFullYear());
   const [monthlyLop, setMonthlyLop] = useState(0);
 
-  // LOP approve popup state (Admin flow uses a CompensationPopup component)
   const [lopModal, setLopModal] = useState({
     isVisible: false,
     leaveId: null,
@@ -118,12 +110,9 @@ export default function useLeaveRequest() {
     .trim();
   const canViewTeam = rolesWithTeamView.has(roleNormalized);
 
-  // internal caches
   const [leaveBalancesCache, setLeaveBalancesCache] = useState({});
 
-  // ----- Alerts/Confirm helpers -----
   const showAlert = (message, title = "") => {
-    // close LOP popup first just in case
     setLopModal((m) => ({ ...m, isVisible: false }));
     setTimeout(() => setAlertModal({ isVisible: true, title, message }), 120);
   };
@@ -135,7 +124,6 @@ export default function useLeaveRequest() {
   const closeConfirm = () =>
     setConfirmModal({ isVisible: false, message: "", onConfirm: null });
 
-  // ----- Fetchers -----
   const fetchLeaveBalance = async () => {
     const employeeId = employeeData?.employeeId;
     if (!employeeId) return;
@@ -170,7 +158,6 @@ export default function useLeaveRequest() {
   useEffect(() => {
     fetchPolicies();
     fetchLeaveBalance();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -197,10 +184,8 @@ export default function useLeaveRequest() {
     );
   }, [policies]);
 
-  // fetch leave requests
   useEffect(() => {
     if (employeeData?.employeeId) fetchLeaveRequests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     employeeData?.employeeId,
     teamSearch,
@@ -226,7 +211,6 @@ export default function useLeaveRequest() {
     try {
       const employeeId = employeeData?.employeeId;
       if (!employeeId) return;
-      // self
       const selfUrl = `${BACKEND}/employee/leave/${employeeId}`;
       const selfParams = new URLSearchParams();
       if (filters.from_date) selfParams.append("from_date", filters.from_date);
@@ -246,7 +230,6 @@ export default function useLeaveRequest() {
           selfRequests = extractArrayFromTeamResult(selfResult);
       }
 
-      // team
       let teamRequests = [];
       if (canViewTeam) {
         const teamUrl = `${BACKEND}/team-lead/${employeeId}`;
@@ -257,7 +240,6 @@ export default function useLeaveRequest() {
         if (teamSearch) teamParams.append("search", teamSearch);
         if (teamStatus) teamParams.append("status", teamStatus);
 
-        // optional departments filter if manager has departments saved in localStorage
         try {
           const md = localStorage.getItem("managedDepartments");
           if (md) {
@@ -266,9 +248,7 @@ export default function useLeaveRequest() {
               teamParams.append("departments", arr.join(","));
             }
           }
-        } catch (e) {
-          // ignore parse error
-        }
+        } catch (e) {}
 
         const teamFinalUrl = teamParams.toString()
           ? `${teamUrl}?${teamParams}`
@@ -286,9 +266,6 @@ export default function useLeaveRequest() {
           console.warn("Team fetch returned non-ok", teamResponse.status);
         }
 
-        // ------------------ NEW: client-side filtering fixes ------------------
-        // 1) Always filter out current user's own leaves from the team list
-        // 2) If current user is a supervisor (not manager/admin), hide supervisor-owned leaves in team list.
         try {
           if (Array.isArray(teamRequests) && meId) {
             teamRequests = teamRequests.filter((r) => {
@@ -302,12 +279,8 @@ export default function useLeaveRequest() {
                 .toString()
                 .trim();
 
-              // 1) Exclude the current user (their leaves belong in "My Leaves")
               if (rowEmpId && String(rowEmpId) === String(meId)) return false;
 
-              // 2) The server should already scope correctly, but defensively:
-              // if the current viewer is NOT manager-or-above, hide rows that belong to employees
-              // whose role is 'supervisor' (supervisor-owned leaves visible only to manager/admin).
               if (!managerOrAboveSet.has(roleNormalized)) {
                 const roleFields = (
                   r.role ||
@@ -325,20 +298,17 @@ export default function useLeaveRequest() {
                   roleFields.includes("supervisor") ||
                   roleFields === "supervisor";
 
-                // also consider explicit flags (some APIs set is_supervisor or is_manager)
                 const isSupervisorFlag =
                   r.is_supervisor === 1 ||
                   r.isSupervisor === 1 ||
                   r.is_supervisor === true ||
                   r.isSupervisor === true;
 
-                // If the row is a supervisor-owned leave, hide it from non-manager viewers.
                 if (isSupervisorRow || isSupervisorFlag) {
                   return false;
                 }
               }
 
-              // otherwise keep the row
               return true;
             });
           }
@@ -354,7 +324,6 @@ export default function useLeaveRequest() {
     }
   };
 
-  // leave balance loader (per employee cache)
   const loadLeaveBalance = async (employeeIdToLoad) => {
     if (!employeeIdToLoad) return [];
     if (leaveBalancesCache[employeeIdToLoad])
@@ -374,7 +343,6 @@ export default function useLeaveRequest() {
     }
   };
 
-  // helper to get balance for current user type
   const getBalanceForType = (type) => {
     if (!balances || balances.length === 0) return null;
     return (
@@ -384,7 +352,6 @@ export default function useLeaveRequest() {
     );
   };
 
-  // ----- Form related -----
   const resetForm = () => {
     setFormData({
       reason: "",
@@ -458,12 +425,8 @@ export default function useLeaveRequest() {
     );
   };
 
-  /**
-   * handleSubmit (employee submit) - unchanged from previous behavior
-   */
   const handleSubmit = async (e) => {
     e?.preventDefault?.();
-    // basic validation
     if (
       !formData.leavetype ||
       !formData.startDate ||
@@ -478,7 +441,6 @@ export default function useLeaveRequest() {
       return;
     }
 
-    // Determine the applicable setting:
     const selectedType = String(formData.leavetype || "").toLowerCase();
 
     let setting = null;
@@ -498,7 +460,6 @@ export default function useLeaveRequest() {
       return;
     }
 
-    // enforce advance notice
     const noticeDays = getAdvanceNoticeDays(setting);
     if (!editingId && noticeDays > 0) {
       const today = new Date();
@@ -604,12 +565,10 @@ export default function useLeaveRequest() {
       }
     };
 
-    // requestedDays > remaining and no active policy -> submit directly
     if (requestedDays > remaining && !activePolicy) {
       return await doSubmit(requestData, url, method);
     }
 
-    // requestedDays > remaining AND active policy -> confirm LOP
     if (requestedDays > remaining) {
       const deficit = requestedDays - remaining;
       const confirmMsg = `You're requesting ${requestedDays} day(s), but you have only ${remaining} remaining (${allowance} allowance, ${used} used, ${carry_forward} carry-forward). This will incur ${deficit} Loss-of-Pay day(s). Do you want to continue?`;
@@ -623,30 +582,17 @@ export default function useLeaveRequest() {
     return await doSubmit(requestData, url, method);
   };
 
-  // ----- Manager / Supervisor update logic (for TeamTable) -----
-
-  /**
-   * doUpdate - robust, shared update caller for admin/manager actions
-   * returns object like { ok: boolean, status?, body? }
-   *
-   * Defensive: sanitize any client-supplied is_defaulted/isDefaulted/_internalOrigin
-   * so only internal flows can set that flag.
-   */
   const doUpdate = async (leaveId, payload = {}) => {
     try {
-      // sanitize client-supplied default flags unless payload._internalOrigin === 'system'
       const internal = payload && payload._internalOrigin === "system";
       const safePayload = { ...payload };
       if (!internal) {
-        // remove any client-provided default flags to avoid accidental bypass
         delete safePayload.is_defaulted;
         delete safePayload.isDefaulted;
         delete safePayload._internalOrigin;
       } else {
-        // keep it if internal
       }
 
-      // normalize numeric synonyms
       const compensated =
         Number(
           safePayload.compensated_days ??
@@ -681,7 +627,6 @@ export default function useLeaveRequest() {
       const status = safePayload.status ?? safePayload.statusText ?? "";
       const comments = safePayload.comments ?? safePayload.comment ?? null;
 
-      // actorId fallback from localStorage
       let actorId = null;
       try {
         const raw = localStorage.getItem("dashboardData");
@@ -738,15 +683,12 @@ export default function useLeaveRequest() {
         isDefaulted: isDefaulted,
       };
 
-      // headers
       const headersForReq = { ...headersBase };
       if (actorId) headersForReq["x-employee-id"] = actorId;
 
       const url = `${BACKEND}/admin/leave/${leaveId}`;
 
-      // Preflight: if trying to approve and splits don't add up and NOT internal, open popup
       if (/^Approved$/i.test(fullPayload.status) && !isDefaulted) {
-        // derive days if provided or fetch from cache by searching leaveRequests
         let days = null;
         const all = (leaveRequests.team || []).concat(leaveRequests.self || []);
         const found = all.find(
@@ -774,7 +716,6 @@ export default function useLeaveRequest() {
           days !== null &&
           Math.abs(compensated + deducted + lop - days) > EPS
         ) {
-          // open popup if possible (we need leave row info to compute remaining)
           if (found) {
             const balances = await loadLeaveBalance(found.employee_id);
             const bal = balances.find(
@@ -788,7 +729,6 @@ export default function useLeaveRequest() {
                 : 0;
             const deficit = Math.max(0, days - remaining);
 
-            // build handlers (these use this same doUpdate but mark internal origin)
             const approveDeficit = async () => {
               const preserved_leave_days = Number(remaining) || 0;
               const lopDaysVal = Number(days) || 0;
@@ -952,7 +892,6 @@ export default function useLeaveRequest() {
             return { ok: true, modalOpened: true };
           }
 
-          // no leave row found -> block and show message
           showAlert(
             "Approval requires split but request details unavailable. Try again."
           );
@@ -960,7 +899,6 @@ export default function useLeaveRequest() {
         }
       }
 
-      // proceed to send fullPayload
       const res = await fetch(url, {
         method: "PUT",
         headers: headersForReq,
@@ -1032,10 +970,6 @@ export default function useLeaveRequest() {
     return null;
   };
 
-  /**
-   * handleStatusChange - called by TeamTable when user edits select/input
-   * keeps changes in statusUpdates state so TeamTable can read them
-   */
   const handleStatusChange = (leaveId, key, value) => {
     const val = key === "status" ? normalizeStatus(value) : value;
     setStatusUpdates((prev) => ({
@@ -1044,17 +978,7 @@ export default function useLeaveRequest() {
     }));
   };
 
-  /**
-   * onUpdate - called when manager clicks Update for a particular leave row.
-   * Accepts (leaveId, leaveObj) — leaveObj is optional but we use it when provided.
-   *
-   * IMPORTANT: returns an object in all code paths.
-   * - successful network update: { ok: true, ... }
-   * - failure: { ok: false, ... }
-   * - modal opened for further input: { modalOpened: true }
-   */
   const onUpdate = async (leaveId, leaveObj = null) => {
-    // sanitize statusUpdates before using (strip any client-supplied default flags)
     const rawUpd = statusUpdates[leaveId] || {};
     const upd = { ...rawUpd };
     delete upd.is_defaulted;
@@ -1066,7 +990,6 @@ export default function useLeaveRequest() {
       (leaveObj && (leaveObj.status ?? leaveObj.Status)) ?? ""
     );
 
-    // If rejecting, require comment either in upd.comments or existing leaveObj.comments
     if (/^rejected$/i.test(newStatus)) {
       const commentProvided =
         (upd.comments && String(upd.comments).trim()) ||
@@ -1077,9 +1000,7 @@ export default function useLeaveRequest() {
       }
     }
 
-    // if approving: handle LOP logic & activePolicy
     if (/^approved$/i.test(newStatus)) {
-      // need leaveObj to compute days and balances; if not passed find it from leaveRequests
       let query = leaveObj;
       if (!query) {
         const all = (leaveRequests.team || []).concat(leaveRequests.self || []);
@@ -1090,7 +1011,6 @@ export default function useLeaveRequest() {
         return { ok: false, message: "no_request_found" };
       }
 
-      // Use computeRequestedDays so Half Day semantics match server calculation
       const hfFlag =
         query.H_F_day ??
         query.h_f_day ??
@@ -1114,7 +1034,6 @@ export default function useLeaveRequest() {
       const activePolicyForRequest = findActivePolicyForRequestDate(query);
 
       if (!activePolicyForRequest) {
-        // No active policy: perform simple approve with default LoP (mark is_defaulted)
         const simplePayload = {
           ...(upd || {}),
           status: "Approved",
@@ -1141,7 +1060,6 @@ export default function useLeaveRequest() {
           is_defaulted: true,
           isDefaulted: true,
 
-          // internal marker to allow server to treat this as defaulted
           _internalOrigin: "system",
         };
 
@@ -1152,7 +1070,6 @@ export default function useLeaveRequest() {
         return result || { ok: false, message: "update_failed" };
       }
 
-      // Active policy -> set up handlers and open lopModal
       const approveDeficit = async () => {
         const preserved_leave_days = Number(remaining) || 0;
         const lopDaysVal = Number(days) || 0;
@@ -1373,17 +1290,14 @@ export default function useLeaveRequest() {
         error: "",
       });
 
-      // IMPORTANT: signal to caller (TeamTable) that modal was opened and NOT an error
       return { ok: true, modalOpened: true };
     }
 
-    // non-approved (e.g., pending -> rejected), simple update
     const sendPayload = {
       ...(statusUpdates[leaveId] || {}),
       status: normalizeStatus(upd.status ?? serverStatus ?? ""),
     };
 
-    // sanitize again
     delete sendPayload.is_defaulted;
     delete sendPayload.isDefaulted;
     delete sendPayload._internalOrigin;
@@ -1395,9 +1309,7 @@ export default function useLeaveRequest() {
     return result || { ok: false, message: "update_failed" };
   };
 
-  // expose everything UI will need
   return {
-    // state
     isFormVisible,
     formData,
     editingId,
@@ -1412,11 +1324,9 @@ export default function useLeaveRequest() {
     lopMonth,
     lopYear,
 
-    // getters/mappings
     defaultLeaveSettings,
     canViewTeam,
 
-    // actions
     openForm,
     closeForm,
     handleInputChange,
@@ -1424,7 +1334,6 @@ export default function useLeaveRequest() {
     handleEdit,
     handleCancel,
 
-    // filters
     filters,
     setFilters,
     teamSearch,
@@ -1433,7 +1342,6 @@ export default function useLeaveRequest() {
     setTeamStatus,
     fetchLeaveRequests,
 
-    // modals & LOP
     setLopModal,
     fetchMonthlyLop: async (m, y) => {
       if (!employeeData?.employeeId) return 0;
@@ -1478,18 +1386,15 @@ export default function useLeaveRequest() {
       }
     },
 
-    // alert helpers
     showAlert,
     closeAlert,
     showConfirm,
     closeConfirm,
 
-    // status updates for TeamTable
     statusUpdates,
     handleStatusChange,
     onUpdate,
 
-    // misc
     setFormData,
     setEditingId,
     setAlertModal,

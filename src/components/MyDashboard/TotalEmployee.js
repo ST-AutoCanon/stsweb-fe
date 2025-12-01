@@ -4,7 +4,6 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import "./TotalEmployee.css";
 
-// Register required chart components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const TotalEmployee = () => {
@@ -37,14 +36,12 @@ const TotalEmployee = () => {
 
         const jsonData = await response.json();
 
-        // Check if the response is in the expected format
         if (!jsonData || !jsonData.message) {
           throw new Error("Invalid data format received");
         }
 
         const { totalEmployees, categories } = jsonData.message;
 
-        // Process categories
         const labels = categories.map((item) => item.label);
         const dataValues = categories.map((item) => item.count);
         const colors = categories.map((item) => item.color);
@@ -78,7 +75,6 @@ const TotalEmployee = () => {
     ? chartData.datasets[0].data.reduce((a, b) => a + b, 0)
     : 0;
 
-  // Custom plugin to add text in the center of the Doughnut chart
   const centerTextPlugin = {
     id: "centerText",
     beforeDraw: (chart) => {
@@ -89,9 +85,8 @@ const TotalEmployee = () => {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      // Adjust the y-coordinate to move the text up
-      const offsetX = -2; // Move text left by 2 pixels (adjust as needed)
-      const offsetY = -10; // Move text upwards by 10 pixels (adjust as needed)
+      const offsetX = -2;
+      const offsetY = -10;
 
       ctx.fillText(
         `${totalEmployees} Employees`,
@@ -102,7 +97,6 @@ const TotalEmployee = () => {
     },
   };
 
-  // Chart options
   const options = {
     cutout: "70%",
     plugins: {

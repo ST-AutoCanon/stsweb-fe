@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/FiltersPanel.js
 import React from "react";
 import { IoSearch } from "react-icons/io5";
 

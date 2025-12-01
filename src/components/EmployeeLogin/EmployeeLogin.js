@@ -5,7 +5,7 @@ import axios from "axios";
 
 const EmployeeCardWithHover = ({ employeePunches }) => {
   const [hovered, setHovered] = useState(false);
-  const [avatar, setAvatar] = useState("/images/smily.png"); // Default avatar
+  const [avatar, setAvatar] = useState("/images/smily.png");
 
   if (
     !employeePunches ||
@@ -50,7 +50,6 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
     ? "employee-card-hover bg-office-hq"
     : "employee-card-hover bg-default";
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     let imageUrl = null;
 
@@ -236,7 +235,6 @@ const TimeSlotGroup = ({
     setSlotOpen(slotKey, !isOpen);
   };
 
-  // Format the time slot (e.g., "0-1" to "00:00 - 01:00")
   const formatTimeSlot = (slot) => {
     const [startHour] = slot.split("-").map(Number);
     const endHour = startHour + 1;

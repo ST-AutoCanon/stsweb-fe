@@ -36,18 +36,16 @@ const AdminQuery = () => {
     selectedThreadIdRef.current = selectedQuery?.id ?? null;
   }, [selectedQuery]);
 
-  // ------ SOCKET: init only when employeeId exists ------
   useEffect(() => {
     if (!employeeId) {
       console.warn("[socket] not connecting: employeeId missing");
-      setLoading(false); // avoid infinite loading if you rely on socket
+      setLoading(false);
       return;
     }
 
     const socket = io(BACKEND_URL, {
       query: { userId: employeeId },
       auth: { apiKey: API_KEY },
-      // transports: ["websocket"], // uncomment if you want to force websocket for debugging
     });
 
     socketRef.current = socket;
@@ -63,16 +61,13 @@ const AdminQuery = () => {
     socket.on("disconnect", onDisconnect);
     socket.on("connect_error", onConnectError);
 
-    // newMessage broadcast handler
     socket.on("newMessage", (msg) => {
       if (String(msg.thread_id) === String(selectedThreadIdRef.current)) {
         setMessages((prev) => [...prev, msg]);
       }
-      // refresh thread previews/unread counts
       fetchQueries();
     });
 
-    // ack back to the sender (optional: server emits this)
     socket.on("messageAck", (msg) => {
       if (String(msg.thread_id) === String(selectedThreadIdRef.current)) {
         setMessages((prev) => [...prev, msg]);
@@ -81,7 +76,6 @@ const AdminQuery = () => {
 
     socket.on("error", (err) => console.error("[socket] server error:", err));
 
-    // cleanup
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
@@ -95,7 +89,6 @@ const AdminQuery = () => {
         console.warn("[socket] disconnect error", e);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [BACKEND_URL, API_KEY, employeeId]);
 
   const fetchQueries = async () => {
@@ -116,7 +109,6 @@ const AdminQuery = () => {
 
   useEffect(() => {
     fetchQueries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [alertModal, setAlertModal] = useState({
@@ -153,14 +145,12 @@ const AdminQuery = () => {
     }
   };
 
-  // ----------------- SEND MESSAGE (socket with REST fallback) -----------------
   const sendMessage = async () => {
     if (!newMessage.trim() && !attachmentBase64) {
       showAlert("Message or attachment is required.");
       return;
     }
 
-    // attachments via REST/Multer (unchanged)
     if (attachmentFile) {
       const formData = new FormData();
       formData.append("attachment", attachmentFile);
@@ -184,7 +174,6 @@ const AdminQuery = () => {
         const { message: newMsg } = res.data.data;
         setMessages((prev) => [...prev, newMsg]);
 
-        // clear inputs
         setNewMessage("");
         setAttachmentFile(null);
         setAttachmentBase64(null);
@@ -198,7 +187,6 @@ const AdminQuery = () => {
       return;
     }
 
-    // Build payload
     const payload = {
       thread_id: selectedQuery.id,
       sender_id: employeeId,
@@ -208,7 +196,6 @@ const AdminQuery = () => {
       message: newMessage,
     };
 
-    // If socket connected, use it with ack. Otherwise fallback to REST.
     if (socketRef.current && socketRef.current.connected) {
       socketRef.current.emit("sendQueryMessage", payload, async (resp) => {
         if (resp && resp.success && resp.message) {
@@ -216,7 +203,6 @@ const AdminQuery = () => {
           setNewMessage("");
         } else {
           console.error("Socket send failed, falling back to REST:", resp);
-          // REST fallback
           try {
             const res = await axios.post(
               `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
@@ -238,7 +224,6 @@ const AdminQuery = () => {
         }
       });
     } else {
-      // REST fallback when no socket
       try {
         const res = await axios.post(
           `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
@@ -283,7 +268,6 @@ const AdminQuery = () => {
     }
   };
 
-  // When selecting a thread, join the room (if socket connected) and fetch messages
   const handleSelectQuery = async (query) => {
     setSelectedQuery(query);
     setMessages([]);
@@ -302,7 +286,6 @@ const AdminQuery = () => {
       const fetchedMessages = response.data.data || [];
       setMessages(fetchedMessages);
 
-      // Mark messages as read
       await axios.put(
         `${BACKEND_URL}/threads/${query.id}/messages/read`,
         { sender_id: employeeId },
@@ -314,7 +297,6 @@ const AdminQuery = () => {
         }
       );
 
-      // refresh queries list (to update unread counts)
       fetchQueries();
     } catch (error) {
       console.error("Error fetching messages or marking as read:", error);

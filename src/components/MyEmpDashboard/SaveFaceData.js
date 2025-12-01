@@ -10,14 +10,12 @@ function SaveFaceData({ onClose }) {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -315,7 +313,6 @@ function SaveFaceData({ onClose }) {
           for employee attendance tracking.
         </p>
       </div>
-      {/* <p>Employee ID: <strong>{userName}</strong></p> */}
       <div className={`video-container ${isCapturing ? "capturing" : ""}`}>
         <video
           id="video"

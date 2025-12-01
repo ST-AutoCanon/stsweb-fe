@@ -136,7 +136,7 @@ const EmpReImbursement = () => {
           options={{
             plugins: {
               legend: {
-                display: false, // Hides default legend
+                display: false,
               },
             },
             responsive: true,

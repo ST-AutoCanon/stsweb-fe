@@ -4,7 +4,6 @@ import "./ReverseEngineering.css";
 const ReverseEngineering = () => {
   return (
     <div className="reverse-engineering-container">
-      {/* Left Section */}
       <div className="reverse-engineering-text">
         <h1>Reverse Engineering</h1>
         <p>Our Reverse Engineering Services Include:</p>
@@ -23,7 +22,6 @@ const ReverseEngineering = () => {
         <button className="reverse-engineering-button">Learn More</button>
       </div>
 
-      {/* Right Section */}
       <div className="reverse-engineering-image">
         <img
           src="./images/Homologationsupport.png"

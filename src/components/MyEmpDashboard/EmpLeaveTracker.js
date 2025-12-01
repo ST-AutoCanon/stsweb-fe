@@ -57,7 +57,7 @@ const EmpLeaveTracker = () => {
           Array.isArray(response.data.leaveQueries)
         ) {
           if (response.data.leaveQueries.length === 0) {
-            setLeaveData([]); // No data found, but not an error.
+            setLeaveData([]);
           } else {
             const formattedData = response.data.leaveQueries.map((leave) => ({
               leaveType: leave["Leave Type"] || "N/A",

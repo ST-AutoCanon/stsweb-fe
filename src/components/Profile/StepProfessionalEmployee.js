@@ -1,4 +1,3 @@
-// ./stepsEmployee/StepProfessionalEmployee.jsx
 import React, { useEffect, useState } from "react";
 import FileInput from "../EmployeeDetails/FileInput";
 import { MdOutlineCancel } from "react-icons/md";

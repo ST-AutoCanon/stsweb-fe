@@ -14,13 +14,12 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Extract token from URL query parameters
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const tokenFromUrl = queryParams.get("token");
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
-      setError(""); // Clear any previous error
+      setError("");
     } else {
       setError("Invalid or missing token");
     }
@@ -43,7 +42,7 @@ const ResetPassword = () => {
       return;
     }
 
-    setIsLoading(true); // Set loading state to true
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
@@ -59,15 +58,15 @@ const ResetPassword = () => {
 
       if (response.status === 200) {
         setSuccess(true);
-        setError(""); // Clear the error state on success
-        setTimeout(() => navigate("/"), 2000); // Redirect after success
+        setError("");
+        setTimeout(() => navigate("/"), 2000);
       }
     } catch (error) {
       console.error(error);
       setError("Failed to reset password. Please try again.");
       setSuccess(false);
     } finally {
-      setIsLoading(false); // Reset loading state
+      setIsLoading(false);
     }
   };
 

@@ -1,4 +1,3 @@
-// src/components/PolicyModal.js
 import React, { useState, useEffect, useRef } from "react";
 import "./PolicyModal.css";
 import {
@@ -7,7 +6,7 @@ import {
   MdAddCircleOutline,
   MdOutlineEdit,
 } from "react-icons/md";
-import Modal from "../Modal/Modal"; // <- using your reusable Modal component
+import Modal from "../Modal/Modal";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL;
 const headers = {
@@ -15,19 +14,11 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-// Built-in leave types
 const BUILT_IN = [
   { key: "casual", label: "Casual Leave" },
   { key: "earned", label: "Earned Leave" },
 ];
 
-/**
- * Props:
- *  - isOpen: boolean
- *  - onClose: fn
- *  - onSaved: fn
- *  - openPolicyId: optional id (number|string) -> when provided, modal will auto-edit that policy after policies load
- */
 export default function PolicyModal({
   isOpen,
   onClose,
@@ -37,10 +28,8 @@ export default function PolicyModal({
   const [policies, setPolicies] = useState([]);
   const [alert, setAlert] = useState(null);
 
-  // NEW: alerts state (computed from policies)
   const [policyAlerts, setPolicyAlerts] = useState([]);
 
-  // confirmation modal state for deletes
   const [confirmDelete, setConfirmDelete] = useState({
     isVisible: false,
     id: null,
@@ -48,7 +37,6 @@ export default function PolicyModal({
     message: "Are you sure you want to delete this policy?",
   });
 
-  // form state: id null = create, non-null = editing
   const [form, setForm] = useState({
     id: null,
     period: "yearly",
@@ -67,14 +55,11 @@ export default function PolicyModal({
     extras: [],
   });
 
-  // local ref to know whether we've auto-opened the requested policy (prevent repeated onEdit)
   const autoOpenedRef = useRef(null);
 
   const showAlert = (msg) => setAlert(msg);
   const clearAlert = () => setAlert(null);
 
-  // ----------------- ALERT LOGIC -----------------
-  // compute days left until end date (integer)
   const daysUntil = (dateStr) => {
     if (!dateStr) return Infinity;
     const today = new Date();
@@ -85,47 +70,39 @@ export default function PolicyModal({
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  // compute alerts from policy list
   const computePolicyAlerts = (policyList = []) => {
     if (!Array.isArray(policyList)) return [];
-    return (
-      policyList
-        .map((p) => {
-          const daysLeft = daysUntil(p.year_end);
-          // only show alerts for policies that have not yet ended (daysLeft >= 0)
-          if (daysLeft < 0) return null;
+    return policyList
+      .map((p) => {
+        const daysLeft = daysUntil(p.year_end);
+        if (daysLeft < 0) return null;
 
-          // severity: critical if within 5 days, warning if within 10 days
-          let severity = null;
-          if (daysLeft <= 5) severity = "critical"; // 2nd alert
-          else if (daysLeft <= 10) severity = "warning"; // 1st alert
+        let severity = null;
+        if (daysLeft <= 5) severity = "critical";
+        else if (daysLeft <= 10) severity = "warning";
 
-          if (!severity) return null;
-          return {
-            id: p.id,
-            policy: p,
-            daysLeft,
-            severity,
-          };
-        })
-        .filter(Boolean)
-        // sort: most urgent first (critical before warning, then smaller daysLeft)
-        .sort((a, b) => {
-          const sevOrder = { critical: 0, warning: 1 };
-          if (sevOrder[a.severity] !== sevOrder[b.severity]) {
-            return sevOrder[a.severity] - sevOrder[b.severity];
-          }
-          return a.daysLeft - b.daysLeft;
-        })
-    );
+        if (!severity) return null;
+        return {
+          id: p.id,
+          policy: p,
+          daysLeft,
+          severity,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const sevOrder = { critical: 0, warning: 1 };
+        if (sevOrder[a.severity] !== sevOrder[b.severity]) {
+          return sevOrder[a.severity] - sevOrder[b.severity];
+        }
+        return a.daysLeft - b.daysLeft;
+      });
   };
 
-  // whenever policies update, recalc alerts
   useEffect(() => {
     setPolicyAlerts(computePolicyAlerts(policies));
   }, [policies]);
 
-  // ----------------- Existing fetch when modal opens -----------------
   useEffect(() => {
     if (!isOpen) return;
     (async () => {
@@ -136,24 +113,18 @@ export default function PolicyModal({
         const json = await res.json();
         const list = json.data || [];
         setPolicies(list);
-        // After loading policies, attempt auto-extend for any ignored & ended policies
         runAutoExtendOnLoad(list);
       } catch {
         showAlert("Could not load policies.");
       }
     })();
-    // reset form on open
     resetForm();
-    // reset auto-open tracker when modal opens
     autoOpenedRef.current = null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  // When policies have loaded and an openPolicyId was provided, auto-open that policy for editing
   useEffect(() => {
     if (!isOpen || openPolicyId == null) return;
     if (!policies || policies.length === 0) return;
-    // avoid repeatedly calling onEdit for the same id during this modal session
     if (autoOpenedRef.current === String(openPolicyId)) return;
 
     const found = policies.find((p) => String(p.id) === String(openPolicyId));
@@ -161,10 +132,8 @@ export default function PolicyModal({
       onEdit(found);
       autoOpenedRef.current = String(openPolicyId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [policies, openPolicyId, isOpen]);
 
-  // ----------------- other helpers (unchanged) -----------------
   function resetForm() {
     setForm({
       id: null,
@@ -186,11 +155,10 @@ export default function PolicyModal({
     clearAlert();
   }
 
-  // persist policy alerts to localStorage so Notifications can pick them up
   useEffect(() => {
     try {
       const toStore = (policyAlerts || []).map((a) => ({
-        id: `policy-${a.id}`, // local id prefix so we can identify them later
+        id: `policy-${a.id}`,
         type: "policy",
         message:
           a.severity === "critical"
@@ -209,12 +177,10 @@ export default function PolicyModal({
       }));
       localStorage.setItem("policyAlerts", JSON.stringify(toStore));
     } catch (err) {
-      // non-fatal — if localStorage fails just continue
       console.error("Failed to persist policy alerts:", err);
     }
   }, [policyAlerts]);
 
-  // Re-calc end date when start or period changes
   useEffect(() => {
     if (!form.yearStart) {
       setForm((f) => ({ ...f, yearEnd: "" }));
@@ -225,7 +191,6 @@ export default function PolicyModal({
     if (form.period === "half") end.setMonth(end.getMonth() + 6);
     else if (form.period === "quarter") end.setMonth(end.getMonth() + 3);
     else end.setFullYear(end.getFullYear() + 1);
-    // inclusive
     end.setDate(end.getDate() - 1);
     setForm((f) => ({
       ...f,
@@ -293,7 +258,6 @@ export default function PolicyModal({
     clearAlert();
   };
 
-  // ----------------- NEW HELPER: overlap / duplicate check -----------------
   const hasOverlappingPolicy = (yearStart, yearEnd, ignoreId = null) => {
     if (!yearStart || !yearEnd) return false;
     const newStart = new Date(yearStart);
@@ -316,7 +280,6 @@ export default function PolicyModal({
     });
   };
 
-  // ----------------- UPDATED handleSubmit with client-side guard -----------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { id, period, yearStart, yearEnd, config, extras } = form;
@@ -367,21 +330,16 @@ export default function PolicyModal({
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
-      // refresh list inside modal (optional)
       const fresh = await fetch(`${API_BASE}/api/leave-policies`, { headers });
       const json = await fresh.json();
       const list = json.data || [];
       setPolicies(list);
-      // After saving (create/update), clear any ignored/extended flags for this policy
       if (id) {
         try {
           localStorage.removeItem(`policyIgnored:${id}`);
           localStorage.removeItem(`policyExtended:${id}`);
-        } catch (err) {
-          /* ignore localStorage errors */
-        }
+        } catch (err) {}
       }
-      // notify parent (Admin) that save completed so it can refresh global data
       if (typeof onSaved === "function") onSaved();
       onClose();
     } catch {
@@ -418,20 +376,14 @@ export default function PolicyModal({
       if (!res.ok) {
         throw new Error("Delete failed");
       }
-      // refresh list
       const fresh = await fetch(`${API_BASE}/api/leave-policies`, { headers });
       const json = await fresh.json();
       setPolicies(json.data || []);
-      // clear any stored flags for the deleted policy
       try {
         localStorage.removeItem(`policyIgnored:${id}`);
         localStorage.removeItem(`policyExtended:${id}`);
-      } catch (err) {
-        /* ignore */
-      }
-      // notify parent
+      } catch (err) {}
       if (typeof onSaved === "function") onSaved();
-      // close confirm
       setConfirmDelete({
         isVisible: false,
         id: null,
@@ -453,7 +405,6 @@ export default function PolicyModal({
     });
   };
 
-  // ----------------- NEW: ignore action for alerts -----------------
   const handleIgnoreAlert = (policy) => {
     try {
       const key = `policyIgnored:${policy.id}`;
@@ -472,7 +423,6 @@ export default function PolicyModal({
     }
   };
 
-  // ----------------- NEW: auto-extend logic -----------------
   const extendPolicyIfNeeded = async (
     policy,
     ignoredAtISO = null,
@@ -561,7 +511,6 @@ export default function PolicyModal({
     }
   };
 
-  // ----------------- UI / Render -----------------
   if (!isOpen) return null;
   return (
     <div className="policy-modal-overlay">
@@ -893,7 +842,6 @@ export default function PolicyModal({
         </footer>
       </div>
 
-      {/* Confirmation Modal (using your Modal component) */}
       <Modal
         isVisible={confirmDelete.isVisible}
         onClose={handleCancelDelete}

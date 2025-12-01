@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
-import "jspdf-autotable"; // Import autoTable plugin for tables
-import "./PayrollSummary.css"; // Ensure proper CSS
+import "jspdf-autotable";
+import "./PayrollSummary.css";
 import generatePayslipPDF from "../../utils/generatePayslipPDF";
 
 const PayrollSummary = () => {
@@ -14,7 +13,7 @@ const PayrollSummary = () => {
   const [payrollData, setPayrollData] = useState(null);
   const [bankDetails, setBankDetails] = useState(null);
   const [attendance, setAttendance] = useState(null);
-  const [employeeDetails, setEmployeeDetails] = useState(null); // New state for employee details
+  const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -36,12 +35,11 @@ const PayrollSummary = () => {
   useEffect(() => {
     if (!employeeId) return;
 
-    // Fetch Payroll Data
     const fetchPayrollData = async () => {
       setLoading(true);
       setError(null);
       setPayrollData(null);
-      setBankDetails(null); // Reset bank details when payroll is not available
+      setBankDetails(null);
       setAttendance(null);
 
       try {
@@ -56,12 +54,12 @@ const PayrollSummary = () => {
         const result = await response.json();
         if (response.ok && result) {
           setPayrollData(result);
-          fetchBankDetails(); // Fetch bank details only if payroll exists
-          fetchEmployeeDetails(); // Fetch employee details
+          fetchBankDetails();
+          fetchEmployeeDetails();
         } else {
           setPayrollData(null);
-          setBankDetails(null); // Ensure bank details are not shown
-          setEmployeeDetails(null); // Reset employee details
+          setBankDetails(null);
+          setEmployeeDetails(null);
         }
       } catch (error) {
         setError("Failed to fetch payroll data.");
@@ -69,7 +67,6 @@ const PayrollSummary = () => {
       setLoading(false);
     };
 
-    // Fetch Bank Details (Only if payroll data exists)
     const fetchBankDetails = async () => {
       try {
         const response = await fetch(
@@ -91,7 +88,6 @@ const PayrollSummary = () => {
       }
     };
 
-    // Fetch Employee Details (PAN and Gender)
     const fetchEmployeeDetails = async () => {
       try {
         const response = await fetch(
@@ -113,7 +109,6 @@ const PayrollSummary = () => {
       }
     };
 
-    // Fetch Attendance Data
     const fetchAttendanceData = async () => {
       try {
         const response = await fetch(
@@ -158,7 +153,9 @@ const PayrollSummary = () => {
 
   const handleDownload = () => {
     if (!isPayslipEnabled) {
-      alert("Payslip generation is disabled for this month. Please contact admin to enable.");
+      alert(
+        "Payslip generation is disabled for this month. Please contact admin to enable."
+      );
       return;
     }
     generatePayslipPDF(
@@ -175,7 +172,6 @@ const PayrollSummary = () => {
     <div className="payroll-container">
       <h1 className="payroll-title">Employee Payslip</h1>
 
-      {/* Dropdown for selecting month & year */}
       <div className="payroll-controls">
         <label className="payroll-label">Select Month & Year:</label>
         <select
@@ -199,15 +195,13 @@ const PayrollSummary = () => {
         </select>
       </div>
 
-      {/* Show Bank Details Only If Payroll Exists */}
       {bankDetails && (
         <div className="bank-details">
           <p>
             <strong>Bank Name:</strong> {bankDetails.bank_name}
           </p>
           <p>
-            <strong>Account Number:</strong>{" "}
-            {bankDetails.account_number}
+            <strong>Account Number:</strong> {bankDetails.account_number}
           </p>
         </div>
       )}
@@ -215,16 +209,15 @@ const PayrollSummary = () => {
       <div className="payslip">
         <h2>
           Payslip for{" "}
-          {new Date(
-            selectedDate.year,
-            selectedDate.month - 1
-          ).toLocaleString("default", {
-            month: "long",
-            year: "numeric",
-          })}
+          {new Date(selectedDate.year, selectedDate.month - 1).toLocaleString(
+            "default",
+            {
+              month: "long",
+              year: "numeric",
+            }
+          )}
         </h2>
 
-        {/* Payroll Table */}
         <table className="payslip-table">
           <thead>
             <tr>
@@ -235,87 +228,131 @@ const PayrollSummary = () => {
             </tr>
           </thead>
           <tbody>
-  <tr>
-    <td>Basic Salary</td>
-    <td>₹{(parseFloat(payrollData.basic_salary) || 0).toLocaleString()}</td>
-    <td>Employee PF</td>
-    <td>₹{(parseFloat(payrollData.employee_pf) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>HRA</td>
-    <td>₹{(parseFloat(payrollData.hra) || 0).toLocaleString()}</td>
-    <td>ESIC</td>
-    <td>₹{(parseFloat(payrollData.esic) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>LTA</td>
-    <td>₹{(parseFloat(payrollData.lta) || 0).toLocaleString()}</td>
-    <td>Employer PF</td>
-    <td>₹{(parseFloat(payrollData.employer_pf) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>Other Allowances</td>
-    <td>₹{(parseFloat(payrollData.other_allowances) || 0).toLocaleString()}</td>
-    <td>Gratuity</td>
-    <td>₹{(parseFloat(payrollData.gratuity) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>Incentives</td>
-    <td>₹{(parseFloat(payrollData.incentives) || 0).toLocaleString()}</td>
-    <td>Professional Tax</td>
-    <td>₹{(parseFloat(payrollData.professional_tax) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>Overtime</td>
-    <td>₹{(parseFloat(payrollData.overtime) || 0).toLocaleString()}</td>
-    <td>TDS</td>
-<td>₹{(parseFloat(payrollData.tds) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>Statutory Bonus</td>
-    <td>₹{(parseFloat(payrollData.statutory_bonus) || 0).toLocaleString()}</td>
-    <td>Insurance</td>
-    <td>₹{(parseFloat(payrollData.insurance) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>Bonus</td>
-    <td>₹{(parseFloat(payrollData.bonus) || 0).toLocaleString()}</td>
-    <td>Advance Recovery</td>
-    <td>₹{(parseFloat(payrollData.advance_recovery) || 0).toLocaleString()}</td>
-  </tr>
-  <tr>
-    <td>LOP Days: {(payrollData.lop_days || 0)}</td>
-    <td>₹{(parseFloat(payrollData.lop_deduction) || 0).toLocaleString()}</td>
-    <td></td>
-    <td></td>
-  </tr>
+            <tr>
+              <td>Basic Salary</td>
+              <td>
+                ₹{(parseFloat(payrollData.basic_salary) || 0).toLocaleString()}
+              </td>
+              <td>Employee PF</td>
+              <td>
+                ₹{(parseFloat(payrollData.employee_pf) || 0).toLocaleString()}
+              </td>
+            </tr>
+            <tr>
+              <td>HRA</td>
+              <td>₹{(parseFloat(payrollData.hra) || 0).toLocaleString()}</td>
+              <td>ESIC</td>
+              <td>₹{(parseFloat(payrollData.esic) || 0).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td>LTA</td>
+              <td>₹{(parseFloat(payrollData.lta) || 0).toLocaleString()}</td>
+              <td>Employer PF</td>
+              <td>
+                ₹{(parseFloat(payrollData.employer_pf) || 0).toLocaleString()}
+              </td>
+            </tr>
+            <tr>
+              <td>Other Allowances</td>
+              <td>
+                ₹
+                {(
+                  parseFloat(payrollData.other_allowances) || 0
+                ).toLocaleString()}
+              </td>
+              <td>Gratuity</td>
+              <td>
+                ₹{(parseFloat(payrollData.gratuity) || 0).toLocaleString()}
+              </td>
+            </tr>
+            <tr>
+              <td>Incentives</td>
+              <td>
+                ₹{(parseFloat(payrollData.incentives) || 0).toLocaleString()}
+              </td>
+              <td>Professional Tax</td>
+              <td>
+                ₹
+                {(
+                  parseFloat(payrollData.professional_tax) || 0
+                ).toLocaleString()}
+              </td>
+            </tr>
+            <tr>
+              <td>Overtime</td>
+              <td>
+                ₹{(parseFloat(payrollData.overtime) || 0).toLocaleString()}
+              </td>
+              <td>TDS</td>
+              <td>₹{(parseFloat(payrollData.tds) || 0).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td>Statutory Bonus</td>
+              <td>
+                ₹
+                {(
+                  parseFloat(payrollData.statutory_bonus) || 0
+                ).toLocaleString()}
+              </td>
+              <td>Insurance</td>
+              <td>
+                ₹{(parseFloat(payrollData.insurance) || 0).toLocaleString()}
+              </td>
+            </tr>
+            <tr>
+              <td>Bonus</td>
+              <td>₹{(parseFloat(payrollData.bonus) || 0).toLocaleString()}</td>
+              <td>Advance Recovery</td>
+              <td>
+                ₹
+                {(
+                  parseFloat(payrollData.advance_recovery) || 0
+                ).toLocaleString()}
+              </td>
+            </tr>
+            <tr>
+              <td>LOP Days: {payrollData.lop_days || 0}</td>
+              <td>
+                ₹{(parseFloat(payrollData.lop_deduction) || 0).toLocaleString()}
+              </td>
+              <td></td>
+              <td></td>
+            </tr>
 
-  <tr className="total-row">
-    <td><strong>Gross Earnings</strong></td>
-    <td><strong>₹{grossEarnings.toLocaleString()}</strong></td>
-    <td><strong>Total Deductions</strong></td>
-    <td><strong>₹{totalDeductions.toLocaleString()}</strong></td>
-  </tr>
-  <tr className="net-salary-row">
-    <td colSpan="2"><strong>Net Salary</strong></td>
-    <td colSpan="2"><strong>₹{Math.floor(netSalary).toLocaleString()}</strong></td>
-  </tr>
-</tbody>
-
+            <tr className="total-row">
+              <td>
+                <strong>Gross Earnings</strong>
+              </td>
+              <td>
+                <strong>₹{grossEarnings.toLocaleString()}</strong>
+              </td>
+              <td>
+                <strong>Total Deductions</strong>
+              </td>
+              <td>
+                <strong>₹{totalDeductions.toLocaleString()}</strong>
+              </td>
+            </tr>
+            <tr className="net-salary-row">
+              <td colSpan="2">
+                <strong>Net Salary</strong>
+              </td>
+              <td colSpan="2">
+                <strong>₹{Math.floor(netSalary).toLocaleString()}</strong>
+              </td>
+            </tr>
+          </tbody>
         </table>
 
-        {/* Download Button - Only enabled if payslip_generated is 1 */}
         <div className="download-section">
           {isPayslipEnabled ? (
-            <button
-              onClick={handleDownload}
-              className="payroll-download-btn"
-            >
+            <button onClick={handleDownload} className="payroll-download-btn">
               Download PDF
             </button>
           ) : (
             <p className="payslip-disabled-message">
-              Payslip generation is currently disabled for this month. Please contact the administrator to enable it.
+              Payslip generation is currently disabled for this month. Please
+              contact the administrator to enable it.
             </p>
           )}
         </div>

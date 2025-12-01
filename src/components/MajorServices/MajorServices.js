@@ -1,17 +1,12 @@
-// Major Services Page
-
 import React from "react";
 import "./MajorServices.css";
 
-// Major Services
 const MajorServices = () => {
   return (
     <div className="major-services-container">
       <h2>Major Services provided as follows</h2>
       <div className="major-services">
         <div className="major-services-section">
-
-          {/* IT Services */}
           <h3>IT SERVICES</h3>
           <ul>
             <li>Software Development</li>
@@ -25,7 +20,6 @@ const MajorServices = () => {
           </ul>
         </div>
         <div className="major-services-section">
-          {/* Non-IT Services */}
           <h3>NON-IT SERVICES</h3>
           <ul>
             <li>Styling</li>

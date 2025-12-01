@@ -4,7 +4,6 @@ import { GrMoney } from "react-icons/gr";
 import { GiWallet } from "react-icons/gi";
 import "./Dashboardcard.css";
 
-// Icon mapping
 const iconMapping = {
   GiWallet: <GiWallet />,
   IoBagSharp: <IoBagSharp />,
@@ -26,7 +25,6 @@ const Dashboardcard = () => {
   ).employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
-  // Fetch previous month's salary data
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
@@ -60,7 +58,6 @@ const Dashboardcard = () => {
     fetchPayrollData();
   }, [API_KEY]);
 
-  // Fetch previous month's approved reimbursement data
   useEffect(() => {
     const fetchReimbursementData = async () => {
       try {

@@ -6,13 +6,12 @@ export default function VoiceNoteFlow({
   step,
   answers,
   isLoading,
-  onSave, // (updatedAnswers: string[]) => void
-  onCancel, // () => void
+  onSave,
+  onCancel,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [drafts, setDrafts] = useState(answers);
 
-  // Reset drafts whenever answers prop changes
   useEffect(() => {
     setDrafts(answers);
   }, [answers]);
@@ -36,7 +35,6 @@ export default function VoiceNoteFlow({
     });
   };
 
-  // Only show buttons after the final prompt has an answer
   const allQuestionsCompleted =
     step >= prompts.length && answers[prompts.length - 1]?.trim().length > 0;
 

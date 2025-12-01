@@ -23,7 +23,6 @@ const Login = ({ onClose }) => {
     message: "",
   });
 
-  // Check if user was logged out due to inactivity
   useEffect(() => {
     if (sessionStorage.getItem("loggedOutDueToInactivity")) {
       setIdleModalVisible(true);
@@ -112,12 +111,10 @@ const Login = ({ onClose }) => {
         "sidebarMenu",
         JSON.stringify(data.message.sidebarMenu)
       );
-      // Set lastActivity only on login
       localStorage.setItem("lastActivity", Date.now());
 
       closeModal();
 
-      // Check if username is manish.patil@gmail.com and role is general
       if (
         username.toLowerCase() === "manish.p@yopmail.com" &&
         (data.message.role || "").toLowerCase() === "general"
@@ -151,7 +148,6 @@ const Login = ({ onClose }) => {
                     className="login-logo-img"
                   />
                 </div>
-                {/* Error Message Display */}
                 {errorMessage && (
                   <div className="error-messages">{errorMessage}</div>
                 )}
@@ -213,7 +209,6 @@ const Login = ({ onClose }) => {
             <p>You have been logged out due to inactivity.</p>
           </Modal>
         )}
-        {/* Alert Modal for displaying messages */}
         <Modal
           isVisible={alertModal.isVisible}
           onClose={closeAlert}
@@ -226,4 +221,4 @@ const Login = ({ onClose }) => {
   );
 };
 
-export default Login; //////////////////////////////////////////
+export default Login;

@@ -1,25 +1,24 @@
 .sidebar {
   width: 250px;
   background-color: #f4f4f4;
-  overflow-y: auto; /* Enables vertical scrolling */
+  overflow-y: auto;
   overflow: hidden;
-  position: fixed; /* Keeps sidebar fixed on the left */
+  position: fixed;
   left: 0;
- 
+
   padding: 0;
 }
 
 .sidebar ul {
-  
   list-style-type: none;
   padding-top: 40%;
-  margin-top:30%;
+  margin-top: 30%;
 }
 
 .sidebar li {
   padding: 15px;
   margin: 5px 0;
- 
+
   cursor: pointer;
   background-color: white;
   border-radius: 4px;
@@ -29,8 +28,6 @@
 .sidebar li:hover {
   background-color: #ddd;
 }
-
-
 
 .sidebar .icon {
   font-size: 20px;

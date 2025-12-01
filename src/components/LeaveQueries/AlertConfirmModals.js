@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/AlertConfirmModals.js
 import React from "react";
 import Modal from "../Modal/Modal";
 

@@ -1,4 +1,3 @@
-// src/components/RbTeamLead.js
 import React, { useState, useEffect } from "react";
 import { FaSearch, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
@@ -30,9 +29,7 @@ const RbTeamLead = () => {
   const [projects, setProjects] = useState([]);
   const [projectSelections, setProjectSelections] = useState({});
 
-  // parse local storage robustly
   const teamLeadData = JSON.parse(localStorage.getItem("dashboardData")) || {};
-  // Convert to string/number consistently to avoid type mismatch
   const teamLeadId = teamLeadData?.employeeId
     ? String(teamLeadData.employeeId)
     : null;
@@ -92,13 +89,10 @@ const RbTeamLead = () => {
 
       const flatClaims = response.data || [];
 
-      // Defensive client-side filter: ensure manager's own claims are excluded from team view
-      // Use string comparison to avoid number/string mismatches
       const filteredFlatClaims = flatClaims.filter(
         (c) => String(c.employee_id) !== String(teamLeadId)
       );
 
-      // Group by employee (use filtered list)
       const grouped = filteredFlatClaims.reduce((acc, claim) => {
         const empId = claim.employee_id;
         if (!acc[empId]) acc[empId] = { employee_id: empId, claims: [] };
@@ -107,7 +101,6 @@ const RbTeamLead = () => {
       }, {});
       setEmployees(Object.values(grouped));
 
-      // build attachments map based on filtered claims (so attachments match visible claims)
       const attachmentsMap = {};
       filteredFlatClaims.forEach((claim) => {
         attachmentsMap[claim.id] = claim.attachments || [];
@@ -242,11 +235,10 @@ const RbTeamLead = () => {
     }
 
     try {
-      // send the actual selected value (paid / pending / rejected)
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursement/payment-status/${selectedPaymentClaim.id}`,
         {
-          payment_status: selectedPaymentOption, // <-- send exactly what user selected
+          payment_status: selectedPaymentOption,
           user_role: "Manager",
         },
         { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
@@ -254,11 +246,9 @@ const RbTeamLead = () => {
 
       showAlert("Payment status updated successfully.");
       setIsPaymentModalOpen(false);
-      // Refresh the list so UI shows updated status from server
       fetchEmployees();
     } catch (error) {
       console.error("Error updating payment status:", error);
-      // show backend message if available
       const msg =
         error?.response?.data?.error ||
         "Could not update payment status. Please try again.";
@@ -305,7 +295,6 @@ const RbTeamLead = () => {
     setView(e.target.checked ? "self" : "team");
   };
 
-  // Filtered employees for rendering (applies statusFilter and search)
   const filteredEmployees = employees
     .map((emp) => ({
       ...emp,
@@ -596,7 +585,6 @@ const RbTeamLead = () => {
                                         className="pending-payment-btn"
                                         onClick={() => {
                                           setSelectedPaymentClaim(rb);
-                                          // Prefill the modal with the current payment_status (or 'pending' fallback)
                                           const current = rb.payment_status
                                             ? String(rb.payment_status)
                                                 .toLowerCase()

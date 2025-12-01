@@ -74,12 +74,10 @@ export default function EmployeeFormEmployee({
   const goToStep = (targetIndex) => {
     setError("");
     if (targetIndex === currentStep) return;
-    // allow going backwards without validation
     if (targetIndex < currentStep) {
       setCurrentStep(targetIndex);
       return;
     }
-    // going forward: validate current step first (same as Next)
     if (!validateStep()) return;
     setCurrentStep(targetIndex);
   };

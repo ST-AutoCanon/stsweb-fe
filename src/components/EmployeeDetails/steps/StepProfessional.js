@@ -14,7 +14,6 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
 
   const formatDate = (iso) => {
     if (!iso) return "";
-    // iso expected like "2025-08-06T18:30:00.000Z" — keep YYYY-MM-DD part
     return iso.split("T")[0];
   };
 
@@ -47,21 +46,17 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
           return;
         }
 
-        // Sort oldest -> newest (ascending)
         entries.sort((a, b) => {
           const da = a.start_date ? new Date(a.start_date) : new Date(0);
           const db = b.start_date ? new Date(b.start_date) : new Date(0);
           return da - db;
         });
 
-        // Index of current assignment (end_date === null)
         let currentIndex = entries.findIndex((e) => e.end_date === null);
-        if (currentIndex === -1) currentIndex = entries.length - 1; // fallback: last entry = latest
+        if (currentIndex === -1) currentIndex = entries.length - 1;
 
-        // current supervisor id (if present)
         const currentSupId = entries[currentIndex]?.supervisor_id;
 
-        // Walk backward to find previous different supervisor
         let prev = null;
         for (let i = currentIndex - 1; i >= 0; i--) {
           const e = entries[i];
@@ -72,7 +67,6 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
           }
         }
 
-        // If still null (all previous entries are same supervisor), prev remains null
         if (prev) {
           prev = {
             ...prev,
@@ -115,7 +109,6 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
       .catch(() => setPositionsList([]));
   }, [data.role, data.department_id]);
 
-  // Fetch supervisors based on selected position & department
   useEffect(() => {
     if (!data.position) {
       setSupervisorsList([]);
@@ -295,7 +288,6 @@ export default function StepProfessional({ data, onChange, departments = [] }) {
             </div>
           )
         ) : (
-          // optional: small loading placeholder while fetching
           <div className="previous-supervisor">
             <small>Loading previous supervisor…</small>
           </div>

@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/LeaveRequest.js
 import React, { useMemo, useState } from "react";
 import useLeaveRequest from "./useLeaveRequest";
 import VennBalances from "./VennBalances";
@@ -8,14 +7,13 @@ import TeamTable from "./TeamTable";
 import SelfTable from "./SelfTable";
 import LopModal from "./LopModal";
 import AlertConfirmModals from "./AlertConfirmModals";
-import CompensationPopup from "./CompensationPopup"; // same folder
+import CompensationPopup from "./CompensationPopup";
 import { defaultLeaveSettings } from "./leaveUtils";
 import "./LeaveRequest.css";
 
 export default function LeaveRequest() {
   const hook = useLeaveRequest();
 
-  // small pieces for UI (venn navigation)
   const [vennStartIndex, setVennStartIndex] = useState(0);
   const [vennVisibleCount, setVennVisibleCount] = useState(() => {
     const w = window.innerWidth;
@@ -34,7 +32,6 @@ export default function LeaveRequest() {
       )
     );
 
-  // leaveTypeOptions: from policy or defaults
   const leaveTypeOptions = useMemo(() => {
     const settings =
       hook.activePolicy?.leave_settings &&
@@ -54,7 +51,6 @@ export default function LeaveRequest() {
       }));
   }, [hook.activePolicy]);
 
-  // lop modal controls
   const [isLopModalOpen, setIsLopModalOpen] = useState(false);
   const prevLopMonth = () => {
     if (hook.lopMonth === 1) {
@@ -117,13 +113,11 @@ export default function LeaveRequest() {
         handleSubmit={hook.handleSubmit}
         leaveTypeOptions={leaveTypeOptions}
         editingId={hook.editingId}
-        // NEW props to enable immediate alert when selecting leave type
         showAlert={hook.showAlert}
         activePolicy={hook.activePolicy}
         defaultLeaveSettings={hook.defaultLeaveSettings}
       />
 
-      {/* <-- FIX: wire real hook state & handlers to TeamTable (was placeholder before) */}
       <TeamTable
         leaveRequests={hook.leaveRequests}
         statusUpdates={hook.statusUpdates}

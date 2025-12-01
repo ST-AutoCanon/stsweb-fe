@@ -1,6 +1,6 @@
 .emp-workdays {
-  width: 300px; /* Adjust width */
-  height: 350px; /* Adjust height */
+  width: 300px;
+  height: 350px;
   text-align: center;
   background: white;
   padding: 20px;
@@ -65,7 +65,7 @@
 .legend-item {
   display: flex;
   align-items: center;
-  font-size: 12px; 
+  font-size: 12px;
   gap: 5px;
 }
 
@@ -73,11 +73,10 @@
   width: 12px;
   height: 12px;
   display: inline-block;
-  background-color: #ddd; /* Default color, will be overridden inline */
+  background-color: #ddd;
 }
 .chart-container1 {
-  width: 200px;  /* Increase chart size */
+  width: 200px;
   height: 180px;
   margin-left: 15%;
-   /* Move chart lower */
 }

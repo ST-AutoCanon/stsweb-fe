@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/SelfTable.js
 import React from "react";
 import { parseLocalDate } from "./leaveUtils";
 import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
@@ -89,7 +88,6 @@ export default function SelfTable({ leaveRequests, onEdit, onCancel }) {
         </table>
       </div>
 
-      {/* mobile view */}
       <div className="mobile-view">
         {(leaveRequests.self || [])
           .sort((a, b) =>

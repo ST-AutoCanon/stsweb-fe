@@ -12,7 +12,6 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
-// Register required components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -104,7 +103,7 @@ const LoginChart = () => {
         align: "end",
       },
       datalabels: {
-        display: false, // Hides the count labels on the dots
+        display: false,
       },
     },
     scales: {
@@ -112,10 +111,10 @@ const LoginChart = () => {
         grid: { display: false },
         ticks: {
           font: {
-            size: 10, // Make labels smaller
+            size: 10,
           },
-          maxRotation: 0, // Keep labels horizontal
-          minRotation: 0, // Prevent slanting
+          maxRotation: 0,
+          minRotation: 0,
         },
       },
       y: {

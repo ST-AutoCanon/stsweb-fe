@@ -735,7 +735,6 @@ const LetterHead = () => {
         ...prev,
         body: html,
       }));
-      // Update content with formData values
       [
         "title",
         "recipient_name",

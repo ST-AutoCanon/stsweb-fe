@@ -211,8 +211,7 @@ export default function EmployeeDetails() {
     employeeName: "",
   });
 
-  // Add/Edit form state
-  const [formMode, setFormMode] = useState(null); // 'add' | 'edit'
+  const [formMode, setFormMode] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const API_KEY = process.env.REACT_APP_API_KEY;
@@ -268,26 +267,22 @@ export default function EmployeeDetails() {
   const showAlert = (message) => setAlertModal({ isVisible: true, message });
   const closeAlert = () => setAlertModal({ isVisible: false, message: "" });
 
-  // ---- place near your other helpers / components ----
   function toUrlArray(maybe) {
     if (!maybe) return [];
     if (Array.isArray(maybe)) return maybe.filter(Boolean);
     if (typeof maybe === "string") {
       const s = maybe.trim();
-      // try JSON
       if (s.startsWith("[") && s.endsWith("]")) {
         try {
           const p = JSON.parse(s);
           if (Array.isArray(p)) return p.filter(Boolean);
         } catch {}
       }
-      // comma separated fallback
       if (s.includes(","))
         return s
           .split(",")
           .map((p) => p.trim())
           .filter(Boolean);
-      // single path
       return [s];
     }
     return [];
@@ -351,13 +346,7 @@ export default function EmployeeDetails() {
       </div>
     );
   }
-  // ----------------------------------------------------
 
-  /*
-  Replace your current handleViewDocs + downloadDoc with this implementation.
-  This uses axios to fetch the employee record, collects docs into sections,
-  and opens the popup with the DocsPopup component.
-*/
   const handleViewDocs = async (empId) => {
     try {
       const res = await axios.get(`${BASE_URL}/full/${empId}`, {
@@ -409,7 +398,6 @@ export default function EmployeeDetails() {
         ...toUrlArray(d.resume_url).map((u) => ({ label: "Resume", url: u })),
       ];
 
-      // experience docs
       if (Array.isArray(d.experience)) {
         d.experience.forEach((exp, idx) => {
           const desc = exp.company
@@ -424,7 +412,6 @@ export default function EmployeeDetails() {
         });
       }
 
-      // other docs
       professional.push(
         ...toUrlArray(d.other_docs).map((u, i) => ({
           label: `Other #${i + 1}`,
@@ -432,7 +419,6 @@ export default function EmployeeDetails() {
         }))
       );
 
-      // additional certs
       if (Array.isArray(d.additional_certs)) {
         d.additional_certs.forEach((c, idx) => {
           const title = c.name
@@ -480,7 +466,6 @@ export default function EmployeeDetails() {
         { title: "Family", docs: family },
       ];
 
-      // functions to open / download with required headers
       const openDoc = async (url) => {
         if (!url) return showAlert("No document URL");
         try {
@@ -495,9 +480,7 @@ export default function EmployeeDetails() {
             type: resp.headers["content-type"] || "application/octet-stream",
           });
           const blobUrl = URL.createObjectURL(blob);
-          // open in new tab
           window.open(blobUrl, "_blank");
-          // optionally revoke after some delay
           setTimeout(() => URL.revokeObjectURL(blobUrl), 1000 * 60);
         } catch (err) {
           console.error("openDoc error:", err);
@@ -531,7 +514,6 @@ export default function EmployeeDetails() {
         }
       };
 
-      // show popup using your openPopup helper
       openPopup(
         "Documents",
         <DocsPopup
@@ -559,16 +541,13 @@ export default function EmployeeDetails() {
       closeForm();
       fetchEmployees();
     } catch (err) {
-      // Grab the server’s error message (400 / 500 response)
       const msg =
         err.response?.data?.message ||
         "Failed to add employee. Please try again.";
-      // re‐throw so the form component can show it
       throw new Error(msg);
     }
   };
 
-  // AFTER
   const handleUpdate = async (id, formData) => {
     await axios.put(`${BASE_URL}/full/${id}`, formData, {
       headers: {
@@ -600,7 +579,7 @@ export default function EmployeeDetails() {
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/admin/employees/${deleteEmployeeId}/deactivate`,
-        {}, // Empty request body
+        {},
         {
           headers: {
             "x-api-key": API_KEY,
@@ -633,7 +612,6 @@ export default function EmployeeDetails() {
     <div className="employee-details-container">
       <h2>Employee Details</h2>
       <div class="ed-header-container">
-        {/* Search Employee */}
         <div className="search-container">
           <label>
             <strong>Search by</strong>
@@ -649,7 +627,6 @@ export default function EmployeeDetails() {
           </div>
         </div>
 
-        {/* Date From Input Group */}
         <div className="calendar-input-group">
           <label className="calendar-label">
             <strong>Date From:</strong>
@@ -675,7 +652,6 @@ export default function EmployeeDetails() {
           </div>
         </div>
 
-        {/* Date To Input Group */}
         <div className="calendar-input-group">
           <label className="calendar-label">
             <strong>To:</strong>
@@ -683,7 +659,7 @@ export default function EmployeeDetails() {
           <div className="calendar-input-wrapper">
             <DatePicker
               selected={toDate}
-              onChange={(date) => setToDate(date)} // Set the toDate
+              onChange={(date) => setToDate(date)}
               dateFormat="dd-MM-yyyy"
               isClearable
               customInput={
@@ -743,7 +719,6 @@ export default function EmployeeDetails() {
         </div>
       )}
 
-      {/* Employee Table */}
       {isLoading ? (
         <div>Loading...</div>
       ) : (
@@ -1011,7 +986,6 @@ export default function EmployeeDetails() {
         </div>
       )}
 
-      {/* Alert Modal */}
       {alertModal.isVisible && (
         <Modal
           isVisible

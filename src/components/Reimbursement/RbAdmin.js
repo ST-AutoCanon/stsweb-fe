@@ -71,13 +71,10 @@ const RbAdmin = () => {
       }),
     }))
     .filter((emp) => emp.claims.length > 0)
-    // ◀ filter by searchQuery on name or id
     .filter((emp) => {
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
-      // emp.claims[0].employee_name is how you're displaying the name
       const name = (emp.claims[0]?.employee_name || "").toLowerCase();
-      // IDs are numbers; convert to string
       const idStr = String(emp.employee_id).toLowerCase();
       return name.includes(q) || idStr.includes(q);
     });
@@ -102,14 +99,12 @@ const RbAdmin = () => {
     fetchProjects();
   }, []);
 
-  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -136,7 +131,6 @@ const RbAdmin = () => {
       );
       setEmployees(response.data);
 
-      // NEW: flatten out claims to build attachments map
       const attachmentsMap = {};
       response.data.forEach((employee) => {
         employee.claims.forEach((claim) => {
@@ -147,7 +141,6 @@ const RbAdmin = () => {
       const initialProjects = {};
       response.data.forEach((emp) =>
         emp.claims.forEach((claim) => {
-          // if the backend sent a project, use it
           if (claim.project) {
             initialProjects[claim.id] = claim.project;
           }
@@ -245,7 +238,6 @@ const RbAdmin = () => {
       return;
     }
 
-    // Retrieve the selected project for this claim from projectSelections
     const project = projectSelections[id] || "";
     if (!project) {
       showAlert("Please select a project.");
@@ -263,7 +255,7 @@ const RbAdmin = () => {
           status: updatedStatus,
           approver_comments: approverComment,
           approver_id: employeeId,
-          project, // Send the project specific to this claim
+          project,
         },
         {
           headers: {
@@ -272,7 +264,6 @@ const RbAdmin = () => {
         }
       );
       showAlert(`Reimbursement ${updatedStatus} successfully.`);
-      // Optionally update local state for this claim
       setEmployees((prevEmployees) =>
         prevEmployees.map((emp) => ({
           ...emp,
@@ -304,7 +295,7 @@ const RbAdmin = () => {
         `${process.env.REACT_APP_BACKEND_URL}/reimbursement/payment-status/${id}`,
         {
           payment_status: updatedPaymentStatus,
-          user_role: "admin", // hardcoded here; adjust if using authentication middleware
+          user_role: "admin",
         },
         {
           headers: {
@@ -353,12 +344,10 @@ const RbAdmin = () => {
         }
       }
 
-      // Fallback if backend doesn't set it
       if (!filename) {
         filename = `Reimbursement_${claim.id}.pdf`;
       }
 
-      // Ensure .pdf extension
       if (!filename.toLowerCase().endsWith(".pdf")) {
         filename += ".pdf";
       }
@@ -378,12 +367,10 @@ const RbAdmin = () => {
     }
   };
 
-  // Handler for slider toggle change
   const handleToggleChange = (e) => {
     setView(e.target.checked ? "self" : "all");
   };
 
-  // inside your RbAdmin component, above return
   const downloadExcel = async () => {
     try {
       const resp = await axios.get(
@@ -394,10 +381,9 @@ const RbAdmin = () => {
             submittedFrom: submittedFrom || null,
             submittedTo: submittedTo || null,
           },
-          responseType: "blob", // important!
+          responseType: "blob",
         }
       );
-      // figure out filename from headers or fallback
       const cd = resp.headers["content-disposition"];
       let filename = "reimbursements.xlsx";
       if (cd) {
@@ -490,7 +476,6 @@ const RbAdmin = () => {
               <FiDownload /> Export
             </button>
           </div>
-          {/* Employee List */}
           <div className="rb-atable-container">
             {filteredEmployees.map((employee) => {
               const filteredClaims = employee.claims;
@@ -542,7 +527,6 @@ const RbAdmin = () => {
                       )}
                     </div>
                   </div>
-                  {/* Expanded Reimbursement Table */}
                   {expandedRows[employee.employee_id] && (
                     <div className="reimbursement-table-scroll">
                       <div className="rb-sub-container">
@@ -640,7 +624,6 @@ const RbAdmin = () => {
                                         claim.project}
                                     </div>
                                   ) : (
-                                    // When status is pending, render the dropdown
                                     <select
                                       className="rb-status-dropdown"
                                       value={projectSelections[claim.id] || ""}
@@ -694,7 +677,7 @@ const RbAdmin = () => {
                                         className="pending-payment-btn"
                                         onClick={() => {
                                           setSelectedPaymentClaim(claim);
-                                          setSelectedPaymentOption(""); // Reset selection
+                                          setSelectedPaymentOption("");
                                           setIsPaymentModalOpen(true);
                                         }}
                                       >
@@ -776,7 +759,6 @@ const RbAdmin = () => {
         <Reimbursement />
       )}
 
-      {/* Payment Modal */}
       {isPaymentModalOpen && (
         <Modal
           isVisible={isPaymentModalOpen}
@@ -849,7 +831,7 @@ const RbAdmin = () => {
                   );
                   showAlert("Payment status updated successfully.");
                   setIsPaymentModalOpen(false);
-                  fetchEmployees(); // Refresh data
+                  fetchEmployees();
                 } catch (error) {
                   console.error("Error updating payment status:", error);
                   showAlert(
@@ -864,7 +846,6 @@ const RbAdmin = () => {
         </Modal>
       )}
 
-      {/* Modal for Attachments */}
       {isModalOpen && (
         <div className="att-modal-overlay">
           <div className="att-modal-content">
@@ -901,7 +882,6 @@ const RbAdmin = () => {
         </div>
       )}
 
-      {/* Alert Modal for displaying messages */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

@@ -172,7 +172,6 @@
   background: #ccc;
 }
 
-/* responsive */
 @media (max-width: 600px) {
   .year-range {
     flex-direction: column;
@@ -201,7 +200,6 @@
   border-radius: 4px;
 }
 
-/* Alerts banner */
 .policy-alerts-banner {
   display: flex;
   flex-direction: column;
@@ -209,7 +207,6 @@
   margin-bottom: 12px;
 }
 
-/* Single alert item */
 .policy-alert-item {
   display: flex;
   justify-content: space-between;
@@ -220,14 +217,12 @@
   font-size: 14px;
 }
 
-/* left column with text */
 .alert-left {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-/* urgency styles */
 .alert-warning {
   background: #fff8e6;
   border-left: 4px solid #ffb020;
@@ -237,7 +232,6 @@
   border-left: 4px solid #e74c3c;
 }
 
-/* small title & body */
 .alert-title {
   font-weight: 600;
   color: #333;
@@ -253,7 +247,6 @@
   margin-left: 6px;
 }
 
-/* action buttons */
 .alert-actions {
   display: flex;
   gap: 8px;
@@ -279,7 +272,6 @@
   cursor: not-allowed;
 }
 
-/* Settings column list */
 .policy-settings-list {
   list-style: none;
   padding: 0;
@@ -287,7 +279,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 360px; /* avoid overly long rows; adjust as needed */
+  max-width: 360px;
 }
 
 .policy-setting-item {
@@ -302,28 +294,24 @@
   border: 1px solid #eee;
 }
 
-/* left: name */
 .setting-name {
-  min-width: 110px; /* align values nicely */
+  min-width: 110px;
   font-weight: 600;
   color: #222;
 }
 
-/* center: main numeric value */
 .setting-value {
   font-weight: 700;
   color: #0b5cff;
   margin-right: 8px;
 }
 
-/* right: meta like carry-forward, notice */
 .setting-meta {
   color: #666;
   font-size: 12px;
-  margin-left: auto; /* push to right */
+  margin-left: auto;
 }
 
-/* responsive: allow table to scroll on small screens */
 @media (max-width: 800px) {
   .policy-settings-list {
     max-width: none;

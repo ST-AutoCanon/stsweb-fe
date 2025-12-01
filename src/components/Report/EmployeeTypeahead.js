@@ -49,9 +49,7 @@ export default function EmployeeTypeahead({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
-  // parse local storage robustly
   const teamLeadData = JSON.parse(localStorage.getItem("dashboardData")) || {};
-  // Convert to string/number consistently to avoid type mismatch
   const teamLeadId = teamLeadData?.employeeId
     ? String(teamLeadData.employeeId)
     : null;
@@ -166,7 +164,7 @@ export default function EmployeeTypeahead({
       };
       try {
         const resp = await axios.get(url, { headers, timeout: 10_000 });
-        if (reqId !== latestRequestId.current) return; // stale
+        if (reqId !== latestRequestId.current) return;
         if (!mountedRef.current) return;
         const data = resp && resp.data ? resp.data : {};
         let items = [];
@@ -185,7 +183,7 @@ export default function EmployeeTypeahead({
         }
       } catch (err) {
         if (!mountedRef.current) return;
-        if (reqId !== latestRequestId.current) return; // stale
+        if (reqId !== latestRequestId.current) return;
         const msg = err && err.message ? String(err.message) : "Unknown error";
         if (
           msg.toLowerCase().includes("cors") ||

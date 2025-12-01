@@ -1,69 +1,69 @@
 .salary-breakup-chart {
-    width: 250px; /* Fixed width */
-    height: 320px; /* Fixed height */
-    text-align: center;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    align-items: flex-start;
-    overflow: hidden;
+  width: 250px;
+  height: 320px;
+  text-align: center;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  overflow: hidden;
 }
 
 .salary-breakup-chart h3 {
-    margin-top: 0%;
-    font-size: 18px;
-    font-weight: bold;
+  margin-top: 0%;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .salary-breakup-chart p {
-    margin-top: -2%;
-    color: #686868;
-    font-size: small;
+  margin-top: -2%;
+  color: #686868;
+  font-size: small;
 }
 
 .salary-breakup-chart .chart-container {
-    width: 100%; /* Full width */
-    height: 180px; /* Fixed chart height */
+  width: 100%;
+  height: 180px;
 }
 
 .salary-amount-chart {
-    font-size: 18px;
-    font-weight: bold;
-    color: #004DC6; /* Matches chart colors */
-    margin-top: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #004dc6;
+  margin-top: 10px;
 }
 
 .custom-legend-chart {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .legend-item-chart {
-    display: flex;
-    align-items: center;
-    font-size: 10px;
+  display: flex;
+  align-items: center;
+  font-size: 10px;
 }
 
 .legend-color-chart {
-    width: 12px;
-    height: 12px;
-    border-radius: 0px;
-    display: inline-block;
-    margin-right: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 0px;
+  display: inline-block;
+  margin-right: 5px;
 }
 
-.chart-container-for-employee{
-    width: 100%;  /* Ensure it takes full width */
-    height: 250px; /* Increase the height */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
+.chart-container-for-employee {
+  width: 100%;
+  height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
 }

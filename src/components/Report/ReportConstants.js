@@ -2,9 +2,6 @@ export const MAX_DOWNLOAD_FIELDS = 13;
 export const PREVIEW_PAGE_SIZE = 10;
 export const MAX_RANGE_DAYS = 62;
 
-/**
- * Status options per component (used to populate status dropdowns)
- */
 export const STATUS_OPTIONS = {
   leaves: ["All", "Pending", "Approved", "Rejected"],
   reimbursements: [
@@ -25,16 +22,9 @@ export const STATUS_OPTIONS = {
     "In Progress",
     "on hold",
   ],
-  // <--- UPDATED: employee-driven tasks now only expose these status options
   tasks_employee: ["All", "Completed", "Not started", "Working"],
 };
 
-/**
- * Field lists & labels used across reports and UI for field selection / previews.
- *
- * Keep keys identical to the names produced by your backend queries so the pick/filters
- * logic works consistently across frontend/backends.
- */
 export const SUB_OPTIONS = {
   leaves: [
     { key: "leave_id", label: "Leave ID" },
@@ -66,7 +56,7 @@ export const SUB_OPTIONS = {
     { key: "department_id", label: "Department ID" },
     { key: "department_name", label: "Department" },
 
-    { key: "claim_type", label: "Claim Type" }, // previously 'Title'
+    { key: "claim_type", label: "Claim Type" },
     { key: "transport_type", label: "Transport Type" },
     { key: "from_date", label: "From Date" },
     { key: "to_date", label: "To Date" },
@@ -110,7 +100,6 @@ export const SUB_OPTIONS = {
 
     { key: "status", label: "Status" },
 
-    // professional / HR fields
     { key: "domain", label: "Domain" },
     { key: "employee_type", label: "Employee Type" },
     { key: "role", label: "Role" },
@@ -122,7 +111,6 @@ export const SUB_OPTIONS = {
     { key: "salary", label: "Salary" },
     { key: "resume_url", label: "Resume URL" },
 
-    // personal fields
     { key: "address", label: "Address" },
     { key: "father_name", label: "Father's Name" },
     { key: "father_dob", label: "Father DOB" },
@@ -152,7 +140,6 @@ export const SUB_OPTIONS = {
     { key: "driving_license_number", label: "Driving License Number" },
     { key: "driving_license_doc_url", label: "Driving License Doc URL" },
 
-    // children
     { key: "child1_name", label: "Child 1 Name" },
     { key: "child1_dob", label: "Child 1 DOB" },
     { key: "child1_gov_doc_url", label: "Child 1 Gov Doc URL" },
@@ -163,7 +150,6 @@ export const SUB_OPTIONS = {
     { key: "child3_dob", label: "Child 3 DOB" },
     { key: "child3_gov_doc_url", label: "Child 3 Gov Doc URL" },
 
-    // payroll / govt numbers
     { key: "uan_number", label: "UAN Number" },
     { key: "pf_number", label: "PF Number" },
     { key: "esi_number", label: "ESI Number" },
@@ -263,14 +249,6 @@ export const SUB_OPTIONS = {
   ],
 };
 
-/**
- * Return a mapping (key -> label) for a given component.
- * Useful for client-side PDF previews, table headers, column selectors, etc.
- *
- * Example:
- *   const labels = getFieldDisplayMap('employees');
- *   // labels.employee_id => 'Employee ID'
- */
 export function getFieldDisplayMap(component) {
   const list = SUB_OPTIONS[component];
   if (!Array.isArray(list)) return {};
@@ -281,19 +259,12 @@ export function getFieldDisplayMap(component) {
   return map;
 }
 
-/**
- * Return a single field label for component/key pair, or fallback if missing.
- */
 export function getFieldLabel(component, key, fallback = null) {
   const map = getFieldDisplayMap(component);
   if (map && typeof map[key] !== "undefined") return map[key];
   return fallback === null ? key : fallback;
 }
 
-/**
- * Return an ordered array of default field keys for download when none selected.
- * It returns first N fields (N = MAX_DOWNLOAD_FIELDS) from the component config.
- */
 export function getDefaultDownloadFields(component, max = MAX_DOWNLOAD_FIELDS) {
   const list = SUB_OPTIONS[component];
   if (!Array.isArray(list)) return [];
