@@ -1,31 +1,25 @@
 import axios from "axios";
 
-// 🔹 Base URL and API key from .env
-const BASE_URL = process.env.REACT_APP_BACKEND_URL ;
+const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 const API_KEY = process.env.REACT_APP_API_KEY || "";
 
-// 🔹 Logged-in employee ID from localStorage
-const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}")?.employeeId || "";
+const meId =
+  JSON.parse(localStorage.getItem("dashboardData") || "{}")?.employeeId || "";
 
-/**
- * Utility: Get current Year-Month in YYYY-MM format
- */
 const getCurrentYearMonth = () => {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const ym = `${year}-${month}`;
-  console.log("🗓 Current Year-Month:", ym);
   return ym;
 };
 
-/**
- * Fetch employee CTC from backend
- */
 const fetchEmployeeCTC = async (employeeId) => {
   try {
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-    const response = await axios.get(`${BASE_URL}/api/compensation/assigned`, { headers });
+    const response = await axios.get(`${BASE_URL}/api/compensation/assigned`, {
+      headers,
+    });
 
     const employee = response.data.data.find(
       (emp) => emp.employee_id.toUpperCase() === employeeId.toUpperCase()
@@ -37,7 +31,6 @@ const fetchEmployeeCTC = async (employeeId) => {
     }
 
     const ctcAmount = parseFloat(employee.ctc);
-    console.log(`💰 CTC for ${employeeId}:`, ctcAmount);
     return ctcAmount;
   } catch (error) {
     console.error(`❌ Error fetching CTC for ${employeeId}:`, error);
@@ -45,9 +38,6 @@ const fetchEmployeeCTC = async (employeeId) => {
   }
 };
 
-/**
- * Fetch incentive data from backend
- */
 const fetchIncentiveData = async () => {
   try {
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
@@ -59,21 +49,17 @@ const fetchIncentiveData = async () => {
   }
 };
 
-/**
- * Calculate incentives for a specific employee
- */
 export const calculateIncentives = async (employeeId) => {
   try {
     const [ctcAmount, allIncentives] = await Promise.all([
       fetchEmployeeCTC(employeeId),
-      fetchIncentiveData()
+      fetchIncentiveData(),
     ]);
 
     const currentYm = getCurrentYearMonth();
 
     const currentMonthIncentives = allIncentives.filter(
-      (inc) =>
-        inc.employee_id?.toUpperCase() === employeeId.toUpperCase()
+      (inc) => inc.employee_id?.toUpperCase() === employeeId.toUpperCase()
     );
 
     let incentivesArr = [];
@@ -98,7 +84,10 @@ export const calculateIncentives = async (employeeId) => {
     });
 
     return {
-      totalIncentive: { value: totalIncentiveValue.toFixed(2), currency: "INR" },
+      totalIncentive: {
+        value: totalIncentiveValue.toFixed(2),
+        currency: "INR",
+      },
       incentives: incentivesArr,
     };
   } catch (error) {

@@ -17,10 +17,8 @@ export function getDateLabel(d) {
 
   const diff = (today - msgDate) / (1000 * 60 * 60 * 24);
   if (diff < 7) {
-    // within the past week: show weekday name
     return msgDate.toLocaleDateString(undefined, { weekday: "long" });
   }
 
-  // older: show full localized date
   return msgDate.toLocaleDateString();
 }

@@ -50,7 +50,6 @@ const LoginChart = () => {
         }
 
         const data = await response.json();
-        console.log("Login Data Response: ", data); // Log response to check structure
 
         if (data.status === "success" && data.data) {
           setChartData({

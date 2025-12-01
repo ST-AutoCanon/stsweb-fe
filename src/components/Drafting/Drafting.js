@@ -1,20 +1,17 @@
 import React from "react";
-import "./Drafting.css";  
+import "./Drafting.css";
 
 const Drafting = () => {
   return (
-    //main container for the Drafting componet
     <div className="drafting-container">
-      {/* Left Section - Image */}
       <div className="drafting-image">
         <img
-          src="./images/2D&3DDrafting.png" 
+          src="./images/2D&3DDrafting.png"
           alt="2D & 3D Drafting"
           className="drafting-image"
         />
       </div>
 
-      {/* Right Section - Content */}
       <div className="drafting-text">
         <h1>2D & 3D Drafting</h1>
         <p>Our 2D & 3D Drafting Services Include:</p>

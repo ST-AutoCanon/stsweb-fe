@@ -45,7 +45,6 @@ const Dashboardcard = () => {
         }
 
         const jsonData = await response.json();
-        console.log("Last Month Salary Data:", jsonData);
 
         setPayrollData({
           total_previous_month_salary: jsonData.total_salary || "0.00",
@@ -80,7 +79,6 @@ const Dashboardcard = () => {
         }
 
         const jsonData = await response.json();
-        console.log("Last Month Reimbursement Data:", jsonData);
 
         setReimbursementData({
           totalApprovedReimbursement:

@@ -25,8 +25,7 @@ const ReachUs = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key":
-            "eeb8ddcfdf985823f17b55554844d972eb67eb6c4606a631e9372ac77d9f24d3",
+          "x-api-key": process.env.REACT_APP_API_KEY,
         },
         body: JSON.stringify({
           name,
@@ -56,8 +55,6 @@ const ReachUs = () => {
 
   return (
     <div className="reachus-container">
-      
-
       <div className="content-section">
         <div className="map-box">
           <iframe
@@ -70,7 +67,9 @@ const ReachUs = () => {
 
         <div className="form-box">
           <form className="contact-form" onSubmit={handleSubmit}>
-            <p>If you have any query, <br /> please feel free to contact us.</p>
+            <p>
+              If you have any query, <br /> please feel free to contact us.
+            </p>
 
             <label htmlFor="name">Your Name</label>
             <input
@@ -112,7 +111,9 @@ const ReachUs = () => {
               required
             ></textarea>
 
-            <button type="submit" className="send-button">Send your queries</button>
+            <button type="submit" className="send-button">
+              Send your queries
+            </button>
           </form>
 
           {success && <p className="success-message">{success}</p>}

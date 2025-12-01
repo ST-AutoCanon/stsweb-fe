@@ -1,4 +1,3 @@
-// src/components/ChatWindow.js
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useSocket } from "./SocketContext";
@@ -19,7 +18,6 @@ import MemberListModal from "./MemberListModal";
 import Modal from "../Modal/Modal";
 import { getDateLabel } from "./DateLabels";
 
-// ——— 1) Combined geolocation + reverse-geocode helper ———
 async function getLocationAndAddress() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
@@ -45,7 +43,6 @@ async function getLocationAndAddress() {
           const res = await fetch(url.href);
           const json = await res.json();
           const a = json.address || {};
-          // pick street, suburb, taluk, postcode, etc.
           const parts = [
             a.road,
             a.suburb,
@@ -109,7 +106,6 @@ export default function ChatWindow({ room, onBack }) {
     "x-employee-id": meId,
   };
 
-  // warm up geolocation prompt
   useEffect(() => {
     if (navigator.permissions) {
       navigator.permissions
@@ -125,7 +121,6 @@ export default function ChatWindow({ room, onBack }) {
     }
   }, []);
 
-  // ——— 2) Load history & wrap into `.location` ———
   useEffect(() => {
     if (!room || room.isNew) return;
     axios
@@ -156,7 +151,6 @@ export default function ChatWindow({ room, onBack }) {
       .catch(console.error);
   }, [room]);
 
-  // ——— 3) Real-time incoming, same wrapping ———
   useEffect(() => {
     const handler = (m) => {
       if (m.roomId !== room?.id) return;
@@ -181,13 +175,11 @@ export default function ChatWindow({ room, onBack }) {
     return () => socket.off("new_message", handler);
   }, [socket, room]);
 
-  // auto-scroll
   useEffect(() => {
     const box = messagesRef.current;
     if (box) box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
   }, [msgs]);
 
-  // ——— 4) Replace doSend with single helper ———
   const doSend = async (payload) => {
     const { lat, lng, address } = await getLocationAndAddress();
     if (lat == null || lng == null) {
@@ -209,9 +201,7 @@ export default function ChatWindow({ room, onBack }) {
   const onFileUploaded = (url) => {
     doSend({ roomId: room.id, content: "", type: "file", fileUrl: url });
   };
-  // const onEmojiClick = (_, emojiObj) => setTxt((p) => p + emojiObj.emoji);
-    const onEmojiClick = (emojiData) => setTxt((p) => p + emojiData.emoji);
-
+  const onEmojiClick = (emojiData) => setTxt((p) => p + emojiData.emoji);
 
   const downloadFile = async (filename) => {
     const base = process.env.REACT_APP_BACKEND_URL.replace(/\/+$/, "");
@@ -233,7 +223,6 @@ export default function ChatWindow({ room, onBack }) {
     }
   };
 
-  // Load group members
   useEffect(() => {
     if (room?.is_group === 1) {
       axios
@@ -247,9 +236,8 @@ export default function ChatWindow({ room, onBack }) {
     }
   }, [room]);
 
-  // Group by date…
   const grouped = React.useMemo(() => {
-    if (!room) return []; // safe fallback
+    if (!room) return [];
     const groups = [];
     let lastLabel = null;
     msgs.forEach((m) => {
@@ -268,7 +256,6 @@ export default function ChatWindow({ room, onBack }) {
 
   return (
     <div className="chat-window">
-      {/* Header */}
       <div className="m-header">
         <button
           className="back-btn"
@@ -285,7 +272,7 @@ export default function ChatWindow({ room, onBack }) {
           className="header-avatar"
         />
         <div className="chat-header-title">
-          {room.name || // if no explicit room.name, assume private and build from members:
+          {room.name ||
             room.members
               ?.filter((m) => m.employeeId !== meId)
               .map((m) => m.name)
@@ -303,7 +290,6 @@ export default function ChatWindow({ room, onBack }) {
         )}
       </div>
 
-      {/* Messages */}
       <div className="messages" ref={messagesRef}>
         {grouped.map(({ label, messages }) => (
           <React.Fragment key={label}>
@@ -352,7 +338,6 @@ export default function ChatWindow({ room, onBack }) {
 
                   {isLast && isSeen && <div className="msg-seen">Seen</div>}
 
-                  {/* icons container: delete + map pin */}
                   <div className="msg-icons">
                     {m.location && (
                       <button
@@ -401,7 +386,6 @@ export default function ChatWindow({ room, onBack }) {
         ))}
       </div>
 
-      {/* Input area */}
       <div className="input-area">
         <div className="emoji-picker-container">
           <button
@@ -447,7 +431,6 @@ export default function ChatWindow({ room, onBack }) {
         </button>
       </div>
 
-      {/* Member list modal */}
       {showMembers && (
         <MemberListModal
           roomId={room.id}
@@ -458,7 +441,6 @@ export default function ChatWindow({ room, onBack }) {
         />
       )}
 
-      {/* our custom confirm dialog */}
       <Modal
         isVisible={alertModal.isVisible}
         title={alertModal.title}

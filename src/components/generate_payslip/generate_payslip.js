@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import generatePayslipPDF from "../../utils/generatePayslipPDF2";
 import "./generate_payslip.css";
@@ -23,7 +22,9 @@ const GeneratePayslip = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const API_KEY = process.env.REACT_APP_API_KEY;
-  const meId = JSON.parse(localStorage.getItem("dashboardData") || "{}").employeeId;
+  const meId = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  ).employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
   const [formData, setFormData] = useState({
@@ -73,9 +74,12 @@ const GeneratePayslip = () => {
   useEffect(() => {
     const fetchEmployeeData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/old-employee/list`, {
-          headers,
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/old-employee/list`,
+          {
+            headers,
+          }
+        );
         if (response.ok) {
           const data = await response.json();
           setEmployeeData(data);
@@ -99,8 +103,12 @@ const GeneratePayslip = () => {
       } else {
         const filtered = employeeData.filter(
           (employee) =>
-            employee.employee_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            employee.employee_id.toLowerCase().includes(searchQuery.toLowerCase())
+            employee.employee_name
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            employee.employee_id
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())
         );
         setFilteredEmployeeData(filtered);
       }
@@ -112,7 +120,9 @@ const GeneratePayslip = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "employeeId") {
-      const formattedValue = value.toUpperCase().startsWith("STS") ? value : `STS${value.replace(/\D/g, "")}`;
+      const formattedValue = value.toUpperCase().startsWith("STS")
+        ? value
+        : `STS${value.replace(/\D/g, "")}`;
       setFormData((prev) => ({ ...prev, [name]: formattedValue }));
     } else if (name === "selectedMonth") {
       setSelectedMonth(value);
@@ -128,41 +138,39 @@ const GeneratePayslip = () => {
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
-const handleDownloadPDF = async () => {
-  console.log("formData before download:", JSON.stringify(formData, null, 2)); // Log formData
-  const validationError = validateForm();
-  if (validationError) {
-    setError(validationError);
-    showAlert(validationError, "Validation Error");
-    return;
-  }
+  const handleDownloadPDF = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      showAlert(validationError, "Validation Error");
+      return;
+    }
 
-  setIsLoading(true);
-  setError(null);
-  setSuccess(null);
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
 
-  const payslipData = preparePayslipData();
-  console.log("Download payslipData:", JSON.stringify(payslipData, null, 2));
+    const payslipData = preparePayslipData();
 
-  try {
-    await generatePayslipPDF(
-      payslipData.payrollData,
-      payslipData.selectedDate,
-      payslipData.bankDetails,
-      payslipData.attendance,
-      payslipData.employeeDetails,
-      true
-    );
-    setSuccess("Payslip downloaded successfully!");
-    showAlert("Payslip downloaded successfully!", "Success");
-  } catch (error) {
-    console.error("Download error:", error);
-    setError("Failed to download PDF: " + error.message);
-    showAlert("Failed to download PDF: " + error.message, "Error");
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      await generatePayslipPDF(
+        payslipData.payrollData,
+        payslipData.selectedDate,
+        payslipData.bankDetails,
+        payslipData.attendance,
+        payslipData.employeeDetails,
+        true
+      );
+      setSuccess("Payslip downloaded successfully!");
+      showAlert("Payslip downloaded successfully!", "Success");
+    } catch (error) {
+      console.error("Download error:", error);
+      setError("Failed to download PDF: " + error.message);
+      showAlert("Failed to download PDF: " + error.message, "Error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const calculateSummary = () => {
     const earnings = [
       parseFloat(formData.basic) || 0,
@@ -213,7 +221,10 @@ const handleDownloadPDF = async () => {
     }
 
     const date = new Date(formData.dateOfJoining);
-    if (formData.dateOfJoining && (isNaN(date.getTime()) || date > new Date())) {
+    if (
+      formData.dateOfJoining &&
+      (isNaN(date.getTime()) || date > new Date())
+    ) {
       return "Please enter a valid Date of Joining in YYYY-MM-DD format";
     }
 
@@ -229,12 +240,13 @@ const handleDownloadPDF = async () => {
       "tds",
     ];
     for (const field of numericFields) {
-      if (formData[field] && (isNaN(parseFloat(formData[field])) || parseFloat(formData[field]) < 0)) {
+      if (
+        formData[field] &&
+        (isNaN(parseFloat(formData[field])) || parseFloat(formData[field]) < 0)
+      ) {
         return `${fieldLabels[field]} must be a valid non-negative number`;
       }
     }
-
-    
 
     const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
     if (formData.panNumber && !panPattern.test(formData.panNumber)) {
@@ -248,7 +260,11 @@ const handleDownloadPDF = async () => {
     if (!selectedMonth || selectedMonth < 1 || selectedMonth > 12) {
       return "Please select a valid month (1-12)";
     }
-    if (!selectedYear || selectedYear < 1900 || selectedYear > new Date().getFullYear()) {
+    if (
+      !selectedYear ||
+      selectedYear < 1900 ||
+      selectedYear > new Date().getFullYear()
+    ) {
       return "Please select a valid year";
     }
 
@@ -286,67 +302,81 @@ const handleDownloadPDF = async () => {
   };
 
   const preparePayslipData = () => {
-  const { grossEarnings, totalDeductions, netSalary } = calculateSummary();
+    const { grossEarnings, totalDeductions, netSalary } = calculateSummary();
 
-  return {
-    payrollData: {
-      employee_name: formData.employeeName,
-      employee_id: formData.employeeId,
-      designation: formData.designation,
-      joining_date: formData.dateOfJoining,
-      uin_number: formData.uinNo,
-      basic_salary: parseFloat(formData.basic) || 0,
-      hra: parseFloat(formData.hra) || 0,
-      allowance: parseFloat(formData.otherAllowance) || 0,     // ← This goes to "Other Allowance"
-      pf: parseFloat(formData.pf) || 0,
-      esi: parseFloat(formData.esiInsurance) || 0,             // ← Renamed to esi
-      pt: parseFloat(formData.professionalTax) || 0,           // ← Renamed to pt
-      tds: parseFloat(formData.tds) || 0,
-      total_earnings: grossEarnings,
-      total_deductions: totalDeductions,
-      net_salary: netSalary,
-    },
-    selectedDate: { month: parseInt(selectedMonth), year: parseInt(selectedYear) },
-    bankDetails: {
-      account_number: formData.accountNo,
-      bank_name: "HDFC Bank", // ← Change this or add input field
-      esi_number: formData.esiNumber,
-      pf_number: formData.pfNumber,
-    },
-    attendance: {
-      total_working_days: parseInt(formData.workingDays) || 0,
-      leave_count: parseInt(formData.leavesTaken) || 0,
-    },
-    employeeDetails: {
-      gender: formData.gender,
-      pan_number: formData.panNumber,
-      designation: formData.designation,
-      joining_date: formData.dateOfJoining,
-    },
+    return {
+      payrollData: {
+        employee_name: formData.employeeName,
+        employee_id: formData.employeeId,
+        designation: formData.designation,
+        joining_date: formData.dateOfJoining,
+        uin_number: formData.uinNo,
+        basic_salary: parseFloat(formData.basic) || 0,
+        hra: parseFloat(formData.hra) || 0,
+        allowance: parseFloat(formData.otherAllowance) || 0, // ← This goes to "Other Allowance"
+        pf: parseFloat(formData.pf) || 0,
+        esi: parseFloat(formData.esiInsurance) || 0, // ← Renamed to esi
+        pt: parseFloat(formData.professionalTax) || 0, // ← Renamed to pt
+        tds: parseFloat(formData.tds) || 0,
+        total_earnings: grossEarnings,
+        total_deductions: totalDeductions,
+        net_salary: netSalary,
+      },
+      selectedDate: {
+        month: parseInt(selectedMonth),
+        year: parseInt(selectedYear),
+      },
+      bankDetails: {
+        account_number: formData.accountNo,
+        bank_name: "HDFC Bank", // ← Change this or add input field
+        esi_number: formData.esiNumber,
+        pf_number: formData.pfNumber,
+      },
+      attendance: {
+        total_working_days: parseInt(formData.workingDays) || 0,
+        leave_count: parseInt(formData.leavesTaken) || 0,
+      },
+      employeeDetails: {
+        gender: formData.gender,
+        pan_number: formData.panNumber,
+        designation: formData.designation,
+        joining_date: formData.dateOfJoining,
+      },
+    };
   };
-};
 
   const handleEdit = (employee) => {
-    console.log("Editing employee:", employee);
     setFormData({
       employeeName: employee.employee_name || "",
       employeeId: employee.employee_id || "STS001",
       gender: employee.gender || "",
       designation: employee.designation || "",
-      dateOfJoining: employee.date_of_joining ? employee.date_of_joining.split("T")[0] : "",
+      dateOfJoining: employee.date_of_joining
+        ? employee.date_of_joining.split("T")[0]
+        : "",
       accountNo: employee.account_no || "",
-      workingDays: employee.working_days ? employee.working_days.toString() : "",
-      leavesTaken: employee.leaves_taken ? employee.leaves_taken.toString() : "",
+      workingDays: employee.working_days
+        ? employee.working_days.toString()
+        : "",
+      leavesTaken: employee.leaves_taken
+        ? employee.leaves_taken.toString()
+        : "",
       uinNo: employee.uin_no || "",
       panNumber: employee.pan_number || "",
       esiNumber: employee.esi_number || "",
       pfNumber: employee.pf_number || "",
       basic: employee.basic ? employee.basic.toString() : "",
       hra: employee.hra ? employee.hra.toString() : "",
-      otherAllowance: employee.other_allowance ? employee.other_allowance.toString() : "",
+      otherAllowance: employee.other_allowance
+        ? employee.other_allowance.toString()
+        : "",
       pf: employee.pf ? employee.pf.toString() : "",
-      esiInsurance: employee.esi_insurance ? employee.esi_insurance.toString() : "",
-      professionalTax: employee.professional_tax ? employee.professional_tax.toString() : "",
+      esiInsurance: employee.esi_insurance
+        ? employee.esi_insurance.toString()
+        : "",
+      professionalTax: employee.professional_tax
+        ? employee.professional_tax.toString()
+        : "",
       tds: employee.tds ? employee.tds.toString() : "",
     });
     setSelectedMonth(employee.month || new Date().getMonth() + 1);
@@ -367,7 +397,10 @@ const handleDownloadPDF = async () => {
 
     if (!API_KEY) {
       setError("API key is missing. Please contact support.");
-      showAlert("API key is missing. Please contact support.", "Configuration Error");
+      showAlert(
+        "API key is missing. Please contact support.",
+        "Configuration Error"
+      );
       return;
     }
 
@@ -383,7 +416,6 @@ const handleDownloadPDF = async () => {
     const method = isEditing ? "PUT" : "POST";
 
     try {
-      console.log("Saving to backend:", { url, method, headers, body: backendData });
       const response = await fetch(url, {
         method,
         headers: {
@@ -395,20 +427,26 @@ const handleDownloadPDF = async () => {
 
       if (!response.ok && response.status !== 201) {
         const result = await response.json();
-        throw new Error(result.message || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(
+          result.message || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       const result = await response.json();
-      console.log("Backend response:", result);
 
       showAlert(
-        isEditing ? "Employee data updated successfully!" : "Payslip data saved successfully!",
+        isEditing
+          ? "Employee data updated successfully!"
+          : "Payslip data saved successfully!",
         "Success"
       );
 
-      const updatedResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/old-employee/list`, {
-        headers,
-      });
+      const updatedResponse = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/old-employee/list`,
+        {
+          headers,
+        }
+      );
       if (updatedResponse.ok) {
         const updatedData = await updatedResponse.json();
         setEmployeeData(updatedData);
@@ -445,232 +483,157 @@ const handleDownloadPDF = async () => {
       setEditingEmployeeId(null);
     } catch (error) {
       console.error("Save error:", error);
-      showAlert(`Error ${isEditing ? "updating" : "saving"} employee data: ${error.message}`, "Error");
+      showAlert(
+        `Error ${isEditing ? "updating" : "saving"} employee data: ${
+          error.message
+        }`,
+        "Error"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handlePreview = async () => {
-  const validationError = validateForm();
-  if (validationError) {
-    setError(validationError);
-    showAlert(validationError, "Validation Error");
-    return;
-  }
-
-  setError(null);
-  setSuccess(null);
-  const payslipData = preparePayslipData();
-  console.log("Preview payslip data:", payslipData);
-
-  try {
-    const pdfBlob = await generatePayslipPDF(
-      payslipData.payrollData,
-      payslipData.selectedDate,
-      payslipData.bankDetails,
-      payslipData.attendance,
-      payslipData.employeeDetails,
-      false
-    );
-    console.log("pdfBlob:", pdfBlob); // Log the result
-    if (!pdfBlob || (!(pdfBlob instanceof Blob) && !(pdfBlob instanceof ArrayBuffer))) {
-      throw new Error("Failed to generate PDF preview: pdfBlob is invalid or null");
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      showAlert(validationError, "Validation Error");
+      return;
     }
-    const url = URL.createObjectURL(pdfBlob);
-    setPdfUrl(url);
-    setPreview(true);
-  } catch (error) {
-    console.error("Preview error:", error);
-    setError("Failed to generate PDF preview: " + error.message);
-    showAlert("Failed to generate PDF preview: " + error.message, "Error");
-  }
-};
 
-//   const handleDownloadForEmployee = async (employee) => {
-//   setIsLoading(true);
-//   setError(null);
-//   setSuccess(null);
+    setError(null);
+    setSuccess(null);
+    const payslipData = preparePayslipData();
 
-//   try {
-//     // Calculate gross earnings, total deductions, and net salary
-//     const earnings = [
-//       parseFloat(employee.basic) || 0,
-//       parseFloat(employee.hra) || 0,
-//       parseFloat(employee.other_allowance) || 0,
-//     ];
-//     const deductions = [
-//       parseFloat(employee.pf) || 0,
-//       parseFloat(employee.esi_insurance) || 0,
-//       parseFloat(employee.professional_tax) || 0,
-//       parseFloat(employee.tds) || 0,
-//     ];
-//     const grossEarnings = earnings.reduce((sum, val) => sum + val, 0);
-//     const totalDeductions = deductions.reduce((sum, val) => sum + val, 0);
-//     const netSalary = grossEarnings - totalDeductions;
+    try {
+      const pdfBlob = await generatePayslipPDF(
+        payslipData.payrollData,
+        payslipData.selectedDate,
+        payslipData.bankDetails,
+        payslipData.attendance,
+        payslipData.employeeDetails,
+        false
+      );
+      if (
+        !pdfBlob ||
+        (!(pdfBlob instanceof Blob) && !(pdfBlob instanceof ArrayBuffer))
+      ) {
+        throw new Error(
+          "Failed to generate PDF preview: pdfBlob is invalid or null"
+        );
+      }
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfUrl(url);
+      setPreview(true);
+    } catch (error) {
+      console.error("Preview error:", error);
+      setError("Failed to generate PDF preview: " + error.message);
+      showAlert("Failed to generate PDF preview: " + error.message, "Error");
+    }
+  };
 
-//     // Construct payslipData with validated fields
-//     const payslipData = {
-//       payrollData: {
-//         employee_id: employee.employee_id || "STS001",
-//         employee_name: employee.employee_name || "Unknown",
-//         designation: employee.designation || "N/A",
-//         joining_date: employee.date_of_joining ? employee.date_of_joining.split("T")[0] : new Date().toISOString().split("T")[0],
-//         uin_number: employee.uin_no || "N/A",
-//         basic_salary: parseFloat(employee.basic) || 0,
-//         hra: parseFloat(employee.hra) || 0,
-//         allowance: parseFloat(employee.other_allowance) || 0,
-//         pf: parseFloat(employee.pf) || 0,
-//         insurance: parseFloat(employee.esi_insurance) || 0,
-//         pt: parseFloat(employee.professional_tax) || 0,
-//         tds: parseFloat(employee.tds) || 0,
-//         total_earnings: grossEarnings || 0,
-//         total_deductions: totalDeductions || 0,
-//         net_salary: netSalary || 0,
-//         special_allowance: 0,
-//         rnrbonus: 0,
-//         advance_taken: 0,
-//         advance_recovery: 0,
-//         salary_advance: 0,
-//       },
-//       selectedDate: {
-//         month: parseInt(employee.month) || new Date().getMonth() + 1,
-//         year: parseInt(employee.year) || new Date().getFullYear(),
-//       },
-//       bankDetails: {
-//         account_number: employee.account_no || "N/A",
-//         bank_name: employee.bank_name || "N/A",
-//         esi_number: employee.esi_number || "N/A",
-//         pf_number: employee.pf_number || "N/A",
-//       },
-//       attendance: {
-//         total_working_days: parseInt(employee.working_days) || 0,
-//         leave_count: parseInt(employee.leaves_taken) || 0,
-//       },
-//       employeeDetails: {
-//         gender: employee.gender || "N/A",
-//         pan_number: employee.pan_number || "N/A",
-//         date_of_joining: employee.date_of_joining ? employee.date_of_joining.split("T")[0] : new Date().toISOString().split("T")[0],
-//       },
-//     };
+  const handleDownloadForEmployee = async (employee) => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
 
-//     console.log("DownloadForEmployee payslipData:", JSON.stringify(payslipData, null, 2)); // Log for debugging
+    try {
+      const earnings = [
+        parseFloat(employee.basic) || 0,
+        parseFloat(employee.hra) || 0,
+        parseFloat(employee.other_allowance) || 0,
+      ];
+      const deductions = [
+        parseFloat(employee.pf) || 0,
+        parseFloat(employee.esi_insurance) || 0,
+        parseFloat(employee.professional_tax) || 0,
+        parseFloat(employee.tds) || 0,
+      ];
+      const grossEarnings = earnings.reduce((sum, val) => sum + val, 0);
+      const totalDeductions = deductions.reduce((sum, val) => sum + val, 0);
+      const netSalary = grossEarnings - totalDeductions;
 
-//     const pdfBlob = await generatePayslipPDF(
-//       payslipData.payrollData,
-//       payslipData.selectedDate,
-//       payslipData.bankDetails,
-//       payslipData.attendance,
-//       payslipData.employeeDetails,
-//       true
-//     );
+      // Construct payslipData with validated fields
+      const payslipData = {
+        payrollData: {
+          employee_id: employee.employee_id || "STS001",
+          employee_name: employee.employee_name || "Unknown",
+          designation: employee.designation || "N/A",
+          joining_date: employee.date_of_joining
+            ? employee.date_of_joining.split("T")[0]
+            : new Date().toISOString().split("T")[0],
+          uin_number: employee.uin_no || "N/A",
+          basic_salary: parseFloat(employee.basic) || 0,
+          hra: parseFloat(employee.hra) || 0,
+          allowance: parseFloat(employee.other_allowance) || 0,
+          pf: parseFloat(employee.pf) || 0,
+          insurance: parseFloat(employee.esi_insurance) || 0,
+          pt: parseFloat(employee.professional_tax) || 0,
+          tds: parseFloat(employee.tds) || 0,
+          total_earnings: grossEarnings || 0,
+          total_deductions: totalDeductions || 0,
+          net_salary: netSalary || 0,
+          special_allowance: parseFloat(employee.special_allowance) || 0,
+          rnrbonus: parseFloat(employee.rnrbonus) || 0,
+          advance_taken: parseFloat(employee.advance_taken) || 0,
+          advance_recovery: parseFloat(employee.advance_recovery) || 0,
+          salary_advance: parseFloat(employee.salary_advance) || 0,
+        },
+        selectedDate: {
+          month: parseInt(employee.month) || new Date().getMonth() + 1,
+          year: parseInt(employee.year) || new Date().getFullYear(),
+        },
+        bankDetails: {
+          account_number: employee.account_no || "N/A",
+          bank_name: employee.bank_name || "N/A",
+          esi_number: employee.esi_number || "N/A",
+          pf_number: employee.pf_number || "N/A",
+        },
+        attendance: {
+          total_working_days: parseInt(employee.working_days) || 0,
+          leave_count: parseInt(employee.leaves_taken) || 0,
+        },
+        employeeDetails: {
+          gender: employee.gender || "N/A",
+          pan_number: employee.pan_number || "N/A",
+          date_of_joining: employee.date_of_joining
+            ? employee.date_of_joining.split("T")[0]
+            : new Date().toISOString().split("T")[0],
+        },
+      };
 
-//     if (!pdfBlob || (!(pdfBlob instanceof Blob) && !(pdfBlob instanceof ArrayBuffer))) {
-//       throw new Error("Failed to generate a valid PDF");
-//     }
+      // Call generatePayslipPDF with download=true
+      await generatePayslipPDF(
+        payslipData.payrollData,
+        payslipData.selectedDate,
+        payslipData.bankDetails,
+        payslipData.attendance,
+        payslipData.employeeDetails,
+        true
+      );
 
-//     setSuccess(`Payslip for ${employee.employee_name} downloaded successfully!`);
-//     showAlert(`Payslip for ${employee.employee_name} downloaded successfully!`, "Success");
-//   } catch (error) {
-//     console.error("Download error:", error);
-//     setError(`Error downloading payslip for ${employee.employee_name}: ${error.message}`);
-//     showAlert(`Error downloading payslip for ${employee.employee_name}: ${error.message}`, "Error");
-//   } finally {
-//     setIsLoading(false);
-//   }
-// };
-const handleDownloadForEmployee = async (employee) => {
-  setIsLoading(true);
-  setError(null);
-  setSuccess(null);
-
-  try {
-    console.log("Raw employee data:", JSON.stringify(employee, null, 2)); // Log raw employee data
-
-    // Calculate gross earnings, total deductions, and net salary
-    const earnings = [
-      parseFloat(employee.basic) || 0,
-      parseFloat(employee.hra) || 0,
-      parseFloat(employee.other_allowance) || 0,
-    ];
-    const deductions = [
-      parseFloat(employee.pf) || 0,
-      parseFloat(employee.esi_insurance) || 0,
-      parseFloat(employee.professional_tax) || 0,
-      parseFloat(employee.tds) || 0,
-    ];
-    const grossEarnings = earnings.reduce((sum, val) => sum + val, 0);
-    const totalDeductions = deductions.reduce((sum, val) => sum + val, 0);
-    const netSalary = grossEarnings - totalDeductions;
-
-    // Construct payslipData with validated fields
-    const payslipData = {
-      payrollData: {
-        employee_id: employee.employee_id || "STS001",
-        employee_name: employee.employee_name || "Unknown",
-        designation: employee.designation || "N/A",
-        joining_date: employee.date_of_joining ? employee.date_of_joining.split("T")[0] : new Date().toISOString().split("T")[0],
-        uin_number: employee.uin_no || "N/A",
-        basic_salary: parseFloat(employee.basic) || 0,
-        hra: parseFloat(employee.hra) || 0,
-        allowance: parseFloat(employee.other_allowance) || 0,
-        pf: parseFloat(employee.pf) || 0,
-        insurance: parseFloat(employee.esi_insurance) || 0,
-        pt: parseFloat(employee.professional_tax) || 0,
-        tds: parseFloat(employee.tds) || 0,
-        total_earnings: grossEarnings || 0,
-        total_deductions: totalDeductions || 0,
-        net_salary: netSalary || 0,
-        special_allowance: parseFloat(employee.special_allowance) || 0,
-        rnrbonus: parseFloat(employee.rnrbonus) || 0,
-        advance_taken: parseFloat(employee.advance_taken) || 0,
-        advance_recovery: parseFloat(employee.advance_recovery) || 0,
-        salary_advance: parseFloat(employee.salary_advance) || 0,
-      },
-      selectedDate: {
-        month: parseInt(employee.month) || new Date().getMonth() + 1,
-        year: parseInt(employee.year) || new Date().getFullYear(),
-      },
-      bankDetails: {
-        account_number: employee.account_no || "N/A",
-        bank_name: employee.bank_name || "N/A",
-        esi_number: employee.esi_number || "N/A",
-        pf_number: employee.pf_number || "N/A",
-      },
-      attendance: {
-        total_working_days: parseInt(employee.working_days) || 0,
-        leave_count: parseInt(employee.leaves_taken) || 0,
-      },
-      employeeDetails: {
-        gender: employee.gender || "N/A",
-        pan_number: employee.pan_number || "N/A",
-        date_of_joining: employee.date_of_joining ? employee.date_of_joining.split("T")[0] : new Date().toISOString().split("T")[0],
-      },
-    };
-
-    console.log("DownloadForEmployee payslipData:", JSON.stringify(payslipData, null, 2)); // Log for debugging
-
-    // Call generatePayslipPDF with download=true
-    await generatePayslipPDF(
-      payslipData.payrollData,
-      payslipData.selectedDate,
-      payslipData.bankDetails,
-      payslipData.attendance,
-      payslipData.employeeDetails,
-      true
-    );
-
-    // No need to validate pdfBlob since download is handled by generatePayslipPDF
-    setSuccess(`Payslip for ${employee.employee_name} downloaded successfully!`);
-    showAlert(`Payslip for ${employee.employee_name} downloaded successfully!`, "Success");
-  } catch (error) {
-    console.error("Download error:", error);
-    setError(`Error downloading payslip for ${employee.employee_name}: ${error.message}`);
-    showAlert(`Error downloading payslip for ${employee.employee_name}: ${error.message}`, "Error");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      // No need to validate pdfBlob since download is handled by generatePayslipPDF
+      setSuccess(
+        `Payslip for ${employee.employee_name} downloaded successfully!`
+      );
+      showAlert(
+        `Payslip for ${employee.employee_name} downloaded successfully!`,
+        "Success"
+      );
+    } catch (error) {
+      console.error("Download error:", error);
+      setError(
+        `Error downloading payslip for ${employee.employee_name}: ${error.message}`
+      );
+      showAlert(
+        `Error downloading payslip for ${employee.employee_name}: ${error.message}`,
+        "Error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
     return () => {
       if (pdfUrl) {
@@ -756,7 +719,10 @@ const handleDownloadForEmployee = async (employee) => {
     "Download",
   ];
 
-  const fieldKeys = Object.keys(formData).concat(["selectedMonth", "selectedYear"]);
+  const fieldKeys = Object.keys(formData).concat([
+    "selectedMonth",
+    "selectedYear",
+  ]);
   const rows = [];
   for (let i = 0; i < fieldKeys.length; i += 3) {
     rows.push(fieldKeys.slice(i, i + 3));
@@ -816,18 +782,30 @@ const handleDownloadForEmployee = async (employee) => {
           <thead>
             <tr>
               {tableHeaders.map((header, index) => (
-                <th key={index} className="generatePayslip-table-header">{header}</th>
+                <th key={index} className="generatePayslip-table-header">
+                  {header}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filteredEmployeeData.map((employee) => (
               <tr key={employee.id}>
-                <td className="generatePayslip-table-cell">{employee.employee_name}</td>
-                <td className="generatePayslip-table-cell">{employee.employee_id}</td>
-                <td className="generatePayslip-table-cell">{employee.gender}</td>
-                <td className="generatePayslip-table-cell">{employee.designation}</td>
-                <td className="generatePayslip-table-cell">{employee.date_of_joining.split("T")[0]}</td>
+                <td className="generatePayslip-table-cell">
+                  {employee.employee_name}
+                </td>
+                <td className="generatePayslip-table-cell">
+                  {employee.employee_id}
+                </td>
+                <td className="generatePayslip-table-cell">
+                  {employee.gender}
+                </td>
+                <td className="generatePayslip-table-cell">
+                  {employee.designation}
+                </td>
+                <td className="generatePayslip-table-cell">
+                  {employee.date_of_joining.split("T")[0]}
+                </td>
                 <td className="generatePayslip-table-cell">
                   <button
                     className="generatePayslip-view-btn"
@@ -884,7 +862,11 @@ const handleDownloadForEmployee = async (employee) => {
               ×
             </button>
             <h3 className="generatePayslip-popup-title">
-              {preview ? "Payslip Preview" : editingEmployeeId ? "Edit Payslip Details" : "Enter Payslip Details"}
+              {preview
+                ? "Payslip Preview"
+                : editingEmployeeId
+                ? "Edit Payslip Details"
+                : "Enter Payslip Details"}
             </h3>
             {error && <p className="generatePayslip-error">{error}</p>}
             {success && <p className="generatePayslip-success">{success}</p>}
@@ -908,9 +890,14 @@ const handleDownloadForEmployee = async (employee) => {
                   <div key={rowIndex} className="generatePayslip-form-row">
                     {row.map((field) => (
                       <div key={field} className="generatePayslip-form-group">
-                        <label htmlFor={field} className="generatePayslip-form-label">
+                        <label
+                          htmlFor={field}
+                          className="generatePayslip-form-label"
+                        >
                           {fieldLabels[field]}
-                          {requiredFields.includes(field) && <span className="generatePayslip-required"> *</span>}
+                          {requiredFields.includes(field) && (
+                            <span className="generatePayslip-required"> *</span>
+                          )}
                         </label>
                         {field === "selectedMonth" ? (
                           <select
@@ -923,7 +910,9 @@ const handleDownloadForEmployee = async (employee) => {
                             <option value="">Select Month</option>
                             {[...Array(12)].map((_, i) => (
                               <option key={i + 1} value={i + 1}>
-                                {new Date(0, i).toLocaleString("default", { month: "long" })}
+                                {new Date(0, i).toLocaleString("default", {
+                                  month: "long",
+                                })}
                               </option>
                             ))}
                           </select>
@@ -977,7 +966,17 @@ const handleDownloadForEmployee = async (employee) => {
                             type={
                               field === "dateOfJoining"
                                 ? "text"
-                                : ["workingDays", "leavesTaken", "basic", "hra", "otherAllowance", "pf", "esiInsurance", "professionalTax", "tds"].includes(field)
+                                : [
+                                    "workingDays",
+                                    "leavesTaken",
+                                    "basic",
+                                    "hra",
+                                    "otherAllowance",
+                                    "pf",
+                                    "esiInsurance",
+                                    "professionalTax",
+                                    "tds",
+                                  ].includes(field)
                                 ? "number"
                                 : "text"
                             }
@@ -1055,7 +1054,10 @@ const handleDownloadForEmployee = async (employee) => {
           onClose={closeViewDetails}
           buttons={[{ label: "Close", onClick: closeViewDetails }]}
         >
-          <h3 className="generatePayslip-details-title">Bank and Salary Details for {viewDetailsModal.employee.employee_name}</h3>
+          <h3 className="generatePayslip-details-title">
+            Bank and Salary Details for{" "}
+            {viewDetailsModal.employee.employee_name}
+          </h3>
           <div className="generatePayslip-details-container">
             <table className="generatePayslip-details-table">
               <thead>
@@ -1067,25 +1069,41 @@ const handleDownloadForEmployee = async (employee) => {
               <tbody>
                 {detailFields.map((field) => (
                   <tr key={field}>
-                    <td className="generatePayslip-details-cell">{fieldLabels[field]}</td>
                     <td className="generatePayslip-details-cell">
-                      {field === "accountNo" && (viewDetailsModal.employee.account_no || "-")}
-                      {field === "workingDays" && (viewDetailsModal.employee.working_days || 0)}
-                      {field === "leavesTaken" && (viewDetailsModal.employee.leaves_taken || 0)}
-                      {field === "uinNo" && (viewDetailsModal.employee.uin_no || "-")}
-                      {field === "panNumber" && (viewDetailsModal.employee.pan_number || "-")}
-                      {field === "esiNumber" && (viewDetailsModal.employee.esi_number || "-")}
-                      {field === "pfNumber" && (viewDetailsModal.employee.pf_number || "-")}
-                      {field === "basic" && (viewDetailsModal.employee.basic || 0)}
+                      {fieldLabels[field]}
+                    </td>
+                    <td className="generatePayslip-details-cell">
+                      {field === "accountNo" &&
+                        (viewDetailsModal.employee.account_no || "-")}
+                      {field === "workingDays" &&
+                        (viewDetailsModal.employee.working_days || 0)}
+                      {field === "leavesTaken" &&
+                        (viewDetailsModal.employee.leaves_taken || 0)}
+                      {field === "uinNo" &&
+                        (viewDetailsModal.employee.uin_no || "-")}
+                      {field === "panNumber" &&
+                        (viewDetailsModal.employee.pan_number || "-")}
+                      {field === "esiNumber" &&
+                        (viewDetailsModal.employee.esi_number || "-")}
+                      {field === "pfNumber" &&
+                        (viewDetailsModal.employee.pf_number || "-")}
+                      {field === "basic" &&
+                        (viewDetailsModal.employee.basic || 0)}
                       {field === "hra" && (viewDetailsModal.employee.hra || 0)}
-                      {field === "otherAllowance" && (viewDetailsModal.employee.other_allowance || 0)}
+                      {field === "otherAllowance" &&
+                        (viewDetailsModal.employee.other_allowance || 0)}
                       {field === "pf" && (viewDetailsModal.employee.pf || 0)}
-                      {field === "esiInsurance" && (viewDetailsModal.employee.esi_insurance || 0)}
-                      {field === "professionalTax" && (viewDetailsModal.employee.professional_tax || 0)}
+                      {field === "esiInsurance" &&
+                        (viewDetailsModal.employee.esi_insurance || 0)}
+                      {field === "professionalTax" &&
+                        (viewDetailsModal.employee.professional_tax || 0)}
                       {field === "tds" && (viewDetailsModal.employee.tds || 0)}
-                      {field === "grossEarnings" && (viewDetailsModal.employee.gross_earnings || 0)}
-                      {field === "totalDeductions" && (viewDetailsModal.employee.total_deductions || 0)}
-                      {field === "netSalary" && (viewDetailsModal.employee.net_salary || 0)}
+                      {field === "grossEarnings" &&
+                        (viewDetailsModal.employee.gross_earnings || 0)}
+                      {field === "totalDeductions" &&
+                        (viewDetailsModal.employee.total_deductions || 0)}
+                      {field === "netSalary" &&
+                        (viewDetailsModal.employee.net_salary || 0)}
                     </td>
                   </tr>
                 ))}

@@ -36,7 +36,6 @@ const TotalEmployee = () => {
         }
 
         const jsonData = await response.json();
-        console.log("Full API Response:", jsonData); // Debugging output
 
         // Check if the response is in the expected format
         if (!jsonData || !jsonData.message) {

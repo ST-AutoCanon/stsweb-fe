@@ -614,7 +614,6 @@ export default function EmployeeDetails() {
 
       fetchEmployees();
     } catch (err) {
-      console.log("Failed to deactivate employee", err);
       setError("Failed to deactivate employee");
     } finally {
       setModalVisible(false);

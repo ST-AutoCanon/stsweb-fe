@@ -309,7 +309,6 @@ const InvoicePrint = React.forwardRef(({ invoiceData }, ref) => {
             </p>
           </div>
         </div>
-        {/* Inside your footer rendering */}
         <div className="seal-signs">
           <p>For: Sukalpa Tech Solutions Pvt Ltd</p>
           {withSeal ? (

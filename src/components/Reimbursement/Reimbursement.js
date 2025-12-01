@@ -591,7 +591,6 @@ const Reimbursement = () => {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.message || "Reimbursement update failed.");
-      console.log("Update Response:", data);
       fetchReimbursements();
     } catch (error) {
       console.error("Error updating reimbursement:", error);

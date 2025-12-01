@@ -1,4 +1,3 @@
-// import React from "react";
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
@@ -17,14 +16,11 @@ import OtherServices from "./components/OtherServices/OtherServices";
 import HomologationSupport from "./components/HomologationSupport/HomologationSupport1";
 import ConsultingServices from "./components/ConsultingServices/ConsultingServices";
 import EngineeringServices from "./components/EngineeringServices/EngineeringServices";
-//import CAEAnalysis from './components/CAEAnalysis/CAEAnalysis';
 import Prototyping from "./components/Prototyping/Prototyping";
 import ValueEngineering from "./components/ValueEngineering/ValueEngineering";
-// import ReverseEngineering from './components/ReverseEngineering/Reverseengineering';
 import Tooling from "./components/Tooling/Tooling";
 import MainAbout from "./components/MainAbout/MainAbout";
 import CardLayout from "./components/CardLayout/CardLayout";
-//import CircularDesign from './components/CircularDesign/CircularDesign';
 import OtherServiceFirst from "./components/OtherServiceFirst/OtherServiceFirst";
 
 import "./App.css";
@@ -72,14 +68,12 @@ import FacePunch from "./components/FacePunch/FacePunch.js";
 
 import GeneratePayslip from "./components/generate_payslip/generate_payslip.js";
 
-
-// import EMobilitySolutions from "./components/EMobilitySolutions/EMobilitySolutions";
 function App() {
-   
-  // Helper function to convert base64 to Uint8Array
   function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
     const rawData = window.atob(base64);
     const outputArray = new Uint8Array(rawData.length);
     for (let i = 0; i < rawData.length; ++i) {
@@ -88,124 +82,121 @@ function App() {
     return outputArray;
   }
   useEffect(() => {
-  let isMounted = true; // Prevent duplicate calls in Strict Mode
-  let subscriptionInterval;
+    let isMounted = true;
+    let subscriptionInterval;
 
-  function scheduleTestTrigger(secondsFromNow) {
-    const now = new Date();
-    const triggerTime = new Date(now.getTime() + secondsFromNow * 1000);
+    function scheduleTestTrigger(secondsFromNow) {
+      const now = new Date();
+      const triggerTime = new Date(now.getTime() + secondsFromNow * 1000);
 
-    const timeUntilTrigger = triggerTime.getTime() - now.getTime();
+      const timeUntilTrigger = triggerTime.getTime() - now.getTime();
 
-    setTimeout(() => {
-      checkSubscription(); // Call backend immediately
-      console.log(`Test trigger executed at: ${new Date().toLocaleTimeString()}`);
-      // Repeat every 24 hours
-      setInterval(checkSubscription, 24 * 60 * 60 * 1000);
-    }, timeUntilTrigger);
-  }
+      setTimeout(() => {
+        checkSubscription();
+        setInterval(checkSubscription, 24 * 60 * 60 * 1000);
+      }, timeUntilTrigger);
+    }
 
-  async function initPush() {
-    if (!isMounted) return; 
-    console.log('Executing initPush');
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        console.log('Notification permission not granted');
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.register('/service-worker.js');
-      console.log('Service Worker registered:', registration);
-
-      const existingSubscription = await registration.pushManager.getSubscription();
-      if (existingSubscription) {
-        console.log('Existing subscription found:', existingSubscription.toJSON());
-        const res = await fetch('https://sukalpatechsolutions.com/api/check-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint: existingSubscription.endpoint }),
-        });
-        const { exists } = await res.json();
-        if (exists) {
-          console.log('Subscription still valid on server');
+    async function initPush() {
+      if (!isMounted) return;
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
           return;
         }
-        console.log('Subscription not found on server, resubscribing');
-      }
 
-      const vapidResponse = await fetch('https://sukalpatechsolutions.com/api/vapidPublicKey');
-      if (!vapidResponse.ok) {
-        throw new Error(`Failed to get VAPID key: ${vapidResponse.status}`);
-      }
-      const { publicKey } = await vapidResponse.json();
+        const registration = await navigator.serviceWorker.register(
+          "/service-worker.js"
+        );
 
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
-
-      console.log('Push subscription object:', subscription.toJSON());
-      console.log('Sending payload to /subscribe:', JSON.stringify(subscription.toJSON()));
-
-      const res = await fetch('https://sukalpatechsolutions.com/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription.toJSON()),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Subscription failed: ${errorText}`);
-      }
-
-      console.log('Push subscription successful');
-    } catch (err) {
-      console.error('Push init error:', err);
-    }
-  }
-
-  async function checkSubscription() {
-    if (!isMounted) return;
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        const res = await fetch('https://sukalpatechsolutions.com/api/check-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint: subscription.endpoint }),
-        });
-        const { exists } = await res.json();
-        if (!exists) {
-          console.log('Subscription not found on server, reinitializing');
-          await initPush();
+        const existingSubscription =
+          await registration.pushManager.getSubscription();
+        if (existingSubscription) {
+          const res = await fetch(
+            "https://sukalpatechsolutions.com/api/check-subscription",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ endpoint: existingSubscription.endpoint }),
+            }
+          );
+          const { exists } = await res.json();
+          if (exists) {
+            return;
+          }
         }
+
+        const vapidResponse = await fetch(
+          "https://sukalpatechsolutions.com/api/vapidPublicKey"
+        );
+        if (!vapidResponse.ok) {
+          throw new Error(`Failed to get VAPID key: ${vapidResponse.status}`);
+        }
+        const { publicKey } = await vapidResponse.json();
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
+
+        const res = await fetch(
+          "https://sukalpatechsolutions.com/api/subscribe",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(subscription.toJSON()),
+          }
+        );
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Subscription failed: ${errorText}`);
+        }
+      } catch (err) {
+        console.error("Push init error:", err);
       }
-    } catch (err) {
-      console.error('Subscription check error:', err);
     }
-  }
 
-  initPush();
-  subscriptionInterval = setInterval(checkSubscription, 1 * 60 * 1000); // Check every 5 minutes
+    async function checkSubscription() {
+      if (!isMounted) return;
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          const res = await fetch(
+            "https://sukalpatechsolutions.com/api/check-subscription",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ endpoint: subscription.endpoint }),
+            }
+          );
+          const { exists } = await res.json();
+          if (!exists) {
+            await initPush();
+          }
+        }
+      } catch (err) {
+        console.error("Subscription check error:", err);
+      }
+    }
 
-  // ✅ Test: Trigger backend call 30 seconds after load
-  scheduleTestTrigger(30);
+    initPush();
+    subscriptionInterval = setInterval(checkSubscription, 1 * 60 * 1000);
 
-  return () => {
-    isMounted = false;
-    clearInterval(subscriptionInterval);
-  };
-}, []);
+    scheduleTestTrigger(30);
+
+    return () => {
+      isMounted = false;
+      clearInterval(subscriptionInterval);
+    };
+  }, []);
 
   return (
     <Router>
       <div className="App">
-        {/* Navbar */}
         <Navbar />
         <ScrollToTop />
-        {/* Routes */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/About" element={<About />} />
@@ -275,8 +266,8 @@ function App() {
           <Route path="/EmpWorkDays" element={<EmpWorkDays />} />
           <Route path="/EmpReImbursement" element={<EmpReImbursement />} />
           <Route path="/Salary_Statement" element={<SalaryStatement />} />
-                     <Route path="/FacePunch" element={<FacePunch />} />
-          <Route path="/generate_payslip" element={<GeneratePayslip/>} />
+          <Route path="/FacePunch" element={<FacePunch />} />
+          <Route path="/generate_payslip" element={<GeneratePayslip />} />
 
           <Route
             path="/EngineeringServices"
@@ -287,11 +278,8 @@ function App() {
             path="/ITNetworkingServices"
             element={<ITNetworkingServices />}
           />
-          {/* Catch-all route for undefined paths */}
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
-        {/* Footer */}
-        {/* <HomologationFirst /> */}
         <Footer />
       </div>
     </Router>

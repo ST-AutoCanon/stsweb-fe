@@ -4,7 +4,6 @@ import "./ValueEngineering.css";
 const ValueEngineering = () => {
   return (
     <div className="value-engineering-container">
-      {/* Left Section - Image */}
       <div className="value-engineering-image">
         <img
           src="./images/Valueengineering.png"
@@ -13,7 +12,6 @@ const ValueEngineering = () => {
         />
       </div>
 
-      {/* Right Section - Content */}
       <div className="value-engineering-text">
         <h1>Value Engineering Services</h1>
         <p>Our Value Engineering Services Include:</p>
@@ -34,5 +32,3 @@ const ValueEngineering = () => {
 };
 
 export default ValueEngineering;
-
-

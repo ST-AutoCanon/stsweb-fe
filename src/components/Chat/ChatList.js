@@ -1,4 +1,3 @@
-// src/components/ChatList.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useSocket } from "./SocketContext";
@@ -30,7 +29,6 @@ export default function ChatList({ onSelect }) {
     onConfirm: null,
   });
 
-  // 2) showAlert takes an object
   const showAlert = ({ title = "", message, onConfirm }) => {
     setAlertModal({ isVisible: true, title, message, onConfirm });
   };
@@ -43,7 +41,6 @@ export default function ChatList({ onSelect }) {
       onConfirm: null,
     });
 
-  // 1) Fetch rooms + socket listener
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/rooms`, { headers })
@@ -59,7 +56,6 @@ export default function ChatList({ onSelect }) {
     return () => socket.off("room_created");
   }, [socket, onSelect]);
 
-  // 2) Fetch employees for private search
   useEffect(() => {
     if (tab === "private") {
       axios
@@ -69,7 +65,6 @@ export default function ChatList({ onSelect }) {
     }
   }, [tab]);
 
-  // 3) Filtering
   const filteredRooms = rooms.filter((r) =>
     r.is_group ? tab === "group" : tab === "private"
   );
@@ -96,7 +91,6 @@ export default function ChatList({ onSelect }) {
 
   return (
     <div className="chat-list">
-      {/* Tabs */}
       <div className="chat-tabs">
         <button
           className={tab === "private" ? "active" : ""}
@@ -120,7 +114,6 @@ export default function ChatList({ onSelect }) {
         </button>
       </div>
 
-      {/* Private search OR New Group */}
       <div className="new-chat-area">
         {tab === "private" ? (
           <>
@@ -169,15 +162,14 @@ export default function ChatList({ onSelect }) {
         )}
       </div>
 
-      {/* Room list */}
       <div className="rooms-container">
         {filteredRooms.map((r) => (
           <div key={r.id} className="chat-list-item-wrapper">
             <div
               className={`chat-list-item ${activeId === r.id ? "active" : ""}`}
-              onMouseDown={(e) => e.preventDefault()} // prevent focus scroll
+              onMouseDown={(e) => e.preventDefault()}
               onClick={(e) => {
-                e.preventDefault(); // prevent any default scrolling
+                e.preventDefault();
                 setActiveId(r.id);
                 onSelect(r);
               }}
@@ -196,16 +188,15 @@ export default function ChatList({ onSelect }) {
                 )}
               </span>
             </div>
-            {r.is_group === 1 &&
-              r.createdBy === meId && ( // only the creator sees the trash
-                <button
-                  className="delete-group-btn"
-                  onClick={() => deleteGroup(r.id)}
-                  title="Delete group"
-                >
-                  <FaTrash />
-                </button>
-              )}
+            {r.is_group === 1 && r.createdBy === meId && (
+              <button
+                className="delete-group-btn"
+                onClick={() => deleteGroup(r.id)}
+                title="Delete group"
+              >
+                <FaTrash />
+              </button>
+            )}
           </div>
         ))}
         {filteredRooms.length === 0 && (
@@ -215,7 +206,6 @@ export default function ChatList({ onSelect }) {
         )}
       </div>
 
-      {/* Group Modal */}
       {mode === "group" && (
         <GroupModal
           onCreate={() => setMode(null)}

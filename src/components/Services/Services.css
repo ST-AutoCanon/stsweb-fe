@@ -9,7 +9,6 @@
   margin-bottom: 20px;
   font-size: 2rem;
   font-weight: bold;
-  
 }
 
 .services-grid {
@@ -32,7 +31,6 @@
   position: relative;
 }
 
-/* Sticky image styling */
 .sticky-card .service-image-container {
   position: relative;
 }
@@ -45,32 +43,29 @@
   margin-top: -200%;
   margin-bottom: -19%;
 }
-.it-image
-{
+.it-image {
   position: sticky;
 }
 .moving-images {
-  position: absolute; /* Ensure it's absolutely positioned relative to the parent card */
-  bottom: 29%!important; /* Move the moving images slightly above the bottom */
-  right: -8%; /* Center horizontally */
-  
-  transform: translateX(-50%); /* Adjust horizontal alignment */
-  width: 350%; /* Optional: Set width for consistency */
+  position: absolute;
+  bottom: 29% !important;
+  right: -8%;
+
+  transform: translateX(-50%);
+  width: 350%;
   display: flex;
   justify-content: center;
-  pointer-events: none; /* Prevent interaction with the moving images */
-  transition: transform 0s ease-in-out; 
-  animation: moveImages 10s linear infinite; /* Animation for movement */
+  pointer-events: none;
+  transition: transform 0s ease-in-out;
+  animation: moveImages 10s linear infinite;
   gap: 35%;
   flex-shrink: 0;
 }
 
-
 .moving-image {
-  width: 120px; /* Adjust size of the moving images */
+  width: 120px;
   height: auto;
-  gap:25%;
-  /* margin-right: 10px; */
+  gap: 25%;
 }
 .moving-image.active {
   left: 0;
@@ -83,8 +78,6 @@
   opacity: 0;
   z-index: 0;
 }
-/* Custom styles for specific images */
-
 
 .it-image {
   width: 120px;
@@ -105,10 +98,6 @@
   border: 2px solid #ccc;
 }
 
-/* Set specific background images for cards 1, 2, and 3 */
-
-
-/* Keyframes to move images from left to right */
 @keyframes moveImages {
   0% {
     transform: translateX(-100%);
@@ -128,15 +117,11 @@
   }
 }
 
-/* Card content */
-
-/* Horizontal line above the button */
 .service-divider {
-  margin-bottom: 15px; /* Adds space between the line and button */
-  border-top: 1px solid #ddd; /* Light gray horizontal line */
+  margin-bottom: 15px;
+  border-top: 1px solid #ddd;
 }
 
-/* Button styling */
 .service-button {
   margin-bottom: 8px;
   padding: 10px 10px;
@@ -196,8 +181,8 @@
   background-color: #0056b3;
 }
 .service-card:hover {
-  transform: translateY(-10px); /* Move the entire card up slightly */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Add a deeper shadow for emphasis */
+  transform: translateY(-10px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 .service-image-container {
   position: relative;
@@ -206,128 +191,104 @@
   overflow: hidden;
 }
 .service-card:hover .service-image {
-  transform: scale(1.1)translateY(-10px); /* Scale up the image slightly on hover */
+  transform: scale(1.1) translateY(-10px);
 }
 .service-card-content {
   padding: 20px;
-  flex: 1; /* Allow content to stretch */
+  flex: 1;
   transition: transform 0.5s ease-in-out;
 }
 @media (max-width: 768px) {
   .services-grid {
-    grid-template-columns: 1fr; /* Single-column layout for mobile */
-    gap: 15px; /* Smaller gaps between cards */
+    grid-template-columns: 1fr;
+    gap: 15px;
   }
 
   .service-card {
-    border-radius: 4px; /* Slightly less rounded corners */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* Softer shadow */
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 
   .service-image {
     width: 100%;
-    height: auto; /* Maintain the aspect ratio */
+    height: auto;
     object-fit: cover;
     transition: transform 0.3s ease;
   }
 
   .service-button {
-    font-size: 12px; /* Smaller button text */
-    padding: 8px 16px; /* Smaller button size */
-    margin-left: 0; /* Center align button for mobile */
-    align-self: center; /* Adjust alignment for the button */
+    font-size: 12px;
+    padding: 8px 16px;
+    margin-left: 0;
+    align-self: center;
   }
-  
-  
 }
-
-
-
-
-
-
-
-
-
 
 @media (min-width: 1366px) and (min-height: 768px) {
   .services-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjust column size */
-    gap: 25px; /* Adjust gap for larger screens */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
   }
-  
-
 
   .service-card {
-    border-radius: 10px; /* Slightly more rounded corners for large screens */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Deeper shadow for larger screens */
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     padding: 20px;
   }
 
   .services-header {
-    font-size: 2.5rem; /* Larger header font size */
+    font-size: 2.5rem;
   }
 
   .service-button {
-    font-size: 16px; /* Larger button text */
-    padding: 12px 20px; /* Bigger button */
-    margin-left: auto; /* Align buttons on the right */
+    font-size: 16px;
+    padding: 12px 20px;
+    margin-left: auto;
   }
 
   .service-detail {
-    max-width: 800px; /* Wider content area for details */
-    margin: 0 auto; /* Center the detail section */
+    max-width: 800px;
+    margin: 0 auto;
   }
 
   .service-detail-title {
-    font-size: 2.5rem; /* Larger titles */
+    font-size: 2.5rem;
   }
-  
 
   .service-detail-description {
-    font-size: 1.3rem; /* Larger description text */
-    line-height: 1.8; /* Better readability */
+    font-size: 1.3rem;
+    line-height: 1.8;
   }
 
   .service-divider {
-    border-top: 2px solid #ddd; /* Thicker divider */
+    border-top: 2px solid #ddd;
   }
 }
 
-
-    
-  
-
-  
-
-/* For larger screens (1366px and above) */
 @media (min-width: 1366px) {
   .moving-images {
-    bottom: 25%!important; /* Adjust position for larger screens */
-    right: -5%; /* Reduce the offset on larger screens */
-    width: 300%; /* Adjust width for consistent scaling */
-    gap: 20%; /* Reduce gap for better alignment */
+    bottom: 25% !important;
+    right: -5%;
+    width: 300%;
+    gap: 20%;
   }
 
   .sticky-card .sticky-image {
-   
-    height: 78vh!important;
- 
+    height: 78vh !important;
   }
   .moving-image {
-    width: 100px; /* Increase image size on larger screens */
+    width: 100px;
     height: auto;
     margin-bottom: -4%;
   }
 
   .it-image {
-    width: 140px; /* Increase size for specific images */
+    width: 140px;
     height: 140px;
-    margin-top: -60px; /* Adjust spacing */
+    margin-top: -60px;
   }
 }
 
-/* For medium screens (1024px - 1366px) */
 @media (max-width: 1380px) and (min-width: 1024px) {
   .moving-images {
     bottom: 27%;
@@ -346,22 +307,14 @@
     height: 130px;
     margin-top: -70px;
   }
-
-  
-
 }
 
-
-
-
-
-/* For tablets (768px - 1024px) */
 @media (max-width: 1024px) and (min-width: 768px) {
   .moving-images {
-    bottom: 18%; /* Adjust position for smaller screens */
-    right: -7%; /* Keep images centered */
+    bottom: 18%;
+    right: -7%;
     width: 280%;
-    gap: 18%; /* Narrow gaps for tighter layouts */
+    gap: 18%;
   }
 
   .moving-image {
@@ -373,26 +326,21 @@
     width: 100px;
     height: 100px;
     margin-top: -50px;
-
   }
- 
 }
 
-/* For mobile devices (up to 768px) */
 @media (max-width: 768px) {
   .moving-images {
-    bottom: 23%!important; /* Lower the images for smaller screens */
+    bottom: 23% !important;
     right: -10%;
     width: 250%;
     gap: 15%;
   }
 
-  
   .moving-image {
-    width: 100px; /* Adjust size of the moving images */
+    width: 100px;
     height: auto;
-    gap:25%;
-    /* margin-right: 10px; */
+    gap: 25%;
   }
   .it-image {
     width: 80px;

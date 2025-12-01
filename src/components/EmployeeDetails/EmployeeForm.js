@@ -434,11 +434,7 @@ export default function EmployeeForm({
 
       for (let [key, val] of fd.entries()) {
         if (val instanceof File) {
-          console.log(
-            `↪︎ FormData field: ${key} ⇒ File { name: ${val.name}, size: ${val.size} }`
-          );
         } else {
-          console.log(`↪︎ FormData field: ${key} ⇒`, val);
         }
       }
 

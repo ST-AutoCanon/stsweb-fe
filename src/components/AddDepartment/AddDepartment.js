@@ -13,7 +13,6 @@ const AddDepartment = () => {
   const [departments, setDepartments] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
 
-  // Fetch existing departments
   const fetchDepartments = async () => {
     try {
       const response = await fetch(
@@ -45,7 +44,7 @@ const AddDepartment = () => {
                   const blob = await imgResponse.blob();
                   dept.iconUrl = URL.createObjectURL(blob);
                 } else {
-                  dept.iconUrl = "/default-icon.png"; // Fallback image
+                  dept.iconUrl = "/default-icon.png";
                 }
               } catch (error) {
                 console.error("Error fetching image:", error);
@@ -66,14 +65,12 @@ const AddDepartment = () => {
     }
   };
 
-  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -116,13 +113,11 @@ const AddDepartment = () => {
 
       const result = await response.json();
       if (response.ok) {
-        // Optionally, you can clear any previous message
         setMessage("");
         setName("");
         setIcon(null);
         setShowPopup(false);
         fetchDepartments();
-        // Show the success message in the modal:
         showAlert(result.message || "Department added successfully!");
       } else {
         setMessage(result.message || "Failed to add department");
@@ -144,7 +139,6 @@ const AddDepartment = () => {
 
       <div className="department-section">
         <div className="department-list">
-          {/* Existing Departments */}
           {departments.length > 0 ? (
             departments.map((dept) => (
               <div key={dept.id} className="department-card">
@@ -168,7 +162,6 @@ const AddDepartment = () => {
             <p>No departments found</p>
           )}
 
-          {/* Add New Department Card - Opens Popup */}
           <div className="add-new" onClick={() => setShowPopup(true)}>
             <div className="addDp-name">
               <IoMdAddCircleOutline className="dp-icon" /> Add new <br />{" "}
@@ -178,7 +171,6 @@ const AddDepartment = () => {
         </div>
       </div>
 
-      {/* op-up Form for Adding a New Department */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup-content">
@@ -224,7 +216,7 @@ const AddDepartment = () => {
                       id="fileInput"
                       accept="image/*"
                       onChange={(e) => setIcon(e.target.files[0])}
-                      style={{ display: "none" }} // Hide default file input
+                      style={{ display: "none" }}
                     />
                   </div>
                   <span className="size">Note: Icon Size should be 32×32</span>
@@ -243,7 +235,6 @@ const AddDepartment = () => {
           </div>
         </div>
       )}
-      {/* Alert Modal for displaying messages */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

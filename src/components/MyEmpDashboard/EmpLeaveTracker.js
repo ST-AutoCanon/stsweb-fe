@@ -22,7 +22,6 @@ const EmpLeaveTracker = () => {
         const parsedData = JSON.parse(dashboardData);
         if (parsedData.employeeId) {
           setEmployeeId(parsedData.employeeId);
-          console.log("✅ Employee ID found:", parsedData.employeeId);
         } else {
           console.warn("⚠️ Employee ID not found in dashboardData");
         }
@@ -48,13 +47,10 @@ const EmpLeaveTracker = () => {
         if (!API_KEY) throw new Error("⚠️ API Key is missing.");
 
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/leave-queries/${employeeId}`;
-        console.log("📡 Fetching leave data from:", apiUrl);
 
         const response = await axios.get(apiUrl, {
           headers,
         });
-
-        console.log("✅ API Response:", response.data);
 
         if (
           response.status === 200 &&
@@ -86,11 +82,8 @@ const EmpLeaveTracker = () => {
       }
     };
 
-    console.log("🔄 Fetching leave data...");
     fetchLeaveData();
   }, [employeeId]);
-
-  console.log("🛠 leaveData before rendering:", leaveData);
 
   if (loading) return <p>Loading...</p>;
 

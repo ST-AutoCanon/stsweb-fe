@@ -140,7 +140,6 @@
   text-align: center;
 }
 
-/* Avoid clipped tables across pages */
 .in-print-table,
 .in-print-table tr,
 .in-print-table td,
@@ -306,5 +305,5 @@
 
 .invoice-footer,
 .note {
-  position: static; /* ensure not fixed */
+  position: static;
 }

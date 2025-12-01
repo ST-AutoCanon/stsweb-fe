@@ -34,7 +34,6 @@ export default function Notifications({ visible, onClose, onRead }) {
       const id = e?.detail?.id;
       if (!id) return;
       setNotifications((prev) => prev.filter((n) => n.id !== id));
-      // optional: you could also call onRead() here if parent needs to know
       if (typeof onRead === "function") onRead();
     };
 

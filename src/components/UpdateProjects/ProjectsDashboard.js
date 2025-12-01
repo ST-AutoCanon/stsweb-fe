@@ -10,10 +10,45 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import DownloadDetailsList from "./DownloadDetailsList";
 
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
+const formatDate = (dateInput) => {
+  if (!dateInput) return "N/A";
+
   const options = { day: "2-digit", month: "short", year: "numeric" };
-  return new Date(dateString).toLocaleDateString("en-GB", options);
+
+  if (dateInput instanceof Date && !isNaN(dateInput)) {
+    return dateInput.toLocaleDateString("en-GB", options);
+  }
+
+  if (typeof dateInput === "number") {
+    const dt = new Date(dateInput);
+    return isNaN(dt) ? "N/A" : dt.toLocaleDateString("en-GB", options);
+  }
+
+  if (typeof dateInput === "string") {
+    const s = dateInput.trim();
+
+    const dateOnlyMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnlyMatch) {
+      const [, y, m, d] = dateOnlyMatch;
+      const dt = new Date(Number(y), Number(m) - 1, Number(d));
+      return dt.toLocaleDateString("en-GB", options);
+    }
+
+    const isoMatch = s.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (isoMatch) {
+      const [ymd] = isoMatch;
+      const [y, m, d] = ymd.split("-").map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt.toLocaleDateString("en-GB", options);
+    }
+
+    const fallback = new Date(s);
+    return isNaN(fallback)
+      ? "N/A"
+      : fallback.toLocaleDateString("en-GB", options);
+  }
+
+  return "N/A";
 };
 
 const getInvoiceTypeKey = (type) => {
@@ -174,7 +209,7 @@ const ProjectsDashboard = () => {
     contentEl.style.overflow = "hidden";
 
     contentEl.scrollTop = 0;
-    contentEl.offsetHeight;
+    void contentEl.offsetHeight;
 
     requestAnimationFrame(() => {
       contentEl.style.overflow = prevOverflow || "auto";

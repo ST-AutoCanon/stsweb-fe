@@ -43,7 +43,7 @@ const SupervisorPlanViewer = () => {
 
   const formatWeekId = (weekId) => {
     if (!weekId) return "N/A";
-    const currentYear = new Date().getFullYear(); // Use current year (2025)
+    const currentYear = new Date().getFullYear();
     const startDate = startOfISOWeek(new Date(currentYear, 0, 1));
     const weekStart = new Date(
       startDate.getTime() + (weekId - 1) * 7 * 24 * 60 * 60 * 1000
@@ -61,9 +61,6 @@ const SupervisorPlanViewer = () => {
 
   const isTaskEditable = (taskDate) => {
     if (!taskDate) {
-      console.log(
-        `Task date: ${taskDate}, freezeDays: ${freezeDays}, editable: true (no date)`
-      );
       return true;
     }
     const today = new Date();
@@ -72,9 +69,7 @@ const SupervisorPlanViewer = () => {
     taskDateObj.setHours(0, 0, 0, 0);
     const diffDays = (today - taskDateObj) / (1000 * 3600 * 24);
     const editable = diffDays <= 0 || (diffDays > 0 && diffDays <= freezeDays);
-    console.log(
-      `Task date: ${taskDate}, today: ${today.toISOString()}, diffDays: ${diffDays}, freezeDays: ${freezeDays}, editable: ${editable}`
-    );
+
     return editable;
   };
 
@@ -93,7 +88,6 @@ const SupervisorPlanViewer = () => {
   const recognitionRef = useRef(null);
   const [listeningTaskId, setListeningTaskId] = useState(null);
   const [liveComments, setLiveComments] = useState({});
-  // Browser Speech Recognition Support
 
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -103,7 +97,6 @@ const SupervisorPlanViewer = () => {
       return;
     }
 
-    // Fully stop old instance
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -114,8 +107,8 @@ const SupervisorPlanViewer = () => {
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
 
-    recognition.continuous = true; // ⭐ ensures long speech
-    recognition.interimResults = false; // final text only
+    recognition.continuous = true;
+    recognition.interimResults = false;
     recognition.lang = "en-US";
 
     setListeningTaskId(taskId);
@@ -139,9 +132,6 @@ const SupervisorPlanViewer = () => {
     };
 
     recognition.onend = () => {
-      // ❗ IMPORTANT: DO NOT STOP, because user didn't press stop
-      // But also DO NOT restart infinite loops.
-      // Let continuous mode keep the mic open.
       if (listeningTaskId === taskId && recognitionRef.current) {
         try {
           recognitionRef.current.start();
@@ -150,8 +140,6 @@ const SupervisorPlanViewer = () => {
     };
 
     recognition.onerror = (e) => {
-      console.log("Speech error:", e.error);
-      // Only stop on hard errors, not on silence
       if (e.error === "no-speech") return;
       if (e.error === "audio-capture") return;
     };
@@ -286,7 +274,6 @@ const SupervisorPlanViewer = () => {
 
     const fetchFreezeDays = async () => {
       try {
-        console.log("Fetching freeze days from API...");
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/config`,
           {
@@ -297,10 +284,7 @@ const SupervisorPlanViewer = () => {
             timeout: 10000,
           }
         );
-        console.log(
-          "Config API response:",
-          JSON.stringify(response.data, null, 2)
-        );
+
         if (
           !response.data ||
           !response.data.success ||
@@ -330,9 +314,7 @@ const SupervisorPlanViewer = () => {
           setFreezeDays(0);
           return;
         }
-        console.log(
-          `freeze_days_supervisor value: ${freezeDaysConfig.value}, parsed days: ${days}`
-        );
+
         setFreezeDays(days);
       } catch (err) {
         console.error(
@@ -573,7 +555,6 @@ const SupervisorPlanViewer = () => {
         showAlert("Task updated successfully");
       }
 
-      // Clear pending review change
       setPendingReviewChanges((prev) => {
         const newPrev = { ...prev };
         delete newPrev[taskId];
@@ -633,13 +614,13 @@ const SupervisorPlanViewer = () => {
   const getReviewStatusColor = (status) => {
     switch (status) {
       case "approved":
-        return "#28a745"; // Green
+        return "#28a745";
       case "struck":
-        return "#ffc107"; // Amber
+        return "#ffc107";
       case "suspended_review":
-        return "#dc3545"; // Red
+        return "#dc3545";
       default:
-        return "#6c757d"; // Gray
+        return "#6c757d";
     }
   };
 
@@ -731,7 +712,6 @@ const SupervisorPlanViewer = () => {
       setSelectedWeekId(weekIds[currentWeekIndex + 1]);
   };
 
-  // Generate week days structure
   const generateWeekDays = () => {
     if (!selectedWeekId) return [];
     const currentYear = new Date().getFullYear();
@@ -749,7 +729,6 @@ const SupervisorPlanViewer = () => {
 
   const weekDays = generateWeekDays();
 
-  // Group tasks by date for the selected employee and week
   const getTasksByDate = () => {
     const tasksByDate = {};
     weekDays.forEach(({ dateStr }) => {
@@ -876,7 +855,7 @@ const SupervisorPlanViewer = () => {
                 const sampleTaskForStyle = dayTasks[0] || {
                   task_date: dateStr,
                   employee_id: selectedEmployee,
-                }; // Use date for style
+                };
                 const dateStyle = getTaskDateStyle(
                   sampleTaskForStyle.task_date,
                   selectedEmployee
@@ -901,7 +880,7 @@ const SupervisorPlanViewer = () => {
                         const taskDateStyle = getTaskDateStyle(
                           task.task_date,
                           task.employee_id
-                        ); // Individual style per task
+                        );
                         const effectiveReviewStatus =
                           pendingReviewChanges[task.task_id] ||
                           task.sup_review_status;
@@ -910,15 +889,7 @@ const SupervisorPlanViewer = () => {
                         const showReviewSelect =
                           task.sup_review_status === "pending" &&
                           !pendingReviewChanges[task.task_id];
-                        console.log(
-                          `Rendering task ${task.task_id}: date=${
-                            task.task_date
-                          }, editable=${editable}, frozen=${isFrozen}, class=${
-                            !editable || isFrozen
-                              ? "supervisor-plan-task-frozen"
-                              : ""
-                          }`
-                        );
+
                         return (
                           <div
                             key={task.task_id}
@@ -1076,7 +1047,6 @@ const SupervisorPlanViewer = () => {
                                     className="supervisor-admin-feedback-input"
                                   />
 
-                                  {/* Mic Icon INSIDE INPUT BOX */}
                                   <button
                                     type="button"
                                     className={`supervisor-admin-mic-button ${
@@ -1098,11 +1068,6 @@ const SupervisorPlanViewer = () => {
                                     )}
                                   </button>
                                 </div>
-                                {/* {listeningTaskId === task.task_id && (
-    <div className="supervisor-admin-mic-listening">
-      Listening… Tap mic to stop
-    </div>
-  )} */}
                               </label>
 
                               {showReviewSelect && (

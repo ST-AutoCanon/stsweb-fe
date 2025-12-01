@@ -53,7 +53,6 @@ export default function GroupModal({ onCreate, onClose }) {
       <div className="modal-content">
         <h3>Create Group</h3>
 
-        {/* Selected chips */}
         {selected.length > 0 && (
           <div className="selected-chips">
             {selected.map((u) => (
@@ -78,7 +77,6 @@ export default function GroupModal({ onCreate, onClose }) {
           </div>
         )}
 
-        {/* Group name */}
         <input
           className="group-name-input"
           placeholder="Group name"
@@ -86,7 +84,6 @@ export default function GroupModal({ onCreate, onClose }) {
           onChange={(e) => setName(e.target.value)}
         />
 
-        {/* Search */}
         <input
           className="msg-search"
           placeholder="Search employees..."
@@ -94,7 +91,6 @@ export default function GroupModal({ onCreate, onClose }) {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
 
-        {/* Suggestions */}
         {searchTerm && (
           <div className="suggestions-list">
             {suggestions.length > 0 ? (
@@ -125,7 +121,6 @@ export default function GroupModal({ onCreate, onClose }) {
           </div>
         )}
 
-        {/* Actions */}
         <div className="modal-actions">
           <button
             className="create-btn"

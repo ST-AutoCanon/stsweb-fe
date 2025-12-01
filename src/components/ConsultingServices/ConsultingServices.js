@@ -4,7 +4,6 @@ import "./ConsultingServices.css";
 const ConsultingServices = () => {
   return (
     <div className="consulting-services-container">
-      {/* Left Section - Image */}
       <div className="consulting-services-image">
         <img
           src="./images/consulting.png"
@@ -13,7 +12,6 @@ const ConsultingServices = () => {
         />
       </div>
 
-      {/* Right Section - Content */}
       <div className="consulting-services-text">
         <h1>Consulting Services</h1>
         <p>Our Consulting Services Include:</p>

@@ -51,7 +51,6 @@
   }
 }
 
-/* Blast Animation */
 .birthday-blast-container {
   position: absolute;
   top: 50%;
@@ -85,9 +84,7 @@
     opacity: 0;
   }
 }
-/* ==========================================
-   MOBILE VIEW STYLES
-   ========================================== */
+
 @media (max-width: 480px) {
   .birthday-card {
     top: 35%;
@@ -113,7 +110,6 @@
     line-height: 1.3rem;
   }
 
-  /* Blast animation smaller on mobile */
   .birthday-blast-container {
     top: 50%;
     left: 50%;

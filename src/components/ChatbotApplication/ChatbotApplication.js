@@ -4,7 +4,6 @@ import "./ChatbotApplication.css";
 const ChatbotApplication = () => {
   return (
     <div className="chatbot-application-container">
-      {/* Left Section - Image */}
       <div className="chatbot-application-image">
         <img
           src="./images/chat.png"
@@ -13,12 +12,11 @@ const ChatbotApplication = () => {
         />
       </div>
 
-      {/* Right Section - Content */}
       <div className="chatbot-application-text">
         <h1>Chatbot Application Services</h1>
         <p className="intro-text">
-          Sukalpa Tech Solutions offers rule-based and AI-driven chatbots to meet client needs, 
-          enhancing customer support, sales, and automation.
+          Sukalpa Tech Solutions offers rule-based and AI-driven chatbots to
+          meet client needs, enhancing customer support, sales, and automation.
         </p>
         <h2>Our chatbot services deliver the following key benefits:</h2>
         <ul className="services-list">
@@ -28,11 +26,13 @@ const ChatbotApplication = () => {
           </li>
           <li>
             <strong> Instant Responses: </strong>
-            Quick answers for faster issue resolution and better user experience.
+            Quick answers for faster issue resolution and better user
+            experience.
           </li>
           <li>
             <strong> Scalability: </strong>
-            Handles multiple conversations simultaneously without extra resources.
+            Handles multiple conversations simultaneously without extra
+            resources.
           </li>
           <li>
             <strong> Cost Efficiency: </strong>
@@ -44,10 +44,9 @@ const ChatbotApplication = () => {
           </li>
           <li>
             <strong> Seamless Integration: </strong>
-            Easily integrates with CRMs and business systems for enhanced functionality.
+            Easily integrates with CRMs and business systems for enhanced
+            functionality.
           </li>
-  
-
         </ul>
       </div>
     </div>

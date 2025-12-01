@@ -1,5 +1,3 @@
-
-
 import React, { useMemo, useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -100,7 +98,11 @@ const TaskManagementAdmin = () => {
   const [editingProgress, setEditingProgress] = useState(false);
   const [tempProgress, setTempProgress] = useState(0);
   const [tempStatus, setTempStatus] = useState("");
-  const [alertModal, setAlertModal] = useState({ isVisible: false, title: "", message: "" });
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
 
   useEffect(() => {
     const data = localStorage.getItem("dashboardData");
@@ -110,7 +112,9 @@ const TaskManagementAdmin = () => {
         if (parsed.employeeId) {
           setAdminId(String(parsed.employeeId));
         } else {
-          setError("No employeeId found in dashboardData. Please log in again.");
+          setError(
+            "No employeeId found in dashboardData. Please log in again."
+          );
         }
       } catch (e) {
         setError("Failed to parse dashboardData. Please log in again.");
@@ -125,18 +129,32 @@ const TaskManagementAdmin = () => {
     const fetchEmployees = async () => {
       setLoadingEmployees(true);
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/employees/all`, {
-          headers: { "x-employee-id": adminId },
-        });
-        if (!response.data.employees || !Array.isArray(response.data.employees)) {
-          throw new Error("No employees found in response or invalid data format");
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/employees/all`,
+          {
+            headers: { "x-employee-id": adminId },
+          }
+        );
+        if (
+          !response.data.employees ||
+          !Array.isArray(response.data.employees)
+        ) {
+          throw new Error(
+            "No employees found in response or invalid data format"
+          );
         }
         setEmployees(response.data.employees);
         setError(null);
       } catch (err) {
         let errorMessage = "Failed to fetch employees";
-        if (err.response) errorMessage = `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText || "Unknown server error"}`;
-        else if (err.request) errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
+        if (err.response)
+          errorMessage = `Error ${err.response.status}: ${
+            err.response.data?.error ||
+            err.response.statusText ||
+            "Unknown server error"
+          }`;
+        else if (err.request)
+          errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
         else errorMessage = `Request setup error: ${err.message}`;
         setError(errorMessage);
         setEmployees([]);
@@ -152,11 +170,16 @@ const TaskManagementAdmin = () => {
     const fetchTasks = async () => {
       setLoadingTasks(true);
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/tasks`, {
-          headers: { "x-employee-id": adminId },
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/tasks`,
+          {
+            headers: { "x-employee-id": adminId },
+          }
+        );
         const tasksWithEmployeeData = response.data.map((task) => {
-          const employee = employees.find((emp) => emp.employee_id === task.employee_id) || {
+          const employee = employees.find(
+            (emp) => emp.employee_id === task.employee_id
+          ) || {
             employee_name: "Unknown Employee",
             employee_id: task.employee_id,
           };
@@ -170,7 +193,7 @@ const TaskManagementAdmin = () => {
             employeeId: task.employee_id,
             user: {
               name: employee.employee_name,
-              profile: "", // No photo URL
+              profile: "",
             },
             progress: task.percentage,
             messages: [],
@@ -180,8 +203,14 @@ const TaskManagementAdmin = () => {
         setError(null);
       } catch (err) {
         let errorMessage = "Failed to fetch tasks";
-        if (err.response) errorMessage = `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText || "Unknown server error"}`;
-        else if (err.request) errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
+        if (err.response)
+          errorMessage = `Error ${err.response.status}: ${
+            err.response.data?.error ||
+            err.response.statusText ||
+            "Unknown server error"
+          }`;
+        else if (err.request)
+          errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
         else errorMessage = `Request setup error: ${err.message}`;
         setError(errorMessage);
         setTasks([]);
@@ -198,30 +227,44 @@ const TaskManagementAdmin = () => {
       setLoadingMessages(true);
       const taskId = selectedTaskId.split("-")[1];
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`, {
-          headers: { "x-employee-id": adminId },
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`,
+          {
+            headers: { "x-employee-id": adminId },
+          }
+        );
         if (response.status === 200) {
           if (response.data.success) {
-            const { progressMessages = [], clarificationMessages = [] } = response.data;
+            const { progressMessages = [], clarificationMessages = [] } =
+              response.data;
             const allMessages = [
               ...progressMessages.map((msg) => {
-                const employee = employees.find((emp) => String(emp.employee_id) === String(msg.sender));
+                const employee = employees.find(
+                  (emp) => String(emp.employee_id) === String(msg.sender)
+                );
                 return {
                   text: msg.text,
                   time: msg.time,
                   sender: msg.sender,
-                  senderName: msg.sender === "Supervisor" ? "You" : employee?.employee_name || "Unknown Employee",
+                  senderName:
+                    msg.sender === "Supervisor"
+                      ? "You"
+                      : employee?.employee_name || "Unknown Employee",
                   type: "Progress",
                 };
               }),
               ...clarificationMessages.map((msg) => {
-                const employee = employees.find((emp) => String(emp.employee_id) === String(msg.sender));
+                const employee = employees.find(
+                  (emp) => String(emp.employee_id) === String(msg.sender)
+                );
                 return {
                   text: msg.text,
                   time: msg.time,
                   sender: msg.sender,
-                  senderName: msg.sender === "Supervisor" ? "You" : employee?.employee_name || "Unknown Employee",
+                  senderName:
+                    msg.sender === "Supervisor"
+                      ? "You"
+                      : employee?.employee_name || "Unknown Employee",
                   type: "Clarification",
                 };
               }),
@@ -234,18 +277,28 @@ const TaskManagementAdmin = () => {
                       messages: allMessages,
                       progress: allMessages
                         .filter((msg) => msg.type === "Progress")
-                        .reduce((max, msg) => (isNaN(parseInt(msg.text)) ? max : Math.max(max, parseInt(msg.text))), task.progress),
+                        .reduce(
+                          (max, msg) =>
+                            isNaN(parseInt(msg.text))
+                              ? max
+                              : Math.max(max, parseInt(msg.text)),
+                          task.progress
+                        ),
                     }
                   : task
               )
             );
             setError(null);
           } else {
-            throw new Error(response.data.message || "Failed to fetch messages");
+            throw new Error(
+              response.data.message || "Failed to fetch messages"
+            );
           }
         } else if (response.status === 404) {
           setTasks((prevTasks) =>
-            prevTasks.map((task) => (task.id === selectedTaskId ? { ...task, messages: [] } : task))
+            prevTasks.map((task) =>
+              task.id === selectedTaskId ? { ...task, messages: [] } : task
+            )
           );
           setError(null);
         } else {
@@ -255,9 +308,12 @@ const TaskManagementAdmin = () => {
         let errorMessage = "Failed to fetch messages";
         if (err.response) {
           if (err.response.status === 404) {
-            console.log(`No messages found for taskId: ${taskId}, treated as valid case`);
           } else {
-            errorMessage = `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText || "Unknown server error"}`;
+            errorMessage = `Error ${err.response.status}: ${
+              err.response.data?.error ||
+              err.response.statusText ||
+              "Unknown server error"
+            }`;
           }
         } else if (err.request) {
           errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
@@ -284,9 +340,12 @@ const TaskManagementAdmin = () => {
     []
   );
 
-  const selectedTask = useMemo(() => tasks.find((t) => t.id === selectedTaskId) || null, [tasks, selectedTaskId]);
+  const selectedTask = useMemo(
+    () => tasks.find((t) => t.id === selectedTaskId) || null,
+    [tasks, selectedTaskId]
+  );
 
-  const currentDate = new Date(2025, 8, 17, 11, 37); // 11:37 AM IST, September 17, 2025
+  const currentDate = new Date(2025, 8, 17, 11, 37);
 
   const openDetails = (taskId) => setSelectedTaskId(taskId);
 
@@ -326,44 +385,72 @@ const TaskManagementAdmin = () => {
         progress_percentage: tempProgress !== undefined ? tempProgress : null,
       };
       setTasks((prev) =>
-        prev.map((t) => (t.id === selectedTask.id ? { ...t, status: tempStatus, progress: tempProgress } : t))
+        prev.map((t) =>
+          t.id === selectedTask.id
+            ? { ...t, status: tempStatus, progress: tempProgress }
+            : t
+        )
       );
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/employee-tasks/update/${taskId}`,
         updateData,
         { headers: { "x-employee-id": adminId } }
       );
-      if (response.data.success || response.data.message === "Task updated successfully") {
-        const refreshedTask = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/tasks/${taskId}`, {
-          headers: { "x-employee-id": adminId },
-        });
+      if (
+        response.data.success ||
+        response.data.message === "Task updated successfully"
+      ) {
+        const refreshedTask = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/tasks/${taskId}`,
+          {
+            headers: { "x-employee-id": adminId },
+          }
+        );
         const updatedTask = refreshedTask.data;
         setTasks((prev) =>
           prev.map((t) =>
-            t.id === selectedTask.id ? { ...t, status: updatedTask.status, progress: updatedTask.percentage } : t
+            t.id === selectedTask.id
+              ? {
+                  ...t,
+                  status: updatedTask.status,
+                  progress: updatedTask.percentage,
+                }
+              : t
           )
         );
         setError(null);
         setEditingProgress(false);
-        if (tempProgress !== selectedTask.progress && tempProgress !== undefined) {
+        if (
+          tempProgress !== selectedTask.progress &&
+          tempProgress !== undefined
+        ) {
           const messageData = {
             taskId,
             sender: "Supervisor",
             type: "Progress",
             text: `${tempProgress}%`,
           };
-          await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/messages`, messageData, {
-            headers: { "x-employee-id": adminId },
-          });
+          await axios.post(
+            `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
+            messageData,
+            {
+              headers: { "x-employee-id": adminId },
+            }
+          );
         }
-        setAlertModal({ isVisible: true, message: "Task updated successfully" });
+        setAlertModal({
+          isVisible: true,
+          message: "Task updated successfully",
+        });
       } else {
         throw new Error(response.data.message || "Unexpected server response");
       }
     } catch (err) {
       let errorMessage = "Failed to update task";
       if (err.response) {
-        errorMessage = `Error ${err.response.status}: ${err.response.data?.message || err.response.statusText}`;
+        errorMessage = `Error ${err.response.status}: ${
+          err.response.data?.message || err.response.statusText
+        }`;
       } else if (err.request) {
         errorMessage = "Network error: Unable to connect to the server";
       } else {
@@ -372,7 +459,13 @@ const TaskManagementAdmin = () => {
       setError(errorMessage);
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === selectedTask.id ? { ...t, progress: selectedTask.progress, status: selectedTask.status } : t
+          t.id === selectedTask.id
+            ? {
+                ...t,
+                progress: selectedTask.progress,
+                status: selectedTask.status,
+              }
+            : t
         )
       );
       setEditingProgress(false);
@@ -399,15 +492,19 @@ const TaskManagementAdmin = () => {
         type: activeTab,
         text,
       };
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/messages`, messageData, {
-        headers: { "x-employee-id": adminId },
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
+        messageData,
+        {
+          headers: { "x-employee-id": adminId },
+        }
+      );
       if (response.data.success) {
         setTasks((prev) =>
           prev.map((t) =>
             t.id === selectedTask.id
               ? {
-                  ...t, // Changed 'task' to 't' to fix the undefined variable error
+                  ...t,
                   messages: [
                     ...t.messages,
                     {
@@ -418,7 +515,9 @@ const TaskManagementAdmin = () => {
                       type: activeTab,
                     },
                   ].sort((a, b) => new Date(a.time) - new Date(b.time)),
-                  ...(activeTab === "Progress" && !isNaN(parseInt(text)) ? { progress: parseInt(text) } : {}),
+                  ...(activeTab === "Progress" && !isNaN(parseInt(text))
+                    ? { progress: parseInt(text) }
+                    : {}),
                 }
               : t
           )
@@ -431,7 +530,11 @@ const TaskManagementAdmin = () => {
     } catch (err) {
       let errorMessage = "Failed to send message";
       if (err.response) {
-        errorMessage = `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText || "Unknown server error"}`;
+        errorMessage = `Error ${err.response.status}: ${
+          err.response.data?.error ||
+          err.response.statusText ||
+          "Unknown server error"
+        }`;
       } else if (err.request) {
         errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
       } else {
@@ -467,22 +570,41 @@ const TaskManagementAdmin = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const { title, description, employeeId, startDate, endDate, status, percentage } = formData;
+    const {
+      title,
+      description,
+      employeeId,
+      startDate,
+      endDate,
+      status,
+      percentage,
+    } = formData;
     if (!title || !employeeId || !startDate || !endDate) {
       setError("Please fill in all required fields.");
       return;
     }
-    if (!(startDate instanceof Date) || isNaN(startDate.getTime()) || !(endDate instanceof Date) || isNaN(endDate.getTime())) {
+    if (
+      !(startDate instanceof Date) ||
+      isNaN(startDate.getTime()) ||
+      !(endDate instanceof Date) ||
+      isNaN(endDate.getTime())
+    ) {
       setError("Invalid start or end date.");
       return;
     }
     try {
-      const selectedEmployee = employees.find((emp) => emp.employee_id === employeeId);
+      const selectedEmployee = employees.find(
+        (emp) => emp.employee_id === employeeId
+      );
       if (!selectedEmployee) {
         setError("Selected employee not found.");
         return;
       }
-      const newTaskId = tasks.length ? `Task-${Math.max(...tasks.map((t) => parseInt(t.id.split("-")[1]))) + 1}` : "Task-1";
+      const newTaskId = tasks.length
+        ? `Task-${
+            Math.max(...tasks.map((t) => parseInt(t.id.split("-")[1]))) + 1
+          }`
+        : "Task-1";
       const taskData = {
         employee_id: employeeId,
         task_title: title,
@@ -492,9 +614,13 @@ const TaskManagementAdmin = () => {
         status,
         percentage,
       };
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/tasks`, taskData, {
-        headers: { "x-employee-id": adminId },
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/tasks`,
+        taskData,
+        {
+          headers: { "x-employee-id": adminId },
+        }
+      );
       setTasks((prev) => [
         ...prev,
         {
@@ -507,7 +633,7 @@ const TaskManagementAdmin = () => {
           employeeId,
           user: {
             name: selectedEmployee.employee_name,
-            profile: "", // No photo URL
+            profile: "",
           },
           progress: percentage,
           messages: [],
@@ -518,8 +644,14 @@ const TaskManagementAdmin = () => {
       setAlertModal({ isVisible: true, message: "Assigned task successfully" });
     } catch (err) {
       let errorMessage = "Failed to assign task";
-      if (err.response) errorMessage = `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText || "Unknown server error"}`;
-      else if (err.request) errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
+      if (err.response)
+        errorMessage = `Error ${err.response.status}: ${
+          err.response.data?.error ||
+          err.response.statusText ||
+          "Unknown server error"
+        }`;
+      else if (err.request)
+        errorMessage = `Network error: Unable to connect to the server at ${process.env.REACT_APP_BACKEND_URL}.`;
       else errorMessage = `Request setup error: ${err.message}`;
       setError(errorMessage);
     }
@@ -548,13 +680,17 @@ const TaskManagementAdmin = () => {
     <div className="task-admin-board-container">
       <div className="task-admin-sections">
         <button
-          className={`task-admin-section-btn ${mainTab === "Task Board" ? "task-admin-active" : ""}`}
+          className={`task-admin-section-btn ${
+            mainTab === "Task Board" ? "task-admin-active" : ""
+          }`}
           onClick={() => setMainTab("Task Board")}
         >
           Supervisor Driven
         </button>
         <button
-          className={`task-admin-section-btn ${mainTab === "Weekly Tasks" ? "task-admin-active" : ""}`}
+          className={`task-admin-section-btn ${
+            mainTab === "Weekly Tasks" ? "task-admin-active" : ""
+          }`}
           onClick={() => setMainTab("Weekly Tasks")}
         >
           Employee Driven
@@ -568,8 +704,12 @@ const TaskManagementAdmin = () => {
             </button>
           </div>
           {error && <div className="task-admin-error-message">{error}</div>}
-          {loadingTasks && <div className="task-admin-loading-message">Loading tasks...</div>}
-          {!loadingTasks && tasks.length === 0 && !error && <div className="task-admin-no-tasks">No tasks available</div>}
+          {loadingTasks && (
+            <div className="task-admin-loading-message">Loading tasks...</div>
+          )}
+          {!loadingTasks && tasks.length === 0 && !error && (
+            <div className="task-admin-no-tasks">No tasks available</div>
+          )}
           <div className="task-admin-board">
             {columns.map((col) => {
               const colTasks = tasks
@@ -582,27 +722,54 @@ const TaskManagementAdmin = () => {
                 });
               return (
                 <div className="task-admin-column" key={col.key}>
-                  <div className="task-admin-column-header" style={{ backgroundColor: col.color }}>
+                  <div
+                    className="task-admin-column-header"
+                    style={{ backgroundColor: col.color }}
+                  >
                     <span>{col.title}</span>
                   </div>
                   <div className="task-admin-list">
                     {colTasks.length === 0 && !loadingTasks && !error ? (
-                      <div className="task-admin-no-tasks">No {col.title.toLowerCase()} tasks</div>
+                      <div className="task-admin-no-tasks">
+                        No {col.title.toLowerCase()} tasks
+                      </div>
                     ) : (
                       colTasks.map((task) => {
-                        const isOverdue = task.status !== "Completed" && new Date(task.endDate) < currentDate;
-                        const ringColor = isOverdue ? "#ef4444" : getProgressColor(task.progress);
+                        const isOverdue =
+                          task.status !== "Completed" &&
+                          new Date(task.endDate) < currentDate;
+                        const ringColor = isOverdue
+                          ? "#ef4444"
+                          : getProgressColor(task.progress);
                         return (
-                          <div className="task-admin-card" key={task.id} onClick={() => openDetails(task.id)}>
+                          <div
+                            className="task-admin-card"
+                            key={task.id}
+                            onClick={() => openDetails(task.id)}
+                          >
                             <div className="task-admin-header">
                               <div className="task-admin-title-group">
-                                <div className="task-admin-title">{task.title}</div>
-                                <div className="task-admin-employee-name">{task.user.name}</div>
-                                <div className="task-admin-employee-id">EMP-ID: {task.employeeId}</div>
-                                <div className="task-admin-id-chip">{task.id}</div>
+                                <div className="task-admin-title">
+                                  {task.title}
+                                </div>
+                                <div className="task-admin-employee-name">
+                                  {task.user.name}
+                                </div>
+                                <div className="task-admin-employee-id">
+                                  EMP-ID: {task.employeeId}
+                                </div>
+                                <div className="task-admin-id-chip">
+                                  {task.id}
+                                </div>
                               </div>
-                              <div className="task-admin-progress-wrapper" title={`${task.progress}%`}>
-                                <svg viewBox="0 0 36 36" className="task-admin-progress-ring">
+                              <div
+                                className="task-admin-progress-wrapper"
+                                title={`${task.progress}%`}
+                              >
+                                <svg
+                                  viewBox="0 0 36 36"
+                                  className="task-admin-progress-ring"
+                                >
                                   <path
                                     className="task-admin-circle-bg"
                                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -636,14 +803,22 @@ const TaskManagementAdmin = () => {
                             </div>
                             <div className="task-admin-dates">
                               <div className="task-admin-date-group">
-                                <span className="task-admin-date-label">Start</span>
-                                <span className="task-admin-date-pill task-admin-start">{displayDate(task.startDate)}</span>
+                                <span className="task-admin-date-label">
+                                  Start
+                                </span>
+                                <span className="task-admin-date-pill task-admin-start">
+                                  {displayDate(task.startDate)}
+                                </span>
                               </div>
                               <span className="task-admin-arrow">→</span>
                               <div className="task-admin-date-group">
-                                <span className="task-admin-date-label">End</span>
+                                <span className="task-admin-date-label">
+                                  End
+                                </span>
                                 <span
-                                  className={`task-admin-date-pill task-admin-end ${isOverdue ? "task-admin-overdue" : ""}`}
+                                  className={`task-admin-date-pill task-admin-end ${
+                                    isOverdue ? "task-admin-overdue" : ""
+                                  }`}
                                 >
                                   {displayDate(task.endDate)}
                                 </span>
@@ -651,8 +826,15 @@ const TaskManagementAdmin = () => {
                             </div>
                             <div className="task-admin-footer">
                               <div className="task-admin-spacer" />
-                              <div className="task-admin-msg-wrap" title="Open messages">
-                                <span className="task-admin-message-icon" role="img" aria-label="messages">
+                              <div
+                                className="task-admin-msg-wrap"
+                                title="Open messages"
+                              >
+                                <span
+                                  className="task-admin-message-icon"
+                                  role="img"
+                                  aria-label="messages"
+                                >
                                   💬
                                 </span>
                               </div>
@@ -666,14 +848,24 @@ const TaskManagementAdmin = () => {
               );
             })}
             {selectedTask && (
-              <div className="task-admin-details-backdrop" onClick={closeDetails}>
-                <div className="task-admin-details" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="task-admin-details-backdrop"
+                onClick={closeDetails}
+              >
+                <div
+                  className="task-admin-details"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="task-admin-details-header">
                     <div className="task-admin-details-title">
                       <div className="task-admin-pill">{selectedTask.id}</div>
                       <h3>{selectedTask.title}</h3>
                     </div>
-                    <button className="task-admin-close-btn" onClick={closeDetails} aria-label="Close">
+                    <button
+                      className="task-admin-close-btn"
+                      onClick={closeDetails}
+                      aria-label="Close"
+                    >
                       ✕
                     </button>
                   </div>
@@ -681,10 +873,15 @@ const TaskManagementAdmin = () => {
                     <div className="task-admin-meta-row">
                       <div className="task-admin-status-line">
                         <span className="task-admin-label">Status:</span>
-                        <span className="task-admin-value">{selectedTask.status}</span>
+                        <span className="task-admin-value">
+                          {selectedTask.status}
+                        </span>
                       </div>
                       <div className="task-admin-progress-wrapper">
-                        <svg viewBox="0 0 36 36" className="task-admin-progress-ring">
+                        <svg
+                          viewBox="0 0 36 36"
+                          className="task-admin-progress-ring"
+                        >
                           <path
                             className="task-admin-circle-bg"
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -698,7 +895,8 @@ const TaskManagementAdmin = () => {
                             strokeDashoffset={100 - selectedTask.progress}
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             stroke={
-                              selectedTask.status !== "Completed" && new Date(selectedTask.endDate) < currentDate
+                              selectedTask.status !== "Completed" &&
+                              new Date(selectedTask.endDate) < currentDate
                                 ? "#ef4444"
                                 : getProgressColor(selectedTask.progress)
                             }
@@ -725,7 +923,13 @@ const TaskManagementAdmin = () => {
                           onClick={startEditingProgress}
                           title="Edit Progress"
                         >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
                             <path
                               d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                               stroke="#6b7280"
@@ -757,7 +961,9 @@ const TaskManagementAdmin = () => {
                             onChange={handleSliderChange}
                             className="task-admin-progress-slider"
                           />
-                          <span className="task-admin-slider-value">{tempProgress}%</span>
+                          <span className="task-admin-slider-value">
+                            {tempProgress}%
+                          </span>
                         </div>
                         <div className="task-admin-status-container">
                           <label htmlFor="status-select">Status</label>
@@ -774,21 +980,30 @@ const TaskManagementAdmin = () => {
                           </select>
                         </div>
                         <div className="task-admin-editor-actions">
-                          <button onClick={saveProgress} className="task-admin-save-btn">
+                          <button
+                            onClick={saveProgress}
+                            className="task-admin-save-btn"
+                          >
                             Update Progress
                           </button>
-                          <button onClick={cancelEditing} className="task-admin-cancel-btn">
+                          <button
+                            onClick={cancelEditing}
+                            className="task-admin-cancel-btn"
+                          >
                             Cancel
                           </button>
                         </div>
                       </div>
                     )}
                     <div className="task-admin-dates-row">
-                      <span className="task-admin-date-pill task-admin-start">Start: {displayDate(selectedTask.startDate)}</span>
+                      <span className="task-admin-date-pill task-admin-start">
+                        Start: {displayDate(selectedTask.startDate)}
+                      </span>
                       <span className="task-admin-arrow">→</span>
                       <span
                         className={`task-admin-date-pill task-admin-end ${
-                          selectedTask.status !== "Completed" && new Date(selectedTask.endDate) < currentDate
+                          selectedTask.status !== "Completed" &&
+                          new Date(selectedTask.endDate) < currentDate
                             ? "task-admin-overdue"
                             : ""
                         }`}
@@ -799,25 +1014,35 @@ const TaskManagementAdmin = () => {
                     <div className="task-admin-description">
                       <h4>Description</h4>
                       <p>
-                        {selectedTask.description.split("\n").map((line, idx) => (
-                          <span key={idx}>
-                            {line.startsWith("- ") ? `• ${line.slice(2)}` : line}
-                            <br />
-                          </span>
-                        ))}
+                        {selectedTask.description
+                          .split("\n")
+                          .map((line, idx) => (
+                            <span key={idx}>
+                              {line.startsWith("- ")
+                                ? `• ${line.slice(2)}`
+                                : line}
+                              <br />
+                            </span>
+                          ))}
                       </p>
                     </div>
                   </div>
                   <div className="task-admin-tabs">
                     <div className="task-admin-tab-header">
                       <button
-                        className={`task-admin-tab-btn ${activeTab === "Progress" ? "task-admin-active" : ""}`}
+                        className={`task-admin-tab-btn ${
+                          activeTab === "Progress" ? "task-admin-active" : ""
+                        }`}
                         onClick={() => setActiveTab("Progress")}
                       >
                         Progress
                       </button>
                       <button
-                        className={`task-admin-tab-btn ${activeTab === "Clarification" ? "task-admin-active" : ""}`}
+                        className={`task-admin-tab-btn ${
+                          activeTab === "Clarification"
+                            ? "task-admin-active"
+                            : ""
+                        }`}
                         onClick={() => setActiveTab("Clarification")}
                       >
                         Clarification
@@ -828,17 +1053,27 @@ const TaskManagementAdmin = () => {
                         <div className="task-admin-progress-tab">
                           <h4>Progress Updates</h4>
                           {loadingMessages ? (
-                            <p className="task-admin-loading-message">Loading progress messages...</p>
-                          ) : selectedTask.messages.filter((msg) => msg.type === "Progress").length > 0 ? (
+                            <p className="task-admin-loading-message">
+                              Loading progress messages...
+                            </p>
+                          ) : selectedTask.messages.filter(
+                              (msg) => msg.type === "Progress"
+                            ).length > 0 ? (
                             <div className="task-admin-messages">
                               {selectedTask.messages
                                 .filter((msg) => msg.type === "Progress")
                                 .map((msg, idx) => (
                                   <div
                                     key={idx}
-                                    className={`task-admin-message ${msg.sender === "Supervisor" ? "task-admin-sent" : "task-admin-received"}`}
+                                    className={`task-admin-message ${
+                                      msg.sender === "Supervisor"
+                                        ? "task-admin-sent"
+                                        : "task-admin-received"
+                                    }`}
                                   >
-                                    <div className="task-admin-message-content">{msg.text}</div>
+                                    <div className="task-admin-message-content">
+                                      {msg.text}
+                                    </div>
                                     <div className="task-admin-message-meta">
                                       <span>{displayDate(msg.time)}</span>
                                       <span>{msg.senderName}</span>
@@ -847,9 +1082,14 @@ const TaskManagementAdmin = () => {
                                 ))}
                             </div>
                           ) : (
-                            <p className="task-admin-no-msg">No progress updates yet.</p>
+                            <p className="task-admin-no-msg">
+                              No progress updates yet.
+                            </p>
                           )}
-                          <form className="task-admin-chat-input" onSubmit={handleAddMessage}>
+                          <form
+                            className="task-admin-chat-input"
+                            onSubmit={handleAddMessage}
+                          >
                             <input
                               type="text"
                               placeholder="Type a progress comment…"
@@ -867,17 +1107,27 @@ const TaskManagementAdmin = () => {
                         <div className="task-admin-clarification-tab">
                           <h4>Clarification</h4>
                           {loadingMessages ? (
-                            <p className="task-admin-loading-message">Loading clarification messages...</p>
-                          ) : selectedTask.messages.filter((msg) => msg.type === "Clarification").length > 0 ? (
+                            <p className="task-admin-loading-message">
+                              Loading clarification messages...
+                            </p>
+                          ) : selectedTask.messages.filter(
+                              (msg) => msg.type === "Clarification"
+                            ).length > 0 ? (
                             <div className="task-admin-messages">
                               {selectedTask.messages
                                 .filter((msg) => msg.type === "Clarification")
                                 .map((msg, idx) => (
                                   <div
                                     key={idx}
-                                    className={`task-admin-message ${msg.sender === "Supervisor" ? "task-admin-sent" : "task-admin-received"}`}
+                                    className={`task-admin-message ${
+                                      msg.sender === "Supervisor"
+                                        ? "task-admin-sent"
+                                        : "task-admin-received"
+                                    }`}
                                   >
-                                    <div className="task-admin-message-content">{msg.text}</div>
+                                    <div className="task-admin-message-content">
+                                      {msg.text}
+                                    </div>
                                     <div className="task-admin-message-meta">
                                       <span>{displayDate(msg.time)}</span>
                                       <span>{msg.senderName}</span>
@@ -886,9 +1136,14 @@ const TaskManagementAdmin = () => {
                                 ))}
                             </div>
                           ) : (
-                            <p className="task-admin-no-msg">No clarifications yet.</p>
+                            <p className="task-admin-no-msg">
+                              No clarifications yet.
+                            </p>
                           )}
-                          <form className="task-admin-chat-input" onSubmit={handleAddMessage}>
+                          <form
+                            className="task-admin-chat-input"
+                            onSubmit={handleAddMessage}
+                          >
                             <input
                               type="text"
                               placeholder="Type a clarification message…"
@@ -908,13 +1163,23 @@ const TaskManagementAdmin = () => {
               </div>
             )}
             {showAssignForm && (
-              <div className="task-admin-details-backdrop" onClick={closeAssignForm}>
-                <div className="task-admin-details assign-task-admin-modal" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="task-admin-details-backdrop"
+                onClick={closeAssignForm}
+              >
+                <div
+                  className="task-admin-details assign-task-admin-modal"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="task-admin-details-header">
                     <div className="task-admin-details-title">
                       <h3>Assign New Task</h3>
                     </div>
-                    <button className="task-admin-close-btn" onClick={closeAssignForm} aria-label="Close">
+                    <button
+                      className="task-admin-close-btn"
+                      onClick={closeAssignForm}
+                      aria-label="Close"
+                    >
                       ✕
                     </button>
                   </div>
@@ -956,22 +1221,36 @@ const TaskManagementAdmin = () => {
                           value={formData.employeeId}
                           onChange={handleFormChange}
                           required
-                          disabled={loadingEmployees || (error && employees.length === 0)}
+                          disabled={
+                            loadingEmployees ||
+                            (error && employees.length === 0)
+                          }
                         >
-                          <option value="">{loadingEmployees ? "Loading employees..." : "Select Employee"}</option>
+                          <option value="">
+                            {loadingEmployees
+                              ? "Loading employees..."
+                              : "Select Employee"}
+                          </option>
                           {employees.length === 0 && !loadingEmployees ? (
                             <option value="">No employees available</option>
                           ) : (
                             employees.map((emp) => (
-                              <option key={emp.employee_id} value={emp.employee_id}>
+                              <option
+                                key={emp.employee_id}
+                                value={emp.employee_id}
+                              >
                                 {emp.employee_name} ({emp.employee_id})
                               </option>
                             ))
                           )}
                         </select>
-                        {error && employees.length === 0 && !loadingEmployees && (
-                          <div className="task-admin-error-message">No employees available due to an error: {error}</div>
-                        )}
+                        {error &&
+                          employees.length === 0 &&
+                          !loadingEmployees && (
+                            <div className="task-admin-error-message">
+                              No employees available due to an error: {error}
+                            </div>
+                          )}
                       </div>
                     </div>
                     <div className="form-row">
@@ -979,7 +1258,9 @@ const TaskManagementAdmin = () => {
                         <label htmlFor="startDate">Start Date</label>
                         <DatePicker
                           selected={formData.startDate}
-                          onChange={(date) => handleDateChange(date, "startDate")}
+                          onChange={(date) =>
+                            handleDateChange(date, "startDate")
+                          }
                           dateFormat="dd-MM-yyyy"
                           placeholderText="Select start date (dd-mm-yyyy)"
                           className="date-picker"
@@ -1033,7 +1314,11 @@ const TaskManagementAdmin = () => {
                       <button
                         className="submit-btn-task-admin"
                         onClick={handleFormSubmit}
-                        disabled={loadingEmployees || loadingTasks || (error && employees.length === 0)}
+                        disabled={
+                          loadingEmployees ||
+                          loadingTasks ||
+                          (error && employees.length === 0)
+                        }
                       >
                         Assign Task
                       </button>
