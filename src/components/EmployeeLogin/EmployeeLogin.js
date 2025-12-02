@@ -358,7 +358,6 @@ const EmployeeLogin = () => {
         ).employeeId;
         const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
-        if (!API_KEY) throw new Error("API Key is missing.");
         if (!backendUrl) throw new Error("Backend URL is missing.");
         if (!meId) throw new Error("Employee ID is missing.");
 
