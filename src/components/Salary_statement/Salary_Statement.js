@@ -404,7 +404,7 @@ const Salary_Statement = () => {
       const response = await axios.post(
         `${BASE_URL}/api/salary-statement/update-payslip/${selectedMonth.toLowerCase()}/${selectedYear}/${employeeId}`,
         { payslip_generated: newValue },
-        { headers }
+        { withCredentials: true, headers }
       );
       if (response.data.success) {
         setSalaryData((prev) =>
@@ -511,7 +511,7 @@ const Salary_Statement = () => {
       const response = await axios.post(
         `${BASE_URL}/api/salary-details/save`,
         { salaryData: fullSalaryData, month, year },
-        { headers }
+        { withCredentials: true, headers }
       );
 
       if (response.data.success) {
@@ -624,7 +624,7 @@ const Salary_Statement = () => {
         `${
           process.env.REACT_APP_BACKEND_URL
         }/api/salary-statement/${month.toLowerCase()}/${year}`,
-        { headers }
+        { withCredentials: true, headers }
       );
       if (response.data && response.data.length > 0) {
         setTableData(response.data);
@@ -674,7 +674,10 @@ const Salary_Statement = () => {
       const apiUrl = `${
         process.env.REACT_APP_BACKEND_URL
       }/api/salary-statement/${month.toLowerCase()}/${yr}`;
-      const response = await axios.get(apiUrl, { headers });
+      const response = await axios.get(apiUrl, {
+        withCredentials: true,
+        headers,
+      });
       if (
         response.data &&
         response.data.salary_statement &&

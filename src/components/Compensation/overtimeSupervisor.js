@@ -68,7 +68,7 @@ const OvertimeSupervisor = () => {
     try {
       const cutoffRes = await axios.get(
         `${BASE_URL}/api/salaryCalculationperiods`,
-        { headers }
+        { withCredentials: true, headers }
       );
       const cutoff_date = cutoffRes.data?.data?.[0]?.cutoff_date || 5;
 
@@ -96,14 +96,24 @@ const OvertimeSupervisor = () => {
         await Promise.all([
           axios.get(
             `${BASE_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
-            { headers }
+            { withCredentials: true, headers }
           ),
           axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, {
+            withCredentials: true,
             headers,
           }),
-          axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }),
-          axios.get(`${BASE_URL}/api/compensations/list`, { headers }),
-          axios.get(`${BASE_URL}/api/overtime-summary/${meId}`, { headers }),
+          axios.get(`${BASE_URL}/api/compensation/assigned`, {
+            withCredentials: true,
+            headers,
+          }),
+          axios.get(`${BASE_URL}/api/compensations/list`, {
+            withCredentials: true,
+            headers,
+          }),
+          axios.get(`${BASE_URL}/api/overtime-summary/${meId}`, {
+            withCredentials: true,
+            headers,
+          }),
         ]);
 
       const teamEmployeeIds = new Set(
@@ -252,7 +262,7 @@ const OvertimeSupervisor = () => {
       const res = await axios.post(
         `${BASE_URL}/api/compensation/overtime-upsert-supervisor`,
         { data: payload },
-        { headers }
+        { withCredentials: true, headers }
       );
 
       showAlert(`Successfully ${action} ${payload.length} record(s)`);

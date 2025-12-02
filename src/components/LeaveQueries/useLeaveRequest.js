@@ -130,7 +130,7 @@ export default function useLeaveRequest() {
     try {
       const res = await fetch(
         `${BACKEND}/api/leave-policies/employee/${employeeId}/leave-balance`,
-        { headers: headersBase }
+        { credentials: "include", headers: headersBase }
       );
       if (!res.ok) throw new Error("Failed to load leave balance");
       const json = await res.json();
@@ -145,6 +145,7 @@ export default function useLeaveRequest() {
   const fetchPolicies = async () => {
     try {
       const res = await fetch(`${BACKEND}/api/leave-policies`, {
+        credentials: "include",
         headers: headersBase,
       });
       const json = await res.json();
@@ -220,6 +221,7 @@ export default function useLeaveRequest() {
         : selfUrl;
       const selfResponse = await fetch(selfFinalUrl, {
         method: "GET",
+        credentials: "include",
         headers: headersBase,
       });
       let selfRequests = [];
@@ -255,6 +257,7 @@ export default function useLeaveRequest() {
           : teamUrl;
         const teamResponse = await fetch(teamFinalUrl, {
           method: "GET",
+          credentials: "include",
           headers: headersBase,
         });
         if (teamResponse.ok) {
@@ -330,7 +333,10 @@ export default function useLeaveRequest() {
       return leaveBalancesCache[employeeIdToLoad];
     try {
       const url = `${BACKEND}/api/leave-policies/employee/${employeeIdToLoad}/leave-balance`;
-      const res = await fetch(url, { headers: headersBase });
+      const res = await fetch(url, {
+        credentials: "include",
+        headers: headersBase,
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       const arr = json.data || [];
@@ -407,7 +413,7 @@ export default function useLeaveRequest() {
         try {
           const response = await fetch(
             `${BACKEND}/cancel/${id}/${employeeData.employeeId}`,
-            { method: "DELETE", headers: headersBase }
+            { method: "DELETE", credentials: "include", headers: headersBase }
           );
           if (response.ok) {
             showAlert("Leave request cancelled successfully!");
@@ -534,6 +540,7 @@ export default function useLeaveRequest() {
       try {
         const response = await fetch(submitUrl, {
           method: submitMethod,
+          credentials: "include",
           headers: headersBase,
           body: JSON.stringify(data),
         });
@@ -901,6 +908,7 @@ export default function useLeaveRequest() {
 
       const res = await fetch(url, {
         method: "PUT",
+        credentials: "include",
         headers: headersForReq,
         body: JSON.stringify(fullPayload),
       });
@@ -1347,7 +1355,10 @@ export default function useLeaveRequest() {
       if (!employeeData?.employeeId) return 0;
       try {
         const url = `${BACKEND}/api/leave-policies/employee/${employeeData.employeeId}/monthly-lop?month=${m}&year=${y}`;
-        const res = await fetch(url, { headers: headersBase });
+        const res = await fetch(url, {
+          credentials: "include",
+          headers: headersBase,
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         const payload = json?.data || {};
@@ -1368,6 +1379,7 @@ export default function useLeaveRequest() {
         const url = `${BACKEND}/api/leave-policies/employee/${employeeData.employeeId}/compute-monthly-lop`;
         const res = await fetch(url, {
           method: "POST",
+          credentials: "include",
           headers: headersBase,
           body: JSON.stringify({ month: m, year: y }),
         });

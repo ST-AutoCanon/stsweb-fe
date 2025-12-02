@@ -41,6 +41,7 @@ const RbTeamLead = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
           {
+            withCredentials: true,
             headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           }
         );
@@ -75,6 +76,7 @@ const RbTeamLead = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/team/${teamLeadId}/reimbursements`,
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,
@@ -146,6 +148,7 @@ const RbTeamLead = () => {
           const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.filename}`;
 
           const response = await axios.get(fileUrl, {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
               Authorization: `Bearer ${authToken}`,
@@ -205,7 +208,10 @@ const RbTeamLead = () => {
           approver_id: approverId,
           project,
         },
-        { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
+        {
+          withCredentials: true,
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+        }
       );
 
       showAlert(`Reimbursement ${updatedStatus} successfully.`);
@@ -241,7 +247,10 @@ const RbTeamLead = () => {
           payment_status: selectedPaymentOption,
           user_role: "Manager",
         },
-        { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
+        {
+          withCredentials: true,
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+        }
       );
 
       showAlert("Payment status updated successfully.");
@@ -261,6 +270,7 @@ const RbTeamLead = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/download/${claim.id}`,
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           responseType: "blob",
         }

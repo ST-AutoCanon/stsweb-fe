@@ -79,6 +79,7 @@ const ReimbursementHR = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
           {
+            withCredentials: true,
             headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           }
         );
@@ -113,6 +114,7 @@ const ReimbursementHR = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursements`,
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           params: {
             submittedFrom: submittedFrom || null,
@@ -169,6 +171,7 @@ const ReimbursementHR = () => {
           const empId = claim.employee_id;
           const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.filename}`;
           const response = await axios.get(fileUrl, {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
               Authorization: `Bearer ${authToken}`,
@@ -242,6 +245,7 @@ const ReimbursementHR = () => {
           project,
         },
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
         }
       );
@@ -271,6 +275,7 @@ const ReimbursementHR = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/download/${claim.id}`,
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           responseType: "blob",
         }
@@ -298,6 +303,7 @@ const ReimbursementHR = () => {
       const resp = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursements/export`,
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           params: {
             submittedFrom: submittedFrom || null,
@@ -738,7 +744,10 @@ const ReimbursementHR = () => {
                       payment_status: selectedPaymentOption,
                       user_role: "admin",
                     },
-                    { headers: { "x-api-key": process.env.REACT_APP_API_KEY } }
+                    {
+                      withCredentials: true,
+                      headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+                    }
                   );
                   showAlert("Payment status updated.");
                   setIsPaymentModalOpen(false);

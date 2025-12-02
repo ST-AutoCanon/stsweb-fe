@@ -17,6 +17,7 @@ export async function postVoiceDialog(audioBlob, step) {
 
   const res = await fetch(url, {
     method: "POST",
+    credentials: "include",
     headers: headersWithoutJson,
     body: formData,
   });
@@ -28,6 +29,7 @@ export async function postVoiceFinal(data) {
 
   const res = await fetch(url, {
     method: "POST",
+    credentials: "include",
     headers: {
       ...headersWithoutJson,
       "Content-Type": "application/json",

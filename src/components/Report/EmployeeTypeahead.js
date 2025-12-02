@@ -163,7 +163,11 @@ export default function EmployeeTypeahead({
         "x-employee-id": employeeId || "",
       };
       try {
-        const resp = await axios.get(url, { headers, timeout: 10_000 });
+        const resp = await axios.get(url, {
+          withCredentials: true,
+          headers,
+          timeout: 10_000,
+        });
         if (reqId !== latestRequestId.current) return;
         if (!mountedRef.current) return;
         const data = resp && resp.data ? resp.data : {};

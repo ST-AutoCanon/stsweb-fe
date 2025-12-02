@@ -49,6 +49,7 @@ const ResetPassword = () => {
         `${process.env.REACT_APP_BACKEND_URL}/password-reset`,
         { resetToken: token, newPassword: password },
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,

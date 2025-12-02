@@ -211,7 +211,7 @@ const Vendors = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/vendors/list`,
-        { headers }
+        { withCredentials: true, headers }
       );
       if (response.data.success) {
         setVendors(response.data.data);
@@ -386,14 +386,14 @@ const Vendors = () => {
         response = await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/vendors/update/${editingVendorId}`,
           data,
-          { headers }
+          { withCredentials: true, headers }
         );
         showAlert("Vendor updated successfully!");
       } else {
         response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/vendors/add`,
           data,
-          { headers }
+          { withCredentials: true, headers }
         );
         showAlert("Vendor registered successfully!");
       }
@@ -438,6 +438,7 @@ const Vendors = () => {
       }/vendors/download/${encodeURIComponent(fileName)}`;
 
       const response = await axios.get(fileUrl, {
+        withCredentials: true,
         headers,
         responseType: "blob",
       });
@@ -471,7 +472,7 @@ const Vendors = () => {
       const fileName = documentPath.split(/[/\\]/).pop();
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/vendors/download/${fileName}`,
-        { headers, responseType: "blob" }
+        { withCredentials: true, headers, responseType: "blob" }
       );
 
       const blob = new Blob([response.data]);

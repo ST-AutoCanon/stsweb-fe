@@ -57,9 +57,9 @@ const Login = ({ onClose }) => {
         `${process.env.REACT_APP_BACKEND_URL}/forgot-password`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": process.env.REACT_APP_API_KEY,
           },
           body: JSON.stringify({ email: username }),
         }
@@ -87,7 +87,6 @@ const Login = ({ onClose }) => {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": process.env.REACT_APP_API_KEY,
           },
           body: JSON.stringify({ email: username, password }),
         }

@@ -19,6 +19,7 @@ const SalaryCalculationPeriod = ({ onClose, showAlert }) => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/salaryCalculationperiods`,
         {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         }
       );
@@ -78,13 +79,13 @@ const SalaryCalculationPeriod = ({ onClose, showAlert }) => {
         response = await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/updateSalaryCalculationperiod/${editingId}`,
           { cutoff_date: parseInt(formData.cutoff_date) },
-          { headers }
+          { withCredentials: true, headers }
         );
       } else {
         response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/addSalaryCalculationperiod`,
           { cutoff_date: parseInt(formData.cutoff_date) },
-          { headers }
+          { withCredentials: true, headers }
         );
       }
       if (response.data.success) {

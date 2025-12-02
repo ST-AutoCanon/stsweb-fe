@@ -47,6 +47,7 @@ const PayrollSummary = () => {
           `${BACKEND_URL}/api/salary-slip?employee_id=${employeeId}&month=${selectedDate.month}&year=${selectedDate.year}`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );
@@ -73,6 +74,7 @@ const PayrollSummary = () => {
           `${BACKEND_URL}/api/bank-details/${employeeId}`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );
@@ -94,6 +96,7 @@ const PayrollSummary = () => {
           `${BACKEND_URL}/api/employee-details/${employeeId}`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );
@@ -115,6 +118,7 @@ const PayrollSummary = () => {
           `${BACKEND_URL}/attendance/${employeeId}`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );

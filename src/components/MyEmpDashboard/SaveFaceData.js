@@ -133,9 +133,7 @@ function SaveFaceData({ onClose }) {
 
       const checkResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/api/face/check/${userName}`,
-        {
-          headers,
-        }
+        { credentials: "include", headers }
       );
       const checkData = await checkResponse.json();
 
@@ -276,9 +274,12 @@ function SaveFaceData({ onClose }) {
     try {
       const response = await fetch(`${BACKEND_URL}/api/face/save-face-data`, {
         method: "POST",
+        credentials: "include",
         headers,
         body: JSON.stringify(faceData),
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         showAlert(`${data.message}`);

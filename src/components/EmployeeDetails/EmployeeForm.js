@@ -442,6 +442,7 @@ export default function EmployeeForm({
         const today = new Date().toISOString().slice(0, 10);
         await fetch(`${process.env.REACT_APP_BACKEND_URL}/supervisor/assign`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,

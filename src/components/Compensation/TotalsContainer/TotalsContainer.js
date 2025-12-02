@@ -131,19 +131,28 @@ const TotalsContainer = () => {
           bonusRes,
         ] = await Promise.all([
           axios
-            .get(`${BASE_URL}/api/compensations/list`, { headers })
+            .get(`${BASE_URL}/api/compensations/list`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error("Error fetching compensations/list:", err);
               throw err;
             }),
           axios
-            .get(`${BASE_URL}/api/compensation/assigned`, { headers })
+            .get(`${BASE_URL}/api/compensation/assigned`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error("Error fetching compensation/assigned:", err);
               throw err;
             }),
           axios
-            .get(`${BASE_URL}/api/compensation/advance-details`, { headers })
+            .get(`${BASE_URL}/api/compensation/advance-details`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error(
                 "Error fetching compensation/advance-details:",
@@ -153,6 +162,7 @@ const TotalsContainer = () => {
             }),
           axios
             .get(`${BASE_URL}/api/compensation/overtime-status-summary`, {
+              withCredentials: true,
               headers,
             })
             .catch((err) => {
@@ -163,7 +173,10 @@ const TotalsContainer = () => {
               throw err;
             }),
           axios
-            .get(`${BASE_URL}/api/compensation/bonus-list`, { headers })
+            .get(`${BASE_URL}/api/compensation/bonus-list`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error("Error fetching compensation/bonus-list:", err);
               throw err;

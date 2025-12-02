@@ -24,6 +24,7 @@ const Topbar = () => {
   const fetchNotificationCount = () => {
     axios
       .get(`${BACKEND_URL}/api/notifications`, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       })
       .then((res) => {
@@ -54,6 +55,7 @@ const Topbar = () => {
     if (photoUrl) {
       axios
         .get(`${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`, {
+          withCredentials: true,
           headers: {
             "x-api-key": API_KEY,
           },

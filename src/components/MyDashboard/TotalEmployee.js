@@ -24,6 +24,7 @@ const TotalEmployee = () => {
           `${process.env.REACT_APP_BACKEND_URL}/attendance-status`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );

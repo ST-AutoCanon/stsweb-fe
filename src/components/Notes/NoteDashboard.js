@@ -53,6 +53,7 @@ export default function NoteDashboard({ highlightedId }) {
           `${process.env.REACT_APP_BACKEND_URL}/meetings`,
           {
             method: "GET",
+            credentials: "include",
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
               "x-employee-id": JSON.parse(

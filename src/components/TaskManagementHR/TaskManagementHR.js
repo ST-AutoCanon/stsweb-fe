@@ -133,7 +133,7 @@ const TaskManagementHR = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/employees/all`,
-          { headers: { "x-employee-id": adminId } }
+          { withCredentials: true, headers: { "x-employee-id": adminId } }
         );
         if (
           !response.data.employees ||
@@ -172,9 +172,7 @@ const TaskManagementHR = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/tasks`,
-          {
-            headers: { "x-employee-id": adminId },
-          }
+          { withCredentials: true, headers: { "x-employee-id": adminId } }
         );
         const tasksWithEmployeeData = response.data.map((task) => {
           const employee = employees.find(
@@ -226,9 +224,7 @@ const TaskManagementHR = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`,
-          {
-            headers: { "x-employee-id": adminId },
-          }
+          { withCredentials: true, headers: { "x-employee-id": adminId } }
         );
         if (response.status === 200 && response.data.success) {
           const { progressMessages = [], clarificationMessages = [] } =

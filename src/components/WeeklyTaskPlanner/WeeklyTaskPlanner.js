@@ -308,6 +308,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     try {
       const configResponse = await withRetry(() =>
         axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config`, {
+          withCredentials: true,
           headers: {
             "x-employee-id": employeeId,
             "x-api-key": process.env.REACT_APP_API_KEY,
@@ -355,6 +356,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const holidaysUrl = `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`;
       const holidaysRes = await withRetry(() =>
         axios.get(holidaysUrl, {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
             "x-employee-id": employeeId,
@@ -370,6 +372,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const leavesUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
       const leavesRes = await withRetry(() =>
         axios.get(leavesUrl, {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
             "Content-Type": "application/json",
@@ -385,6 +388,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const projectsRes = await withRetry(() =>
         axios.get(projectsUrl, {
           params: { employeeId },
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
             "Content-Type": "application/json",
@@ -400,6 +404,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       const tasksUrl = `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/employee/${employeeId}`;
       const tasksRes = await withRetry(() =>
         axios.get(tasksUrl, {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -550,6 +555,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
         updatedTask,
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -648,6 +654,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
           newTaskData,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
             },
@@ -659,6 +666,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
           updateData,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
             },
@@ -704,6 +712,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${taskId}`,
           updateData,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
             },
@@ -777,6 +786,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           replacement_task: task.replacement_task,
         },
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -818,6 +828,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           replacement_task: task.replacement_task,
         },
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -865,6 +876,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           replacement_task: null,
         },
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -942,6 +954,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${strikeTaskId}`,
         updatedTask,
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -972,6 +985,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
         newTask,
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -1118,6 +1132,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
             newTask,
             {
+              withCredentials: true,
               headers: {
                 "x-api-key": process.env.REACT_APP_API_KEY,
               },

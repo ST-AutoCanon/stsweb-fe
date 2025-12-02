@@ -164,6 +164,7 @@ const FacePunch = () => {
         `${BACKEND_URL}/last-punch-status`,
         { descriptor: descriptorArray },
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
@@ -205,9 +206,7 @@ const FacePunch = () => {
           device: "Desktop",
           location: "Office HQ",
         },
-        {
-          headers,
-        }
+        { withCredentials: true, headers }
       );
 
       const message = response.data.message

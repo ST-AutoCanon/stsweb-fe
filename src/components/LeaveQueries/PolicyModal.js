@@ -108,6 +108,7 @@ export default function PolicyModal({
     (async () => {
       try {
         const res = await fetch(`${API_BASE}/api/leave-policies`, {
+          credentials: "include",
           headers,
         });
         const json = await res.json();
@@ -326,11 +327,15 @@ export default function PolicyModal({
     try {
       const res = await fetch(url, {
         method: id ? "PUT" : "POST",
+        credentials: "include",
         headers,
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
-      const fresh = await fetch(`${API_BASE}/api/leave-policies`, { headers });
+      const fresh = await fetch(`${API_BASE}/api/leave-policies`, {
+        credentials: "include",
+        headers,
+      });
       const json = await fresh.json();
       const list = json.data || [];
       setPolicies(list);
@@ -371,12 +376,16 @@ export default function PolicyModal({
     try {
       const res = await fetch(`${API_BASE}/api/leave-policies/${id}`, {
         method: "DELETE",
+        credentials: "include",
         headers,
       });
       if (!res.ok) {
         throw new Error("Delete failed");
       }
-      const fresh = await fetch(`${API_BASE}/api/leave-policies`, { headers });
+      const fresh = await fetch(`${API_BASE}/api/leave-policies`, {
+        credentials: "include",
+        headers,
+      });
       const json = await fresh.json();
       setPolicies(json.data || []);
       try {
@@ -468,6 +477,7 @@ export default function PolicyModal({
 
       const res = await fetch(`${API_BASE}/api/leave-policies/${policy.id}`, {
         method: "PUT",
+        credentials: "include",
         headers,
         body: JSON.stringify(payload),
       });
@@ -478,7 +488,10 @@ export default function PolicyModal({
 
       localStorage.setItem(extendedKey, newEndISO);
 
-      const fresh = await fetch(`${API_BASE}/api/leave-policies`, { headers });
+      const fresh = await fetch(`${API_BASE}/api/leave-policies`, {
+        credentials: "include",
+        headers,
+      });
       const json = await fresh.json();
       setPolicies(json.data || []);
 

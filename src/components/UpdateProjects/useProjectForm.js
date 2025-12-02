@@ -132,6 +132,7 @@ export default function useProjectForm({
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, {
+        withCredentials: true,
         headers: {
           "Content-Type": "application/json",
           "x-api-key": process.env.REACT_APP_API_KEY,
@@ -651,6 +652,7 @@ export default function useProjectForm({
         `${process.env.REACT_APP_BACKEND_URL}/pjattachments/${fileName}`,
         {
           method: "GET",
+          credentials: "include",
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },

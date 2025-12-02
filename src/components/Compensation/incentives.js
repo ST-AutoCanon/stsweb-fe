@@ -34,6 +34,7 @@ export const calculateCurrentMonthIncentives = async (employees, meId) => {
     const response = await axios.get(
       `${process.env.REACT_APP_BACKEND_URL}/api/incentives`,
       {
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
           "x-employee-id": meId,

@@ -119,6 +119,7 @@ const Reimbursement = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${employeeId}`,
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
             "Content-Type": "application/json",
@@ -140,6 +141,7 @@ const Reimbursement = () => {
             const attachmentResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${claimId}/attachments`,
               {
+                withCredentials: true,
                 headers: {
                   "x-api-key": process.env.REACT_APP_API_KEY,
                   Authorization: `Bearer ${authToken}`,
@@ -190,6 +192,7 @@ const Reimbursement = () => {
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
         }
       );
@@ -510,6 +513,7 @@ const Reimbursement = () => {
         formData.attachments.forEach((file) => fd.append("attachments", file));
       }
       const config = {
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY,
           "Content-Type": "multipart/form-data",
@@ -576,6 +580,7 @@ const Reimbursement = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/reimbursement/update/${reimbursementId}`,
         {
           method: "PUT",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updateData),
         }
@@ -603,6 +608,7 @@ const Reimbursement = () => {
           const response = await axios.delete(
             `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${id}`,
             {
+              withCredentials: true,
               headers: {
                 "x-api-key": process.env.REACT_APP_API_KEY,
                 Authorization: `Bearer ${authToken}`,
@@ -634,6 +640,7 @@ const Reimbursement = () => {
           const empId = claim.employee_id || claim.employeeId || "";
           const url = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.file_name}`;
           const response = await axios.get(url, {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
               Authorization: `Bearer ${authToken}`,

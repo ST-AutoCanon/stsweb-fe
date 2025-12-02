@@ -10,6 +10,7 @@ const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
     if (photoUrl) {
       axios
         .get(`${process.env.REACT_APP_BACKEND_URL}/docs${photoUrl}`, {
+          withCredentials: true,
           headers: { "x-api-key": apiKey, "x-employee-id": employeeId },
           responseType: "blob",
         })

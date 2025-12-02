@@ -7,42 +7,49 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
   const [hovered, setHovered] = useState(false);
   const [avatar, setAvatar] = useState("/images/smily.png");
 
-  if (
+  const isNoPunchData =
     !employeePunches ||
     !Array.isArray(employeePunches) ||
-    employeePunches.length === 0
-  ) {
-    return <div className="employee-card-hover">No punch data available</div>;
-  }
+    employeePunches.length === 0;
 
-  const sortedByPunchIn = [...employeePunches].sort(
-    (a, b) => new Date(a.punchin_time) - new Date(b.punchin_time)
-  );
-  const firstPunchIn = sortedByPunchIn[0]?.punchin_time;
+  const latest = !isNoPunchData
+    ? employeePunches[employeePunches.length - 1]
+    : {};
 
-  const validPunchOuts = employeePunches.filter((p) => p.punchout_time);
-  const sortedByPunchOut = [...validPunchOuts].sort(
-    (a, b) => new Date(b.punchout_time) - new Date(a.punchout_time)
-  );
-  const latestPunchOut = sortedByPunchOut[0]?.punchout_time;
-
-  const latest = employeePunches[employeePunches.length - 1];
-  const firstName = latest.first_name || "Unknown";
-  const lastName = latest.last_name || "";
-  const photoUrl = latest.photo_url || null;
-  const role = latest.role || localStorage.getItem("userRole") || "Employee";
-  const gender = latest.gender || localStorage.getItem("userGender") || "Male";
+  const firstName = latest?.first_name || "Unknown";
+  const lastName = latest?.last_name || "";
+  const photoUrl = latest?.photo_url || null;
+  const role = latest?.role || localStorage.getItem("userRole") || "Employee";
+  const gender = latest?.gender || localStorage.getItem("userGender") || "Male";
   const API_KEY = process.env.REACT_APP_API_KEY;
   const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
 
+  const sortedByPunchIn = !isNoPunchData
+    ? [...employeePunches].sort(
+        (a, b) => new Date(a.punchin_time) - new Date(b.punchin_time)
+      )
+    : [];
+
+  const firstPunchIn = sortedByPunchIn[0]?.punchin_time;
+
+  const validPunchOuts = !isNoPunchData
+    ? employeePunches.filter((p) => p.punchout_time)
+    : [];
+
+  const sortedByPunchOut = [...validPunchOuts].sort(
+    (a, b) => new Date(b.punchout_time) - new Date(a.punchout_time)
+  );
+
+  const latestPunchOut = sortedByPunchOut[0]?.punchout_time;
+
   const isOfficeHQ =
-    (latest.punchin_location &&
+    (latest?.punchin_location &&
       typeof latest.punchin_location === "string" &&
       latest.punchin_location.trim().toLowerCase().includes("office hq")) ||
-    (latest.punchout_location &&
+    (latest?.punchout_location &&
       typeof latest.punchout_location === "string" &&
       latest.punchout_location.trim().toLowerCase().includes("office hq"));
 
@@ -51,45 +58,61 @@ const EmployeeCardWithHover = ({ employeePunches }) => {
     : "employee-card-hover bg-default";
 
   useEffect(() => {
-    let imageUrl = null;
+    if (isNoPunchData) return;
 
-    if (photoUrl) {
-      const url = `${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`;
-      axios
-        .get(url, {
+    let imageUrl = null;
+    let cancelled = false;
+
+    const fetchImage = async () => {
+      if (!photoUrl) {
+        setAvatar(
+          role === "Admin"
+            ? "/images/smily.png"
+            : gender === "Female"
+            ? "/images/female-avatar.jpeg"
+            : "/images/male-avatar.jpeg"
+        );
+        return;
+      }
+
+      try {
+        const url = `${process.env.REACT_APP_BACKEND_URL}/${photoUrl}`;
+        const resp = await axios.get(url, {
+          withCredentials: true,
           headers,
           responseType: "blob",
-        })
-        .then((response) => {
-          imageUrl = URL.createObjectURL(response.data);
-          setAvatar(imageUrl);
-        })
-        .catch((err) => {
-          console.error("Error fetching photo:", err);
-          setAvatar(
-            role === "Admin"
-              ? "/images/smily.png"
-              : gender === "Female"
-              ? "/images/female-avatar.jpeg"
-              : "/images/male-avatar.jpeg"
-          );
         });
-    } else {
-      setAvatar(
-        role === "Admin"
-          ? "/images/smily.png"
-          : gender === "Female"
-          ? "/images/female-avatar.jpeg"
-          : "/images/male-avatar.jpeg"
-      );
-    }
+
+        if (cancelled) return;
+
+        imageUrl = URL.createObjectURL(resp.data);
+        setAvatar(imageUrl);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Error fetching photo:", err);
+        setAvatar(
+          role === "Admin"
+            ? "/images/smily.png"
+            : gender === "Female"
+            ? "/images/female-avatar.jpeg"
+            : "/images/male-avatar.jpeg"
+        );
+      }
+    };
+
+    fetchImage();
 
     return () => {
+      cancelled = true;
       if (imageUrl) {
         URL.revokeObjectURL(imageUrl);
       }
     };
-  }, [photoUrl, role, gender, firstName, lastName]);
+  }, [photoUrl, role, gender]);
+
+  if (isNoPunchData) {
+    return <div className="employee-card-hover">No punch data available</div>;
+  }
 
   const formatTime = (time) => {
     if (!time) return "—";
@@ -345,6 +368,7 @@ const EmployeeLogin = () => {
         }
 
         const response = await axios.get(url, {
+          withCredentials: true,
           headers,
           withCredentials: true,
         });
@@ -512,6 +536,7 @@ const EmployeeLogin = () => {
       const url = `${backendUrl}/api/emp-excelsheet?from=${fromDate}&to=${toDate}`;
 
       const response = await axios.get(url, {
+        withCredentials: true,
         headers,
         withCredentials: true,
         responseType: "blob",

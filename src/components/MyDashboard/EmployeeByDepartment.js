@@ -38,6 +38,7 @@ const EmployeeByDepartment = () => {
           `${process.env.REACT_APP_BACKEND_URL}/employee-count-by-department`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );

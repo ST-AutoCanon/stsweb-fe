@@ -131,9 +131,7 @@ const TaskManagement = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/employees`,
-          {
-            headers: { "x-employee-id": supervisorId },
-          }
+          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
         );
         if (
           !response.data.employees ||
@@ -172,9 +170,7 @@ const TaskManagement = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/tasks`,
-          {
-            headers: { "x-employee-id": supervisorId },
-          }
+          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
         );
         const validEmployeeIds = new Set(
           employees.map((emp) => emp.employee_id)
@@ -231,9 +227,7 @@ const TaskManagement = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`,
-          {
-            headers: { "x-employee-id": supervisorId },
-          }
+          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
         );
         if (response.status === 200) {
           if (response.data.success) {
@@ -396,7 +390,7 @@ const TaskManagement = () => {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/employee-tasks/update/${taskId}`,
         updateData,
-        { headers: { "x-employee-id": supervisorId } }
+        { withCredentials: true, headers: { "x-employee-id": supervisorId } }
       );
       if (
         response.data.success ||
@@ -404,9 +398,7 @@ const TaskManagement = () => {
       ) {
         const refreshedTask = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/tasks/${taskId}`,
-          {
-            headers: { "x-employee-id": supervisorId },
-          }
+          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
         );
         const updatedTask = refreshedTask.data;
         setTasks((prev) =>
@@ -436,6 +428,7 @@ const TaskManagement = () => {
             `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
             messageData,
             {
+              withCredentials: true,
               headers: { "x-employee-id": supervisorId },
             }
           );
@@ -497,9 +490,7 @@ const TaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
         messageData,
-        {
-          headers: { "x-employee-id": supervisorId },
-        }
+        { withCredentials: true, headers: { "x-employee-id": supervisorId } }
       );
       if (response.data.success) {
         setTasks((prev) =>
@@ -619,9 +610,7 @@ const TaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/tasks`,
         taskData,
-        {
-          headers: { "x-employee-id": supervisorId },
-        }
+        { withCredentials: true, headers: { "x-employee-id": supervisorId } }
       );
       setTasks((prev) => [
         ...prev,

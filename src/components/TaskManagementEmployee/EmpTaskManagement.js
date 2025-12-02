@@ -126,7 +126,7 @@ const EmpTaskManagement = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/task-emp-emp/employee/${employeeId}`,
-          { headers: { "x-employee-id": employeeId } }
+          { withCredentials: true, headers: { "x-employee-id": employeeId } }
         );
         const tasksData = response.data;
         if (!Array.isArray(tasksData))
@@ -172,9 +172,7 @@ const EmpTaskManagement = () => {
         const taskId = selectedTaskId.split("-")[1];
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`,
-          {
-            headers: { "x-employee-id": employeeId },
-          }
+          { withCredentials: true, headers: { "x-employee-id": employeeId } }
         );
         if (response.data.success) {
           const { progressMessages = [], clarificationMessages = [] } =
@@ -343,6 +341,7 @@ const EmpTaskManagement = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/employee-tasks/update/${taskId}`,
         updateData,
         {
+          withCredentials: true,
           headers: {
             "x-employee-id": employeeId,
             "x-api-key": process.env.REACT_APP_API_KEY,
@@ -411,9 +410,7 @@ const EmpTaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
         messageData,
-        {
-          headers: { "x-employee-id": employeeId },
-        }
+        { withCredentials: true, headers: { "x-employee-id": employeeId } }
       );
       if (response.data.success) {
         setTasks((prev) =>
@@ -452,9 +449,7 @@ const EmpTaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
         messageData,
-        {
-          headers: { "x-employee-id": employeeId },
-        }
+        { withCredentials: true, headers: { "x-employee-id": employeeId } }
       );
       if (response.data.success) {
         setTasks((prev) =>

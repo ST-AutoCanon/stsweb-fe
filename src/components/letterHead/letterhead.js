@@ -131,11 +131,12 @@ const LetterHead = () => {
       try {
         const [templatesResponse, letterheadsResponse] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/templates/list`, {
+            withCredentials: true,
             headers,
           }),
           axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/list`,
-            { headers }
+            { withCredentials: true, headers }
           ),
         ]);
         setTemplates(templatesResponse.data.data || []);
@@ -169,7 +170,7 @@ const LetterHead = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/download/${filename}`,
-        { headers, responseType: "blob" }
+        { withCredentials: true, headers, responseType: "blob" }
       );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
@@ -443,7 +444,10 @@ const LetterHead = () => {
         response = await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/update/${editingId}`,
           formDataToSend,
-          { headers: { ...headers, "Content-Type": "multipart/form-data" } }
+          {
+            withCredentials: true,
+            headers: { ...headers, "Content-Type": "multipart/form-data" },
+          }
         );
         showAlert("Letterhead updated successfully!");
         setIsEditing(false);
@@ -452,13 +456,16 @@ const LetterHead = () => {
         response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/add`,
           formDataToSend,
-          { headers: { ...headers, "Content-Type": "multipart/form-data" } }
+          {
+            withCredentials: true,
+            headers: { ...headers, "Content-Type": "multipart/form-data" },
+          }
         );
         showAlert("Letterhead saved successfully!");
       }
       const updatedResponse = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/letterheads/list`,
-        { headers }
+        { withCredentials: true, headers }
       );
       setLetterheads(updatedResponse.data.data || []);
       setShowPopup(false);

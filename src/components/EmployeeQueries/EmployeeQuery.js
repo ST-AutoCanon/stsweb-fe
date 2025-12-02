@@ -40,6 +40,7 @@ const EmployeeQuery = () => {
 
   const headers = {
     "x-api-key": API_KEY,
+    "x-employee-id": employeeId,
   };
 
   const feedbackOptions = [
@@ -78,6 +79,15 @@ const EmployeeQuery = () => {
     socketRef.current = io(BACKEND_URL, {
       query: { userId: employeeId },
       auth: { apiKey: API_KEY },
+      extraHeaders: {
+        "x-employee-id": employeeId,
+      },
+      transports: ["polling", "websocket"],
+      transportOptions: {
+        polling: {
+          withCredentials: true,
+        },
+      },
     });
 
     const socket = socketRef.current;
@@ -123,7 +133,7 @@ const EmployeeQuery = () => {
     try {
       const response = await axios.get(
         `${BACKEND_URL}/threads/employee/${employeeId}`,
-        { headers }
+        { withCredentials: true, headers }
       );
       if (response.data.status === "success") {
         setQueries(response.data.data);
@@ -143,7 +153,10 @@ const EmployeeQuery = () => {
     if (!selectedQuery) return;
     socketRef.current.emit("joinThread", selectedQuery.id);
     axios
-      .get(`${BACKEND_URL}/threads/${selectedQuery.id}/messages`, { headers })
+      .get(`${BACKEND_URL}/threads/${selectedQuery.id}/messages`, {
+        withCredentials: true,
+        headers,
+      })
       .then((res) => setMessages(res.data.data))
       .catch((e) => console.error(e));
   }, [selectedQuery]);
@@ -159,7 +172,7 @@ const EmployeeQuery = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${threadId}/messages`,
-        { headers }
+        { withCredentials: true, headers }
       );
       setMessages(response.data.data);
     } catch (error) {
@@ -185,7 +198,7 @@ const EmployeeQuery = () => {
           subject: subject,
           message: query,
         },
-        { headers }
+        { withCredentials: true, headers }
       );
 
       setThreadId(response.data.threadId);
@@ -204,7 +217,7 @@ const EmployeeQuery = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages`,
-        { headers }
+        { withCredentials: true, headers }
       );
       setMessages(response.data.data);
 
@@ -212,6 +225,7 @@ const EmployeeQuery = () => {
         `${process.env.REACT_APP_BACKEND_URL}/threads/${query.id}/messages/read`,
         { sender_id: employeeId },
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
@@ -264,6 +278,7 @@ const EmployeeQuery = () => {
           `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
           formData,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": API_KEY,
               "Content-Type": "multipart/form-data",
@@ -317,7 +332,7 @@ const EmployeeQuery = () => {
                   recipient_id: selectedQuery.recipient_id,
                   message: inputMessage,
                 },
-                { headers: { "x-api-key": API_KEY } }
+                { withCredentials: true, headers: { "x-api-key": API_KEY } }
               );
               const newMsg = res.data.data.message;
               setMessages((prev) => [...prev, newMsg]);
@@ -339,7 +354,7 @@ const EmployeeQuery = () => {
             recipient_id: selectedQuery.recipient_id,
             message: inputMessage,
           },
-          { headers: { "x-api-key": API_KEY } }
+          { withCredentials: true, headers: { "x-api-key": API_KEY } }
         );
         const newMsg = res.data.data.message;
         setMessages((prev) => [...prev, newMsg]);
@@ -369,7 +384,7 @@ const EmployeeQuery = () => {
           feedback: feedback,
           note: query,
         },
-        { headers }
+        { withCredentials: true, headers }
       );
 
       showAlert("Thread closed successfully.");
@@ -399,6 +414,7 @@ const EmployeeQuery = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/attachments/${filename}`,
         {
+          withCredentials: true,
           headers: {
             "x-api-key": API_KEY,
           },

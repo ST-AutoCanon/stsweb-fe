@@ -21,6 +21,7 @@ export default function Notifications({ visible, onClose, onRead }) {
     if (!visible) return;
     axios
       .get(`${BACKEND_URL}/api/notifications`, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       })
       .then((res) => {
@@ -47,7 +48,10 @@ export default function Notifications({ visible, onClose, onRead }) {
       .put(
         `${BACKEND_URL}/api/notifications/${id}/read`,
         {},
-        { headers: { "x-api-key": API_KEY, "x-employee-id": meId } }
+        {
+          withCredentials: true,
+          headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+        }
       )
       .then(() => {
         setNotifications((prev) => prev.filter((n) => n.id !== id));

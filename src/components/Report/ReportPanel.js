@@ -395,6 +395,7 @@ export default function ReportPanel() {
     const base = getApiBase();
     axios
       .get(`${base}/api/report/departments`, {
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY || "",
           "x-employee-id": employeeId || "",
@@ -726,6 +727,7 @@ export default function ReportPanel() {
 
       const res = await axios.get(url, {
         responseType: "blob",
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY || "",
           "x-employee-id": employeeId || "",
@@ -808,6 +810,7 @@ export default function ReportPanel() {
       const url = `${base}/api/report/${endpoint}?${paramString}`;
 
       const res = await axios.get(url, {
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY || "",
           "x-employee-id": employeeId || "",

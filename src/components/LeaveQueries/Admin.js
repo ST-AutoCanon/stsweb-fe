@@ -122,7 +122,7 @@ export default function Admin({ openPolicyId = null }) {
   const fetchPolicies = async () => {
     try {
       const url = `${API_BASE}/api/leave-policies`;
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { credentials: "include", headers });
       const json = await res.json();
       setPolicies(json.data || []);
       return json.data || [];
@@ -164,7 +164,7 @@ export default function Admin({ openPolicyId = null }) {
 
       const params = new URLSearchParams(paramsObj).toString();
       const url = `${API_BASE}/admin/leave${params ? `?${params}` : ""}`;
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { credentials: "include", headers });
       let json = null;
       try {
         json = await res.json();
@@ -192,7 +192,7 @@ export default function Admin({ openPolicyId = null }) {
     }
     try {
       const url = `${API_BASE}/api/leave-policies/employee/${employeeId}/leave-balance`;
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { credentials: "include", headers });
       let json = null;
       try {
         json = await res.json();
@@ -216,6 +216,7 @@ export default function Admin({ openPolicyId = null }) {
     try {
       const res = await fetch(`${API_BASE}/api/leave-policies/${id}`, {
         method: "DELETE",
+        credentials: "include",
         headers,
       });
       if (!res.ok) throw new Error("Delete failed");
@@ -570,6 +571,7 @@ export default function Admin({ openPolicyId = null }) {
 
       const res = await fetch(url, {
         method: "PUT",
+        credentials: "include",
         headers: headersForReq,
         body: JSON.stringify(fullPayload),
       });

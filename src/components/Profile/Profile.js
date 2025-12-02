@@ -147,6 +147,7 @@ const Profile = ({ onClose, notificationId = null }) => {
 
   const fetchBlob = async (url) => {
     const res = await axios.get(`${BASE_URL}/docs${url}`, {
+      withCredentials: true,
       headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
       responseType: "blob",
     });
@@ -186,6 +187,7 @@ const Profile = ({ onClose, notificationId = null }) => {
 
       const resp = await axios.get(fetchUrl, {
         responseType: "arraybuffer",
+        withCredentials: true,
         headers: {
           "x-api-key": API_KEY,
           "x-employee-id": employeeId,
@@ -215,6 +217,7 @@ const Profile = ({ onClose, notificationId = null }) => {
 
       const resp = await axios.get(fetchUrl, {
         responseType: "arraybuffer",
+        withCredentials: true,
         headers: {
           "x-api-key": API_KEY,
           "x-employee-id": employeeId,
@@ -265,7 +268,10 @@ const Profile = ({ onClose, notificationId = null }) => {
       await axios.put(
         `${BASE_URL}/api/notifications/${id}/read`,
         {},
-        { headers: { "x-api-key": API_KEY, "x-employee-id": employeeId } }
+        {
+          withCredentials: true,
+          headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
+        }
       );
 
       try {
@@ -289,6 +295,7 @@ const Profile = ({ onClose, notificationId = null }) => {
     const fetchProfile = async () => {
       try {
         const r = await axios.get(`${BASE_URL}/full/${employeeId}`, {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "Content-Type": "application/json" },
         });
         const data = r.data.data;
@@ -330,6 +337,7 @@ const Profile = ({ onClose, notificationId = null }) => {
         const r = await axios.get(
           `${BASE_URL}/assets/assigned-assets/${employeeId}`,
           {
+            withCredentials: true,
             headers: { "x-api-key": API_KEY, "x-employee-id": employeeId },
           }
         );

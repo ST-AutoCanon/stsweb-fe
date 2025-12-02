@@ -43,7 +43,10 @@ export default function ChatList({ onSelect }) {
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BACKEND_URL}/rooms`, { headers })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/rooms`, {
+        withCredentials: true,
+        headers,
+      })
       .then((r) => setRooms(r.data))
       .catch(() => setRooms([]));
 
@@ -59,7 +62,10 @@ export default function ChatList({ onSelect }) {
   useEffect(() => {
     if (tab === "private") {
       axios
-        .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, { headers })
+        .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, {
+          withCredentials: true,
+          headers,
+        })
         .then((r) => setEmployees(r.data.data || []))
         .catch(() => setEmployees([]));
     }
@@ -80,7 +86,7 @@ export default function ChatList({ onSelect }) {
       onConfirm: async () => {
         await axios.delete(
           `${process.env.REACT_APP_BACKEND_URL}/rooms/${roomId}`,
-          { headers }
+          { withCredentials: true, headers }
         );
         setRooms((rs) => rs.filter((r) => r.id !== roomId));
         if (activeId === roomId) setActiveId(null);

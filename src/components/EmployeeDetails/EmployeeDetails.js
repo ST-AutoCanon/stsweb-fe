@@ -230,7 +230,10 @@ export default function EmployeeDetails() {
 
   useEffect(() => {
     axios
-      .get(`${BASE_URL}/departments`, { headers: { "x-api-key": API_KEY } })
+      .get(`${BASE_URL}/departments`, {
+        withCredentials: true,
+        headers: { "x-api-key": API_KEY },
+      })
       .then((res) => setDepartments(res.data.departments))
       .catch((err) => console.error(err));
   }, []);
@@ -248,7 +251,10 @@ export default function EmployeeDetails() {
       if (fromDate) params.push(`fromDate=${format(fromDate, "yyyy-MM-dd")}`);
       if (toDate) params.push(`toDate=${format(toDate, "yyyy-MM-dd")}`);
       if (params.length) url += `?${params.join("&")}`;
-      const res = await axios.get(url, { headers: { "x-api-key": API_KEY } });
+      const res = await axios.get(url, {
+        withCredentials: true,
+        headers: { "x-api-key": API_KEY },
+      });
       setEmployees(res.data.message.data || []);
     } catch (err) {
       setError("Failed to fetch employees.");
@@ -350,6 +356,7 @@ export default function EmployeeDetails() {
   const handleViewDocs = async (empId) => {
     try {
       const res = await axios.get(`${BASE_URL}/full/${empId}`, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY },
       });
       const d = res.data.data || {};
@@ -471,6 +478,7 @@ export default function EmployeeDetails() {
         try {
           const resp = await axios.get(`${BASE_URL}/docs${url}`, {
             responseType: "blob",
+            withCredentials: true,
             headers: {
               "x-api-key": API_KEY,
               "x-employee-id": employeeId,
@@ -493,6 +501,7 @@ export default function EmployeeDetails() {
         try {
           const resp = await axios.get(`${BASE_URL}/docs${url}`, {
             responseType: "blob",
+            withCredentials: true,
             headers: {
               "x-api-key": API_KEY,
               "x-employee-id": employeeId,
@@ -532,6 +541,7 @@ export default function EmployeeDetails() {
   const handleAdd = async (data) => {
     try {
       await axios.post(`${BASE_URL}/full`, data, {
+        withCredentials: true,
         headers: {
           "x-api-key": API_KEY,
           "Content-Type": "multipart/form-data",
@@ -550,6 +560,7 @@ export default function EmployeeDetails() {
 
   const handleUpdate = async (id, formData) => {
     await axios.put(`${BASE_URL}/full/${id}`, formData, {
+      withCredentials: true,
       headers: {
         "x-api-key": API_KEY,
         "x-employee-id": employeeId,
@@ -564,6 +575,7 @@ export default function EmployeeDetails() {
   const handleEditClick = async (id) => {
     try {
       const res = await axios.get(`${BASE_URL}/full/${id}`, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY },
       });
       setSelectedEmployee(res.data.data);
@@ -581,6 +593,7 @@ export default function EmployeeDetails() {
         `${process.env.REACT_APP_BACKEND_URL}/admin/employees/${deleteEmployeeId}/deactivate`,
         {},
         {
+          withCredentials: true,
           headers: {
             "x-api-key": API_KEY,
             "Content-Type": "application/json",

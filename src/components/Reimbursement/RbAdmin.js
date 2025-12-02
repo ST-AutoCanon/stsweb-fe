@@ -85,6 +85,7 @@ const RbAdmin = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
             },
@@ -122,6 +123,7 @@ const RbAdmin = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursements`,
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           params: {
             submittedFrom: submittedFrom || null,
@@ -177,6 +179,7 @@ const RbAdmin = () => {
           const empId = claim.employee_id;
           const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.filename}`;
           const response = await axios.get(fileUrl, {
+            withCredentials: true,
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
               Authorization: `Bearer ${authToken}`,
@@ -258,6 +261,7 @@ const RbAdmin = () => {
           project,
         },
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -298,6 +302,7 @@ const RbAdmin = () => {
           user_role: "admin",
         },
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -325,6 +330,7 @@ const RbAdmin = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/download/${claim.id}`,
         {
+          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -376,6 +382,7 @@ const RbAdmin = () => {
       const resp = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/reimbursements/export`,
         {
+          withCredentials: true,
           headers: { "x-api-key": process.env.REACT_APP_API_KEY },
           params: {
             submittedFrom: submittedFrom || null,
@@ -824,6 +831,7 @@ const RbAdmin = () => {
                       user_role: "admin",
                     },
                     {
+                      withCredentials: true,
                       headers: {
                         "x-api-key": process.env.REACT_APP_API_KEY,
                       },

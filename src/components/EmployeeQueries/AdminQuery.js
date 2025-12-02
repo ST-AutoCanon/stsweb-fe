@@ -30,6 +30,7 @@ const AdminQuery = () => {
 
   const headers = {
     "x-api-key": API_KEY,
+    "x-employee-id": employeeId,
   };
 
   useEffect(() => {
@@ -46,6 +47,15 @@ const AdminQuery = () => {
     const socket = io(BACKEND_URL, {
       query: { userId: employeeId },
       auth: { apiKey: API_KEY },
+      extraHeaders: {
+        "x-employee-id": employeeId,
+      },
+      transports: ["polling", "websocket"],
+      transportOptions: {
+        polling: {
+          withCredentials: true,
+        },
+      },
     });
 
     socketRef.current = socket;
@@ -93,7 +103,10 @@ const AdminQuery = () => {
 
   const fetchQueries = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/threads`, { headers });
+      const response = await axios.get(`${BACKEND_URL}/threads`, {
+        withCredentials: true,
+        headers,
+      });
       if (response.data && response.data.data) {
         setQueries(response.data.data);
       } else {
@@ -136,7 +149,7 @@ const AdminQuery = () => {
     try {
       const response = await axios.get(
         `${BACKEND_URL}/threads/${threadId}/messages`,
-        { headers }
+        { withCredentials: true, headers }
       );
       setMessages(response.data.data);
     } catch (error) {
@@ -164,6 +177,7 @@ const AdminQuery = () => {
           `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
           formData,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": API_KEY,
               "Content-Type": "multipart/form-data",
@@ -212,7 +226,7 @@ const AdminQuery = () => {
                 recipient_id: selectedQuery.sender_id,
                 message: newMessage,
               },
-              { headers: { "x-api-key": API_KEY } }
+              { withCredentials: true, headers: { "x-api-key": API_KEY } }
             );
             const newMsg = res.data.data.message;
             setMessages((prev) => [...prev, newMsg]);
@@ -233,7 +247,7 @@ const AdminQuery = () => {
             recipient_id: selectedQuery.sender_id,
             message: newMessage,
           },
-          { headers: { "x-api-key": API_KEY } }
+          { withCredentials: true, headers: { "x-api-key": API_KEY } }
         );
         const newMsg = res.data.data.message;
         setMessages((prev) => [...prev, newMsg]);
@@ -261,7 +275,7 @@ const AdminQuery = () => {
       await axios.put(
         `${BACKEND_URL}/threads/${threadId}/messages/read`,
         { sender_id: employeeId },
-        { headers }
+        { withCredentials: true, headers }
       );
     } catch (error) {
       console.error("Error marking messages as read:", error);
@@ -281,7 +295,7 @@ const AdminQuery = () => {
     try {
       const response = await axios.get(
         `${BACKEND_URL}/threads/${query.id}/messages`,
-        { headers }
+        { withCredentials: true, headers }
       );
       const fetchedMessages = response.data.data || [];
       setMessages(fetchedMessages);
@@ -290,6 +304,7 @@ const AdminQuery = () => {
         `${BACKEND_URL}/threads/${query.id}/messages/read`,
         { sender_id: employeeId },
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
@@ -316,6 +331,7 @@ const AdminQuery = () => {
       const response = await axios.get(
         `${BACKEND_URL}/attachments/${filename}`,
         {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY },
           responseType: "blob",
         }

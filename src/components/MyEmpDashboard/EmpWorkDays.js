@@ -46,6 +46,7 @@ const EmpWorkDays = () => {
       try {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/attendance/${employeeId}`;
         const response = await axios.get(apiUrl, {
+          withCredentials: true,
           headers,
         });
 

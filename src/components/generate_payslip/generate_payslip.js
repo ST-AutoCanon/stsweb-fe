@@ -76,9 +76,7 @@ const GeneratePayslip = () => {
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BACKEND_URL}/old-employee/list`,
-          {
-            headers,
-          }
+          { credentials: "include", headers }
         );
         if (response.ok) {
           const data = await response.json();
@@ -418,6 +416,7 @@ const GeneratePayslip = () => {
     try {
       const response = await fetch(url, {
         method,
+        credentials: "include",
         headers: {
           ...headers,
           "Content-Type": "application/json",
@@ -443,9 +442,7 @@ const GeneratePayslip = () => {
 
       const updatedResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/old-employee/list`,
-        {
-          headers,
-        }
+        { credentials: "include", headers }
       );
       if (updatedResponse.ok) {
         const updatedData = await updatedResponse.json();

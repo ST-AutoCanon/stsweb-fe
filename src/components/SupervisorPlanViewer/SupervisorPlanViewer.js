@@ -185,7 +185,11 @@ const SupervisorPlanViewer = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/employees`,
-          { headers: { "x-employee-id": supervisorId }, timeout: 10000 }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+            timeout: 10000,
+          }
         );
         const empData = Array.isArray(response.data.employees)
           ? response.data.employees.map((emp) => ({
@@ -218,6 +222,7 @@ const SupervisorPlanViewer = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -249,6 +254,7 @@ const SupervisorPlanViewer = () => {
           const response = await axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${emp.employee_id}`,
             {
+              withCredentials: true,
               headers: {
                 "x-api-key": process.env.REACT_APP_API_KEY || "",
                 "Content-Type": "application/json",
@@ -277,6 +283,7 @@ const SupervisorPlanViewer = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/config`,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -340,7 +347,11 @@ const SupervisorPlanViewer = () => {
       try {
         const res = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${supervisorId}`,
-          { headers: { "x-employee-id": supervisorId }, timeout: 10000 }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+            timeout: 10000,
+          }
         );
         const validStatuses = [
           "not started",
@@ -395,6 +406,7 @@ const SupervisorPlanViewer = () => {
           `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`,
           {
             params: { employeeId: selectedEmployee },
+            withCredentials: true,
             headers: { "x-api-key": process.env.REACT_APP_API_KEY || "" },
             timeout: 10000,
           }
@@ -517,14 +529,22 @@ const SupervisorPlanViewer = () => {
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
           newTaskData,
-          { headers: { "x-employee-id": supervisorId }, timeout: 10000 }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+            timeout: 10000,
+          }
         );
 
         updateData.sup_status = "re-work";
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${taskId}`,
           updateData,
-          { headers: { "x-employee-id": supervisorId }, timeout: 10000 }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+            timeout: 10000,
+          }
         );
 
         showAlert(response.data.message || "New task created successfully");
@@ -550,7 +570,11 @@ const SupervisorPlanViewer = () => {
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${taskId}`,
           updateData,
-          { headers: { "x-employee-id": supervisorId }, timeout: 10000 }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+            timeout: 10000,
+          }
         );
         showAlert("Task updated successfully");
       }
@@ -563,7 +587,11 @@ const SupervisorPlanViewer = () => {
 
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${supervisorId}`,
-        { headers: { "x-employee-id": supervisorId }, timeout: 10000 }
+        {
+          withCredentials: true,
+          headers: { "x-employee-id": supervisorId },
+          timeout: 10000,
+        }
       );
       const validStatuses = [
         "not started",

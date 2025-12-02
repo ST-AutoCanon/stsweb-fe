@@ -176,6 +176,7 @@ const SupervisorPlanViewerAdmin = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/employees/all`,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -217,6 +218,7 @@ const SupervisorPlanViewerAdmin = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -242,6 +244,7 @@ const SupervisorPlanViewerAdmin = () => {
           `${process.env.REACT_APP_BACKEND_URL}/admin/leave`,
           {
             params: { status: "Approved" },
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -287,6 +290,7 @@ const SupervisorPlanViewerAdmin = () => {
         const res = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -349,6 +353,7 @@ const SupervisorPlanViewerAdmin = () => {
           `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`,
           {
             params: { employeeId: selectedEmployee },
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -386,6 +391,7 @@ const SupervisorPlanViewerAdmin = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/config`,
         {
+          withCredentials: true,
           headers: {
             "x-employee-id": supervisorId,
             "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -441,6 +447,7 @@ const SupervisorPlanViewerAdmin = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/config/update`,
           { key: "freeze_days_supervisor", value: freezeDaysSupervisor },
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -452,6 +459,7 @@ const SupervisorPlanViewerAdmin = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/config/update`,
           { key: "freeze_days_employee", value: freezeDaysEmployee },
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -571,6 +579,7 @@ const SupervisorPlanViewerAdmin = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
           newTaskData,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -584,6 +593,7 @@ const SupervisorPlanViewerAdmin = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${taskId}`,
           updateData,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -623,6 +633,7 @@ const SupervisorPlanViewerAdmin = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${taskId}`,
           updateData,
           {
+            withCredentials: true,
             headers: {
               "x-employee-id": supervisorId,
               "x-api-key": process.env.REACT_APP_API_KEY || "",
@@ -642,6 +653,7 @@ const SupervisorPlanViewerAdmin = () => {
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
         {
+          withCredentials: true,
           headers: {
             "x-employee-id": supervisorId,
             "x-api-key": process.env.REACT_APP_API_KEY || "",

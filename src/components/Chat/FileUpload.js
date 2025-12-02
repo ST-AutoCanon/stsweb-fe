@@ -19,7 +19,7 @@ export default function FileUpload({ onUpload }) {
     const { data } = await axios.post(
       `${process.env.REACT_APP_BACKEND_URL}/ChatUploads`,
       fd,
-      { headers }
+      { withCredentials: true, headers }
     );
     onUpload(data.url);
   };

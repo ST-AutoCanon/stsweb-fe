@@ -24,6 +24,7 @@ const EmployeeSalaryBreakup = () => {
           `${process.env.REACT_APP_BACKEND_URL}/salary-ranges`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );

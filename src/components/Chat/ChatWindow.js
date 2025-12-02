@@ -125,6 +125,7 @@ export default function ChatWindow({ room, onBack }) {
     if (!room || room.isNew) return;
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/rooms/${room.id}/messages`, {
+        withCredentials: true,
         headers,
       })
       .then((r) => {
@@ -207,7 +208,7 @@ export default function ChatWindow({ room, onBack }) {
     const base = process.env.REACT_APP_BACKEND_URL.replace(/\/+$/, "");
     const url = `${base}${filename}`;
     try {
-      const resp = await fetch(url, { headers });
+      const resp = await fetch(url, { credentials: "include", headers });
       if (!resp.ok) throw new Error(`status ${resp.status}`);
       const blob = await resp.blob();
       const a = document.createElement("a");
@@ -227,6 +228,7 @@ export default function ChatWindow({ room, onBack }) {
     if (room?.is_group === 1) {
       axios
         .get(`${process.env.REACT_APP_BACKEND_URL}/rooms/${room.id}/members`, {
+          withCredentials: true,
           headers,
         })
         .then((r) => setMembers(r.data))
@@ -364,7 +366,7 @@ export default function ChatWindow({ room, onBack }) {
                             onConfirm: async () => {
                               await axios.delete(
                                 `${process.env.REACT_APP_BACKEND_URL}/rooms/${room.id}/messages/${m.id}`,
-                                { headers }
+                                { withCredentials: true, headers }
                               );
                               setMsgs((old) =>
                                 old.filter((x) => x.id !== m.id)

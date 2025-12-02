@@ -789,14 +789,14 @@ const CreateCompensation = () => {
         response = await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/compensations/update/${editingCompensationId}`,
           data,
-          { headers }
+          { withCredentials: true, headers }
         );
         showAlert("Compensation updated successfully!");
       } else {
         response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/compensations/add`,
           data,
-          { headers }
+          { withCredentials: true, headers }
         );
         showAlert("Compensation created successfully!");
       }
@@ -1173,6 +1173,7 @@ const CreateCompensation = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`,
         {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         }
       );
@@ -1184,6 +1185,7 @@ const CreateCompensation = () => {
               const workingDaysResponse = await axios.get(
                 `${process.env.REACT_APP_BACKEND_URL}/api/compensations/working-days/${comp.id}`,
                 {
+                  withCredentials: true,
                   headers: { "x-api-key": API_KEY, "x-employee-id": meId },
                 }
               );
@@ -1236,6 +1238,7 @@ const CreateCompensation = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/salaryCalculationperiods`,
         {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         }
       );
@@ -1414,6 +1417,7 @@ const CreateCompensation = () => {
           const workingDaysResponse = await axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/api/compensations/working-days/${planId}`,
             {
+              withCredentials: true,
               headers: { "x-api-key": API_KEY, "x-employee-id": meId },
             }
           );

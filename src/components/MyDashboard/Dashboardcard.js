@@ -32,6 +32,7 @@ const Dashboardcard = () => {
           `${process.env.REACT_APP_BACKEND_URL}/salary/last-month-total`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );
@@ -65,6 +66,7 @@ const Dashboardcard = () => {
           `${process.env.REACT_APP_BACKEND_URL}/approved-reimbursement-last-month`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );

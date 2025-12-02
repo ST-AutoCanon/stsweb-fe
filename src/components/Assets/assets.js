@@ -87,6 +87,7 @@ const Assets = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
           {
+            withCredentials: true,
             headers,
           }
         );
@@ -125,6 +126,7 @@ const Assets = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
         {
           method: "GET",
+          credentials: "include",
           headers,
         }
       )
@@ -166,6 +168,7 @@ const Assets = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/assets/search-employees?q=${value}`,
           {
+            withCredentials: true,
             headers,
           }
         );
@@ -191,9 +194,11 @@ const Assets = () => {
       try {
         const [assetsResponse, assignmentsResponse] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/assets/list`, {
+            withCredentials: true,
             headers,
           }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/assignments`, {
+            withCredentials: true,
             headers,
           }),
         ]);
@@ -210,6 +215,7 @@ const Assets = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/assets/list`,
         {
+          withCredentials: true,
           headers,
         }
       );
@@ -249,6 +255,7 @@ const Assets = () => {
         `${process.env.REACT_APP_BACKEND_URL}/uploads/${path}`,
         {
           headers,
+          withCredentials: true,
           responseType: "blob",
         }
       );
@@ -365,6 +372,7 @@ const Assets = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/assets/assign`,
         firstAssignment,
         {
+          withCredentials: true,
           headers,
         }
       );
@@ -390,6 +398,7 @@ const Assets = () => {
         `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`,
         {
           headers,
+          withCredentials: true,
           responseType: "blob",
         }
       );
@@ -418,6 +427,7 @@ const Assets = () => {
     try {
       const response = await axios.get(fileUrl, {
         headers,
+        withCredentials: true,
         responseType: "blob",
       });
 
@@ -496,9 +506,7 @@ const Assets = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/assets/add`,
         formData,
-        {
-          headers,
-        }
+        { withCredentials: true, headers }
       );
       showAlert("Asset saved successfully!");
       resetFormforaddasset();
@@ -520,9 +528,7 @@ const Assets = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned`,
-        {
-          headers,
-        }
+        { withCredentials: true, headers }
       );
       if (response.data && response.data.length > 0) {
         setAssignedAssets(response.data);
@@ -550,9 +556,7 @@ const Assets = () => {
 
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
-        {
-          headers,
-        }
+        { withCredentials: true, headers }
       );
       if (response.data.length === 0) {
         console.warn("⚠ No assignments found for this asset.");
@@ -597,6 +601,7 @@ const Assets = () => {
           returnDate: formData.returnDate,
         },
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
@@ -625,6 +630,7 @@ const Assets = () => {
   const [assetCounts, setAssetCounts] = useState([]);
   useEffect(() => {
     fetch(`${process.env.REACT_APP_BACKEND_URL}/assets/counts`, {
+      credentials: "include",
       headers,
     })
       .then((response) => response.json())
@@ -641,6 +647,7 @@ const Assets = () => {
     try {
       const response = await fetch("/api/assets/assign", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

@@ -40,9 +40,7 @@ const MyEmpDashboard = () => {
           }
 
           axios
-            .get(apiUrl, {
-              headers,
-            })
+            .get(apiUrl, { withCredentials: true, headers })
             .then((response) => {
               if (response.data && response.data.isRegistered === false) {
                 setShowFacePopup(true);
@@ -66,9 +64,7 @@ const MyEmpDashboard = () => {
         const checkResponse = await axios.get(
           `${BACKEND_URL}/api/face/check/${employeeId}`,
 
-          {
-            headers,
-          }
+          { withCredentials: true, headers }
         );
         if (checkResponse.data.isRegistered === false) {
           setShowPopup(true);

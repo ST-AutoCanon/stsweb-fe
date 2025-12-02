@@ -40,6 +40,7 @@ const LoginChart = () => {
           `${process.env.REACT_APP_BACKEND_URL}/login-data-count`,
           {
             method: "GET",
+            credentials: "include",
             headers,
           }
         );

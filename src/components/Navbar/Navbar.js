@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+
 import "./Navbar.css";
 import Login from "../Login/Login.js";
 const Navbar = () => {
@@ -10,6 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const hiddenPages = ["/dashboard", "/other"];
 
+  const location = useLocation();
   const isHidden = hiddenPages.includes(location.pathname);
 
   const toggleMenu = () => {
