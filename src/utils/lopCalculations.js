@@ -12,15 +12,17 @@ const fetchLOPData = async (employeeId) => {
       await Promise.all([
         axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/lop/current-month-lop`,
-          { headers }
+          { withCredentials: true, headers }
         ),
         axios
           .get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/deferred-lop`, {
+            withCredentials: true,
             headers,
           })
           .catch(() => ({ data: { data: [] } })),
         axios
           .get(`${process.env.REACT_APP_BACKEND_URL}/api/lop/next-month-lop`, {
+            withCredentials: true,
             headers,
           })
           .catch(() => ({ data: { data: [] } })),
@@ -67,11 +69,11 @@ export const calculateLOPEffect = async (employeeId) => {
     const [employeeResponse, workingDaysResponse] = await Promise.all([
       axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
-        { headers }
+        { withCredentials: true, headers }
       ),
       axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/compensation/working-days`,
-        { headers }
+        { withCredentials: true, headers }
       ),
     ]);
 

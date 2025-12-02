@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/LeaveFormModal.js
 import React from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import { getAdvanceNoticeDays } from "./leaveUtils";
@@ -12,32 +11,25 @@ export default function LeaveFormModal({
   handleSubmit,
   leaveTypeOptions,
   editingId,
-  // new props
   showAlert,
   activePolicy,
   defaultLeaveSettings,
 }) {
   if (!isVisible) return null;
 
-  // Called when user selects a leave type — we first update form state via the provided handler,
-  // then compute the applicable advance-notice days and show an alert immediately if needed.
   const onLeaveTypeChange = (e) => {
-    // update the form state as before
     handleInputChange(e);
 
-    // if editing existing request, do not show the notice (skip)
     if (editingId) return;
 
     const selectedType = String(e.target.value || "").toLowerCase();
     if (!selectedType) return;
 
-    // find setting from active policy first (if any)
     let setting =
       (activePolicy?.leave_settings || []).find(
         (s) => String(s.type || "").toLowerCase() === selectedType
       ) || null;
 
-    // fallback to default settings if not found or no active policy
     if (!setting && Array.isArray(defaultLeaveSettings)) {
       setting = defaultLeaveSettings.find(
         (s) => String(s.type || "").toLowerCase() === selectedType
@@ -48,7 +40,6 @@ export default function LeaveFormModal({
 
     const noticeDays = getAdvanceNoticeDays(setting);
     if (noticeDays > 0) {
-      // Show explicit message depending on whether there's an active policy or not
       if (!activePolicy) {
         showAlert(
           `By default, a ${setting.type} request requires at least ${noticeDays} day(s) advance. Please choose a start date at least ${noticeDays} day(s) after today.`

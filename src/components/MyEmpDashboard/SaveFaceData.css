@@ -28,7 +28,7 @@
   max-width: 640px;
   margin-bottom: 20px;
   padding: 10px;
-  position: relative; /* For canvas overlay */
+  position: relative;
 }
 
 #video {

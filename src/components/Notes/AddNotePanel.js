@@ -1,4 +1,3 @@
-// AddNotePanel.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { Mic } from "lucide-react";
 import { prompts } from "./Prompts";
@@ -15,7 +14,7 @@ const fullName =
 const firstName = fullName.trim().split(" ").filter(Boolean)[0] || "";
 
 export default function AddNotePanel({ onDone }) {
-  const [mode, setMode] = useState(null); // "voice" | "text" | "scan" | "summary"
+  const [mode, setMode] = useState(null);
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState(Array(prompts.length).fill(""));
   const [recording, setRecording] = useState(false);
@@ -26,7 +25,6 @@ export default function AddNotePanel({ onDone }) {
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
 
-  // ——————— Voice helpers ———————
   const startRecording = async () => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -50,13 +48,11 @@ export default function AddNotePanel({ onDone }) {
     setRecording(false);
     setIsLoading(true);
 
-    // wait for recorder to finish
     await new Promise((r) => {
       rec.onstop = r;
       rec.stop();
     });
 
-    // tear down the mic stream
     streamRef.current.getTracks().forEach((t) => t.stop());
 
     const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
@@ -66,25 +62,21 @@ export default function AddNotePanel({ onDone }) {
       return;
     }
 
-    // send to your backend
     const res = await postVoiceDialog(blob, step);
     setIsLoading(false);
     if (!res.success) return alert(res.message);
 
-    // shove the transcription into the correct slot
     setAnswers((a) => {
       const copy = [...a];
       copy[step - 1] = res.text;
       return copy;
     });
 
-    // advance to next prompt if there is one
     if (step < prompts.length) {
       setStep((s) => s + 1);
     }
   };
 
-  // ——————— Final save (shared) ———————
   const handleSaveAnswers = async (finalAnswers) => {
     setAnswers(finalAnswers);
     setIsLoading(true);
@@ -107,7 +99,6 @@ export default function AddNotePanel({ onDone }) {
     }
   };
 
-  // ——————— Cleanup on unmount ———————
   useEffect(() => {
     return () => {
       mediaRecorderRef.current?.stop?.();
@@ -115,7 +106,6 @@ export default function AddNotePanel({ onDone }) {
     };
   }, []);
 
-  // ——————— Render ———————
   return (
     <div className="add-panel">
       <div className="add-panel-header">
@@ -146,11 +136,9 @@ export default function AddNotePanel({ onDone }) {
             isLoading={isLoading}
             onSave={(newDrafts) => {
               setAnswers(newDrafts);
-              // if not last step, advance
               if (step < prompts.length) {
                 setStep((s) => s + 1);
               } else {
-                // finished all steps, now submit exactly like voice
                 handleSaveAnswers(newDrafts);
               }
             }}
@@ -164,7 +152,6 @@ export default function AddNotePanel({ onDone }) {
         {mode === "scan" && (
           <ScanNoteFlow
             onDone={(record) => {
-              // we already got the fully created record
               setCurrentRecord(record);
               setMode("summary");
             }}
@@ -174,7 +161,6 @@ export default function AddNotePanel({ onDone }) {
       </div>
 
       <div className="add-panel-footer-icons">
-        {/* Voice toggle */}
         <button
           onClick={() => {
             if (mode !== "voice") {
@@ -192,7 +178,6 @@ export default function AddNotePanel({ onDone }) {
           <Mic size={24} className={recording ? "recording" : ""} />
         </button>
 
-        {/* Plain text toggle */}
         <button
           onClick={() => {
             setMode("text");
@@ -204,7 +189,6 @@ export default function AddNotePanel({ onDone }) {
           <LiaUserEditSolid size={24} />
         </button>
 
-        {/* Scan note */}
         <button onClick={() => setMode("scan")} title="Scan note">
           <LuScanLine size={24} />
         </button>

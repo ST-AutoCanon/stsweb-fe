@@ -1,4 +1,3 @@
-// src/Notes/prompts.js
 export const prompts = [
   "What is the purpose of this note?",
   "What is the client company name?",

@@ -1,4 +1,3 @@
-
 .feedback-form-overlay {
   position: fixed;
   top: 0;
@@ -7,9 +6,9 @@
   height: 100%;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
-  
+
   justify-content: right;
-  
+
   align-items: center;
   z-index: 1000;
 }
@@ -23,7 +22,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Adds consistent spacing between form elements */
+  gap: 15px;
 }
 
 .close-button {
@@ -44,7 +43,7 @@
 .feedback-form h2 {
   margin-bottom: 20px;
   font-size: 1.5rem;
-  text-align: center; /* Center the heading */
+  text-align: center;
   font-weight: bold;
 }
 
@@ -62,8 +61,7 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
-  margin-bottom:10px;
-  
+  margin-bottom: 10px;
 }
 
 .feedback-form textarea {
@@ -74,14 +72,14 @@
   display: flex;
   align-items: left;
   flex-direction: column;
-  gap: 10px; /* Space between label and stars */
+  gap: 10px;
 }
 
 .stars {
   display: flex;
-  
-  gap: 10px; /* Space between stars */
-  justify-content: left; /* Center align the stars */
+
+  gap: 10px;
+  justify-content: left;
   margin-bottom: 10px;
 }
 
@@ -101,7 +99,7 @@
 }
 
 .submit-button {
-  width: 100%; /* Ensures the button spans the container */
+  width: 100%;
   padding: 10px;
   background: #4caf50;
   color: #fff;
@@ -125,40 +123,38 @@
   font-size: 1.5rem;
 }
 
-
-/* Mobile View (Responsive Design) */
 @media (max-width: 768px) {
   .feedback-form-container {
     height: auto;
-    width: 65%; /* Shrinks the form width for smaller screens */
-    padding: 20px; /* Adjusts padding for smaller screens */
-    gap: 10px; /* Reduce spacing between form elements */
+    width: 65%;
+    padding: 20px;
+    gap: 10px;
     margin-right: 10%;
   }
 
   .close-button {
-    font-size: 20px; /* Smaller close button */
+    font-size: 20px;
     top: 5px;
     right: 5px;
   }
 
   .feedback-form h2 {
-    font-size: 1.25rem; /* Slightly smaller heading */
+    font-size: 1.25rem;
     margin-bottom: 15px;
   }
 
   .feedback-form input,
   .feedback-form textarea {
-    padding: 8px; /* Smaller padding */
-    font-size: 14px; /* Adjust font size for inputs and textarea */
+    padding: 8px;
+    font-size: 14px;
   }
 
   .star {
-    font-size: 20px; /* Adjust star size */
+    font-size: 20px;
   }
 
   .submit-button {
-    font-size: 14px; /* Smaller button text */
-    padding: 8px; /* Smaller padding */
+    font-size: 14px;
+    padding: 8px;
   }
 }

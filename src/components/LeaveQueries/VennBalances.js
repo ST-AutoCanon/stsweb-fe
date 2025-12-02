@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/VennBalances.js
 import React from "react";
 import { monthName } from "./leaveUtils";
 

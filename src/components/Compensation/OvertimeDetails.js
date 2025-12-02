@@ -58,7 +58,7 @@ const OvertimeDetails = () => {
     try {
       const cutoffRes = await axios.get(
         `${BASE_URL}/api/salaryCalculationperiods`,
-        { headers }
+        { withCredentials: true, headers }
       );
       const cutoff_date = cutoffRes.data?.data?.[0]?.cutoff_date || 5;
 
@@ -84,13 +84,20 @@ const OvertimeDetails = () => {
         await Promise.all([
           axios.get(
             `${BASE_URL}/api/compensation/employee-extra-hours?startDate=${startDate}&endDate=${endDate}`,
-            { headers }
+            { withCredentials: true, headers }
           ),
           axios.get(`${BASE_URL}/api/compensation/overtime-status-summary`, {
+            withCredentials: true,
             headers,
           }),
-          axios.get(`${BASE_URL}/api/compensation/assigned`, { headers }),
-          axios.get(`${BASE_URL}/api/compensations/list`, { headers }),
+          axios.get(`${BASE_URL}/api/compensation/assigned`, {
+            withCredentials: true,
+            headers,
+          }),
+          axios.get(`${BASE_URL}/api/compensations/list`, {
+            withCredentials: true,
+            headers,
+          }),
         ]);
 
       const summaryData = summaryRes.data?.data || [];
@@ -257,7 +264,7 @@ const OvertimeDetails = () => {
       await axios.post(
         `${BASE_URL}/api/compensation/overtime-bulk`,
         { data: payload },
-        { headers }
+        { withCredentials: true, headers }
       );
       showAlert(
         `Successfully ${status.toLowerCase()} ${payload.length} record(s)`

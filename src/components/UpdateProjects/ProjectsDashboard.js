@@ -168,6 +168,7 @@ const ProjectsDashboard = () => {
       }
       const response = await fetch(url, {
         method: "GET",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": process.env.REACT_APP_API_KEY,
@@ -251,6 +252,7 @@ const ProjectsDashboard = () => {
       const response = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/invoice/template-number?invoiceType=${invoiceTypeKey}`,
         {
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,
@@ -273,6 +275,7 @@ const ProjectsDashboard = () => {
         `${process.env.REACT_APP_BACKEND_URL}/invoice/sequence/${invoiceTypeKey}`,
         {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,
@@ -310,6 +313,7 @@ const ProjectsDashboard = () => {
       pdf.save(filename);
       await fetch(`${process.env.REACT_APP_BACKEND_URL}/download-details`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": process.env.REACT_APP_API_KEY,

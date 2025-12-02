@@ -13,6 +13,7 @@ const DownloadDetailsList = () => {
         const resp = await fetch(
           `${process.env.REACT_APP_BACKEND_URL}/download-details`,
           {
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               "x-api-key": process.env.REACT_APP_API_KEY,

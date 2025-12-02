@@ -8,12 +8,10 @@ const ProtectedLayout = () => {
   const location = useLocation();
   const chatContainerRef = useRef(null);
 
-  // Update user activity timestamp
   const updateActivity = () => {
     localStorage.setItem("lastActivity", Date.now());
   };
 
-  // Check if the user is idle and log them out if necessary
   const checkIdleTime = () => {
     const lastActivity = localStorage.getItem("lastActivity");
     if (lastActivity && Date.now() - parseInt(lastActivity, 10) > idleTimeout) {

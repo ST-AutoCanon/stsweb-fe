@@ -30,24 +30,32 @@ const AdminQuery = () => {
 
   const headers = {
     "x-api-key": API_KEY,
+    "x-employee-id": employeeId,
   };
 
   useEffect(() => {
     selectedThreadIdRef.current = selectedQuery?.id ?? null;
   }, [selectedQuery]);
 
-  // ------ SOCKET: init only when employeeId exists ------
   useEffect(() => {
     if (!employeeId) {
       console.warn("[socket] not connecting: employeeId missing");
-      setLoading(false); // avoid infinite loading if you rely on socket
+      setLoading(false);
       return;
     }
 
     const socket = io(BACKEND_URL, {
       query: { userId: employeeId },
       auth: { apiKey: API_KEY },
-      // transports: ["websocket"], // uncomment if you want to force websocket for debugging
+      extraHeaders: {
+        "x-employee-id": employeeId,
+      },
+      transports: ["polling", "websocket"],
+      transportOptions: {
+        polling: {
+          withCredentials: true,
+        },
+      },
     });
 
     socketRef.current = socket;
@@ -63,16 +71,13 @@ const AdminQuery = () => {
     socket.on("disconnect", onDisconnect);
     socket.on("connect_error", onConnectError);
 
-    // newMessage broadcast handler
     socket.on("newMessage", (msg) => {
       if (String(msg.thread_id) === String(selectedThreadIdRef.current)) {
         setMessages((prev) => [...prev, msg]);
       }
-      // refresh thread previews/unread counts
       fetchQueries();
     });
 
-    // ack back to the sender (optional: server emits this)
     socket.on("messageAck", (msg) => {
       if (String(msg.thread_id) === String(selectedThreadIdRef.current)) {
         setMessages((prev) => [...prev, msg]);
@@ -81,7 +86,6 @@ const AdminQuery = () => {
 
     socket.on("error", (err) => console.error("[socket] server error:", err));
 
-    // cleanup
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
@@ -95,12 +99,14 @@ const AdminQuery = () => {
         console.warn("[socket] disconnect error", e);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [BACKEND_URL, API_KEY, employeeId]);
 
   const fetchQueries = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/threads`, { headers });
+      const response = await axios.get(`${BACKEND_URL}/threads`, {
+        withCredentials: true,
+        headers,
+      });
       if (response.data && response.data.data) {
         setQueries(response.data.data);
       } else {
@@ -116,7 +122,6 @@ const AdminQuery = () => {
 
   useEffect(() => {
     fetchQueries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [alertModal, setAlertModal] = useState({
@@ -144,7 +149,7 @@ const AdminQuery = () => {
     try {
       const response = await axios.get(
         `${BACKEND_URL}/threads/${threadId}/messages`,
-        { headers }
+        { withCredentials: true, headers }
       );
       setMessages(response.data.data);
     } catch (error) {
@@ -153,14 +158,12 @@ const AdminQuery = () => {
     }
   };
 
-  // ----------------- SEND MESSAGE (socket with REST fallback) -----------------
   const sendMessage = async () => {
     if (!newMessage.trim() && !attachmentBase64) {
       showAlert("Message or attachment is required.");
       return;
     }
 
-    // attachments via REST/Multer (unchanged)
     if (attachmentFile) {
       const formData = new FormData();
       formData.append("attachment", attachmentFile);
@@ -174,6 +177,7 @@ const AdminQuery = () => {
           `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
           formData,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": API_KEY,
               "Content-Type": "multipart/form-data",
@@ -184,7 +188,6 @@ const AdminQuery = () => {
         const { message: newMsg } = res.data.data;
         setMessages((prev) => [...prev, newMsg]);
 
-        // clear inputs
         setNewMessage("");
         setAttachmentFile(null);
         setAttachmentBase64(null);
@@ -198,7 +201,6 @@ const AdminQuery = () => {
       return;
     }
 
-    // Build payload
     const payload = {
       thread_id: selectedQuery.id,
       sender_id: employeeId,
@@ -208,7 +210,6 @@ const AdminQuery = () => {
       message: newMessage,
     };
 
-    // If socket connected, use it with ack. Otherwise fallback to REST.
     if (socketRef.current && socketRef.current.connected) {
       socketRef.current.emit("sendQueryMessage", payload, async (resp) => {
         if (resp && resp.success && resp.message) {
@@ -216,7 +217,6 @@ const AdminQuery = () => {
           setNewMessage("");
         } else {
           console.error("Socket send failed, falling back to REST:", resp);
-          // REST fallback
           try {
             const res = await axios.post(
               `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
@@ -226,7 +226,7 @@ const AdminQuery = () => {
                 recipient_id: selectedQuery.sender_id,
                 message: newMessage,
               },
-              { headers: { "x-api-key": API_KEY } }
+              { withCredentials: true, headers: { "x-api-key": API_KEY } }
             );
             const newMsg = res.data.data.message;
             setMessages((prev) => [...prev, newMsg]);
@@ -238,7 +238,6 @@ const AdminQuery = () => {
         }
       });
     } else {
-      // REST fallback when no socket
       try {
         const res = await axios.post(
           `${BACKEND_URL}/threads/${selectedQuery.id}/messages`,
@@ -248,7 +247,7 @@ const AdminQuery = () => {
             recipient_id: selectedQuery.sender_id,
             message: newMessage,
           },
-          { headers: { "x-api-key": API_KEY } }
+          { withCredentials: true, headers: { "x-api-key": API_KEY } }
         );
         const newMsg = res.data.data.message;
         setMessages((prev) => [...prev, newMsg]);
@@ -276,14 +275,13 @@ const AdminQuery = () => {
       await axios.put(
         `${BACKEND_URL}/threads/${threadId}/messages/read`,
         { sender_id: employeeId },
-        { headers }
+        { withCredentials: true, headers }
       );
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
   };
 
-  // When selecting a thread, join the room (if socket connected) and fetch messages
   const handleSelectQuery = async (query) => {
     setSelectedQuery(query);
     setMessages([]);
@@ -297,16 +295,16 @@ const AdminQuery = () => {
     try {
       const response = await axios.get(
         `${BACKEND_URL}/threads/${query.id}/messages`,
-        { headers }
+        { withCredentials: true, headers }
       );
       const fetchedMessages = response.data.data || [];
       setMessages(fetchedMessages);
 
-      // Mark messages as read
       await axios.put(
         `${BACKEND_URL}/threads/${query.id}/messages/read`,
         { sender_id: employeeId },
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
@@ -314,7 +312,6 @@ const AdminQuery = () => {
         }
       );
 
-      // refresh queries list (to update unread counts)
       fetchQueries();
     } catch (error) {
       console.error("Error fetching messages or marking as read:", error);
@@ -334,6 +331,7 @@ const AdminQuery = () => {
       const response = await axios.get(
         `${BACKEND_URL}/attachments/${filename}`,
         {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY },
           responseType: "blob",
         }

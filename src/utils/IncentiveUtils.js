@@ -18,6 +18,7 @@ const fetchEmployeeCTC = async (employeeId) => {
   try {
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
     const response = await axios.get(`${BASE_URL}/api/compensation/assigned`, {
+      withCredentials: true,
       headers,
     });
 
@@ -41,7 +42,10 @@ const fetchEmployeeCTC = async (employeeId) => {
 const fetchIncentiveData = async () => {
   try {
     const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-    const response = await axios.get(`${BASE_URL}/api/incentives`, { headers });
+    const response = await axios.get(`${BASE_URL}/api/incentives`, {
+      withCredentials: true,
+      headers,
+    });
     return response.data.data || [];
   } catch (error) {
     console.error("❌ Error fetching incentives:", error);

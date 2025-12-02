@@ -79,7 +79,7 @@
   border: 1px solid #eee;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .HR-rb-admin-employee-row {
@@ -158,7 +158,7 @@
   word-wrap: break-word;
   background: white;
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 8px;
   border-radius: 4px;
 }
@@ -226,25 +226,21 @@
   font-size: 13px;
 }
 
-/* Default "Pending" state */
 .HR-rb-admin-rb-status-dropdown option[value=""] {
   background-color: #f8f9fa;
   color: #6c757d;
 }
 
-/* Green for Approve */
 .HR-rb-admin-rb-status-dropdown option[value="approved"] {
   background-color: #e6f9ed;
   color: #0f9d58;
 }
 
-/* Red for Reject */
 .HR-rb-admin-rb-status-dropdown option[value="rejected"] {
   background-color: #fde8e8;
   color: #d32f2f;
 }
 
-/* When "Approve" is actually selected → full green dropdown */
 .HR-rb-admin-rb-status-dropdown[value="approved"],
 .HR-rb-admin-rb-status-dropdown:focus[value="approved"] {
   background-color: #0f9d58 !important;
@@ -252,7 +248,6 @@
   border-color: #0f9d58;
 }
 
-/* When "Reject" is actually selected → full red dropdown */
 .HR-rb-admin-rb-status-dropdown[value="rejected"],
 .HR-rb-admin-rb-status-dropdown:focus[value="rejected"] {
   background-color: #d32f2f !important;
@@ -260,45 +255,39 @@
   border-color: #d32f2f;
 }
 
-/* Remove default focus outline */
 .HR-rb-admin-rb-status-dropdown:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(121, 196, 43, 0.3);
 }
-/* APPROVER COMMENTS INPUT – EXACT SAME AS ADMIN SIDE */
 .HR-rb-admin-rb-sub-table input[type="text"] {
   width: 90px;
-    padding: 5%;
-    border-radius: 5px;
+  padding: 5%;
+  border-radius: 5px;
 }
 
-/* Hover & Focus – green glow like Admin */
 .HR-rb-admin-rb-sub-table input[type="text"]:focus {
   outline: none;
   border-color: #79c42b;
   box-shadow: 0 0 0 2px rgba(121, 196, 43, 0.25);
 }
 
-/* ACTION BUTTONS – PERFECT GAP & ALIGNMENT (exactly like Admin) */
 .HR-rb-admin-actions-sticky {
   position: sticky;
   right: 0;
   background: #fff;
   z-index: 10;
-  padding: 8px 10px;               /* consistent padding */
+  padding: 8px 10px;
   text-align: center;
   border-left: 2px solid #ddd;
-  box-shadow: -4px 0 8px rgba(0,0,0,0.08);
-  
-  /* This is the key: flex with proper gap */
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.08);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;                        /* perfect 16px gap between icons */
+  gap: 16px;
   min-width: 110px;
 }
 
-/* Make both icons same size and perfectly centered */
 .HR-rb-admin-update-btn-frozen,
 .HR-rb-admin-download-btn {
   font-size: 24px;
@@ -309,7 +298,6 @@
   justify-content: center;
 }
 
-/* Optional: subtle hover effect only on Download (Update is disabled) */
 .HR-rb-admin-download-btn:hover {
   color: #79c42b;
   transform: scale(1.1);
@@ -331,7 +319,7 @@
   background: white;
   z-index: 10;
   padding: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .HR-rb-admin-pending-payment-btn {
@@ -357,7 +345,7 @@
   padding: 8px 12px;
   text-align: center;
   border-left: 2px solid #ddd;
-  box-shadow: -4px 0 8px rgba(0,0,0,0.08);
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,7 +376,6 @@
   font-size: 14px;
 }
 
-/* Tabs */
 .HR-rb-admin-tabs-container {
   display: flex;
   gap: 12px;
@@ -409,10 +396,12 @@
   background-color: #79c42b;
   color: white;
 }
-/* ATTACHMENT MODAL – 100% IDENTICAL TO ADMIN (including dark blue header) */
 .HR-rb-admin-att-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -423,7 +412,7 @@
 .HR-rb-admin-att-modal-content {
   background: rgba(255, 255, 255, 0.836);
   padding: 20px;
- 
+
   width: 400px;
   max-height: 80vh;
   overflow-y: auto;
@@ -438,7 +427,7 @@
   padding: 12px 20px;
   background-color: #00468c;
   color: rgb(255, 255, 255);
-  
+
   margin: -20px -20px 20px -20px;
 }
 
@@ -469,7 +458,7 @@
 .HR-rb-admin-att-files {
   margin: 8px 0;
   padding: 12px;
- 
+
   border-radius: 6px;
 }
 
@@ -486,24 +475,23 @@
 }
 
 .HR-rb-admin-att-close-btn {
- background-color: #79c42b;
-    color: white;
-    border: none;
-    padding: 3% 10%;
-    font-size: medium;
-    cursor: pointer;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    margin: 5%;
-    margin-left: 60%;
+  background-color: #79c42b;
+  color: white;
+  border: none;
+  padding: 3% 10%;
+  font-size: medium;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  margin: 5%;
+  margin-left: 60%;
 }
 
 .HR-rb-admin-att-close-btn:hover {
   background-color: #003366;
 }
 
-/* Payment Modal */
 .HR-rb-admin-payment-modal-content {
   background: white;
   border-radius: 10px;

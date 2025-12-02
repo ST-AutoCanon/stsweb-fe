@@ -1,11 +1,9 @@
-// Pagination.jsx
 import React, { useState, useEffect } from "react";
 
 export default function Pagination({
   totalPages = 1,
   currentPage = 1,
   onPageChange = () => {},
-  // if you want non-sticky behavior in some places you can pass sticky={false}
   sticky = true,
 }) {
   const [jump, setJump] = useState(currentPage);
@@ -45,7 +43,6 @@ export default function Pagination({
     return pages;
   };
 
-  // class to control sticky vs normal
   const wrapperClass = sticky
     ? "rp-pagination rp-pagination-static"
     : "rp-pagination";

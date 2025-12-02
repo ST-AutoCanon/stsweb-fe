@@ -1,20 +1,19 @@
 .letterhead-letterhead-container {
   padding: 20px;
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: "Helvetica", Arial, sans-serif;
   background-color: #f4f4f4;
   min-height: 100vh;
 }
 
-/* Wrapper to align button to the right */
 .letterhead-button-wrapper {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 20px; /* Optional spacing */
+  margin-bottom: 20px;
 }
 
 .letterhead-open-popup-btn {
   padding: 12px 24px;
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
   border: none;
   border-radius: 6px;
@@ -22,7 +21,6 @@
   font-size: 16px;
   transition: background-color 0.3s;
 }
-
 
 .letterhead-open-popup-btn:hover {
   background-color: #ddd;
@@ -50,7 +48,7 @@
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: "Helvetica", Arial, sans-serif;
 }
 
 @media (max-width: 768px) {
@@ -99,7 +97,7 @@
 }
 
 .letterhead-letterhead-subtitle a {
-  color: #7FBD2C;
+  color: #7fbd2c;
   text-decoration: none;
 }
 
@@ -147,7 +145,7 @@
   font-size: 14px;
   width: 100%;
   box-sizing: border-box;
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: "Helvetica", Arial, sans-serif;
   background-color: #fff;
   transition: border-color 0.3s;
 }
@@ -163,7 +161,7 @@
 }
 
 .letterhead-content-area {
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: "Helvetica", Arial, sans-serif;
   font-size: 11pt;
   line-height: 14pt;
   width: 100%;
@@ -195,12 +193,12 @@
 
 .letterhead-content-area:focus {
   outline: none;
-  border-color: #7FBD2C;
+  border-color: #7fbd2c;
   box-shadow: 0 0 5px rgba(0, 70, 140, 0.3);
 }
 
 .letterhead-content-area[contenteditable]:empty:before {
-  content: 'Enter your content here...';
+  content: "Enter your content here...";
   color: #999;
 }
 
@@ -253,21 +251,21 @@
 }
 
 .letterhead-preview-btn {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
 }
 
 .letterhead-preview-btn:hover {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
 }
 
 .letterhead-save-btn {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
   color: white;
 }
 
 .letterhead-save-btn:hover {
-  background-color: #7FBD2C;
+  background-color: #7fbd2c;
 }
 
 .letterhead-close-btn {
@@ -334,7 +332,7 @@
     background: transparent;
     width: 100%;
     padding: 0;
-    font-family: 'Helvetica', Arial, sans-serif;
+    font-family: "Helvetica", Arial, sans-serif;
     line-height: 1.6;
   }
 
@@ -382,10 +380,9 @@
   background-color: white;
   border-radius: 8px;
 
-  max-height: 800px; /* or any height you prefer */
+  max-height: 800px;
   overflow-y: auto;
 }
-
 
 .letterhead-table {
   width: 100%;
@@ -398,12 +395,11 @@
   padding: 10px;
   border: 1px solid #ddd;
   text-align: left;
-    white-space: nowrap;
-   position: sticky; 
+  white-space: nowrap;
+  position: sticky;
 }
 
 .letterhead-table th {
-  
   color: black;
 }
 
@@ -416,7 +412,7 @@
 }
 
 .letterhead-table a {
-  color: #7FBD2C;
+  color: #7fbd2c;
   text-decoration: none;
 }
 
@@ -425,7 +421,7 @@
 }
 
 .letterhead-download-link {
-  color: #7FBD2C;
+  color: #7fbd2c;
   text-decoration: none;
 }
 
@@ -436,10 +432,10 @@
 .letterhead-edit-icon {
   font-size: 1rem;
   cursor: pointer;
-  color: #7FBD2C;
+  color: #7fbd2c;
   transition: color 0.2s;
 }
 
 .letterhead-edit-icon:hover {
-  color: #7FBD2C;
+  color: #7fbd2c;
 }

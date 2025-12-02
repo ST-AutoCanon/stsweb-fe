@@ -49,6 +49,7 @@ const EmpLeaveTracker = () => {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/leave-queries/${employeeId}`;
 
         const response = await axios.get(apiUrl, {
+          withCredentials: true,
           headers,
         });
 
@@ -57,7 +58,7 @@ const EmpLeaveTracker = () => {
           Array.isArray(response.data.leaveQueries)
         ) {
           if (response.data.leaveQueries.length === 0) {
-            setLeaveData([]); // No data found, but not an error.
+            setLeaveData([]);
           } else {
             const formattedData = response.data.leaveQueries.map((leave) => ({
               leaveType: leave["Leave Type"] || "N/A",

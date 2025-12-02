@@ -119,18 +119,18 @@ html {
 .btn-login:hover {
   background-color: #79c42b;
 }
-/* Login.css */
+
 .login-page {
-  position: fixed; /* Make the login form overlay fixed */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10; /* Ensure it's on top of the content */
+  z-index: 10;
 }
 
 .login-modal {
@@ -143,20 +143,20 @@ html {
 
 .login-close-button {
   position: absolute;
-  top: 20px !important; /* Set a fixed top distance */
-  right: 20px !important; /* Stick to the right with a fixed distance */
+  top: 20px !important;
+  right: 20px !important;
 
-  background-color: transparent !important; /* Transparent background */
-  border: none !important; /* Remove default border */
-  font-size: 30px !important; /* Adjust size of the cross '×' */
+  background-color: transparent !important;
+  border: none !important;
+  font-size: 30px !important;
   font-weight: bold !important;
-  color: rgb(135, 146, 138) !important; /* Initial color */
-  cursor: pointer !important; /* Show pointer cursor on hover */
-  transition: color 0.3s ease !important; /* Smooth color transition */
+  color: rgb(135, 146, 138) !important;
+  cursor: pointer !important;
+  transition: color 0.3s ease !important;
 }
 
 .login-close-button:hover {
-  color: rgb(136, 117, 117) !important; /* Change color on hover */
+  color: rgb(136, 117, 117) !important;
 }
 
 .login-modal form input {
@@ -209,40 +209,39 @@ html {
 .open-login-btn:hover {
   background-color: #45a049;
 }
-/* Open Login Button (inside Login component) */
+
 .btn-open-login {
-  background-color: #4caf50; /* Green background */
-  color: white; /* White text */
-  border: none; /* No border */
-  padding: 10px 20px; /* Padding for size */
-  text-align: center; /* Text centered */
-  text-decoration: none; /* No underlining */
-  font-size: 16px; /* Font size */
-  cursor: pointer; /* Pointer cursor on hover */
-  border-radius: 5px; /* Rounded corners */
-  transition: background-color 0.3s ease; /* Smooth background change on hover */
-  position: absolute; /* Absolute positioning */
-  right: 70px; /* Position the button on the right side */
-  top: 20px; /* Position it a bit below the top */
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  position: absolute;
+  right: 70px;
+  top: 20px;
   z-index: 1000;
   opacity: 0;
   transition: opacity 0.3s ease-in-out, background-color 0.6s ease-in-out;
 }
 
-/* Hover effect for the button */
 .btn-open-login:hover {
   background-color: #3e8e41;
-  transform: scale(0.98); /* Slightly darker green on hover */
+  transform: scale(0.98);
 }
-/* Focus state for better accessibility */
+
 .btn-open-login:focus {
-  outline: none; /* Remove default outline */
-  box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); /* Green focus ring */
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
-/* Active state when button is clicked */
+
 .btn-open-login:active {
-  background-color: #3e8e41; /* Even darker green when clicked */
-  transform: scale(0.98); /* Slightly shrink the button */
+  background-color: #3e8e41;
+  transform: scale(0.98);
 }
 
 .password-input-wrapper {
@@ -253,10 +252,9 @@ html {
 
 .password-input-wrapper input {
   flex: 1;
-  padding-right: 2.5em; /* room for the icon */
+  padding-right: 2.5em;
 }
 
-/* the eye icon as a span */
 .toggle-password-icon {
   position: absolute;
   right: 0.5em;
@@ -266,27 +264,20 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* make it focusable for accessibility */
 }
 
 .toggle-password-icon:hover {
   color: #333;
 }
 
-/* General styles remain the same */
-
-/* Mobile View */
-/* General styles remain the same */
-
-/* Mobile View */
 @media (max-width: 768px) {
   .login-container {
     width: 100%;
     height: auto;
-    margin: 0 auto; /* Center align the container */
-    flex-direction: column; /* Stack vertically */
-    align-items: center; /* Center align vertically */
-    justify-content: center; /* Center align horizontally */
+    margin: 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     box-shadow: none;
     border-radius: 0;
   }
@@ -309,8 +300,8 @@ html {
     flex: 0;
 
     display: block;
-    width: 100%; /* Adjust width to fill container */
-    height: 200px; /* Fixed height for mobile */
+    width: 100%;
+    height: 200px;
     background-color: #000;
   }
 
@@ -324,7 +315,7 @@ html {
   .login-form {
     flex: 0;
     padding: 0;
-    width: 100%; /* Full width */
+    width: 100%;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -333,14 +324,14 @@ html {
   }
 
   label {
-    font-size: 10px; /* Smaller label text */
-    margin-bottom: 3px; /* Adjust margin for compact look */
+    font-size: 10px;
+    margin-bottom: 3px;
   }
 
   input {
-    width: 100%; /* Make input fields take full width */
-    padding: 6px; /* Smaller padding for inputs */
-    font-size: 12px; /* Smaller font size */
+    width: 100%;
+    padding: 6px;
+    font-size: 12px;
   }
 
   .btn-login {
@@ -348,24 +339,24 @@ html {
   }
 
   .form-options {
-    text-align: center; /* Center align links */
+    text-align: center;
   }
 
   .login-logo-img {
-    height: auto; /* Allow the logo to resize proportionally */
+    height: auto;
     max-width: 80%;
   }
 
   .login-close-button {
     margin-top: 0% !important;
     left: 80% !important;
-    font-size: 28px !important; /* Slightly smaller for mobile */
+    font-size: 28px !important;
   }
 
   .open-login-btn {
-    font-size: 14px; /* Adjust button size */
+    font-size: 14px;
     padding: 8px 20px;
-    position: static; /* Make it inline for mobile */
+    position: static;
     margin: 12px auto;
     display: block;
   }
@@ -373,36 +364,36 @@ html {
 
 @media (max-width: 480px) {
   h2 {
-    font-size: 16px; /* Adjust heading size */
+    font-size: 16px;
   }
 
   label {
-    font-size: 10px; /* Smaller label text */
-    margin-bottom: 2px; /* Adjust margin for compact look */
+    font-size: 10px;
+    margin-bottom: 2px;
   }
 
   input {
-    padding: 5px; /* Smaller padding for inputs */
+    padding: 5px;
     font-size: 11px;
   }
 
   .btn-login {
-    font-size: 12px; /* Smaller button text */
+    font-size: 12px;
   }
 
   .login-modal {
-    width: 90%; /* Make modal fit smaller screens */
+    width: 90%;
   }
 
   .login-image {
     flex: 0;
-    width: 100%; /* Ensure the image fills container */
-    height: 150px; /* Fixed height for very small screens */
+    width: 100%;
+    height: 150px;
   }
 
   .login-form {
-    width: 100%; /* Match the image's width proportion */
-    padding: 10px; /* Reduce padding for compact view */
+    width: 100%;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;

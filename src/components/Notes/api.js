@@ -13,11 +13,11 @@ export async function postVoiceDialog(audioBlob, step) {
   formData.append("audio", audioBlob, "step.webm");
   formData.append("step", String(step));
 
-  // Updated endpoint path
   const url = `${process.env.REACT_APP_BACKEND_URL}/voice-dialog`;
 
   const res = await fetch(url, {
     method: "POST",
+    credentials: "include",
     headers: headersWithoutJson,
     body: formData,
   });
@@ -29,6 +29,7 @@ export async function postVoiceFinal(data) {
 
   const res = await fetch(url, {
     method: "POST",
+    credentials: "include",
     headers: {
       ...headersWithoutJson,
       "Content-Type": "application/json",

@@ -19,7 +19,10 @@ export default function GroupModal({ onCreate, onClose }) {
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, { headers })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, {
+        withCredentials: true,
+        headers,
+      })
       .then((r) => setEmployees(r.data.data || []))
       .catch(() => setEmployees([]));
   }, []);

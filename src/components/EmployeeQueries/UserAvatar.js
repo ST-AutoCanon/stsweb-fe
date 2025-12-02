@@ -1,4 +1,3 @@
-// UserAvatar.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -11,6 +10,7 @@ const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
     if (photoUrl) {
       axios
         .get(`${process.env.REACT_APP_BACKEND_URL}/docs${photoUrl}`, {
+          withCredentials: true,
           headers: { "x-api-key": apiKey, "x-employee-id": employeeId },
           responseType: "blob",
         })
@@ -20,7 +20,6 @@ const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
         })
         .catch((err) => {
           console.error("Error fetching photo:", err);
-          // Fallback to default avatar if fetching fails
           setAvatar(
             role === "Admin"
               ? "/images/admin-avatar.png"
@@ -30,7 +29,6 @@ const UserAvatar = ({ photoUrl, role, gender, apiKey, className }) => {
           );
         });
     } else {
-      // No photoUrl provided; use default based on role/gender
       setAvatar(
         role === "Admin"
           ? "/images/admin-avatar.png"

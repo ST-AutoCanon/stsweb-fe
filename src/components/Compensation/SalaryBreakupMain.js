@@ -237,6 +237,7 @@ const SalaryBreakupMain = () => {
       const response = await axios.get(
         `${BASE_URL}/api/compensation/bonus-list`,
         {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         }
       );
@@ -292,6 +293,7 @@ const SalaryBreakupMain = () => {
       setIsLoading(true);
       const url = `${BASE_URL}/api/compensation/add-bonus-bulk`;
       const response = await axios.post(url, payload, {
+        withCredentials: true,
         headers: {
           "x-api-key": API_KEY,
           "x-employee-id": meId,
@@ -305,6 +307,7 @@ const SalaryBreakupMain = () => {
         const bonusResponse = await axios.get(
           `${BASE_URL}/api/compensation/bonus-list`,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": API_KEY,
               "x-employee-id": meId,
@@ -355,7 +358,10 @@ const SalaryBreakupMain = () => {
       setIsLoading(true);
       const url = `${BASE_URL}/api/compensation/assigned`;
       const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-      const response = await axios.get(url, { headers });
+      const response = await axios.get(url, {
+        withCredentials: true,
+        headers,
+      });
       if (!response.data.success) {
         throw new Error(
           response.data.message || "Failed to fetch assigned employees"
@@ -383,7 +389,10 @@ const SalaryBreakupMain = () => {
         assignedDate: new Date().toISOString().split("T")[0],
         departmentIds: [],
       };
-      const assignResponse = await axios.post(assignUrl, payload, { headers });
+      const assignResponse = await axios.post(assignUrl, payload, {
+        withCredentials: true,
+        headers,
+      });
       if (assignResponse.data.success) {
         openMessageModal(
           "Success",
@@ -391,7 +400,7 @@ const SalaryBreakupMain = () => {
         );
         const compensationsResponse = await axios.get(
           `${BASE_URL}/api/compensations/list`,
-          { headers }
+          { withCredentials: true, headers }
         );
         const compensationMap = new Map();
         if (compensationsResponse.data.success) {
@@ -401,7 +410,7 @@ const SalaryBreakupMain = () => {
         }
         const employeesResponse = await axios.get(
           `${BASE_URL}/api/compensation/assigned`,
-          { headers }
+          { withCredentials: true, headers }
         );
         if (employeesResponse.data.success) {
           const enrichedEmployees = employeesResponse.data.data.map((emp) => ({
@@ -413,7 +422,7 @@ const SalaryBreakupMain = () => {
         }
         const allEmployeesResponse = await axios.get(
           `${BASE_URL}/api/employees/names`,
-          { headers }
+          { withCredentials: true, headers }
         );
         if (allEmployeesResponse.data.success) {
           setAllEmployees(allEmployeesResponse.data.data || []);
@@ -501,6 +510,7 @@ const SalaryBreakupMain = () => {
         `${BASE_URL}/api/compensation/advance`,
         payload,
         {
+          withCredentials: true,
           headers: {
             "x-api-key": API_KEY,
             "x-employee-id": meId,
@@ -526,7 +536,10 @@ const SalaryBreakupMain = () => {
         openMessageModal("Success", "Advance added successfully!", false);
         const advancesRes = await axios.get(
           `${BASE_URL}/api/compensation/advance-details`,
-          { headers: { "x-api-key": API_KEY, "x-employee-id": meId } }
+          {
+            withCredentials: true,
+            headers: { "x-api-key": API_KEY, "x-employee-id": meId },
+          }
         );
         setAdvances(advancesRes.data.data || []);
       } else {
@@ -681,6 +694,7 @@ const SalaryBreakupMain = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(`${BASE_URL}/api/incentives`, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
       if (response.data.success) {
@@ -730,6 +744,7 @@ const SalaryBreakupMain = () => {
       };
 
       const response = await axios.post(`${BASE_URL}/api/incentives`, payload, {
+        withCredentials: true,
         headers: {
           "x-api-key": API_KEY,
           "x-employee-id": meId,
@@ -798,6 +813,7 @@ const SalaryBreakupMain = () => {
     try {
       const url = `${BASE_URL}/api/compensations/list`;
       const response = await axios.get(url, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
       if (response.data.success) {
@@ -895,25 +911,37 @@ const SalaryBreakupMain = () => {
           bonusRes,
         ] = await Promise.all([
           axios
-            .get(`${BASE_URL}/api/employees/names`, { headers })
+            .get(`${BASE_URL}/api/employees/names`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error("Error fetching employees/names:", err);
               throw err;
             }),
           axios
-            .get(`${BASE_URL}/api/compensations/list`, { headers })
+            .get(`${BASE_URL}/api/compensations/list`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error("Error fetching compensations/list:", err);
               throw err;
             }),
           axios
-            .get(`${BASE_URL}/api/compensation/assigned`, { headers })
+            .get(`${BASE_URL}/api/compensation/assigned`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error("Error fetching compensation/assigned:", err);
               throw err;
             }),
           axios
-            .get(`${BASE_URL}/api/compensation/advance-details`, { headers })
+            .get(`${BASE_URL}/api/compensation/advance-details`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error(
                 "Error fetching compensation/advance-details:",
@@ -923,6 +951,7 @@ const SalaryBreakupMain = () => {
             }),
           axios
             .get(`${BASE_URL}/api/compensation/overtime-status-summary`, {
+              withCredentials: true,
               headers,
             })
             .catch((err) => {
@@ -933,7 +962,10 @@ const SalaryBreakupMain = () => {
               throw err;
             }),
           axios
-            .get(`${BASE_URL}/api/compensation/bonus-list`, { headers })
+            .get(`${BASE_URL}/api/compensation/bonus-list`, {
+              withCredentials: true,
+              headers,
+            })
             .catch((err) => {
               console.error("Error fetching compensation/bonus-list:", err);
               throw err;

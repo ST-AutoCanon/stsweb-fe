@@ -140,6 +140,7 @@ const SalaryDetails = () => {
         ] = await Promise.all([
           axios
             .get(`${BASE_URL}/api/compensations/list`, {
+              withCredentials: true,
               headers: requestHeaders,
             })
             .catch((err) => {
@@ -147,6 +148,7 @@ const SalaryDetails = () => {
             }),
           axios
             .get(`${BASE_URL}/api/compensation/assigned`, {
+              withCredentials: true,
               headers: requestHeaders,
             })
             .catch((err) => {
@@ -154,6 +156,7 @@ const SalaryDetails = () => {
             }),
           axios
             .get(`${BASE_URL}/api/compensation/advance-details`, {
+              withCredentials: true,
               headers: requestHeaders,
             })
             .catch((err) => {
@@ -161,6 +164,7 @@ const SalaryDetails = () => {
             }),
           axios
             .get(`${BASE_URL}/api/compensation/overtime-status-summary`, {
+              withCredentials: true,
               headers: requestHeaders,
             })
             .catch((err) => {
@@ -168,6 +172,7 @@ const SalaryDetails = () => {
             }),
           axios
             .get(`${BASE_URL}/api/compensation/bonus-list`, {
+              withCredentials: true,
               headers: requestHeaders,
             })
             .catch((err) => {
@@ -175,11 +180,13 @@ const SalaryDetails = () => {
             }),
           axios
             .get(`${BASE_URL}/api/compensation/working-days`, {
+              withCredentials: true,
               headers: requestHeaders,
             })
             .catch(() => ({ data: { data: { totalWorkingDays: "N/A" } } })),
           axios
             .get(`${BASE_URL}/api/salary-details/approved-ids`, {
+              withCredentials: true,
               headers: requestHeaders,
             })
             .catch(() => ({ data: { approvedIds: [] } })),
@@ -348,7 +355,7 @@ const SalaryDetails = () => {
       const personalRes = await axios.post(
         `${BASE_URL}/api/compensation/employee-personal-details`,
         { employeeIds },
-        { headers: requestHeaders }
+        { withCredentials: true, headers: requestHeaders }
       );
       setPersonalMap(personalRes.data.data || {});
       setShowPreviewModal(true);
@@ -643,7 +650,7 @@ const SalaryDetails = () => {
       const personalRes = await axios.post(
         `${BASE_URL}/api/compensation/employee-personal-details`,
         { employeeIds },
-        { headers: requestHeaders }
+        { withCredentials: true, headers: requestHeaders }
       );
       setPersonalMap(personalRes.data.data || {});
       if (format === "excel") await downloadBankReportExcel();
@@ -802,7 +809,7 @@ const SalaryDetails = () => {
           month: currentMonthAbbrev,
           year: currentYear,
         },
-        { headers: requestHeaders }
+        { withCredentials: true, headers: requestHeaders }
       );
 
       if (response.data.success) {
@@ -812,7 +819,7 @@ const SalaryDetails = () => {
 
         const approvedRes = await axios.get(
           `${BASE_URL}/api/salary-details/approved-ids`,
-          { headers: requestHeaders }
+          { withCredentials: true, headers: requestHeaders }
         );
         const newApprovedIds = approvedRes.data.approvedIds || [];
         setApprovedIds(newApprovedIds);

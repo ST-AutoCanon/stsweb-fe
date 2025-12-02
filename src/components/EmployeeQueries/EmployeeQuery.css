@@ -1,7 +1,7 @@
 .emp-query-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Adjust as needed */
+  height: 100vh;
   width: 100%;
 }
 
@@ -14,7 +14,7 @@
 
 .emp-query-content {
   display: flex;
-  flex: 1; /* Takes up full height */
+  flex: 1;
   padding: 0 2%;
   gap: 2%;
 }
@@ -173,7 +173,6 @@
   flex-grow: 1;
 }
 
-/* Hide scrollbar */
 .emp-chat-messages {
   display: flex;
   flex-direction: column-reverse;
@@ -183,12 +182,10 @@
   -ms-overflow-style: none;
 }
 
-/* Hide scrollbar for WebKit (Chrome, Safari) */
 .emp-chat-messages::-webkit-scrollbar {
   display: none;
 }
 
-/* Disabled input and button styles */
 .emp-chat-input input:disabled,
 .emp-chat-input button:disabled {
   background: #e0e0e0;
@@ -206,15 +203,15 @@
   margin-bottom: 5px;
   font-size: 14px;
   color: #555;
-  text-align: left; /* Default alignment for left */
+  text-align: left;
 }
 
 .emp-message-container.right .emp-message-header {
-  text-align: right; /* Align to the right for 'You' */
+  text-align: right;
 }
 
 .emp-message-container.left .emp-message-header {
-  text-align: left; /* Align to the left for others' names */
+  text-align: left;
 }
 
 .emp-message {
@@ -264,7 +261,7 @@
 
 .message-input {
   width: 90%;
-  padding: 1.5% 50px 1.5% 10px; /* Reduced right padding to make room for icon and suffix */
+  padding: 1.5% 50px 1.5% 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 16px;
@@ -298,7 +295,6 @@
   color: #333;
 }
 
-/* For employee submit button, same interactive styles */
 .emp-submit-btn {
   background-color: #7fbd2c;
   width: 10%;
@@ -312,7 +308,7 @@
 }
 
 .emp-submit-btn:hover {
-  background-color: #68a822; /* Slightly darker */
+  background-color: #68a822;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -392,7 +388,6 @@
   font-size: large;
 }
 
-/* Form Fields */
 .employee-query-form {
   margin: 0;
   padding: 5%;
@@ -441,7 +436,6 @@
   margin: 0 0 2% 60%;
 }
 
-/* Buttons */
 .employee-query-button {
   padding: 1%;
   font-size: 1rem;
@@ -537,7 +531,7 @@
 }
 
 .compose-button:hover {
-  background-color: #006bb3; /* Slightly darker blue */
+  background-color: #006bb3;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -585,51 +579,38 @@
   padding: 0 1%;
 }
 
-
-
-
 @media (max-width: 768px) {
-  /* Container Adjustments */
   .emp-query-container {
-    height: 100%; /* Full height to fit screen */
+    height: 100%;
     display: flex;
     height: 125vh;
     width: 98%;
-    
+
     border-radius: 10px 30px 30px 10px;
-    
+
     flex-direction: column;
-    overflow: hidden; /* Prevent unnecessary scroll */
+    overflow: hidden;
   }
 
   .emp-query-content {
-    flex-direction: column; /* Stack sidebar & chat */
+    flex-direction: column;
     gap: 10px;
     display: flex;
     flex-wrap: wrap;
-    flex-grow: 0; /* Allow it to take full space */
-    
+    flex-grow: 0;
   }
 
-  /* Sidebar Adjustments */
   .emp-sidebar {
-    width: 96%; /* Full width */
-
-    /* overflow-x: auto; */
-    /* padding: 10px 0; */
-    /* white-space: nowrap;
-    background: #f8f9fa; /* Light background */
- 
+    width: 96%;
     border-bottom: 1px solid #ddd;
   }
 
-  /* Query List Adjustments */
   .emp-query-list {
-    height: auto; /* Dynamic height */
-    overflow-x: auto; /* Enable horizontal scrolling */
-    overflow-y: hidden; /* Remove vertical scroll */
+    height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
     display: flex;
-    flex-wrap: nowrap; /* Keep items in one row */
+    flex-wrap: nowrap;
     gap: 10px;
     padding: 5px;
     margin-top: -5%;
@@ -637,34 +618,30 @@
   }
 
   .emp-query-list::-webkit-scrollbar {
-    height: 5px; /* Slightly larger for usability */
+    height: 5px;
   }
 
   .emp-query-list::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.3); /* More visible scrollbar */
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 10px;
   }
 
-  /* Chat Section */
   .emp-chat-container {
     width: 100%;
-    /* flex-grow: 1; /* Expand to fill space */
     display: flex;
-    /* height: 50%; */
     height: 84vh;
     flex-direction: column;
     border-radius: 10px 30px 30px 10px;
- 
-    justify-content: space-between; 
+
+    justify-content: space-between;
   }
 
   .emp-chat-messages {
-    max-height: calc(100vh - 300px); /* Adjust for screen space */
+    max-height: calc(100vh - 300px);
     overflow-y: auto;
     padding: 10px;
   }
 
-  /* Input Field */
   .input-container {
     display: flex;
     gap: 5px;
@@ -673,18 +650,16 @@
     padding: 10px;
     align-items: center;
     background: white;
-   
   }
 
   .input-container input {
-    flex-grow: 1; /* Fill available space */
+    flex-grow: 1;
     font-size: 14px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
   }
 
-  /* Submit Button */
   .emp-submit-btn {
     width: auto;
     padding: 10px 15px;
@@ -696,77 +671,74 @@
     border: none;
   }
 
-  /* Modal */
   @media (max-width: 768px) {
     .employee-query-modal {
-      width: 80%; /* Adjust modal width */
+      width: 80%;
       top: 5%;
       padding: 3%;
     }
-  
+
     .employee-query-textarea,
     .employee-query-input,
     .employee-query-select {
       font-size: 0.9rem;
       padding: 8px;
     }
-  
+
     .emp-form-header {
       padding: 5%;
       font-size: 1rem;
     }
-  
+
     .emp-close-button {
-      font-size: 6vw!important; /* Increase close button size */
+      font-size: 6vw !important;
     }
-  
+
     .employee-query-form {
       width: 100%;
       padding: 5%;
       margin-left: -4%;
     }
-  
+
     .employee-query-button {
-      width: 100%; /* Full width for better tapability */
+      width: 100%;
       font-size: 1rem;
       padding: 10px;
       margin: 10px 0px 10px 0px;
     }
-  
+
     .empform-cancel-button {
       width: 100%;
       margin: 10px 0;
       font-size: 1rem;
       padding: 10px;
     }
-  
+
     .stars-container {
       font-size: 20px;
       justify-content: center;
       gap: 5px;
     }
-  
+
     .feedback-options {
       padding: 3%;
     }
-  
+
     .thank-you {
       font-size: 1rem;
     }
-  
+
     .thank-button {
       flex-direction: column;
     }
-  
+
     .thank-close {
       width: 100%;
       padding: 10px;
       font-size: 1rem;
     }
   }
-  
 
-  /* Profile Picture */
   .emp-profile-pic {
     width: 45px;
     height: 45px;
@@ -774,18 +746,15 @@
     border-radius: 50%;
   }
 
-  /* Cancel Button */
   .empform-cancel-button {
     width: auto;
     margin: 0 auto;
   }
 
-  /* Stars Rating */
   .stars-container {
     font-size: 20px;
   }
-  .attachment-icon
-  {
+  .attachment-icon {
     margin-right: 5%;
   }
   .end {
@@ -795,135 +764,120 @@
     gap: 2%;
   }
 
+  .emp-message-container {
+    display: flex;
+    flex-direction: column;
+  }
 
+  .emp-message-header {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 8px;
+    color: #555;
+    text-align: left;
+  }
+  .message-time {
+    font-size: 65%;
+  }
 
+  .emp-message-container.right .emp-message-header {
+    text-align: right;
+  }
 
+  .emp-message-container.left .emp-message-header {
+    text-align: left;
+  }
 
+  .emp-message {
+    max-width: 60%;
+    padding: 10px;
 
-  
-.emp-message-container {
-  display: flex;
-  flex-direction: column;
-}
+    border-radius: 10px;
+  }
 
-.emp-message-header {
-  font-weight: bold;
-  margin-bottom: 5px;
-  font-size: 8px;
-  color: #555;
-  text-align: left; /* Default alignment for left */
-}
-.message-time
-{
-  font-size: 65%;
-}
+  .left .emp-message {
+    background: #dbeafe;
+    align-self: flex-start;
+  }
 
+  .right .emp-message {
+    background: #001f3f;
+    color: white;
 
-.emp-message-container.right .emp-message-header {
-  text-align: right; /* Align to the right for 'You' */
-  
-}
+    align-self: flex-end;
+  }
+  .emp-name {
+    font-size: 70%;
+    margin-top: 20%;
+  }
+  .emp-message-time {
+    font-size: 3px;
+    color: gray;
+    display: block;
+    margin-top: 10px;
+  }
+  .emp-message-preview {
+    color: gray;
+    font-size: 10px;
+    margin-left: 0%;
+    margin-top: 5%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.emp-message-container.left .emp-message-header {
-  text-align: left; /* Align to the left for others' names */
-}
+  .compose-button {
+    background-color: #0078ce;
+    padding: 1% 2%;
+    color: #fff;
+    align-items: center;
+    border-radius: 5px;
+    font-size: 15px;
+    border: none;
+    margin-right: 20px;
+    margin-top: 17px;
+  }
+  .compose-icon {
+    padding: 0;
+    font-size: medium;
+    margin-bottom: -3%;
+  }
+  .toggle-switch {
+    width: 45%;
+  }
+  .emp-message {
+    padding: -20%;
+  }
 
-.emp-message {
-  max-width: 60%;
-  padding: 10px;
- 
-  border-radius: 10px;
-}
+  .emp-message p {
+    padding-bottom: -40px;
+    font-size: 80%;
+  }
+  emp-message-header {
+    padding-top: 10px;
+  }
+  emp-message-sender {
+    padding: 0px;
+  }
+  .empform-cancel-button {
+    width: auto;
+    margin: 0 auto;
+  }
+  .emp-close-button {
+    font-size: 100%;
+    cursor: pointer;
+  }
 
-.left .emp-message {
-  background: #dbeafe;
-  align-self: flex-start;
-}
-
-.right .emp-message {
-  background: #001f3f;
-  color: white;
-
-  align-self: flex-end;
-}
-.emp-name {
-  font-size: 70%;
-  margin-top: 20%;
-}
-.emp-message-time {
-  font-size: 3px;
-  color: gray;
-  display: block;
-  margin-top: 10px;
-}
-.emp-message-preview {
-  color: gray;
-  font-size: 10px;
-  margin-left: 0%;
-  margin-top: 5%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
- 
-.compose-button {
-  background-color: #0078ce;
-  padding: 1% 2%;
-  color: #fff;
-  align-items: center;
-  border-radius: 5px;
-  font-size: 15px;
-  border: none;
-  margin-right: 20px;
-  margin-top: 17px;
-}
-.compose-icon {
-  padding: 0;
-  font-size: medium;
-  margin-bottom: -3%;
-}
-.toggle-switch
-{
-  width: 45%;
-}
-.emp-message
-{
-  padding: -20%;
-}
-
-.emp-message p{
-  padding-bottom: -40px;
-  font-size:80%;
-}
-emp-message-header
-{
-  padding-top:  10px;
-
-
-}
-emp-message-sender
-{
-  padding: 0px;
-}
-.empform-cancel-button {
-  width: auto;
-  margin: 0 auto;
-}
-.emp-close-button {
-  font-size: 100%;
-  cursor: pointer;
-}
-
-.emp-unread-dot {
-  top: 5px;
-  right: 10px;
-  width: 25px;
-  height: 15px;
-  margin-top: 0%;
-  padding: 0;
-  font-size: small;
-  color: #fff;
-  text-align: center;
-  background-color: #0078ce;
-  border-radius: 50%;
-}
+  .emp-unread-dot {
+    top: 5px;
+    right: 10px;
+    width: 25px;
+    height: 15px;
+    margin-top: 0%;
+    padding: 0;
+    font-size: small;
+    color: #fff;
+    text-align: center;
+    background-color: #0078ce;
+    border-radius: 50%;
+  }
 }

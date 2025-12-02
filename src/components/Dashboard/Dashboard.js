@@ -27,7 +27,7 @@ const Dashboard = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/employee/birthday/${email}`,
-          { headers }
+          { withCredentials: true, headers }
         );
         const { full_name, first_name, dob } = response.data;
         const nameToUse = full_name || first_name || "there";
@@ -49,7 +49,7 @@ const Dashboard = () => {
       try {
         const res = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/notifications`,
-          { headers }
+          { withCredentials: true, headers }
         );
         const notifications = res.data.notifications || [];
         const profileNote = notifications.find((n) => {

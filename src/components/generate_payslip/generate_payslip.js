@@ -76,9 +76,7 @@ const GeneratePayslip = () => {
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BACKEND_URL}/old-employee/list`,
-          {
-            headers,
-          }
+          { credentials: "include", headers }
         );
         if (response.ok) {
           const data = await response.json();
@@ -313,10 +311,10 @@ const GeneratePayslip = () => {
         uin_number: formData.uinNo,
         basic_salary: parseFloat(formData.basic) || 0,
         hra: parseFloat(formData.hra) || 0,
-        allowance: parseFloat(formData.otherAllowance) || 0, // ← This goes to "Other Allowance"
+        allowance: parseFloat(formData.otherAllowance) || 0,
         pf: parseFloat(formData.pf) || 0,
-        esi: parseFloat(formData.esiInsurance) || 0, // ← Renamed to esi
-        pt: parseFloat(formData.professionalTax) || 0, // ← Renamed to pt
+        esi: parseFloat(formData.esiInsurance) || 0,
+        pt: parseFloat(formData.professionalTax) || 0,
         tds: parseFloat(formData.tds) || 0,
         total_earnings: grossEarnings,
         total_deductions: totalDeductions,
@@ -328,7 +326,7 @@ const GeneratePayslip = () => {
       },
       bankDetails: {
         account_number: formData.accountNo,
-        bank_name: "HDFC Bank", // ← Change this or add input field
+        bank_name: "HDFC Bank",
         esi_number: formData.esiNumber,
         pf_number: formData.pfNumber,
       },
@@ -418,6 +416,7 @@ const GeneratePayslip = () => {
     try {
       const response = await fetch(url, {
         method,
+        credentials: "include",
         headers: {
           ...headers,
           "Content-Type": "application/json",
@@ -443,9 +442,7 @@ const GeneratePayslip = () => {
 
       const updatedResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/old-employee/list`,
-        {
-          headers,
-        }
+        { credentials: "include", headers }
       );
       if (updatedResponse.ok) {
         const updatedData = await updatedResponse.json();
@@ -554,7 +551,6 @@ const GeneratePayslip = () => {
       const totalDeductions = deductions.reduce((sum, val) => sum + val, 0);
       const netSalary = grossEarnings - totalDeductions;
 
-      // Construct payslipData with validated fields
       const payslipData = {
         payrollData: {
           employee_id: employee.employee_id || "STS001",
@@ -603,7 +599,6 @@ const GeneratePayslip = () => {
         },
       };
 
-      // Call generatePayslipPDF with download=true
       await generatePayslipPDF(
         payslipData.payrollData,
         payslipData.selectedDate,
@@ -613,7 +608,6 @@ const GeneratePayslip = () => {
         true
       );
 
-      // No need to validate pdfBlob since download is handled by generatePayslipPDF
       setSuccess(
         `Payslip for ${employee.employee_name} downloaded successfully!`
       );

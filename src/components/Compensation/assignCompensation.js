@@ -48,6 +48,7 @@ const AssignCompensation = () => {
         setIsLoading(true);
         const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensations/employees/names`;
         const response = await axios.get(url, {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         });
         if (response.data.success) {
@@ -75,6 +76,7 @@ const AssignCompensation = () => {
         setIsLoading(true);
         const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensations/departments/names`;
         const response = await axios.get(url, {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         });
         if (response.data.success) {
@@ -104,6 +106,7 @@ const AssignCompensation = () => {
         setIsLoading(true);
         const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`;
         const response = await axios.get(url, {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         });
         if (response.data.success) {
@@ -229,6 +232,7 @@ const AssignCompensation = () => {
       setIsLoading(true);
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensations/employees/by-department/${selectedDepartment}`;
       const response = await axios.get(url, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
 
@@ -364,6 +368,7 @@ const AssignCompensation = () => {
 
       const checkUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`;
       const checkResponse = await axios.get(checkUrl, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
 
@@ -428,6 +433,7 @@ const AssignCompensation = () => {
 
       const assignUrl = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assign`;
       const assignResponse = await axios.post(assignUrl, payload, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
 

@@ -4,7 +4,6 @@ import "./HomologationSupport1.css";
 const HomologationSupport1 = () => {
   return (
     <div className="homologation-support-container">
-      {/* Left Section */}
       <div className="homologation-support-text">
         <h1>Homologation support</h1>
         <p>Our Other Services Include</p>
@@ -23,14 +22,12 @@ const HomologationSupport1 = () => {
         <button className="homologation-support-button">Know More</button>
       </div>
 
-      {/* Right Section */}
       <div className="homologation-support-image">
         <img
           src="./images/Homologationsupport1.png"
           alt="Other Services"
           className="services-image"
         />
-        {/* <div className="overlay-text">Other Services</div> */}
       </div>
     </div>
   );

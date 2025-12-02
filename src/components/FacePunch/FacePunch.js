@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const COOLDOWN_PERIOD = 10000; // 10 seconds cooldown (adjustable)
+const COOLDOWN_PERIOD = 10000;
 const meId = JSON.parse(
   localStorage.getItem("dashboardData") || "{}"
 ).employeeId;
@@ -122,7 +122,6 @@ const FacePunch = () => {
             videoRef.current.videoWidth * videoRef.current.videoHeight;
           const faceCoverage = area / frameArea;
 
-          // Adjust thresholds for typical webcam use
           if (score < 0.85) {
             toast.warn("Face not clear. Please face the camera properly.", {
               autoClose: 2000,
@@ -135,7 +134,6 @@ const FacePunch = () => {
             return;
           }
 
-          // All checks passed, proceed
           await captureAndPunch(detection);
           setLastPunchTime(Date.now());
           setCooldownRemaining(COOLDOWN_PERIOD / 1000);
@@ -166,6 +164,7 @@ const FacePunch = () => {
         `${BACKEND_URL}/last-punch-status`,
         { descriptor: descriptorArray },
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "x-api-key": API_KEY,
@@ -207,12 +206,9 @@ const FacePunch = () => {
           device: "Desktop",
           location: "Office HQ",
         },
-        {
-          headers,
-        }
+        { withCredentials: true, headers }
       );
 
-      // Extract status from response.data.message
       const message = response.data.message
         ? response.data.message.toLowerCase()
         : "";
@@ -234,11 +230,9 @@ const FacePunch = () => {
           punchType === "punch-in" ? "punched in" : "punched out";
       }
 
-      // Update lastPunchStatus with confirmed punchType from backend or calculated
       const confirmedPunchType = response.data.punchType || punchType;
       setLastPunchStatus(confirmedPunchType);
 
-      // Store employee info and announce
       if (response.data.employee_id) {
         const employeeData = {
           id: response.data.employee_id,
@@ -246,7 +240,6 @@ const FacePunch = () => {
         };
         setEmployeeInfo(employeeData);
 
-        // Announce using extracted status
         speakPunchStatus(employeeData.name, announcementStatus);
       } else {
         console.warn("No employee_id in response, skipping announcement");

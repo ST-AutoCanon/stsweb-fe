@@ -38,7 +38,7 @@ const MajorProjects = () => {
 
   const handleLastCardHover = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft += 300; // Adjust scroll amount based on card width
+      scrollContainerRef.current.scrollLeft += 300;
     }
   };
 
@@ -52,7 +52,9 @@ const MajorProjects = () => {
             className={`project-card ${
               index === projects.length - 1 ? "last-card" : ""
             }`}
-            onMouseEnter={index === projects.length - 1 ? handleLastCardHover : null} // Trigger scroll on last card hover
+            onMouseEnter={
+              index === projects.length - 1 ? handleLastCardHover : null
+            }
           >
             <img
               src={project.imageUrl}

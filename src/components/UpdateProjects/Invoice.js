@@ -74,6 +74,7 @@ const Invoice = ({ onBack, project }) => {
         `${process.env.REACT_APP_BACKEND_URL}/invoice?projectId=${project.id}`,
         {
           method: "GET",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,
@@ -197,6 +198,7 @@ const Invoice = ({ onBack, project }) => {
           `${process.env.REACT_APP_BACKEND_URL}/invoice/${editingInvoiceId}`,
           {
             method: "PUT",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               "x-api-key": process.env.REACT_APP_API_KEY,
@@ -207,6 +209,7 @@ const Invoice = ({ onBack, project }) => {
       } else {
         response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/invoice`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,
@@ -452,6 +455,7 @@ const Invoice = ({ onBack, project }) => {
         `${process.env.REACT_APP_BACKEND_URL}/invoice-extra/${invoice.id}`,
         {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "x-api-key": process.env.REACT_APP_API_KEY,

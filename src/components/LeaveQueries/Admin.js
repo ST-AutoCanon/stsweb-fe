@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/Admin.js
 import React, { useState, useEffect } from "react";
 import "./Admin.css";
 import PolicyModal from "./PolicyModal";
@@ -6,7 +5,7 @@ import Modal from "../Modal/Modal";
 import CompensationPopup from "./CompensationPopup";
 import { IoSearch } from "react-icons/io5";
 import { useLocation } from "react-router-dom";
-import { computeRequestedDays } from "./leaveUtils"; // <- added
+import { computeRequestedDays } from "./leaveUtils";
 
 const formatDate = (isoDate) => {
   if (!isoDate) return "";
@@ -34,7 +33,6 @@ const headers = {
 };
 
 export default function Admin({ openPolicyId = null }) {
-  // state
   const [leaveQueries, setLeaveQueries] = useState([]);
   const [policies, setPolicies] = useState([]);
   const [search, setSearch] = useState("");
@@ -47,7 +45,6 @@ export default function Admin({ openPolicyId = null }) {
   const [leaveBalances, setLeaveBalances] = useState({});
   const location = useLocation();
 
-  // centralized alert modal state
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
@@ -57,7 +54,6 @@ export default function Admin({ openPolicyId = null }) {
   const [policyAlerts, setPolicyAlerts] = useState([]);
   const [showPolicyAlertsModal, setShowPolicyAlertsModal] = useState(false);
 
-  // LOP modal state (keeps handlers and numeric fields)
   const [lopModal, setLopModal] = useState({
     isVisible: false,
     leaveId: null,
@@ -76,7 +72,6 @@ export default function Admin({ openPolicyId = null }) {
   });
 
   const showAlert = (message, title = "") => {
-    // force-close popup immediately (parent state)
     setLopModal((m) => ({ ...m, isVisible: false }));
     setTimeout(() => {
       setAlertModal({ isVisible: true, title, message });
@@ -85,7 +80,6 @@ export default function Admin({ openPolicyId = null }) {
   const closeAlert = () =>
     setAlertModal({ isVisible: false, title: "", message: "" });
 
-  // ---------- POLICY ALERTS HELPERS ----------
   const daysUntil = (dateStr) => {
     if (!dateStr) return Infinity;
     const today = new Date();
@@ -101,7 +95,7 @@ export default function Admin({ openPolicyId = null }) {
     return policyList
       .map((p) => {
         const daysLeft = daysUntil(p.year_end);
-        if (daysLeft < 0) return null; // already ended
+        if (daysLeft < 0) return null;
 
         let severity = null;
         if (daysLeft <= 5) severity = "critical";
@@ -128,7 +122,7 @@ export default function Admin({ openPolicyId = null }) {
   const fetchPolicies = async () => {
     try {
       const url = `${API_BASE}/api/leave-policies`;
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { credentials: "include", headers });
       const json = await res.json();
       setPolicies(json.data || []);
       return json.data || [];
@@ -147,15 +141,10 @@ export default function Admin({ openPolicyId = null }) {
   }, [policies]);
 
   useEffect(() => {
-    // initial load + when filters change
-
-    // Ensure policies are loaded BEFORE fetching leave queries to avoid race
     (async () => {
       await fetchPolicies();
       await fetchLeaveQueries();
     })();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, fromDate, toDate, search]);
 
   useEffect(() => {
@@ -175,7 +164,7 @@ export default function Admin({ openPolicyId = null }) {
 
       const params = new URLSearchParams(paramsObj).toString();
       const url = `${API_BASE}/admin/leave${params ? `?${params}` : ""}`;
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { credentials: "include", headers });
       let json = null;
       try {
         json = await res.json();
@@ -203,7 +192,7 @@ export default function Admin({ openPolicyId = null }) {
     }
     try {
       const url = `${API_BASE}/api/leave-policies/employee/${employeeId}/leave-balance`;
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { credentials: "include", headers });
       let json = null;
       try {
         json = await res.json();
@@ -227,6 +216,7 @@ export default function Admin({ openPolicyId = null }) {
     try {
       const res = await fetch(`${API_BASE}/api/leave-policies/${id}`, {
         method: "DELETE",
+        credentials: "include",
         headers,
       });
       if (!res.ok) throw new Error("Delete failed");
@@ -239,7 +229,6 @@ export default function Admin({ openPolicyId = null }) {
 
   const doUpdate = async (leaveId, payload = {}, query = null) => {
     try {
-      // Normalize numeric fields
       let compensatedRaw;
       if (payload.hasOwnProperty("compensated_days"))
         compensatedRaw = payload.compensated_days;
@@ -291,7 +280,6 @@ export default function Admin({ openPolicyId = null }) {
       else if (payload.hasOwnProperty("comment")) comments = payload.comment;
       else comments = null;
 
-      // actorId fallback from localStorage
       let actorId = null;
       try {
         const raw = localStorage.getItem("dashboardData");
@@ -305,8 +293,6 @@ export default function Admin({ openPolicyId = null }) {
         actorId = null;
       }
 
-      // Defensive handling of is_defaulted:
-      // Only honor client is_defaulted if payload._internalOrigin === 'system'
       const providedInternal = payload && payload._internalOrigin === "system";
       const isDefaulted =
         providedInternal &&
@@ -321,27 +307,22 @@ export default function Admin({ openPolicyId = null }) {
         status,
         comments,
 
-        // compensated synonyms
         compensated_days: compensated,
         compensatedDays: compensated,
         compensated: compensated,
 
-        // deducted synonyms
         deducted_days: deducted,
         deductedDays: deducted,
         deducted: deducted,
 
-        // loss-of-pay synonyms
         loss_of_pay_days: lop,
         lopDays: lop,
         loss_of_pay: lop,
 
-        // preserved synonyms
         preserved_leave_days: preserved === undefined ? null : preserved,
         preservedLeaveDays: preserved === undefined ? null : preserved,
         preserved: preserved === undefined ? null : preserved,
 
-        // total days fields if caller provided them (pass through if present)
         total_days:
           payload &&
           (payload.total_days ??
@@ -357,23 +338,19 @@ export default function Admin({ openPolicyId = null }) {
 
         actorId,
 
-        // only set default flag if set by internal code
         is_defaulted: isDefaulted,
         isDefaulted: isDefaulted,
 
-        // pass any internal markers so backend trust-gate can recognize system calls
         _internalOrigin: payload._internalOrigin ?? null,
         __internal_system: payload.__internal_system === true,
       };
 
-      // ---------- Preflight: intercept invalid split approvals ----------
       try {
         const c = Number(fullPayload.compensated_days ?? 0) || 0;
         const d = Number(fullPayload.deducted_days ?? 0) || 0;
         const l = Number(fullPayload.loss_of_pay_days ?? 0) || 0;
         const isDefaultedFlag = !!fullPayload.is_defaulted;
 
-        // figure total days: try fullPayload.total_days or derive from 'query' argument if present
         let days = null;
         if (
           fullPayload.total_days !== null &&
@@ -403,7 +380,6 @@ export default function Admin({ openPolicyId = null }) {
             "[doUpdate] preflight blocked invalid split; opening popup if possible",
             { leaveId, c, d, l, days }
           );
-          // if query provided, open lopModal like handleUpdate
           if (query) {
             const balances = await loadLeaveBalance(query.employee_id);
             const bal = balances.find((r) => r.type === query.leave_type);
@@ -413,7 +389,6 @@ export default function Admin({ openPolicyId = null }) {
                 : 0;
             const deficit = Math.max(0, days - remaining);
 
-            // prepare handlers identical to handleUpdate's ones (these will mark payloads as internal)
             const approveDeficit = async () => {
               const preserved_leave_days = Number(remaining) || 0;
               const lopDaysVal = Number(days) || 0;
@@ -580,7 +555,6 @@ export default function Admin({ openPolicyId = null }) {
             return { ok: true, modalOpened: true };
           }
 
-          // no query provided and invalid splits -> block request
           showAlert(
             "Attempted to approve but split values are invalid — please use the compensation popup."
           );
@@ -589,9 +563,7 @@ export default function Admin({ openPolicyId = null }) {
       } catch (preflightErr) {
         console.warn("[doUpdate] preflight check failed safely:", preflightErr);
       }
-      // ---------- end preflight ----------
 
-      // build headers and include x-employee-id header when available
       const headersForReq = { ...headers };
       if (actorId) headersForReq["x-employee-id"] = actorId;
 
@@ -599,11 +571,11 @@ export default function Admin({ openPolicyId = null }) {
 
       const res = await fetch(url, {
         method: "PUT",
+        credentials: "include",
         headers: headersForReq,
         body: JSON.stringify(fullPayload),
       });
 
-      // Try parse JSON, fallback to raw text
       let json = null;
       let text = null;
       try {
@@ -647,9 +619,6 @@ export default function Admin({ openPolicyId = null }) {
     }
   };
 
-  /**
-   * Helper: findActivePolicyForRequestDate
-   */
   const findActivePolicyForRequestDate = (request) => {
     if (!request) return null;
     if (!Array.isArray(policies) || policies.length === 0) return null;
@@ -676,7 +645,6 @@ export default function Admin({ openPolicyId = null }) {
   };
 
   const handleUpdate = async (leaveId, query) => {
-    // sanitize client-sent flags in statusUpdates
     const raw = statusUpdates[leaveId] || {};
     const upd = { ...raw };
     delete upd.is_defaulted;
@@ -684,14 +652,12 @@ export default function Admin({ openPolicyId = null }) {
     delete upd._internalOrigin;
 
     if (upd.status === "Approved") {
-      // Use computeRequestedDays so Half Day semantics match server calculation
       const days = computeRequestedDays(
         query.start_date,
         query.end_date,
         query.H_F_day || query.h_f_day || "Full Day"
       );
 
-      // if policies not loaded yet, fetch them now to avoid race conditions
       if (!Array.isArray(policies) || policies.length === 0) {
         try {
           await fetchPolicies();
@@ -711,7 +677,6 @@ export default function Admin({ openPolicyId = null }) {
       const activePolicyForRequest = findActivePolicyForRequestDate(query);
 
       if (!activePolicyForRequest) {
-        // No active policy: simple approve (internal)
         const simplePayload = {
           ...(upd || {}),
           status: "Approved",
@@ -748,7 +713,6 @@ export default function Admin({ openPolicyId = null }) {
         return result;
       }
 
-      // Active policy -> show compensation popup
       const approveDeficit = async () => {
         const preserved_leave_days = Number(remaining) || 0;
         const lopDaysVal = Number(days) || 0;
@@ -982,7 +946,6 @@ export default function Admin({ openPolicyId = null }) {
         return result;
       };
 
-      // OPEN THE POPUP
       setLopModal({
         isVisible: true,
         leaveId,
@@ -1011,7 +974,6 @@ export default function Admin({ openPolicyId = null }) {
       showAlert(msg);
     }
 
-    // <<< IMPORTANT: return the result so caller (TeamTable) receives it >>>
     return result;
   };
 
@@ -1046,7 +1008,6 @@ export default function Admin({ openPolicyId = null }) {
         openPolicyId={openPolicyId}
       />
 
-      {/* Policy Alerts Modal */}
       <Modal
         isVisible={showPolicyAlertsModal}
         onClose={() => setShowPolicyAlertsModal(false)}
@@ -1126,7 +1087,6 @@ export default function Admin({ openPolicyId = null }) {
         </div>
       </Modal>
 
-      {/* Filters Section */}
       <div className="filters">
         <div className="status-filter">
           <label>Status Filter</label>
@@ -1205,7 +1165,6 @@ export default function Admin({ openPolicyId = null }) {
                     statusUpdates[query.leave_id]?.status &&
                     statusUpdates[query.leave_id]?.status !== query.status;
 
-                  // Use computeRequestedDays for correct half-day handling
                   const days = computeRequestedDays(
                     query.start_date,
                     query.end_date,
@@ -1290,10 +1249,8 @@ export default function Admin({ openPolicyId = null }) {
         </div>
       </div>
 
-      {/* Compensation popup (rendered BEFORE alert) */}
       <CompensationPopup lopModal={lopModal} setLopModal={setLopModal} />
 
-      {/* Alert Modal (rendered after popup to avoid stacking surprises) */}
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}

@@ -1,4 +1,3 @@
-/* Main container */
 .reachusfirstpage-container {
   display: flex;
   height: 100%;
@@ -6,19 +5,16 @@
   overflow: hidden;
   padding: 0px;
   position: relative;
-  box-sizing: border-box; /* Ensure padding and borders don't overflow */
-  min-height: calc(100vh - nav-height); /* Ensure it doesn't exceed viewport */
-  margin-top:70px;
-
+  box-sizing: border-box;
+  min-height: calc(100vh - nav-height);
+  margin-top: 70px;
 }
 
-/* Image section */
 .reachusfirstpage-image-section {
   width: 60%;
   position: relative;
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
-
 
 .reachusfirstpage-about-image {
   width: 100%;
@@ -26,10 +22,9 @@
   object-fit: cover;
 }
 
-/* Text section */
 .reachusfirstpage-text-section {
   width: 85%;
-  background-color: #2FAAC6;
+  background-color: #2faac6;
   color: white;
   display: flex;
   flex-direction: column;
@@ -40,22 +35,17 @@
   margin-left: -6%;
 }
 
-/* Diagonal shaded line */
 .reachusfirstpage-container::before {
   content: "";
   position: absolute;
   z-index: 2;
-  background: linear-gradient(
-      to bottom right,
-      #2FAAC6,
-      rgba(214, 215, 219, 0)
-  );
+  background: linear-gradient(to bottom right, #2faac6, rgba(214, 215, 219, 0));
   pointer-events: none;
-  left: 40%; /* Lean closer to the text section */
-  width: 3%; /* Thicker line */
-  height: 150%; /* Extends the line significantly */
+  left: 40%;
+  width: 3%;
+  height: 150%;
   top: -25%;
-  transform: skewX(-9deg) translate(-5px, 10px); /* Fine horizontal and vertical tuning */
+  transform: skewX(-9deg) translate(-5px, 10px);
 }
 
 .reachusfirstpage-text-section h1 {
@@ -98,42 +88,37 @@
   margin: 20px 0;
 }
 
-/* Responsive styling */
 @media (max-width: 768px) {
   .reachusfirstpage-container {
-      flex-direction: column; /* Stack sections vertically */
-      height: auto; /* Adjust height for stacked layout */
+    flex-direction: column;
+    height: auto;
   }
 
   .reachusfirstpage-image-section {
-      width: 100%; /* Full width for the image section */
-      height: 55vh; /* Half the viewport height */
-      clip-path: none; /* Remove clip-path for a full rectangular display */
+    width: 100%;
+    height: 55vh;
+    clip-path: none;
   }
 
   .reachusfirstpage-text-section {
-      width: 100%; /* Full width for the text section */
-      height: 35vh;
-      margin-left: 0; /* Remove overlap */
-      clip-path: none; /* Remove clip-path for a rectangular display */
-      padding: 20px; /* Add padding for spacing */
+    width: 100%;
+    height: 35vh;
+    margin-left: 0;
+    clip-path: none;
+    padding: 20px;
   }
 
   .reachusfirstpage-text-section h1 {
-      font-size: 2em; /* Adjust font size for smaller screens */
-      margin-right: 30px;
+    font-size: 2em;
+    margin-right: 30px;
   }
 
   .reachusfirstpage-text-section p {
-      font-size: 1em; /* Adjust paragraph font size */
-      margin-right: 15px;
+    font-size: 1em;
+    margin-right: 15px;
   }
 
   .reachusfirstpage-container::before {
-      display: none; /* Hide the diagonal line in mobile view */
+    display: none;
   }
 }
-
-
-
-

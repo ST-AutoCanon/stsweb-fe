@@ -116,6 +116,7 @@ function App() {
             "https://sukalpatechsolutions.com/api/check-subscription",
             {
               method: "POST",
+              credentials: "include",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ endpoint: existingSubscription.endpoint }),
             }
@@ -143,6 +144,7 @@ function App() {
           "https://sukalpatechsolutions.com/api/subscribe",
           {
             method: "POST",
+            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(subscription.toJSON()),
           }
@@ -167,6 +169,7 @@ function App() {
             "https://sukalpatechsolutions.com/api/check-subscription",
             {
               method: "POST",
+              credentials: "include",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ endpoint: subscription.endpoint }),
             }

@@ -13,7 +13,6 @@ export default function NoteDashboard({ highlightedId }) {
   const [detailNote, setDetailNote] = useState(null);
   const highlightMeetingId = highlightedId ? Number(highlightedId) : null;
 
-  // Helper: return local YYYY-MM-DD (not UTC!)
   const getLocalDateKey = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -21,18 +20,16 @@ export default function NoteDashboard({ highlightedId }) {
     return `${y}-${m}-${d}`;
   };
 
-  // Track the start of the current week (Monday). Initialize to today’s Monday.
   const getMonday = (d) => {
     const date = new Date(d);
-    const day = date.getDay(); // 0 (Sun) – 6 (Sat)
-    const diff = (day === 0 ? -6 : 1) - day; // if Sunday, go back 6 days; else go to Monday
+    const day = date.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
     date.setDate(date.getDate() + diff);
     date.setHours(0, 0, 0, 0);
     return date;
   };
   const [weekStart, setWeekStart] = useState(getMonday(new Date()));
 
-  // Build an array of 7 Date objects (Mon → Sun) based on weekStart
   const getWeekDates = (monday) => {
     const arr = [];
     for (let i = 0; i < 7; i++) {
@@ -44,12 +41,10 @@ export default function NoteDashboard({ highlightedId }) {
   };
   const weekDates = getWeekDates(weekStart);
 
-  // Track which date (YYYY-MM-DD) has been clicked to show its cards, default = today (local)
   const [selectedDateKey, setSelectedDateKey] = useState(
     getLocalDateKey(new Date())
   );
 
-  // Fetch only this user’s meetings on mount
   useEffect(() => {
     const fetchMeetings = async () => {
       setLoadingMeetings(true);
@@ -58,6 +53,7 @@ export default function NoteDashboard({ highlightedId }) {
           `${process.env.REACT_APP_BACKEND_URL}/meetings`,
           {
             method: "GET",
+            credentials: "include",
             headers: {
               "x-api-key": process.env.REACT_APP_API_KEY,
               "x-employee-id": JSON.parse(
@@ -86,13 +82,11 @@ export default function NoteDashboard({ highlightedId }) {
     fetchMeetings();
   }, []);
 
-  // When a new voice note is saved, add it to meetings
   const handleVoiceDone = (newRecord) => {
     setSelectedOption(null);
     setMeetings((prev) => [newRecord, ...prev]);
   };
 
-  // Helper to format "DD" and weekday and month abbreviations
   const formatDateHeader = (dateObj) => {
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = [
@@ -116,12 +110,10 @@ export default function NoteDashboard({ highlightedId }) {
     };
   };
 
-  // When user clicks on a date header
   const onDateClick = (dateObj) => {
     setSelectedDateKey(getLocalDateKey(dateObj));
   };
 
-  // Move weekStart backward or forward by 7 days
   const prevWeek = () => {
     const prev = new Date(weekStart);
     prev.setDate(prev.getDate() - 7);
@@ -133,7 +125,6 @@ export default function NoteDashboard({ highlightedId }) {
     setWeekStart(next);
   };
 
-  // Filter meetings that were created on selectedDateKey
   const notesForSelectedDate = meetings.filter((m) => {
     const createdKey = getLocalDateKey(new Date(m.created_at));
     return createdKey === selectedDateKey;
@@ -149,18 +140,15 @@ export default function NoteDashboard({ highlightedId }) {
     const note = meetings.find((m) => m.id === highlightMeetingId);
     if (!note) return;
 
-    // Reset the calendar to that note’s date
     const targetDate = new Date(note.created_at);
     setWeekStart(getMonday(targetDate));
     setSelectedDateKey(getLocalDateKey(targetDate));
 
-    // 2) Wait for cards to render, then scroll into view & highlight
     setTimeout(() => {
       const el = document.getElementById(`note-card-${note.id}`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("highlight");
-        // Remove highlight after a couple seconds
         setTimeout(() => el.classList.remove("highlight"), 3000);
       }
     }, 100);
@@ -168,7 +156,6 @@ export default function NoteDashboard({ highlightedId }) {
 
   return (
     <div className="note-dashboard-container">
-      {/* Header row: title + Add button */}
       <div className="nt-header-row">
         <h2 className="dashboard-title">My Notes</h2>
         <button className="nt-add-button" onClick={() => setAddMode(true)}>
@@ -176,7 +163,6 @@ export default function NoteDashboard({ highlightedId }) {
         </button>
       </div>
 
-      {/* If in add mode (clicked “Add new Note”), show the panel */}
       {addMode && !selectedOption && <AddNotePanel onSelect={onPanelSelect} />}
 
       {selectedOption === "voice" && (
@@ -201,7 +187,6 @@ export default function NoteDashboard({ highlightedId }) {
             </button>
             {weekDates.map((dateObj) => {
               const { dayNum, weekday } = formatDateHeader(dateObj);
-              // Compare local Y/M/D rather than ISO
               const today = new Date();
               const isToday =
                 dateObj.getFullYear() === today.getFullYear() &&
@@ -234,7 +219,6 @@ export default function NoteDashboard({ highlightedId }) {
             </button>
           </div>
 
-          {/* Notes for the selected date (grid of colorful cards) */}
           <section className="notes-grid-section">
             {loadingMeetings ? (
               <p>Loading your notes…</p>
@@ -284,7 +268,6 @@ export default function NoteDashboard({ highlightedId }) {
                     </div>
                   ))}
 
-                  {/* Drawer */}
                   {detailNote && (
                     <NoteDetailPanel
                       note={detailNote}

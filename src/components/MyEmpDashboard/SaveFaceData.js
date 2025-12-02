@@ -10,14 +10,12 @@ function SaveFaceData({ onClose }) {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // Alert modal state (no title by default)
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
 
-  // Helper functions for the alert modal
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
@@ -135,9 +133,7 @@ function SaveFaceData({ onClose }) {
 
       const checkResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/api/face/check/${userName}`,
-        {
-          headers,
-        }
+        { credentials: "include", headers }
       );
       const checkData = await checkResponse.json();
 
@@ -278,9 +274,12 @@ function SaveFaceData({ onClose }) {
     try {
       const response = await fetch(`${BACKEND_URL}/api/face/save-face-data`, {
         method: "POST",
+        credentials: "include",
         headers,
         body: JSON.stringify(faceData),
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         showAlert(`${data.message}`);
@@ -315,7 +314,6 @@ function SaveFaceData({ onClose }) {
           for employee attendance tracking.
         </p>
       </div>
-      {/* <p>Employee ID: <strong>{userName}</strong></p> */}
       <div className={`video-container ${isCapturing ? "capturing" : ""}`}>
         <video
           id="video"

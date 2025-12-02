@@ -1,4 +1,3 @@
-// src/components/Report/ReportPanel.js
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
@@ -13,7 +12,6 @@ import EmployeeTypeahead from "./EmployeeTypeahead";
 import FieldsGrid from "./FieldsGrid";
 import Pagination from "./Pagination";
 import { getApiBase } from "./ReportUtils";
-// constants live next to this file as you already had
 import {
   STATUS_OPTIONS,
   SUB_OPTIONS,
@@ -21,17 +19,6 @@ import {
   PREVIEW_PAGE_SIZE,
   MAX_RANGE_DAYS,
 } from "./ReportConstants";
-
-/*
-  NOTE: This file is identical to your original except two changes:
-  1) the synthetic lifecycle field (__asset_lifecycle_status) is no longer injected
-     into the available fields for the Assets component (so it won't show up in
-     user selectable fields).
-  2) when building download params we now filter out lifecycle/raw_status keys
-     before sending the `fields` param to the server. This prevents raw_status
-     and lifecycle columns from appearing in downloaded PDF/XLSX unless the
-     server is explicitly asked for them (and our client will not ask for them).
-*/
 
 function extractEmployeeIdFromLocalStorage() {
   try {
@@ -50,9 +37,7 @@ function extractEmployeeIdFromLocalStorage() {
           obj.employeeId ||
           null
         );
-      } catch (e) {
-        // fall through to pattern match
-      }
+      } catch (e) {}
     }
 
     try {
@@ -410,6 +395,7 @@ export default function ReportPanel() {
     const base = getApiBase();
     axios
       .get(`${base}/api/report/departments`, {
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY || "",
           "x-employee-id": employeeId || "",
@@ -506,10 +492,6 @@ export default function ReportPanel() {
       setFilterEmployeeName("");
       setFilterDepartmentId(null);
     }
-
-    // IMPORTANT CHANGE: Do NOT inject the synthetic lifecycle field into the available fields for Assets.
-    // We still render lifecycle during preview from assigned_to when user selected 'status' column, but it
-    // is not a selectable downloadable field anymore.
 
     setAvailableFields(subsFiltered);
     setSelectedFields(subsFiltered.map((s) => s.key));
@@ -654,7 +636,6 @@ export default function ReportPanel() {
     const MAX_CLIENT_FIELDS_SEND = 60;
     if (!preview) {
       if (selectedFields && selectedFields.length > 0) {
-        // filter out internal/synthetic fields we do not want in downloads
         const forbidden = new Set([
           "__asset_lifecycle_status",
           "raw_status",
@@ -746,6 +727,7 @@ export default function ReportPanel() {
 
       const res = await axios.get(url, {
         responseType: "blob",
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY || "",
           "x-employee-id": employeeId || "",
@@ -828,6 +810,7 @@ export default function ReportPanel() {
       const url = `${base}/api/report/${endpoint}?${paramString}`;
 
       const res = await axios.get(url, {
+        withCredentials: true,
         headers: {
           "x-api-key": process.env.REACT_APP_API_KEY || "",
           "x-employee-id": employeeId || "",

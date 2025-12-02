@@ -74,12 +74,10 @@ export default function EmployeeFormEmployee({
   const goToStep = (targetIndex) => {
     setError("");
     if (targetIndex === currentStep) return;
-    // allow going backwards without validation
     if (targetIndex < currentStep) {
       setCurrentStep(targetIndex);
       return;
     }
-    // going forward: validate current step first (same as Next)
     if (!validateStep()) return;
     setCurrentStep(targetIndex);
   };
@@ -198,6 +196,7 @@ export default function EmployeeFormEmployee({
             `${process.env.REACT_APP_BACKEND_URL}/supervisor/assign`,
             {
               method: "POST",
+              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
                 "x-api-key": process.env.REACT_APP_API_KEY,

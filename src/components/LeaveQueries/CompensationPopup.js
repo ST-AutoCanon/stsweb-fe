@@ -1,13 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./CompensationPopup.css";
 
-/**
- * Props:
- * - lopModal: object (shape from Admin/useLeaveRequest)
- * - setLopModal: setter from parent
- */
 export default function CompensationPopup({ lopModal, setLopModal }) {
-  const [loadingAction, setLoadingAction] = useState(null); // null | 'approve' | ...
+  const [loadingAction, setLoadingAction] = useState(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -75,15 +70,8 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
     return null;
   };
 
-  /**
-   * runHandler
-   * - actionKey: string (loadingAction)
-   * - handler: function from lopModal (may be undefined)
-   * - returns handler result (so callers can act)
-   */
   const runHandler = async (actionKey, handler, ...args) => {
     if (typeof handler !== "function") {
-      // fallback: close if handler missing
       close();
       return { ok: false, message: "no_handler" };
     }
@@ -95,7 +83,6 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
 
       if (!mountedRef.current) return result;
 
-      // If result indicates failure, put message into lopModal.error (if visible)
       if (!result || result.ok === false) {
         let msg = "Action failed";
         if (result && result.body) {
@@ -108,8 +95,6 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
           setLopModal((m) => ({ ...m, error: msg }));
         }
       } else {
-        // success: parent typically closes popup & shows global alert.
-        // Do not force-close here; return result so caller can decide.
       }
 
       return result;
@@ -134,7 +119,6 @@ export default function CompensationPopup({ lopModal, setLopModal }) {
       aria-modal="true"
       aria-labelledby="comp-popup-title"
       onMouseDown={() => {
-        // don't close while an action is running
         if (!anyRunning) close();
       }}
     >

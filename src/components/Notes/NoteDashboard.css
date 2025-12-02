@@ -91,11 +91,11 @@
 }
 
 .date-header.today {
-  border: solid 2px #bee3f8; /* light blue for today */
+  border: solid 2px #bee3f8;
 }
 
 .date-header.selected {
-  border: solid 2px #000; /* pale orange for selected */
+  border: solid 2px #000;
 }
 
 .date-number {
@@ -110,26 +110,22 @@
   font-weight: bold;
 }
 
-/* Section for the grid of cards */
 .notes-grid-section {
   margin: 1.5rem;
 }
 
-/* Heading above the cards */
 .notes-for-date-heading {
   font-size: 1.25rem;
   margin-bottom: 0.75rem;
   text-align: center;
 }
 
-/* Grid layout of note cards (2 columns, adjustable) */
 .notes-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 3rem;
 }
 
-/* Base styling for a note card */
 .note-card-card {
   height: 200px;
   overflow-y: auto;
@@ -162,7 +158,6 @@
   color: #4a5568;
 }
 
-/* “No notes” text when empty */
 .notes-grid-section p {
   text-align: left;
   font-size: 1rem;
@@ -230,7 +225,6 @@
     margin-bottom: 1rem;
   }
 
-  /* Month navigation */
   .nav-button {
     font-size: 1.25rem;
   }
@@ -240,7 +234,6 @@
     text-align: center;
   }
 
-  /* Week grid becomes a horizontally scrollable row of smaller columns */
   .week-grid {
     grid-template-columns: repeat(5, 1fr);
     gap: 0.25rem;
@@ -261,7 +254,6 @@
     font-size: 1rem;
   }
 
-  /* Notes grid: single column cards */
   .notes-grid-section {
     margin: 1rem 0;
   }

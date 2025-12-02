@@ -19,6 +19,7 @@ const AddDepartment = () => {
         `${process.env.REACT_APP_BACKEND_URL}/departments`,
         {
           method: "GET",
+          credentials: "include",
           headers: {
             "x-api-key": API_KEY,
           },
@@ -34,6 +35,7 @@ const AddDepartment = () => {
                 const imgResponse = await fetch(
                   `${process.env.REACT_APP_BACKEND_URL}${dept.icon}`,
                   {
+                    credentials: "include",
                     headers: {
                       "x-api-key": API_KEY,
                     },
@@ -104,6 +106,7 @@ const AddDepartment = () => {
         `${process.env.REACT_APP_BACKEND_URL}/departments/add`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "x-api-key": API_KEY,
           },

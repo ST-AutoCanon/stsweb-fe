@@ -1,4 +1,3 @@
-// NoteDetailPanel.jsx
 import React from "react";
 import "./NoteDetailPanel.css";
 

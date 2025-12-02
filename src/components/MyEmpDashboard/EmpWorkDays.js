@@ -46,6 +46,7 @@ const EmpWorkDays = () => {
       try {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/attendance/${employeeId}`;
         const response = await axios.get(apiUrl, {
+          withCredentials: true,
           headers,
         });
 
@@ -99,8 +100,8 @@ const EmpWorkDays = () => {
     cutout: "70%",
     layout: {
       padding: {
-        top: 15, // Adds space above the chart
-        bottom: 15, // Adds space below the chart
+        top: 15,
+        bottom: 15,
       },
     },
     plugins: {
@@ -116,7 +117,6 @@ const EmpWorkDays = () => {
     },
   };
 
-  // Plugin for center text
   const centerTextPluginWorkDays = {
     id: "centerTextWorkDays",
     afterDraw: (chart) => {

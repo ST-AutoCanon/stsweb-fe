@@ -1,4 +1,3 @@
-// ./stepsEmployee/StepProfessionalEmployee.jsx
 import React, { useEffect, useState } from "react";
 import FileInput from "../EmployeeDetails/FileInput";
 import { MdOutlineCancel } from "react-icons/md";
@@ -40,6 +39,7 @@ export default function StepProfessionalEmployee({
     }
     setHistoryFetched(false);
     fetch(`${BASE_URL}/supervisor/history/${data.employee_id}`, {
+      credentials: "include",
       headers: { "x-api-key": API_KEY },
     })
       .then((res) => res.json())
@@ -97,7 +97,10 @@ export default function StepProfessionalEmployee({
   }, [data.employee_id]);
 
   useEffect(() => {
-    fetch(`${BASE_URL}/user_roles`, { headers: { "x-api-key": API_KEY } })
+    fetch(`${BASE_URL}/user_roles`, {
+      credentials: "include",
+      headers: { "x-api-key": API_KEY },
+    })
       .then((r) => r.json())
       .then((json) => setRoleOptions(json.data || []))
       .catch(() => setRoleOptions([]));
@@ -113,7 +116,7 @@ export default function StepProfessionalEmployee({
       `${BASE_URL}/positions?role=${encodeURIComponent(
         data.role
       )}&department_id=${deptParam}`,
-      { headers: { "x-api-key": API_KEY } }
+      { credentials: "include", headers: { "x-api-key": API_KEY } }
     )
       .then((res) => res.json())
       .then((json) => setPositionsList(json.data || []))
@@ -130,7 +133,7 @@ export default function StepProfessionalEmployee({
       `${BASE_URL}/positions/supervisors?position=${encodeURIComponent(
         data.position
       )}&department_id=${deptParam}`,
-      { headers: { "x-api-key": API_KEY } }
+      { credentials: "include", headers: { "x-api-key": API_KEY } }
     )
       .then((res) => res.json())
       .then((json) => setSupervisorsList(json.data || []))

@@ -1,4 +1,3 @@
-// src/components/LeaveQueries/LopModal.js
 import React from "react";
 import Modal from "../Modal/Modal";
 import { monthName } from "./leaveUtils";

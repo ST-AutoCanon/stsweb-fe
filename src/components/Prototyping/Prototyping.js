@@ -4,7 +4,6 @@ import "./Prototyping.css";
 const Prototyping = () => {
   return (
     <div className="prototyping-container">
-      {/* Left Section */}
       <div className="prototyping-text">
         <h1>Prototyping</h1>
         <p>Our Prototyping Services Include:</p>
@@ -23,7 +22,6 @@ const Prototyping = () => {
         <button className="prototyping-button">Learn More</button>
       </div>
 
-      {/* Right Section */}
       <div className="prototyping-image">
         <img
           src="./images/prototyping.png"

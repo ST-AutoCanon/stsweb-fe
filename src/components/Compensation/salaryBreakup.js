@@ -171,6 +171,7 @@ const SalaryBreakup = () => {
     try {
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`;
       const response = await axios.get(url, {
+        withCredentials: true,
         headers: { "x-api-key": API_KEY, "x-employee-id": meId },
       });
       if (response.data.success) {
@@ -325,6 +326,7 @@ const SalaryBreakup = () => {
       setIsLoading(true);
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/add-bonus-bulk`;
       const response = await axios.post(url, payload, {
+        withCredentials: true,
         headers: {
           "x-api-key": API_KEY,
           "x-employee-id": meId,
@@ -338,6 +340,7 @@ const SalaryBreakup = () => {
         const bonusResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/compensation/bonus-list`,
           {
+            withCredentials: true,
             headers: {
               "x-api-key": API_KEY,
               "x-employee-id": meId,
@@ -465,6 +468,7 @@ const SalaryBreakup = () => {
           applicableMonth,
         },
         {
+          withCredentials: true,
           headers: { "x-api-key": API_KEY, "x-employee-id": meId },
         }
       );
@@ -478,6 +482,7 @@ const SalaryBreakup = () => {
         const advancesResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/compensation/advance-details`,
           {
+            withCredentials: true,
             headers: { "x-api-key": API_KEY, "x-employee-id": meId },
           }
         );
@@ -526,7 +531,10 @@ const SalaryBreakup = () => {
       setIsLoading(true);
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`;
       const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-      const response = await axios.get(url, { headers });
+      const response = await axios.get(url, {
+        withCredentials: true,
+        headers,
+      });
       if (!response.data.success) {
         throw new Error(
           response.data.message || "Failed to fetch assigned employees"
@@ -554,7 +562,10 @@ const SalaryBreakup = () => {
         assignedDate: new Date().toISOString().split("T")[0],
         departmentIds: [],
       };
-      const assignResponse = await axios.post(assignUrl, payload, { headers });
+      const assignResponse = await axios.post(assignUrl, payload, {
+        withCredentials: true,
+        headers,
+      });
       if (assignResponse.data.success) {
         openMessageModal(
           "Success",
@@ -562,7 +573,7 @@ const SalaryBreakup = () => {
         );
         const compensationsResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/compensations/list`,
-          { headers }
+          { withCredentials: true, headers }
         );
         const compensationMap = new Map();
         if (compensationsResponse.data.success) {
@@ -572,7 +583,7 @@ const SalaryBreakup = () => {
         }
         const employeesResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/compensation/assigned`,
-          { headers }
+          { withCredentials: true, headers }
         );
         if (employeesResponse.data.success) {
           const enrichedEmployees = employeesResponse.data.data.map((emp) => ({
@@ -584,7 +595,7 @@ const SalaryBreakup = () => {
         }
         const allEmployeesResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/employees/names`,
-          { headers }
+          { withCredentials: true, headers }
         );
         if (allEmployeesResponse.data.success) {
           setAllEmployees(allEmployeesResponse.data.data || []);
@@ -617,9 +628,7 @@ const SalaryBreakup = () => {
 
         const allEmployeesResponse = await axios.get(
           `${baseUrl}/api/employees/names`,
-          {
-            headers,
-          }
+          { withCredentials: true, headers }
         );
         if (allEmployeesResponse.data.success) {
           const employeesList = allEmployeesResponse.data.data || [];
@@ -632,9 +641,7 @@ const SalaryBreakup = () => {
 
         const compensationsResponse = await axios.get(
           `${baseUrl}/api/compensations/list`,
-          {
-            headers,
-          }
+          { withCredentials: true, headers }
         );
         const compensationMap = new Map();
         if (compensationsResponse.data.success) {
@@ -650,9 +657,7 @@ const SalaryBreakup = () => {
 
         const employeesResponse = await axios.get(
           `${baseUrl}/api/compensation/assigned`,
-          {
-            headers,
-          }
+          { withCredentials: true, headers }
         );
         if (employeesResponse.data.success) {
           const enrichedEmployees = employeesResponse.data.data.map((emp) => ({
@@ -718,7 +723,7 @@ const SalaryBreakup = () => {
 
         const advancesResponse = await axios.get(
           `${baseUrl}/api/compensation/advance-details`,
-          { headers }
+          { withCredentials: true, headers }
         );
         if (advancesResponse.data.success) {
           setAdvances(advancesResponse.data.data || []);
@@ -726,7 +731,7 @@ const SalaryBreakup = () => {
 
         const overtimeResponse = await axios.get(
           `${baseUrl}/api/compensation/overtime-details`,
-          { headers }
+          { withCredentials: true, headers }
         );
         if (overtimeResponse.data.success) {
           setOvertimeRecords(overtimeResponse.data.data || []);
@@ -734,7 +739,7 @@ const SalaryBreakup = () => {
 
         const bonusResponse = await axios.get(
           `${baseUrl}/api/compensation/bonus-list`,
-          { headers }
+          { withCredentials: true, headers }
         );
         if (bonusResponse.data.success) {
           setBonusRecords(bonusResponse.data.data || []);

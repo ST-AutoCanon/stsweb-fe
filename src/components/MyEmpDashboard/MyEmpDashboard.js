@@ -21,7 +21,6 @@ const MyEmpDashboard = () => {
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const [showFacePopup, setShowFacePopup] = useState(false);
 
-  // ✅ Modified useEffect to check camera presence before showing popup
   useEffect(() => {
     const dashboardData = localStorage.getItem("dashboardData");
 
@@ -29,26 +28,22 @@ const MyEmpDashboard = () => {
       try {
         const parsedData = JSON.parse(dashboardData);
         const employeeId = parsedData.employeeId;
-        setEmployeeId(employeeId); // Set it here for the second useEffect
+        setEmployeeId(employeeId);
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/api/check-face-registered/${employeeId}`;
 
-        // Check if device has a camera
         navigator.mediaDevices.enumerateDevices().then((devices) => {
           const hasCamera = devices.some(
             (device) => device.kind === "videoinput"
           );
           if (!hasCamera) {
-            return; // Skip if no camera
+            return;
           }
 
-          // If camera is available, call API
           axios
-            .get(apiUrl, {
-              headers,
-            })
+            .get(apiUrl, { withCredentials: true, headers })
             .then((response) => {
               if (response.data && response.data.isRegistered === false) {
-                setShowFacePopup(true); // Show popup only if not registered
+                setShowFacePopup(true);
               }
             })
             .catch((error) => {
@@ -61,7 +56,6 @@ const MyEmpDashboard = () => {
     }
   }, []);
 
-  // Unused now, but keeping it if you later need it
   useEffect(() => {
     if (!employeeId) return;
 
@@ -70,9 +64,7 @@ const MyEmpDashboard = () => {
         const checkResponse = await axios.get(
           `${BACKEND_URL}/api/face/check/${employeeId}`,
 
-          {
-            headers,
-          }
+          { withCredentials: true, headers }
         );
         if (checkResponse.data.isRegistered === false) {
           setShowPopup(true);
@@ -108,10 +100,6 @@ const MyEmpDashboard = () => {
       <div className="mydailyworkhour123">
         <MyDailyWorkHour />
       </div>
-
-      {/* <div className="EmpProjectTable">
-        <EmpProjectTable />
-      </div> */}
 
       <div className="EmpLeaveTracker123">
         <EmpLeaveTracker />

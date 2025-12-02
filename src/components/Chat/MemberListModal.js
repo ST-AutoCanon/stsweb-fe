@@ -42,6 +42,7 @@ export default function MemberListModal({
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BACKEND_URL}/rooms/${roomId}/members`, {
+        withCredentials: true,
         headers,
       })
       .then((res) => {
@@ -53,7 +54,10 @@ export default function MemberListModal({
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, { headers })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/employees`, {
+        withCredentials: true,
+        headers,
+      })
       .then((r) => setAllEmployees(r.data.data || []))
       .catch(console.error);
   }, []);
@@ -71,11 +75,11 @@ export default function MemberListModal({
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/rooms/${roomId}/members`,
         { employeeId: empId },
-        { headers }
+        { withCredentials: true, headers }
       );
       const { data } = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/rooms/${roomId}/members`,
-        { headers }
+        { withCredentials: true, headers }
       );
       setMembers(data);
       setQuery("");
@@ -93,11 +97,11 @@ export default function MemberListModal({
         try {
           await axios.delete(
             `${process.env.REACT_APP_BACKEND_URL}/rooms/${roomId}/members/${empId}`,
-            { headers }
+            { withCredentials: true, headers }
           );
           const { data } = await axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/rooms/${roomId}/members`,
-            { headers }
+            { withCredentials: true, headers }
           );
           setMembers(data);
         } catch (err) {
