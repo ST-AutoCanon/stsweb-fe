@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
@@ -74,6 +74,56 @@ const displayDate = (date) => {
 };
 
 const TaskManagement = () => {
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) return;
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.continuous = true;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.lang = "en-US";
+
+    recognitionRef.current.onresult = (event) => {
+      let transcript = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setMessageText((prev) => (prev + " " + transcript).trim());
+    };
+
+    recognitionRef.current.onresult = (event) => {
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        // Only take final text (not interim repeated text)
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setMessageText((prev) => (prev + " " + finalTranscript).trim());
+      }
+    };
+  }, []);
+
+  const toggleMic = () => {
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [messageText, setMessageText] = useState("");
   const [showAssignForm, setShowAssignForm] = useState(false);
@@ -131,7 +181,10 @@ const TaskManagement = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/employees`,
-          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+          }
         );
         if (
           !response.data.employees ||
@@ -164,14 +217,18 @@ const TaskManagement = () => {
   }, [supervisorId]);
 
   useEffect(() => {
-    if (!supervisorId || !employees.length) return;
+    if (!supervisorId || !employees.length) return; // Wait for employees to be loaded
     const fetchTasks = async () => {
       setLoadingTasks(true);
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/tasks`,
-          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+          }
         );
+        // Filter tasks to include only those assigned to employees under the supervisor
         const validEmployeeIds = new Set(
           employees.map((emp) => emp.employee_id)
         );
@@ -191,7 +248,7 @@ const TaskManagement = () => {
               employeeId: task.employee_id,
               user: {
                 name: employee?.employee_name || "Unknown Employee",
-                profile: "",
+                profile: "", // No photo URL
               },
               progress: task.percentage,
               messages: [],
@@ -227,7 +284,10 @@ const TaskManagement = () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`,
-          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+          }
         );
         if (response.status === 200) {
           if (response.data.success) {
@@ -304,6 +364,9 @@ const TaskManagement = () => {
         let errorMessage = "Failed to fetch messages";
         if (err.response) {
           if (err.response.status === 404) {
+            console.log(
+              `No messages found for taskId: ${taskId}, treated as valid case`
+            );
           } else {
             errorMessage = `Error ${err.response.status}: ${
               err.response.data?.error ||
@@ -341,7 +404,7 @@ const TaskManagement = () => {
     [tasks, selectedTaskId]
   );
 
-  const currentDate = new Date(2025, 8, 17, 11, 37);
+  const currentDate = new Date(2025, 8, 17, 11, 37); // 11:37 AM IST, September 17, 2025
 
   const openDetails = (taskId) => setSelectedTaskId(taskId);
 
@@ -390,6 +453,7 @@ const TaskManagement = () => {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/employee-tasks/update/${taskId}`,
         updateData,
+
         { withCredentials: true, headers: { "x-employee-id": supervisorId } }
       );
       if (
@@ -398,7 +462,10 @@ const TaskManagement = () => {
       ) {
         const refreshedTask = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/tasks/${taskId}`,
-          { withCredentials: true, headers: { "x-employee-id": supervisorId } }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+          }
         );
         const updatedTask = refreshedTask.data;
         setTasks((prev) =>
@@ -490,7 +557,10 @@ const TaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
         messageData,
-        { withCredentials: true, headers: { "x-employee-id": supervisorId } }
+        {
+          withCredentials: true,
+          headers: { "x-employee-id": supervisorId },
+        }
       );
       if (response.data.success) {
         setTasks((prev) =>
@@ -610,7 +680,10 @@ const TaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/tasks`,
         taskData,
-        { withCredentials: true, headers: { "x-employee-id": supervisorId } }
+        {
+          withCredentials: true,
+          headers: { "x-employee-id": supervisorId },
+        }
       );
       setTasks((prev) => [
         ...prev,
@@ -624,7 +697,7 @@ const TaskManagement = () => {
           employeeId,
           user: {
             name: selectedEmployee.employee_name,
-            profile: "",
+            profile: "", // No photo URL
           },
           progress: percentage,
           messages: [],
@@ -1067,13 +1140,25 @@ const TaskManagement = () => {
                             className="task-chat-input"
                             onSubmit={handleAddMessage}
                           >
-                            <input
-                              type="text"
-                              placeholder="Type a progress comment…"
-                              value={messageText}
-                              onChange={(e) => setMessageText(e.target.value)}
-                              disabled={loadingMessages}
-                            />
+                            <div className="task-mic-input-wrapper">
+                              <input
+                                type="text"
+                                placeholder="Type message…"
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                              />
+
+                              <button
+                                type="button"
+                                className={`task-mic-button ${
+                                  isListening ? "listening" : ""
+                                }`}
+                                onClick={toggleMic}
+                              >
+                                <i className="fa-solid fa-microphone"></i>
+                              </button>
+                            </div>
+
                             <button type="submit" disabled={loadingMessages}>
                               Send
                             </button>
@@ -1121,13 +1206,25 @@ const TaskManagement = () => {
                             className="task-chat-input"
                             onSubmit={handleAddMessage}
                           >
-                            <input
-                              type="text"
-                              placeholder="Type a clarification message…"
-                              value={messageText}
-                              onChange={(e) => setMessageText(e.target.value)}
-                              disabled={loadingMessages}
-                            />
+                            <div className="task-mic-input-wrapper">
+                              <input
+                                type="text"
+                                placeholder="Type message…"
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                              />
+
+                              <button
+                                type="button"
+                                className={`task-mic-button ${
+                                  isListening ? "listening" : ""
+                                }`}
+                                onClick={toggleMic}
+                              >
+                                <i className="fa-solid fa-microphone"></i>
+                              </button>
+                            </div>
+
                             <button type="submit" disabled={loadingMessages}>
                               Send
                             </button>

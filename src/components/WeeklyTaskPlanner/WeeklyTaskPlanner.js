@@ -148,6 +148,53 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   });
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const tooltipRef = useRef(null);
+  const [assignListeningIndex, setAssignListeningIndex] = useState(null);
+  const startAssignListening = (index) => {
+    if (!("webkitSpeechRecognition" in window)) {
+      alert("Speech Recognition is not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.lang = "en-IN";
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = false;
+
+    recognitionRef.current.onstart = () => {
+      setAssignListeningIndex(index);
+    };
+
+    recognitionRef.current.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setAssignTasks((prev) =>
+        prev.map((task, i) =>
+          i === index
+            ? { ...task, taskName: task.taskName + " " + transcript }
+            : task
+        )
+      );
+    };
+
+    recognitionRef.current.onerror = () => {
+      setAssignListeningIndex(null);
+    };
+
+    recognitionRef.current.onend = () => {
+      setAssignListeningIndex(null);
+    };
+
+    recognitionRef.current.start();
+  };
+
+  const stopAssignListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setAssignListeningIndex(null);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -954,7 +1001,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/${strikeTaskId}`,
         updatedTask,
         {
-          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -985,7 +1031,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
         newTask,
         {
-          withCredentials: true,
           headers: {
             "x-api-key": process.env.REACT_APP_API_KEY,
           },
@@ -1409,14 +1454,54 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
                     </div>
                     <div className="week-task-form-group-task">
                       <label>Task</label>
-                      <input
-                        type="text"
-                        value={task.taskName}
-                        onChange={(e) =>
-                          handleAssignChange(index, "taskName", e.target.value)
-                        }
-                        placeholder="Enter task"
-                      />
+                      <div className="week-task-comment-mic-wrapper">
+                        <input
+                          type="text"
+                          value={task.taskName}
+                          onChange={(e) =>
+                            handleAssignChange(
+                              index,
+                              "taskName",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Enter task"
+                          className="week-task-edit-comment-input"
+                        />
+
+                        <span
+                          className="week-task-mic-icon"
+                          onClick={() =>
+                            assignListeningIndex === index
+                              ? stopAssignListening()
+                              : startAssignListening(index)
+                          }
+                          style={{
+                            cursor: "pointer",
+                            marginLeft: "8px",
+                            fontSize: "22px",
+                          }}
+                        >
+                          {assignListeningIndex === index ? (
+                            <MdMicNone className="mic-listening" />
+                          ) : (
+                            <MdMic className="mic-idle" />
+                          )}
+                        </span>
+
+                        {assignListeningIndex === index && (
+                          <span
+                            style={{
+                              marginLeft: "6px",
+                              color: "red",
+                              fontSize: "14px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Listening…
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

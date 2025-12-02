@@ -37,12 +37,6 @@ const EmpWorkDays = () => {
     if (!employeeId) return;
 
     const fetchWorkDaysData = async () => {
-      if (!API_KEY) {
-        setError("API Key is missing.");
-        setLoading(false);
-        return;
-      }
-
       try {
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/attendance/${employeeId}`;
         const response = await axios.get(apiUrl, {

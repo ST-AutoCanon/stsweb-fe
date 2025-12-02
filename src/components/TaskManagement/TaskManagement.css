@@ -162,9 +162,12 @@
 }
 
 .task-title {
+  /* font-weight: 500; */
   font-size: 1rem;
   color: #1f2937;
+  /* text-transform: none; */
   overflow: hidden;
+  /* text-overflow: ellipsis; */
 }
 
 .task-id-chip {
@@ -238,9 +241,16 @@
 
 .task-start,
 .task-end {
+  /* background-color: #d1d5db; */
   padding: 4px 10px;
+  /* color: #374151; */
   font-size: 0.75rem;
 }
+
+/* .task-overdue {
+  background-color: #fee2e2;
+  color: #dc2626;
+} */
 
 .task-arrow {
   color: #6b7280;
@@ -722,6 +732,7 @@
   background-color: #28a745;
   transform: translateY(-1px);
 }
+/* ... Existing CSS remains unchanged ... */
 
 @media (max-width: 640px) {
   .task-board {
@@ -733,7 +744,7 @@
     margin: 20px;
   }
   .task-tab-header {
-    flex-direction: row;
+    flex-direction: row; /* Row for left-right layout */
     overflow-x: auto;
     white-space: nowrap;
     border-bottom: none;
@@ -751,14 +762,14 @@
     font-size: 0.9rem;
     margin: 0;
     scroll-snap-align: center;
-    background-color: #f3f4f6;
-    color: #6b7280;
+    background-color: #f3f4f6; /* Default background for inactive */
+    color: #6b7280; /* Default text color */
     transition: background-color 0.2s ease, color 0.2s ease;
   }
   .task-tab-btn.task-active {
-    background-color: #28a745;
-    color: #ffffff;
-    border-color: #28a745;
+    background-color: #28a745; /* Active background (green) */
+    color: #ffffff; /* Active text color: white */
+    border-color: #28a745; /* Match border to background */
     font-weight: 600;
   }
   .task-tab-btn:hover {
@@ -766,7 +777,7 @@
     color: #374151;
   }
   .task-tab-btn.task-active:hover {
-    background-color: #218838;
+    background-color: #218838; /* Slightly darker green on hover for active */
     color: #ffffff;
   }
   .assign-task-modal .form-row {
@@ -777,11 +788,60 @@
     width: 100%;
   }
 
+  /* Hide scrollbar */
   .task-tab-header::-webkit-scrollbar {
     display: none;
   }
   .task-tab-header {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+.task-mic-input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.task-mic-button {
+  background: #e0e0e0;
+  border: none;
+  outline: none;
+  width: 38px;
+  height: 38px;
+  margin-left: 8px;
+  /* border-radius: 50%; */
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  font-size: 18px;
+  transition: 0.2s ease;
+}
+
+.task-mic-button i {
+  color: hsl(0, 0%, 100%);
+}
+
+.task-mic-button.listening {
+  background: #ff4d4d;
+  animation: pulseMic 1s infinite;
+}
+
+.task-mic-button.listening i {
+  color: white;
+}
+
+@keyframes pulseMic {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
   }
 }
