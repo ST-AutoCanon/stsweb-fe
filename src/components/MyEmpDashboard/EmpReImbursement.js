@@ -39,8 +39,6 @@ const EmpReImbursement = () => {
       setError(null);
 
       try {
-        if (!API_KEY) throw new Error("API Key is missing.");
-
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/stats/${employeeId}`;
 
         const response = await axios.get(apiUrl, {

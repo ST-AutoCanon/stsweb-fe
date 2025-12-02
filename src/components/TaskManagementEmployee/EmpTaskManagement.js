@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
@@ -6,9 +6,9 @@ import "./EmpTaskManagement.css";
 import WeeklyTaskPlanner from "../WeeklyTaskPlanner/WeeklyTaskPlanner";
 
 const getProgressColor = (p) => {
-  if (p < 40) return "#ef4444";
-  if (p < 70) return "#f59e0b";
-  return "#10b981";
+  if (p < 40) return "#ef4444"; // red-500
+  if (p < 70) return "#f59e0b"; // amber-500
+  return "#10b981"; // emerald-500
 };
 
 const parseDate = (dateStr) => {
@@ -85,7 +85,8 @@ const EmpTaskManagement = () => {
   const [tempProgress, setTempProgress] = useState(0);
   const [tempStatus, setTempStatus] = useState("");
   const [activeSection, setActiveSection] = useState("Tasks");
-
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
   const normalizeStatus = (status) => {
     if (!status) return "Yet to Start";
     const normalized = status.trim().toLowerCase();
@@ -99,6 +100,47 @@ const EmpTaskManagement = () => {
     return statusMap[normalized] || "Yet to Start";
   };
 
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) return;
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.continuous = true;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.lang = "en-US";
+
+    recognitionRef.current.onresult = (event) => {
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setMessageText((prev) => (prev + " " + finalTranscript).trim());
+      }
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+    };
+  }, []);
+
+  const toggleMic = () => {
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
   useEffect(() => {
     const data = localStorage.getItem("dashboardData");
     if (data) {
@@ -145,7 +187,7 @@ const EmpTaskManagement = () => {
         setTasks(tasksWithPhotos);
       } catch (err) {
         if (err.response && err.response.status === 404) {
-          setTasks([]);
+          setTasks([]); // Set tasks to empty array for 404
         } else {
           let errorMessage = "Failed to fetch tasks";
           if (err.response)
@@ -172,7 +214,10 @@ const EmpTaskManagement = () => {
         const taskId = selectedTaskId.split("-")[1];
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/messages/${taskId}`,
-          { withCredentials: true, headers: { "x-employee-id": employeeId } }
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": employeeId },
+          }
         );
         if (response.data.success) {
           const { progressMessages = [], clarificationMessages = [] } =
@@ -281,7 +326,7 @@ const EmpTaskManagement = () => {
     [tasks, selectedTaskId]
   );
 
-  const currentDate = new Date(2025, 8, 17, 1, 23);
+  const currentDate = new Date(2025, 8, 17, 1, 23); // 12:23 AM IST, September 17, 2025
 
   const openDetails = (taskId) => {
     setSelectedTaskId(taskId);
@@ -410,7 +455,10 @@ const EmpTaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
         messageData,
-        { withCredentials: true, headers: { "x-employee-id": employeeId } }
+        {
+          withCredentials: true,
+          headers: { "x-employee-id": employeeId },
+        }
       );
       if (response.data.success) {
         setTasks((prev) =>
@@ -449,7 +497,10 @@ const EmpTaskManagement = () => {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/messages`,
         messageData,
-        { withCredentials: true, headers: { "x-employee-id": employeeId } }
+        {
+          withCredentials: true,
+          headers: { "x-employee-id": employeeId },
+        }
       );
       if (response.data.success) {
         setTasks((prev) =>
@@ -898,13 +949,25 @@ const EmpTaskManagement = () => {
                             className="emp-task-chat-input"
                             onSubmit={handleAddMessage}
                           >
-                            <input
-                              type="text"
-                              placeholder="Type a progress comment…"
-                              value={messageText}
-                              onChange={(e) => setMessageText(e.target.value)}
-                              disabled={loadingMessages}
-                            />
+                            <div className="emp-mic-input-wrapper">
+                              <input
+                                type="text"
+                                placeholder="Type message…"
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                              />
+
+                              <button
+                                type="button"
+                                className={`emp-mic-button ${
+                                  isListening ? "listening" : ""
+                                }`}
+                                onClick={toggleMic}
+                              >
+                                <i className="fa-solid fa-microphone"></i>
+                              </button>
+                            </div>
+
                             <button type="submit" disabled={loadingMessages}>
                               Send
                             </button>
@@ -952,13 +1015,25 @@ const EmpTaskManagement = () => {
                             className="emp-task-chat-input"
                             onSubmit={handleAddMessage}
                           >
-                            <input
-                              type="text"
-                              placeholder="Type a clarification message…"
-                              value={messageText}
-                              onChange={(e) => setMessageText(e.target.value)}
-                              disabled={loadingMessages}
-                            />
+                            <div className="emp-mic-input-wrapper">
+                              <input
+                                type="text"
+                                placeholder="Type message…"
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                              />
+
+                              <button
+                                type="button"
+                                className={`emp-mic-button ${
+                                  isListening ? "listening" : ""
+                                }`}
+                                onClick={toggleMic}
+                              >
+                                <i className="fa-solid fa-microphone"></i>
+                              </button>
+                            </div>
+
                             <button type="submit" disabled={loadingMessages}>
                               Send
                             </button>

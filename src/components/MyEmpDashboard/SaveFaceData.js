@@ -255,8 +255,8 @@ function SaveFaceData({ onClose }) {
       localStorage.getItem("dashboardData") || "{}"
     ).employeeId;
 
-    if (!API_KEY || !BACKEND_URL) {
-      showAlert("API Key or Backend URL is missing.");
+    if (!BACKEND_URL) {
+      showAlert("Backend URL is missing.");
       return;
     }
 

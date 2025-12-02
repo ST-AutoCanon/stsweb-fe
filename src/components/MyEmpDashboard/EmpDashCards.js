@@ -213,7 +213,7 @@ const EmpDashCards = () => {
 
   const handlePunch = async () => {
     setErrorMessage("");
-    if (!employeeId || !API_KEY) {
+    if (!employeeId) {
       setErrorMessage("Session expired. Please login again.");
       return;
     }

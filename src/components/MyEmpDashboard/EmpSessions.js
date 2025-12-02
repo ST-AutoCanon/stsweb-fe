@@ -45,11 +45,6 @@ const EmpSessions = () => {
       setError(null);
 
       try {
-        if (!API_KEY) {
-          setError("API Key is missing.");
-          return;
-        }
-
         const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/today-punch/${employeeId}`;
         const response = await axios.get(apiUrl, {
           withCredentials: true,
