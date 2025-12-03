@@ -41,7 +41,7 @@ const SalaryDetails = () => {
     "Content-Type": "application/json",
   };
 
-  const hasValidCredentials = () => API_KEY && meId;
+  const hasValidCredentials = () => meId;
 
   const isApproved = (empId) => approvedIds.includes(String(empId));
 
@@ -121,7 +121,7 @@ const SalaryDetails = () => {
   useEffect(() => {
     const fetchSalaryBreakupData = async () => {
       if (!hasValidCredentials()) {
-        console.error("Missing credentials: API_KEY or meId");
+        console.error("Missing credentials: meId");
         setIsLoading(false);
         return;
       }

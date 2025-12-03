@@ -63,7 +63,7 @@ const OvertimeSupervisor = () => {
   };
 
   const fetchData = async () => {
-    if (!API_KEY || !meId) return;
+    if (!meId) return;
     setLoading(true);
     try {
       const cutoffRes = await axios.get(

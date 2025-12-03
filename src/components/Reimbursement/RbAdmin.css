@@ -280,3 +280,86 @@ td:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.rb-sub-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.rb-sub-table td,
+.rb-sub-table th {
+  padding: 10px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.invoice-cell,
+.rb-sub-table .invoice-cell {
+  max-width: 160px;
+  min-width: 80px;
+  box-sizing: border-box;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  position: relative;
+}
+
+.invoice-cell[title]:hover::after,
+.rb-sub-table .invoice-cell[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 60;
+
+  max-width: 420px;
+  min-width: 180px;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  color: #111;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.invoice-cell[title]:hover::before,
+.rb-sub-table .invoice-cell[title]:hover::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 100%;
+  margin-top: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #fff transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+  z-index: 61;
+}
+
+.invoice-cell[title]:hover::after {
+  right: auto;
+}
+
+@media (max-width: 600px) {
+  .invoice-cell,
+  .rb-sub-table .invoice-cell {
+    max-width: 120px;
+  }
+  .invoice-cell[title]:hover::after,
+  .rb-sub-table .invoice-cell[title]:hover::after {
+    max-width: 90vw;
+    left: 5vw;
+  }
+}

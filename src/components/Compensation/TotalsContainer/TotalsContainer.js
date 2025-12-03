@@ -115,8 +115,8 @@ const TotalsContainer = () => {
 
   useEffect(() => {
     const fetchTotalsData = async () => {
-      if (!process.env.REACT_APP_API_KEY || !meId) {
-        console.error("Missing credentials: API_KEY or meId");
+      if (!meId) {
+        console.error("Missing credentials: meId");
         setIsLoading(false);
         return;
       }
