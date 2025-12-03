@@ -884,8 +884,8 @@ const SalaryBreakupMain = () => {
 
   useEffect(() => {
     const fetchSalaryBreakupData = async () => {
-      if (!process.env.REACT_APP_API_KEY || !meId) {
-        console.error("Missing credentials: API_KEY or meId");
+      if (!meId) {
+        console.error("Missing credentials: meId");
         openMessageModal(
           "Error",
           "Authentication credentials are missing. Please check environment variables or login status.",

@@ -5,14 +5,18 @@ import {
   MdOutlineEdit,
   MdDeleteOutline,
   MdOutlineCancel,
+  MdOutlineRemoveRedEye,
   MdEmojiTransportation,
   MdOutlinePhoneAndroid,
-  MdOutlineRemoveRedEye,
 } from "react-icons/md";
 import { GiKnifeFork, GiPencilBrush } from "react-icons/gi";
 import { TbTriangleSquareCircle } from "react-icons/tb";
 import "./Reimbursement.css";
+import "./ParticipantSelection.css";
 import Modal from "../Modal/Modal";
+import ParticipantSelection from "./ParticipantSelection";
+import AttachmentsModal from "./AttachmentModal";
+import ReimbursementForm from "./ReimbursementForm";
 
 const claimTypes = [
   {
@@ -31,7 +35,7 @@ const claimTypes = [
   },
 ];
 
-const role = localStorage.getItem("userRole");
+const role = localStorage.getItem("userRole") || "";
 
 const Reimbursement = () => {
   const [reimbursements, setReimbursements] = useState([]);
@@ -40,16 +44,21 @@ const Reimbursement = () => {
   const [toDate, setToDate] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [transportType, setTransportType] = useState("");
-  const [noOfDaysType, setNoOfDaysType] = useState("");
+
   const authToken = localStorage.getItem("authToken");
-  const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
-  const employeeId = employeeData?.employeeId;
-  const departmentId = employeeData?.department_id;
+  const employeeData = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  );
+  const employeeId =
+    employeeData?.employeeId || employeeData?.employee_id || "";
+  const departmentId = employeeData?.department_id || "";
+
   const [attachments, setAttachments] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAttachmentsOpen, setIsAttachmentsOpen] = useState(false);
+  const [attachmentViewerFiles, setAttachmentViewerFiles] = useState([]);
+  const [attachmentViewerTitle, setAttachmentViewerTitle] = useState("");
+
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [selectedClaim, setSelectedClaim] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [updateErrorMessage, setUpdateErrorMessage] = useState("");
   const [submitErrorMessage, setSubmitErrorMessage] = useState("");
@@ -57,10 +66,49 @@ const Reimbursement = () => {
   const [statusFilter, setStatusFilter] = useState(
     role === "Admin" ? "approved" : "pending"
   );
-  const [selectedSubType, setSelectedSubType] = useState("");
+
+  const [participantMode, setParticipantMode] = useState("single"); // 'single'|'group'
+  const [participants, setParticipants] = useState(
+    employeeId ? [employeeId] : []
+  );
+  const [employeeOptions, setEmployeeOptions] = useState([]);
+
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+  const showAlert = (message, title = "") =>
+    setAlertModal({ isVisible: true, title, message });
+  const closeAlert = () =>
+    setAlertModal({ isVisible: false, title: "", message: "" });
+
+  const [confirmModal, setConfirmModal] = useState({
+    isVisible: false,
+    id: null,
+    title: "Confirm",
+    message: "",
+    claim: null,
+  });
+  const openConfirmDelete = (id, claim = null) =>
+    setConfirmModal({
+      isVisible: true,
+      id,
+      title: "Delete Reimbursement",
+      message: "Are you sure you want to delete this reimbursement?",
+      claim,
+    });
+  const closeConfirmDelete = () =>
+    setConfirmModal({
+      isVisible: false,
+      id: null,
+      title: "",
+      message: "",
+      claim: null,
+    });
 
   const [formData, setFormData] = useState({
-    employeeId: employeeId,
+    employeeId,
     department_id: departmentId,
     claim_type: "",
     transport_type: "",
@@ -82,119 +130,93 @@ const Reimbursement = () => {
     service_provider: "",
     project: "",
     attachments: null,
+    invoices: [],
   });
 
-  const formatDisplayDate = (raw) => {
-    if (!raw) return "N/A";
-    const d = raw instanceof Date ? raw : new Date(raw);
-    if (isNaN(d)) return raw;
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = d.toLocaleString("en-GB", { month: "short" });
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
+  const RAW_BACKEND =
+    process.env.REACT_APP_BACKEND_URL || localStorage.getItem("backend") || "";
+  const BACKEND = (() => {
+    if (!RAW_BACKEND) return "";
+    if (!/^https?:\/\//i.test(RAW_BACKEND))
+      return `http://${RAW_BACKEND}`.replace(/\/$/, "");
+    return RAW_BACKEND.replace(/\/$/, "");
+  })();
+
+  const buildHeaders = () => {
+    const h = {};
+    const apiKey =
+      process.env.REACT_APP_API_KEY ||
+      localStorage.getItem("apiKey") ||
+      localStorage.getItem("x-api-key");
+    if (apiKey) h["x-api-key"] = apiKey;
+    if (authToken) h["Authorization"] = `Bearer ${authToken}`;
+    return h;
   };
 
-  const [confirmModal, setConfirmModal] = useState({
-    isVisible: false,
-    message: "",
-    onConfirm: null,
-  });
-  const showConfirm = (message, onConfirm) =>
-    setConfirmModal({ isVisible: true, message, onConfirm });
-  const closeConfirm = () =>
-    setConfirmModal({ isVisible: false, message: "", onConfirm: null });
-
-  const [alertModal, setAlertModal] = useState({
-    isVisible: false,
-    title: "",
-    message: "",
-  });
-  const showAlert = (message, title = "") =>
-    setAlertModal({ isVisible: true, title, message });
-  const closeAlert = () =>
-    setAlertModal({ isVisible: false, title: "", message: "" });
+  const extractErrorMessage = (
+    err,
+    fallback = "An unexpected error occurred."
+  ) => {
+    const data = err?.response?.data;
+    if (data) {
+      if (typeof data === "string") return data;
+      if (data.error) return data.error;
+      if (data.message) return data.message;
+      if (data.errors) {
+        if (Array.isArray(data.errors)) return data.errors.join(", ");
+        if (typeof data.errors === "object") return JSON.stringify(data.errors);
+      }
+    }
+    if (err?.message) return err.message;
+    return fallback;
+  };
 
   const fetchReimbursements = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${employeeId}`,
-        {
-          withCredentials: true,
-          headers: {
-            "x-api-key": process.env.REACT_APP_API_KEY,
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const url = `${
+        BACKEND || process.env.REACT_APP_BACKEND_URL
+      }/reimbursement/${employeeId}`;
 
-      const reimbursementsData = Array.isArray(response.data)
-        ? response.data
-        : response.data || [];
-      setReimbursements(reimbursementsData);
+      const config = { withCredentials: true, headers: buildHeaders() };
+      if (String(url).includes("/uploads/")) {
+        config.withCredentials = true;
+        config.responseType = "blob";
+      }
+
+      const res = await axios.get(url, config);
+      const data = Array.isArray(res.data) ? res.data : res.data || [];
+      setReimbursements(data);
 
       const attachmentsData = {};
       await Promise.all(
-        reimbursementsData.map(async (claim) => {
+        data.map(async (claim) => {
           try {
-            const claimId = claim.id;
-            const attachmentResponse = await axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${claimId}/attachments`,
-              {
-                withCredentials: true,
-                headers: {
-                  "x-api-key": process.env.REACT_APP_API_KEY,
-                  Authorization: `Bearer ${authToken}`,
-                },
-              }
+            const attachRes = await axios.get(
+              `${BACKEND || process.env.REACT_APP_BACKEND_URL}/reimbursement/${
+                claim.id
+              }/attachments`,
+              { withCredentials: true, headers: buildHeaders() }
             );
-
-            attachmentsData[claimId] = (
-              attachmentResponse.data.attachments || []
-            ).map((file) => {
-              const pathParts = (file.file_path || "")
-                .split("/")
-                .filter(Boolean);
-              const year = pathParts[pathParts.length - 4] || "";
-              const month = pathParts[pathParts.length - 3] || "";
-              const empId =
-                pathParts[pathParts.length - 2] ||
-                claim.employee_id ||
-                claim.employeeId ||
-                "";
-              return { ...file, year, month, employeeId: empId };
-            });
-          } catch (err) {
-            console.error(
-              `Error fetching attachments for claim ${claim.id}`,
-              err
-            );
+            attachmentsData[claim.id] = attachRes.data.attachments || [];
+          } catch {
             attachmentsData[claim.id] = [];
           }
         })
       );
-
       setAttachments(attachmentsData);
-    } catch (error) {
-      console.error("Error fetching reimbursements:", error);
+    } catch (err) {
+      console.error("Error fetching reimbursements:", err);
       setErrorMessage(
-        error?.response?.data?.message ||
-          "We ran into a problem fetching reimbursements."
-      );
-      showAlert(
-        error?.response?.data?.message || "Error fetching reimbursements."
+        extractErrorMessage(err, "Error fetching reimbursements")
       );
     }
-  }, [employeeId, authToken]);
+  }, [employeeId]);
 
   const fetchProjects = useCallback(async () => {
     try {
       const res = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/projectdrop`,
-        {
-          withCredentials: true,
-          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
-        }
+        `${BACKEND || process.env.REACT_APP_BACKEND_URL}/projectdrop`,
+        { withCredentials: true, headers: buildHeaders() }
       );
       setProjects(res.data || []);
     } catch (err) {
@@ -202,96 +224,80 @@ const Reimbursement = () => {
     }
   }, []);
 
+  const fetchEmployees = useCallback(async () => {
+    try {
+      const url = `${
+        BACKEND || process.env.REACT_APP_BACKEND_URL
+      }/reimbursement/employees`;
+      const res = await axios.get(url, {
+        withCredentials: true,
+        headers: buildHeaders(),
+      });
+      const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
+      const mapped = (list || []).map((r) => {
+        const id = r.employee_id || r.id || r.employeeId || r.empId;
+        const name =
+          r.name ||
+          r.employee_name ||
+          `${r.first_name || ""} ${r.last_name || ""}`.trim();
+        return {
+          employee_id: id,
+          name,
+          position: r.position || r.designation || "",
+          department_name: r.department_name || "",
+        };
+      });
+      setEmployeeOptions(mapped);
+    } catch (err) {
+      console.warn(
+        "Could not fetch /reimbursement/employees — falling back to demo list"
+      );
+      setEmployeeOptions([
+        { employee_id: employeeId || "E000", name: "You", position: "" },
+        { employee_id: "E1001", name: "Priya Sharma", position: "Developer" },
+        { employee_id: "E1002", name: "Rahul Verma", position: "Analyst" },
+        { employee_id: "E1003", name: "Amit Patel", position: "Sales" },
+      ]);
+    }
+  }, [employeeId]);
+
   useEffect(() => {
     fetchReimbursements();
     fetchProjects();
+    fetchEmployees();
   }, []);
 
   const tryParseDate = (s) => {
     if (!s && s !== 0) return null;
     if (s instanceof Date && !isNaN(s)) return s;
-    if (typeof s === "number") {
-      const d = new Date(s);
-      return isNaN(d) ? null : d;
-    }
-    let str = String(s).trim();
-    if (!str) return null;
-    str = str.replace(/\s+to\s+/i, " - ");
-    str = str.replace(/\u2013|\u2014/g, " - ");
-    str = str.replace(/\//g, "-");
-    let d = new Date(str);
-    if (!isNaN(d)) return d;
-    if (str.includes("T")) {
-      const [dateOnly] = str.split("T");
-      d = new Date(dateOnly);
-      if (!isNaN(d)) return d;
-    }
-    const ddmmyyyy = str.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, dd, mm, yyyy] = ddmmyyyy;
-      d = new Date(`${yyyy}-${mm}-${dd}`);
-      if (!isNaN(d)) return d;
-    }
-    return null;
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
   };
-
-  const normalizeStartOfDay = (date) =>
-    new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-  const normalizeEndOfDay = (date) =>
-    new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      23,
-      59,
-      59,
-      999
-    );
+  const normalizeStartOfDay = (d) =>
+    new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  const normalizeEndOfDay = (d) =>
+    new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
   const parseClaimRange = (claim) => {
-    let start = null;
-    let end = null;
-
-    if (
-      claim.date_range &&
-      typeof claim.date_range === "string" &&
-      (claim.date_range.includes(" - ") ||
-        claim.date_range.toLowerCase().includes(" to ") ||
-        claim.date_range.includes("–") ||
-        claim.date_range.includes("—"))
-    ) {
+    let start = null,
+      end = null;
+    if (claim.date_range && typeof claim.date_range === "string") {
       const unified = claim.date_range
-        .replace(/\s+to\s+/gi, " - ")
+        .replace(/\s+to\s+/i, " - ")
         .replace(/\u2013|\u2014/g, " - ");
       const parts = unified.split(" - ").map((p) => p.trim());
       if (parts.length >= 2) {
-        const p0 = tryParseDate(parts[0]);
-        const p1 = tryParseDate(parts[1]);
-        start = p0 || null;
-        end = p1 || null;
+        start = tryParseDate(parts[0]);
+        end = tryParseDate(parts[1]);
       }
     }
-
-    if (!start && (claim.from_date || claim.fromDate)) {
+    if (!start && (claim.from_date || claim.fromDate))
       start = tryParseDate(claim.from_date || claim.fromDate);
-    }
-    if (!end && (claim.to_date || claim.toDate)) {
+    if (!end && (claim.to_date || claim.toDate))
       end = tryParseDate(claim.to_date || claim.toDate);
-    }
-
-    if (!start && claim.date) {
-      start = tryParseDate(claim.date);
-      end = start;
-    }
-
-    if (!start && claim.created_at) {
-      const t = tryParseDate(claim.created_at);
-      start = t;
-      end = t;
-    }
-
+    if (!start && claim.date) start = tryParseDate(claim.date);
+    if (!start && claim.created_at) start = tryParseDate(claim.created_at);
     if (start && !end) end = start;
-
     if (start && end) {
       start = normalizeStartOfDay(start);
       end = normalizeEndOfDay(end);
@@ -310,33 +316,20 @@ const Reimbursement = () => {
         statusFilter &&
         claim.status &&
         claim.status.toLowerCase() !== statusFilter.toLowerCase()
-      ) {
+      )
         return false;
-      }
-
       if (!fStart && !tEnd) return true;
-
       const { start, end } = parseClaimRange(claim);
-
-      if (!start || !end) {
-        return !fStart && !tEnd;
-      }
-
-      if (fStart && !tEnd) {
-        return end.getTime() >= fStart.getTime();
-      }
-      if (!fStart && tEnd) {
-        return start.getTime() <= tEnd.getTime();
-      }
+      if (!start || !end) return !fStart && !tEnd;
+      if (fStart && !tEnd) return end.getTime() >= fStart.getTime();
+      if (!fStart && tEnd) return start.getTime() <= tEnd.getTime();
       if (fStart && tEnd) {
         if (end.getTime() < fStart.getTime()) return false;
         if (start.getTime() > tEnd.getTime()) return false;
         return true;
       }
-
       return true;
     });
-
     setFilteredReimbursements(filtered);
   }, [reimbursements, fromDate, toDate, statusFilter]);
 
@@ -345,120 +338,75 @@ const Reimbursement = () => {
   }, [reimbursements, fromDate, toDate, statusFilter, applyFilters]);
 
   const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleClaimTypeChange = (e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, claim_type: value });
+  const handleClaimTypeChange = (value) => {
+    setParticipantMode("single");
+    setParticipants(employeeId ? [employeeId] : []);
+    setFormData((p) => ({
+      ...p,
+      claim_type: value,
+      transport_type: "",
+      no_of_days: "",
+    }));
     setSelectedFiles([]);
-    setSelectedClaim(null);
-    setSelectedSubType("");
   };
 
   const handleTransportSubTypeChange = (type) => {
-    setFormData({ ...formData, transport_type: type });
-    setSelectedSubType(type);
-    if (type === "Outstation") {
-      setFormData((prev) => ({ ...prev, no_of_days: "" }));
-    }
+    setFormData((p) => ({ ...p, transport_type: type }));
+    if (type === "Outstation") setFormData((p) => ({ ...p, no_of_days: "" }));
   };
 
-  const handleNoOfDaysChange = (event) =>
-    setFormData({ ...formData, no_of_days: event.target.value });
+  const handleNoOfDaysChange = (e) =>
+    setFormData((p) => ({ ...p, no_of_days: e.target.value }));
 
   const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setSelectedFiles(files.map((file) => file.name));
-    setFormData((prev) => ({ ...prev, attachments: files }));
-  };
-
-  const renderDateFields = () => {
-    if (formData.transport_type === "Outstation") {
-      return (
-        <>
-          <div className="rb-groups">
-            <label>
-              From Date<span className="asterisk">*</span>
-            </label>
-            <input
-              type="date"
-              name="fromDate"
-              value={formData.fromDate}
-              onChange={handleChange}
-              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
-            />
-          </div>
-          <div className="rb-groups">
-            <label>
-              To Date<span className="asterisk">*</span>
-            </label>
-            <input
-              type="date"
-              name="toDate"
-              value={formData.toDate}
-              onChange={handleChange}
-              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
-            />
-          </div>
-        </>
-      );
-    } else if (formData.no_of_days === "single") {
-      return (
-        <div className="rb-groups">
-          <label>
-            Date<span className="asterisk">*</span>
-          </label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
-          />
-        </div>
-      );
-    } else if (formData.no_of_days === "multiple") {
-      return (
-        <>
-          <div className="rb-groups">
-            <label>
-              From Date<span className="asterisk">*</span>
-            </label>
-            <input
-              type="date"
-              name="fromDate"
-              value={formData.fromDate}
-              onChange={handleChange}
-              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
-            />
-          </div>
-          <div className="rb-groups">
-            <label>
-              To Date<span className="asterisk">*</span>
-            </label>
-            <input
-              type="date"
-              name="toDate"
-              value={formData.toDate}
-              onChange={handleChange}
-              max={new Date(Date.now() - 86400000).toLocaleDateString("en-CA")}
-            />
-          </div>
-        </>
-      );
-    }
-    return null;
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(files.map((f) => f.name));
+    setFormData((p) => ({ ...p, attachments: files }));
   };
 
   const handleEdit = (claim) => {
     setEditingId(claim.id);
     setShowForm(true);
-    const existingAttachments = attachments[claim.id] || [];
+    const attach = attachments[claim.id] || [];
+    const existingParticipants =
+      claim.participants || claim.participant_ids || [];
+    const ids =
+      Array.isArray(existingParticipants) && existingParticipants.length
+        ? existingParticipants.map((x) =>
+            typeof x === "object" ? x.employee_id || x.id : x
+          )
+        : [employeeId];
+    setParticipants(ids);
+    setParticipantMode(ids.length > 1 ? "group" : "single");
+
+    let existingInvoices =
+      claim.invoices || claim.invoice_numbers || claim.invoice_no || [];
+    try {
+      if (typeof existingInvoices === "string" && existingInvoices.trim())
+        existingInvoices = JSON.parse(existingInvoices);
+    } catch (e) {
+      if (typeof existingInvoices === "string") {
+        existingInvoices = existingInvoices
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      } else
+        existingInvoices = Array.isArray(existingInvoices)
+          ? existingInvoices
+          : [];
+    }
+    if (!Array.isArray(existingInvoices))
+      existingInvoices = existingInvoices ? [String(existingInvoices)] : [];
+
     setFormData({
       employeeId: claim.employeeId || claim.employee_id || employeeId,
       department_id: claim.department_id || departmentId,
       claim_type: claim.claim_type || "",
       transport_type: claim.transport_type || "",
+      transport_amount: claim.transport_amount || "",
+      da: claim.da || "",
       fromDate: claim.from_date
         ? claim.from_date.substring(0, 10)
         : claim.fromDate || "",
@@ -472,26 +420,170 @@ const Reimbursement = () => {
       purpose: claim.purpose || "",
       purchasing_item: claim.purchasing_item || "",
       accommodation_fees: claim.accommodation_fees || "",
-      transport_amount: claim.transport_amount || "",
-      da: claim.da || "",
       no_of_days: claim.no_of_days || "",
       total_amount: claim.total_amount || "",
       meal_type: claim.meal_type || "",
       stationary: claim.stationary || "",
-      comments: claim.comments || "",
       service_provider: claim.service_provider || "",
       project: claim.project || "",
-      attachments: existingAttachments,
+      attachments: attach,
+      invoices: existingInvoices,
     });
     setSelectedFiles(
-      existingAttachments.map((file) => file.file_name || file.name)
+      (attach || []).map((a) => a.file_name || a.name).filter(Boolean)
     );
-    setSelectedSubType(claim.transport_type || "");
+  };
+
+  const getParticipantNamesForClaim = (claim = {}) => {
+    const part = claim.participants || claim.participant_ids || [];
+    if (!part || (Array.isArray(part) && part.length === 0)) {
+      if (
+        String(claim.employee_id) === String(employeeId) ||
+        String(claim.employeeId) === String(employeeId)
+      )
+        return "You";
+      return "-";
+    }
+    const ids = part.map((p) =>
+      typeof p === "object" ? p.employee_id || p.id || p.employeeId : p
+    );
+    const names = ids.map((id) => {
+      const found = employeeOptions.find(
+        (e) =>
+          String(e.employee_id) === String(id) || String(e.id) === String(id)
+      );
+      if (found) return found.name;
+      if (String(id) === String(employeeId)) return "You";
+      return String(id);
+    });
+    return names.join(", ");
+  };
+
+  const normalizeFilename = (fileName) =>
+    fileName ? encodeURIComponent(fileName) : null;
+
+  const tryExtractYearMonthFromPath = (filePath) => {
+    if (!filePath) return {};
+    const p = filePath.replace(/\\/g, "/");
+    const m = p.match(/\/reimbursement\/(\d{4})\/(\d{2})\/([^/]+)\/([^/]+)$/);
+    if (m) return { year: m[1], month: m[2], empId: m[3], filename: m[4] };
+    const parts = p.split("/").filter(Boolean);
+    if (parts.length >= 4) {
+      const filename = parts[parts.length - 1];
+      const empId = parts[parts.length - 2];
+      const month = parts[parts.length - 3];
+      const year = parts[parts.length - 4];
+      const okYear = year && /^\d{4}$/.test(year) ? year : null;
+      const okMonth = month && /^\d{2}$/.test(month) ? month : null;
+      return { year: okYear, month: okMonth, empId: empId || null, filename };
+    }
+    return {};
+  };
+
+  const buildBackendAttachmentUrl = (year, month, empId, filename) => {
+    if (!BACKEND) return null;
+    if (!year || !month || !empId || !filename) return null;
+    return `${BACKEND}/reimbursement/${year}/${month}/${empId}/${normalizeFilename(
+      filename
+    )}`;
+  };
+
+  const handleOpenAttachments = async (files = [], claim = {}) => {
+    try {
+      if (!Array.isArray(files) || files.length === 0) {
+        showAlert("No attachments available for this claim.");
+        return;
+      }
+
+      const possible = await Promise.all(
+        files.map(async (f) => {
+          try {
+            const fileName = f.file_name || f.filename || f.name;
+            let year, month, empId, filename;
+            if (f.file_path) {
+              const meta = tryExtractYearMonthFromPath(f.file_path);
+              year = meta.year;
+              month = meta.month;
+              empId = meta.empId;
+              filename = meta.filename || fileName;
+            }
+            empId = empId || claim.employee_id || claim.employeeId || "";
+            if (!year || !month) {
+              const m2 = fileName && fileName.match(/^(\d{4})[-_](\d{2})/);
+              if (m2) {
+                year = year || m2[1];
+                month = month || m2[2];
+                filename = filename || fileName;
+              }
+            }
+            filename = filename || fileName;
+            let urlToFetch = null;
+            if (year && month && empId && filename)
+              urlToFetch = buildBackendAttachmentUrl(
+                year,
+                month,
+                empId,
+                filename
+              );
+            else if (f.url) urlToFetch = f.url;
+            else if (filename && empId)
+              urlToFetch = `${BACKEND}/reimbursement/${empId}/${normalizeFilename(
+                filename
+              )}`;
+            if (!urlToFetch) return null;
+            const resp = await axios.get(urlToFetch, {
+              responseType: "blob",
+              withCredentials: true,
+              headers: buildHeaders(),
+            });
+            const blob = new Blob([resp.data], {
+              type: resp.headers["content-type"] || undefined,
+            });
+            return { name: filename, url: URL.createObjectURL(blob) };
+          } catch (err) {
+            console.warn("attachment fetch failed for", f, err?.message || err);
+            return null;
+          }
+        })
+      );
+
+      const mapped = possible.filter(Boolean);
+      if (!mapped.length) {
+        showAlert(
+          "No attachments could be loaded (files may be missing on server)."
+        );
+        return;
+      }
+      setAttachmentViewerFiles(mapped);
+      setAttachmentViewerTitle(`${claim.claim_type || "Claim"} Bills`);
+      setIsAttachmentsOpen(true);
+    } catch (err) {
+      console.error("Error opening attachments:", err);
+      showAlert("Could not load attachments. Please try again.");
+    }
+  };
+
+  const parseInvoicesFromClaim = (claim) => {
+    let invs =
+      claim.invoices || claim.invoice_numbers || claim.invoice_no || [];
+    try {
+      if (typeof invs === "string" && invs.trim()) invs = JSON.parse(invs);
+    } catch (e) {
+      if (typeof invs === "string")
+        invs = invs
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      else invs = Array.isArray(invs) ? invs : [];
+    }
+    if (!Array.isArray(invs)) invs = invs ? [String(invs)] : [];
+    return invs.map((i) => (i || "").toString().trim()).filter(Boolean);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitErrorMessage("");
+
     const wordCount = formData.purpose
       ? formData.purpose.trim().split(/\s+/).filter(Boolean).length
       : 0;
@@ -501,737 +593,227 @@ const Reimbursement = () => {
       );
       return;
     }
+
+    const rawInvoices =
+      formData.invoices && Array.isArray(formData.invoices)
+        ? formData.invoices
+        : formData.invoices
+        ? [formData.invoices]
+        : [];
+    const cleanedInvoices = (rawInvoices || [])
+      .map((i) => (i || "").toString().trim())
+      .filter(Boolean);
+
+    if (!cleanedInvoices.length) {
+      showAlert(
+        "Invoice / Bill Number is required. Please add at least one invoice (marked *)."
+      );
+      setSubmitErrorMessage("Invoice number required.");
+      return;
+    }
+
+    const dupeLocal = cleanedInvoices.find(
+      (v, idx) => cleanedInvoices.indexOf(v) !== idx
+    );
+    if (dupeLocal) {
+      showAlert(`Duplicate invoice number in form: "${dupeLocal}"`);
+      setSubmitErrorMessage(`Duplicate invoice "${dupeLocal}" in the form.`);
+      return;
+    }
+
+    const existingMap = {};
+    (reimbursements || []).forEach((claim) => {
+      if (!claim || !claim.id) return;
+      if (editingId && String(claim.id) === String(editingId)) return;
+      const invs = parseInvoicesFromClaim(claim);
+      invs.forEach((inv) => {
+        const key = inv.toLowerCase();
+        if (!existingMap[key]) existingMap[key] = claim.id;
+      });
+    });
+
+    for (const inv of cleanedInvoices) {
+      const key = inv.toLowerCase();
+      if (existingMap[key]) {
+        showAlert(
+          `Duplicate invoice detected: "${inv}" is already used in reimbursement ID ${existingMap[key]}. Please verify and use a unique invoice number.`
+        );
+        setSubmitErrorMessage(
+          `Duplicate invoice "${inv}" found in claim ${existingMap[key]}.`
+        );
+        return;
+      }
+    }
+
     try {
       const fd = new FormData();
       Object.keys(formData).forEach((k) => {
         if (k === "attachments") return;
         const val = formData[k];
-        if (val !== null && val !== undefined) fd.append(k, val);
+        if (val !== undefined && val !== null && k !== "invoices")
+          fd.append(k, val);
       });
-      fd.append("role", role);
-      if (formData.attachments && formData.attachments.length > 0) {
-        formData.attachments.forEach((file) => fd.append("attachments", file));
+
+      if (cleanedInvoices && cleanedInvoices.length) {
+        fd.append("invoices", JSON.stringify(cleanedInvoices));
       }
-      const config = {
+
+      if (participants && participants.length)
+        fd.append("participants", JSON.stringify(participants));
+      fd.append("role", role || "Employee");
+      if (formData.attachments && formData.attachments.length)
+        formData.attachments.forEach((file) => fd.append("attachments", file));
+
+      const cfg = {
         withCredentials: true,
-        headers: {
-          "x-api-key": process.env.REACT_APP_API_KEY,
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${authToken}`,
-        },
+        headers: { ...buildHeaders(), "Content-Type": "multipart/form-data" },
       };
-      let response;
+      let res;
       if (editingId) {
-        response = await axios.put(
-          `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${editingId}`,
+        res = await axios.put(
+          `${
+            BACKEND || process.env.REACT_APP_BACKEND_URL
+          }/reimbursement/${editingId}`,
           fd,
-          config
+          cfg
         );
       } else {
-        response = await axios.post(
-          `${process.env.REACT_APP_BACKEND_URL}/reimbursement`,
+        res = await axios.post(
+          `${BACKEND || process.env.REACT_APP_BACKEND_URL}/reimbursement`,
           fd,
-          config
+          cfg
         );
       }
-      showAlert(
-        response?.data?.message || "Reimbursement submitted successfully!"
-      );
-      setFormData({
-        employeeId: employeeId,
-        department_id: departmentId,
-        claim_type: "",
-        transport_type: "",
-        fromDate: "",
-        toDate: "",
-        date: "",
-        travel_from: "",
-        travel_to: "",
-        meals_objective: "",
-        purpose: "",
-        purchasing_item: "",
-        accommodation_fees: "",
-        no_of_days: "",
-        total_amount: "",
-        meal_type: "",
-        stationary: "",
-        service_provider: "",
-        project: "",
-        attachments: null,
-      });
+
+      showAlert(res?.data?.message || "Reimbursement submitted successfully!");
       setShowForm(false);
       setEditingId(null);
+      setParticipants(employeeId ? [employeeId] : []);
+      setParticipantMode("single");
+      setFormData((p) => ({
+        ...p,
+        claim_type: "",
+        transport_type: "",
+        purpose: "",
+        attachments: null,
+        total_amount: "",
+        invoices: [],
+      }));
       setSelectedFiles([]);
       fetchReimbursements();
-    } catch (error) {
-      console.error("Error submitting reimbursement:", error);
-      const msg =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        "An unexpected error occurred.";
+    } catch (err) {
+      console.error("Error submitting:", err);
+      const msg = extractErrorMessage(err);
       setSubmitErrorMessage(msg);
       showAlert(msg);
     }
   };
 
-  const updateReimbursement = async (reimbursementId, updateData) => {
+  const deleteReimbursement = async (id) => {
+    if (!id) return;
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/reimbursement/update/${reimbursementId}`,
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updateData),
-        }
+      const res = await axios.delete(
+        `${BACKEND || process.env.REACT_APP_BACKEND_URL}/reimbursement/${id}`,
+        { withCredentials: true, headers: buildHeaders() }
       );
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || "Reimbursement update failed.");
+      showAlert(res.data.message || "Deleted");
       fetchReimbursements();
-    } catch (error) {
-      console.error("Error updating reimbursement:", error);
-      setUpdateErrorMessage(error.message || "An unexpected error occurred.");
-      showAlert(error.message || "An unexpected error occurred.");
+    } catch (err) {
+      console.error("Delete error:", err);
+      const msg = extractErrorMessage(err, "Unable to delete reimbursement.");
+      showAlert(msg);
     }
   };
 
-  const deleteReimbursement = async (id) => {
-    if (!id) {
-      console.error("Error: Reimbursement ID is missing.");
-      return;
-    }
-    showConfirm(
-      "Are you sure you want to delete this reimbursement claim?",
-      async () => {
-        try {
-          const response = await axios.delete(
-            `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${id}`,
-            {
-              withCredentials: true,
-              headers: {
-                "x-api-key": process.env.REACT_APP_API_KEY,
-                Authorization: `Bearer ${authToken}`,
-              },
-            }
-          );
-          showAlert(
-            response.data.message || "Reimbursement deleted successfully!"
-          );
-          fetchReimbursements();
-        } catch (error) {
-          console.error("Error deleting reimbursement:", error);
-          showAlert("There was an issue deleting the reimbursement.");
-        } finally {
-          closeConfirm();
-        }
+  const handleConfirmDelete = async () => {
+    const id = confirmModal.id;
+    closeConfirmDelete();
+    if (!id) return;
+    await deleteReimbursement(id);
+  };
+
+  const onParticipantSelectionChange = (value) => {
+    if (participantMode === "single") {
+      if (!value) setParticipants([]);
+      else {
+        const id =
+          value.employee_id || value.id || value.employeeId || value.empId;
+        setParticipants(id ? [id] : []);
       }
+    } else {
+      if (!Array.isArray(value)) setParticipants([]);
+      else {
+        const ids = value
+          .map((v) => v.employee_id || v.id || v.employeeId || v.empId)
+          .filter(Boolean);
+        setParticipants(ids);
+      }
+    }
+  };
+
+  const renderSingleTile = () => {
+    const selfOpt = employeeOptions.find(
+      (e) =>
+        String(e.employee_id) === String(employeeId) ||
+        String(e.id) === String(employeeId)
+    );
+    const displayName = selfOpt ? selfOpt.name : "You";
+    const isSelected =
+      participants &&
+      participants.length &&
+      String(participants[0]) === String(employeeId);
+    return (
+      <div
+        className={`ps-item ${isSelected ? "selected" : ""}`}
+        role="option"
+        aria-selected={isSelected}
+        onClick={() => {
+          setParticipants([employeeId]);
+        }}
+      >
+        <div className="ps-item-top">
+          <div className="ps-item-name">{displayName}</div>
+          <div className="ps-item-id">{employeeId}</div>
+        </div>
+        <div className={`ps-item-action ${isSelected ? "sel" : ""}`}>
+          {isSelected ? "Selected" : "Click to select (Self)"}
+        </div>
+      </div>
     );
   };
 
-  const handleOpenAttachments = async (files, claim) => {
-    try {
-      const fetchedFiles = await Promise.all(
-        (files || []).map(async (file) => {
-          if (!file?.file_name) return null;
-          const match = file.file_name.match(/^(\d{4})-(\d{2})/);
-          if (!match) return null;
-          const [, year, month] = match;
-          const empId = claim.employee_id || claim.employeeId || "";
-          const url = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.file_name}`;
-          const response = await axios.get(url, {
-            withCredentials: true,
-            headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY,
-              Authorization: `Bearer ${authToken}`,
-            },
-            responseType: "blob",
-          });
-          return {
-            name: file.file_name,
-            url: URL.createObjectURL(
-              new Blob([response.data], {
-                type: response.headers["content-type"],
-              })
-            ),
-          };
-        })
-      );
-      const validFiles = fetchedFiles.filter(Boolean);
-      if (!validFiles.length) {
-        showAlert("No valid attachments could be loaded.");
-        return;
-      }
-      setSelectedFiles(validFiles);
-      setSelectedClaim(claim);
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching attachments:", error);
-      showAlert("Could not load attachments. Please try again.");
-    }
+  const formatDisplayDate = (raw) => {
+    if (!raw) return "N/A";
+    const d = raw instanceof Date ? raw : new Date(raw);
+    if (isNaN(d)) return raw;
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = d.toLocaleString("en-GB", { month: "short" });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   const filterClaims = filteredReimbursements || [];
-
-  const totalAmount = (filteredReimbursements || []).reduce((sum, claim) => {
-    const val = parseFloat(claim.total_amount);
-    return sum + (isNaN(val) ? 0 : val);
-  }, 0);
+  const totalAmount = (filteredReimbursements || []).reduce(
+    (s, c) => s + (parseFloat(c.total_amount) || 0),
+    0
+  );
   const approvedAmount = (filteredReimbursements || [])
     .filter((c) => (c.status || "").toLowerCase() === "approved")
-    .reduce((sum, claim) => {
-      const val = parseFloat(claim.total_amount);
-      return sum + (isNaN(val) ? 0 : val);
-    }, 0);
+    .reduce((s, c) => s + (parseFloat(c.total_amount) || 0), 0);
   const rejectedAmount = (filteredReimbursements || [])
     .filter((c) => (c.status || "").toLowerCase() === "rejected")
-    .reduce((sum, claim) => {
-      const val = parseFloat(claim.total_amount);
-      return sum + (isNaN(val) ? 0 : val);
-    }, 0);
+    .reduce((s, c) => s + (parseFloat(c.total_amount) || 0), 0);
 
-  const renderClaimSpecificFields = () => {
-    switch (formData.claim_type) {
-      case "Transportation":
-        return (
-          <>
-            <div className="sub-tabs">
-              {["Outstation", "Intercity", "Fuel"].map((type) => (
-                <div
-                  key={type}
-                  className={`sub-tab ${
-                    formData.transport_type === type ? "active" : ""
-                  }`}
-                  onClick={() => handleTransportSubTypeChange(type)}
-                >
-                  {type}
-                </div>
-              ))}
-            </div>
-
-            {(formData.transport_type === "Intercity" ||
-              formData.transport_type === "Fuel") && (
-              <div className="rb-radio">
-                <label>Select no of days</label>
-                <div className="rb-radio-options">
-                  <label>
-                    <input
-                      type="radio"
-                      name="no_of_days"
-                      value="single"
-                      checked={formData.no_of_days === "single"}
-                      onChange={handleNoOfDaysChange}
-                    />
-                    Single
-                  </label>
-
-                  <label>
-                    <input
-                      type="radio"
-                      name="no_of_days"
-                      value="multiple"
-                      checked={formData.no_of_days === "multiple"}
-                      onChange={handleNoOfDaysChange}
-                    />
-                    Multiple
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {formData.transport_type && (
-              <div className="rb-main-form">
-                <div className="rb-form-grid">
-                  {renderDateFields()}
-
-                  <div className="rb-groups">
-                    <label>
-                      Travel From<span className="asterisk">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="travel_from"
-                      value={formData.travel_from}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="rb-groups">
-                    <label>
-                      Travel To<span className="asterisk">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="travel_to"
-                      value={formData.travel_to}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  {formData.transport_type === "Outstation" && (
-                    <div className="rb-groups">
-                      <label>Transport Amount</label>
-                      <input
-                        type="number"
-                        name="transport_amount"
-                        value={formData.transport_amount}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  )}
-
-                  {formData.transport_type === "Outstation" && (
-                    <div className="rb-groups">
-                      <label>Accommodation Fees</label>
-                      <input
-                        type="number"
-                        name="accommodation_fees"
-                        value={formData.accommodation_fees}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  )}
-
-                  {formData.transport_type === "Outstation" && (
-                    <div className="rb-groups">
-                      <label>DA</label>
-                      <input
-                        type="number"
-                        name="da"
-                        value={formData.da}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  )}
-
-                  <div className="rb-groups">
-                    <label>
-                      Total Amount<span className="asterisk">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="total_amount"
-                      value={formData.total_amount}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="purpose-attachment">
-                  <div className="pa-groups">
-                    <label>
-                      Purpose Details / Comments
-                      <span className="asterisk">*</span>
-                    </label>
-                    <textarea
-                      name="purpose"
-                      value={formData.purpose}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  <div className="pa-groups">
-                    <label>Attachment</label>
-                    <div className="attachment-wrapper">
-                      <div className="file-links">
-                        {selectedFiles.length > 0 ? (
-                          selectedFiles.map((fileName, index) => (
-                            <p key={index} className="file-name">
-                              {fileName}
-                            </p>
-                          ))
-                        ) : (
-                          <p>No files selected</p>
-                        )}
-                      </div>
-
-                      <div className="attachment-upload">
-                        <input
-                          type="file"
-                          multiple
-                          onChange={handleFileUpload}
-                          id="fileInput"
-                          className="hidden-file-input"
-                        />
-                        <label
-                          htmlFor="fileInput"
-                          className="custom-file-upload"
-                        >
-                          Browse
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        );
-
-      case "Meals":
-        return (
-          <div className="rb-main-form">
-            <div className="rb-form1-grid">
-              <div className="rb-groups">
-                <label>
-                  Date<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  max={new Date(Date.now() - 86400000).toLocaleDateString(
-                    "en-CA"
-                  )}
-                />
-              </div>
-              <div className="rb-groups">
-                <label>Meal Type</label>
-                <select
-                  name="meal_type"
-                  value={formData.meal_type}
-                  onChange={handleChange}
-                >
-                  <option value="">Select</option>
-                  <option value="breakfast">Break Fast</option>
-                  <option value="lunch">Lunch</option>
-                  <option value="dinner">Dinner</option>
-                  <option value="Full Day">Full Day</option>
-                </select>
-              </div>
-              <div className="rb-groups">
-                <label>Meal's objective</label>
-                <select
-                  name="meals_objective"
-                  value={formData.meals_objective}
-                  onChange={handleChange}
-                >
-                  <option value="">Select</option>
-                  <option value="client_visit">Client Visit</option>
-                  <option value="team_outing">Team Outing</option>
-                  <option value="extended_work">Extended</option>
-                  <option value="others">Others</option>
-                </select>
-              </div>
-
-              <div className="rb-groups">
-                <label>
-                  Total Amount<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="total_amount"
-                  value={formData.total_amount}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="purpose-attachment">
-              <div className="pa-groups">
-                <label>
-                  Purpose Details / Comments<span className="asterisk">*</span>
-                </label>
-                <textarea
-                  name="purpose"
-                  value={formData.purpose}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="pa-groups">
-                <label>Attachment</label>
-                <div className="attachment-wrapper">
-                  <div className="file-links">
-                    {selectedFiles.length > 0 ? (
-                      selectedFiles.map((fileName, index) => (
-                        <p key={index} className="file-name">
-                          {fileName}
-                        </p>
-                      ))
-                    ) : (
-                      <p>No files selected</p>
-                    )}
-                  </div>
-
-                  <div className="attachment-upload">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileUpload}
-                      id="fileInput"
-                      className="hidden-file-input"
-                    />
-                    <label htmlFor="fileInput" className="custom-file-upload">
-                      Browse
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "Telecommunication":
-        return (
-          <div className="rb-main-form">
-            <div className="rb-form2-grid">
-              <div className="rb-groups">
-                <label>
-                  Date<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  max={new Date(Date.now() - 86400000).toLocaleDateString(
-                    "en-CA"
-                  )}
-                />
-              </div>
-              <div className="rb-groups">
-                <label>Service Provider</label>
-                <input
-                  type="text"
-                  name="service_provider"
-                  value={formData.service_provider}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="rb-groups">
-                <label>
-                  Total Amount<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="total_amount"
-                  value={formData.total_amount}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            <div className="purpose-attachment">
-              <div className="pa-groups">
-                <label>
-                  Purpose Details / Comments<span className="asterisk">*</span>
-                </label>
-                <textarea
-                  name="purpose"
-                  value={formData.purpose}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="pa-groups">
-                <label>Attachment</label>
-                <div className="attachment-wrapper">
-                  <div className="file-links">
-                    {selectedFiles.length > 0 ? (
-                      selectedFiles.map((fileName, index) => (
-                        <p key={index} className="file-name">
-                          {fileName}
-                        </p>
-                      ))
-                    ) : (
-                      <p>No files selected</p>
-                    )}
-                  </div>
-
-                  <div className="attachment-upload">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileUpload}
-                      id="fileInput"
-                      className="hidden-file-input"
-                    />
-                    <label htmlFor="fileInput" className="custom-file-upload">
-                      Browse
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "Stationary":
-        return (
-          <div className="rb-main-form">
-            <div className="rb-form1-grid">
-              <div className="rb-groups">
-                <label>
-                  Date<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  max={new Date(Date.now() - 86400000).toLocaleDateString(
-                    "en-CA"
-                  )}
-                />
-              </div>
-              <div className="rb-groups">
-                <label>Stationary</label>
-                <select
-                  name="stationary"
-                  value={formData.stationary}
-                  onChange={handleChange}
-                >
-                  <option value="">Select</option>
-                  <option value="office equipments">Office Equipments</option>
-                  <option value="general stationary">General Stationary</option>
-                </select>
-              </div>
-              <div className="rb-groups">
-                <label>Purchasing Items</label>
-                <input
-                  type="text"
-                  name="purchasing_item"
-                  value={formData.purchasing_item}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="rb-groups">
-                <label>
-                  Total Amount<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="total_amount"
-                  value={formData.total_amount}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="purpose-attachment">
-              <div className="pa-groups">
-                <label>
-                  Purpose Details / Comments<span className="asterisk">*</span>
-                </label>
-                <textarea
-                  name="purpose"
-                  value={formData.purpose}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="pa-groups">
-                <label>Attachment</label>
-                <div className="attachment-wrapper">
-                  <div className="file-links">
-                    {selectedFiles.length > 0 ? (
-                      selectedFiles.map((fileName, index) => (
-                        <p key={index} className="file-name">
-                          {fileName}
-                        </p>
-                      ))
-                    ) : (
-                      <p>No files selected</p>
-                    )}
-                  </div>
-
-                  <div className="attachment-upload">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileUpload}
-                      id="fileInput"
-                      className="hidden-file-input"
-                    />
-                    <label htmlFor="fileInput" className="custom-file-upload">
-                      Browse
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "Miscellaneous":
-        return (
-          <div className="rb-main-form">
-            <div className="rb-form1-grid">
-              <div className="rb-groups">
-                <label>
-                  Date<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  max={new Date(Date.now() - 86400000).toLocaleDateString(
-                    "en-CA"
-                  )}
-                />
-              </div>
-              <div className="rb-groups">
-                <label>
-                  Total Amount<span className="asterisk">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="total_amount"
-                  value={formData.total_amount}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="purpose-attachment">
-              <div className="pa-groups">
-                <label>
-                  Purpose Details / Comments<span className="asterisk">*</span>
-                </label>
-                <textarea
-                  name="purpose"
-                  value={formData.purpose}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="pa-groups">
-                <label>Attachment</label>
-                <div className="attachment-wrapper">
-                  <div className="file-links">
-                    {selectedFiles.length > 0 ? (
-                      selectedFiles.map((fileName, index) => (
-                        <p key={index} className="file-name">
-                          {fileName}
-                        </p>
-                      ))
-                    ) : (
-                      <p>No files selected</p>
-                    )}
-                  </div>
-
-                  <div className="attachment-upload">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileUpload}
-                      id="fileInput"
-                      className="hidden-file-input"
-                    />
-                    <label htmlFor="fileInput" className="custom-file-upload">
-                      Browse
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
+  const shouldShowParticipantControls = () => {
+    if (!formData.claim_type) return false;
+    if (formData.claim_type === "Transportation")
+      return !!formData.transport_type;
+    if (
+      formData.claim_type === "Meals" ||
+      formData.claim_type === "Miscellaneous"
+    )
+      return true;
+    return false;
   };
 
   return (
@@ -1279,6 +861,8 @@ const Reimbursement = () => {
             setSelectedFiles([]);
             setShowForm(true);
             setEditingId(null);
+            setParticipantMode("single");
+            setParticipants(employeeId ? [employeeId] : []);
             setFormData({
               employeeId,
               department_id: departmentId,
@@ -1300,6 +884,7 @@ const Reimbursement = () => {
               service_provider: "",
               project: "",
               attachments: null,
+              invoices: [],
             });
           }}
         >
@@ -1315,8 +900,10 @@ const Reimbursement = () => {
             <tr>
               <th>Sl No</th>
               <th>Claim Type</th>
+              <th>Participants</th>
               <th>Date</th>
               <th>Purpose</th>
+              <th>Invoice(s)</th>
               <th>Amount</th>
               <th>Attachment</th>
               <th>Status</th>
@@ -1326,305 +913,303 @@ const Reimbursement = () => {
             </tr>
           </thead>
           <tbody>
-            {filterClaims.map((claim, index) => (
-              <tr key={claim.id}>
-                <td>{index + 1}</td>
-                <td>{claim.claim_type}</td>
-                <td>
-                  {claim.date_range
-                    ? claim.date_range
-                        .split(" - ")
-                        .map(formatDisplayDate)
-                        .join(" - ")
-                    : claim.date
-                    ? formatDisplayDate(claim.date)
-                    : claim.from_date && claim.to_date
-                    ? `${formatDisplayDate(
-                        claim.from_date
-                      )} - ${formatDisplayDate(claim.to_date)}`
-                    : "N/A"}
-                </td>
-                <td>
-                  <div className="rbadmin-comments">{claim.purpose}</div>
-                </td>
-                <td>{claim.total_amount}</td>
-                <td>
-                  {attachments[claim.id]?.length > 0 ? (
-                    <button
-                      className="attachments-btn"
-                      onClick={() =>
-                        handleOpenAttachments(attachments[claim.id], claim)
-                      }
-                    >
-                      <MdOutlineRemoveRedEye className="eye-icon" /> View
-                    </button>
-                  ) : (
-                    "Not Attached"
-                  )}
-                </td>
-                <td>
-                  <span
-                    className={`rb-status-label ${
-                      claim.status === "approved"
-                        ? "rb-approved"
-                        : claim.status === "rejected"
-                        ? "rb-rejected"
-                        : ""
-                    }`}
+            {filterClaims.map((claim, index) => {
+              let invs =
+                claim.invoices ||
+                claim.invoice_numbers ||
+                claim.invoice_no ||
+                [];
+              try {
+                if (typeof invs === "string" && invs.trim())
+                  invs = JSON.parse(invs);
+              } catch (e) {
+                if (typeof invs === "string")
+                  invs = invs
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                else invs = Array.isArray(invs) ? invs : [];
+              }
+              const invDisplay =
+                Array.isArray(invs) && invs.length ? invs.join(", ") : "-";
+
+              const isPending =
+                (claim.status || "").toLowerCase() === "pending";
+
+              const canEdit = isPending;
+              const canDelete = isPending;
+
+              return (
+                <tr key={claim.id}>
+                  <td>{index + 1}</td>
+                  <td>{claim.claim_type}</td>
+                  <td
+                    className="participants-cell"
+                    title={getParticipantNamesForClaim(claim)}
                   >
-                    {claim.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="rbadmin-comments">
-                    {claim.approver_comments || "No comments"}
-                  </div>
-                </td>
-                <td>{claim.payment_status}</td>
-                <td className="actions-column">
-                  <MdOutlineEdit
-                    className={`edit-icon ${
-                      claim.status && claim.status.toLowerCase() !== "pending"
-                        ? "disabled-icon"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      if (
-                        claim.status &&
-                        claim.status.toLowerCase() === "pending"
-                      ) {
+                    {getParticipantNamesForClaim(claim)}
+                  </td>
+                  <td>
+                    {claim.date_range
+                      ? claim.date_range
+                          .split(" - ")
+                          .map(formatDisplayDate)
+                          .join(" - ")
+                      : claim.date
+                      ? formatDisplayDate(claim.date)
+                      : claim.from_date && claim.to_date
+                      ? `${formatDisplayDate(
+                          claim.from_date
+                        )} - ${formatDisplayDate(claim.to_date)}`
+                      : "N/A"}
+                  </td>
+                  <td>
+                    <div className="rbadmin-comments">{claim.purpose}</div>
+                  </td>
+                  <td className="invoice-cell" title={invDisplay}>
+                    {invDisplay}
+                  </td>
+                  <td>{claim.total_amount}</td>
+                  <td>
+                    {attachments[claim.id]?.length > 0 ? (
+                      <button
+                        className="attachments-btn"
+                        onClick={() =>
+                          handleOpenAttachments(attachments[claim.id], claim)
+                        }
+                      >
+                        <MdOutlineRemoveRedEye className="eye-icon" /> View
+                      </button>
+                    ) : (
+                      "Not Attached"
+                    )}
+                  </td>
+                  <td>
+                    <span
+                      className={`rb-status-label ${
+                        claim.status === "approved"
+                          ? "rb-approved"
+                          : claim.status === "rejected"
+                          ? "rb-rejected"
+                          : ""
+                      }`}
+                    >
+                      {claim.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="rbadmin-comments">
+                      {claim.approver_comments || "No comments"}
+                    </div>
+                  </td>
+                  <td>{claim.payment_status}</td>
+                  <td className="rb-actions-column">
+                    <button
+                      className={`icons-btn ${!canEdit ? "disabled-icon" : ""}`}
+                      aria-disabled={!canEdit}
+                      disabled={!canEdit}
+                      onClick={() => {
+                        if (!canEdit) return;
                         handleEdit(claim);
                         setShowForm(true);
-                      }
-                    }}
-                  />
-                  <MdDeleteOutline
-                    className={`delete-icon ${
-                      claim.status && claim.status.toLowerCase() !== "pending"
-                        ? "disabled-icon"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      if (
-                        claim.status &&
-                        claim.status.toLowerCase() === "pending"
-                      )
-                        deleteReimbursement(claim.id);
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
+                      }}
+                      title={canEdit ? "Edit" : "Cannot edit"}
+                      aria-label={`Edit reimbursement ${claim.id}`}
+                    >
+                      <MdOutlineEdit className="md-edit" />
+                    </button>
+
+                    <button
+                      className={`icons-btn ${
+                        !canDelete ? "disabled-icon" : ""
+                      }`}
+                      aria-disabled={!canDelete}
+                      disabled={!canDelete}
+                      onClick={() => {
+                        if (!canDelete) return;
+                        openConfirmDelete(claim.id, claim);
+                      }}
+                      title={canDelete ? "Delete" : "Cannot delete"}
+                      aria-label={`Delete reimbursement ${claim.id}`}
+                    >
+                      <MdDeleteOutline className="md-delete" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
           <tfoot>
             <tr className="total-row">
-              <td
-                colSpan="4"
-                style={{
-                  textAlign: "right",
-                  color: "#949494",
-                  fontWeight: "bold",
-                }}
-              >
+              <td colSpan="5" className="total-left">
                 Total Amount Claiming:{" "}
-                <span style={{ fontWeight: "bold", color: "black" }}>
-                  Rs {totalAmount}
-                </span>
+                <span className="total-amount">Rs {totalAmount}</span>
               </td>
-              <td colSpan="3" style={{ textAlign: "right" }}>
+              <td colSpan="3" className="total-right">
                 Amount Approved: Rs{" "}
-                <span style={{ fontWeight: "bold" }}>{approvedAmount}</span>
+                <span className="total-amount">{approvedAmount}</span>
               </td>
-              <td colSpan="3" style={{ textAlign: "right" }}>
+              <td colSpan="3" className="total-right">
                 Amount Rejected: Rs{" "}
-                <span style={{ fontWeight: "bold" }}>{rejectedAmount}</span>
+                <span className="total-amount">{rejectedAmount}</span>
               </td>
             </tr>
           </tfoot>
         </table>
 
         <div className="rb-reimbursement-cards">
-          {filterClaims.map((claim, index) => (
-            <div className="rb-reimbursement-card" key={claim.id}>
-              <div className="rb-card-header">
-                <span className={`rb-status ${claim.status?.toLowerCase()}`}>
-                  {claim.status}
-                </span>
-              </div>
-              <div className="rb-card-body">
-                <p>
-                  <strong>Sl No:</strong> {index + 1}
-                </p>
-                <p>
-                  <strong>Claim Type:</strong> {claim.claim_type}
-                </p>
-                <p>
-                  <strong>Date:</strong>{" "}
-                  {claim.date ? formatDisplayDate(claim.date) : "N/A"}
-                </p>
-                <p>
-                  <strong>Purpose:</strong> {claim.purpose}
-                </p>
-                <p>
-                  <strong>Amount:</strong> Rs {claim.total_amount}
-                </p>
-                <p>
-                  <strong>Comments:</strong>{" "}
-                  {claim.approver_comments || "No comments"}
-                </p>
-              </div>
-              <div className="rb-card-footer">
-                {attachments[claim.id]?.length > 0 ? (
-                  <button
-                    className="rb-attachments-btn"
-                    onClick={() =>
-                      handleOpenAttachments(attachments[claim.id], claim)
-                    }
-                  >
-                    <MdOutlineRemoveRedEye className="rb-eye-icon" /> View
-                  </button>
-                ) : (
-                  <span className="rb-no-attachment">No Attachment</span>
-                )}
-                {claim.status && claim.status.toLowerCase() === "pending" && (
+          {filterClaims.map((claim, idx) => {
+            let invs =
+              claim.invoices || claim.invoice_numbers || claim.invoice_no || [];
+            try {
+              if (typeof invs === "string" && invs.trim())
+                invs = JSON.parse(invs);
+            } catch (e) {
+              if (typeof invs === "string")
+                invs = invs
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+              else invs = Array.isArray(invs) ? invs : [];
+            }
+            const invDisplay =
+              Array.isArray(invs) && invs.length ? invs.join(", ") : "-";
+
+            const isPending = (claim.status || "").toLowerCase() === "pending";
+
+            const canEdit = isPending;
+            const canDelete = isPending;
+
+            return (
+              <div className="rb-reimbursement-card" key={claim.id}>
+                <div className="rb-card-header">
+                  <span className={`rb-status ${claim.status?.toLowerCase()}`}>
+                    {claim.status}
+                  </span>
+                </div>
+                <div className="rb-card-body">
+                  <p>
+                    <strong>Sl No:</strong> {idx + 1}
+                  </p>
+                  <p>
+                    <strong>Claim Type:</strong> {claim.claim_type}
+                  </p>
+                  <p>
+                    <strong>Participants:</strong>{" "}
+                    {getParticipantNamesForClaim(claim)}
+                  </p>
+                  <p>
+                    <strong>Date:</strong>{" "}
+                    {claim.date ? formatDisplayDate(claim.date) : "N/A"}
+                  </p>
+                  <p>
+                    <strong>Purpose:</strong> {claim.purpose}
+                  </p>
+                  <p>
+                    <strong>Invoice(s):</strong> {invDisplay}
+                  </p>
+                  <p>
+                    <strong>Amount:</strong> Rs {claim.total_amount}
+                  </p>
+                </div>
+                <div className="rb-card-footer">
+                  {attachments[claim.id]?.length > 0 ? (
+                    <button
+                      className="rb-attachments-btn"
+                      onClick={() =>
+                        handleOpenAttachments(attachments[claim.id], claim)
+                      }
+                    >
+                      <MdOutlineRemoveRedEye className="rb-eye-icon" /> View
+                    </button>
+                  ) : (
+                    <span className="rb-no-attachment">No Attachment</span>
+                  )}
+
                   <div className="rb-card-actions">
-                    <MdOutlineEdit
-                      className="rb-edit-icon"
+                    <button
+                      className={`rb-icons-btn ${
+                        !canEdit ? "disabled-icon" : ""
+                      }`}
+                      disabled={!canEdit}
+                      aria-disabled={!canEdit}
                       onClick={() => {
+                        if (!canEdit) return;
                         handleEdit(claim);
                         setShowForm(true);
                       }}
-                    />
-                    <MdDeleteOutline
-                      className="rb-delete-icon"
-                      onClick={() => deleteReimbursement(claim.id)}
-                    />
+                      title={canEdit ? "Edit" : "Cannot edit"}
+                      aria-label={`Edit reimbursement ${claim.id}`}
+                    >
+                      <MdOutlineEdit className="rb-edit-icon md-edit" />
+                    </button>
+
+                    <button
+                      className={`rb-icons-btn ${
+                        !canDelete ? "disabled-icon" : ""
+                      }`}
+                      disabled={!canDelete}
+                      aria-disabled={!canDelete}
+                      onClick={() => {
+                        if (!canDelete) return;
+                        openConfirmDelete(claim.id, claim);
+                      }}
+                      title={canDelete ? "Delete" : "Cannot delete"}
+                      aria-label={`Delete reimbursement ${claim.id}`}
+                    >
+                      <MdDeleteOutline className="rb-delete-icon md-delete" />
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {showForm && (
-        <div className="rb-modal">
-          <div className="rb-modal-content">
-            <div className="claim-form-header">
-              <h2 className="claim-form-title">
-                {editingId ? "Edit Reimbursement" : "New Reimbursement"}
-              </h2>
-              <MdOutlineCancel
-                className="claim-form-close"
-                onClick={() => setShowForm(false)}
-              />
-            </div>
-            {submitErrorMessage && (
-              <p className="rb-error-message">{submitErrorMessage}</p>
-            )}
-            {updateErrorMessage && (
-              <p className="rb-error-message">{updateErrorMessage}</p>
-            )}
-            <form className="reimbursement-form" onSubmit={handleSubmit}>
-              <div className="claim-type">
-                <label>
-                  Project<span className="asterisk">*</span>
-                </label>
-                <select
-                  name="project"
-                  value={formData.project}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select project</option>
-                  <option value="STS CLAIM">STS CLAIM</option>
-                  {projects.map((proj, i) => (
-                    <option key={i} value={proj}>
-                      {proj}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="rb-tabs">
-                  {claimTypes.map(({ icon, label }) => (
-                    <div
-                      key={label}
-                      className={`rb-tab ${
-                        formData.claim_type === label ? "active" : ""
-                      }`}
-                      onClick={() =>
-                        handleClaimTypeChange({ target: { value: label } })
-                      }
-                    >
-                      {icon} {label}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {renderClaimSpecificFields()}
-
-              <div className="reimbursement-form-button">
-                <button
-                  type="button"
-                  className="rb-close"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="rb-submit">
-                  {editingId ? "Update" : "Submit"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ReimbursementForm
+          projects={projects}
+          claimTypes={claimTypes}
+          handleClaimTypeChange={handleClaimTypeChange}
+          formData={formData}
+          handleChange={handleChange}
+          shouldShowParticipantControls={shouldShowParticipantControls}
+          participantMode={participantMode}
+          setParticipantMode={setParticipantMode}
+          renderSingleTile={renderSingleTile}
+          onParticipantSelectionChange={onParticipantSelectionChange}
+          employeeOptions={employeeOptions}
+          handleFileUpload={handleFileUpload}
+          handleTransportSubTypeChange={handleTransportSubTypeChange}
+          handleNoOfDaysChange={handleNoOfDaysChange}
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          handleSubmit={handleSubmit}
+          editingId={editingId}
+          setEditingId={setEditingId}
+          setShowForm={setShowForm}
+          setParticipants={setParticipants}
+          setFormData={setFormData}
+        />
       )}
 
-      {isModalOpen && (
-        <div className="att-modal-overlay">
-          <div className="att-modal-content">
-            <div className="att-header">
-              <h2>Attachments</h2>
-              <MdOutlineCancel
-                className="att-close"
-                onClick={() => setIsModalOpen(false)}
-              />
-            </div>
-            <h4 className="att-files">
-              {selectedClaim?.claim_type
-                ? `${selectedClaim.claim_type} Bills`
-                : "Bills"}
-            </h4>
-            {selectedFiles.length > 0 ? (
-              selectedFiles.map((file, idx) => (
-                <div className="att-files" key={idx}>
-                  <a href={file.url} target="_blank" rel="noopener noreferrer">
-                    {file.name}
-                  </a>
-                </div>
-              ))
-            ) : (
-              <p>No attachments available</p>
-            )}
-            <button
-              className="att-close-btn"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <AttachmentsModal
+        isOpen={isAttachmentsOpen}
+        title={attachmentViewerTitle}
+        files={attachmentViewerFiles}
+        onClose={() => setIsAttachmentsOpen(false)}
+      />
 
       <Modal
         isVisible={confirmModal.isVisible}
-        onClose={closeConfirm}
+        onClose={closeConfirmDelete}
         buttons={[
-          { label: "Cancel", onClick: closeConfirm },
-          { label: "Confirm", onClick: confirmModal.onConfirm },
+          { label: "Cancel", onClick: closeConfirmDelete },
+          { label: "Yes, Delete", onClick: handleConfirmDelete },
         ]}
       >
+        <h3>{confirmModal.title}</h3>
         <p>{confirmModal.message}</p>
       </Modal>
 
@@ -1633,6 +1218,7 @@ const Reimbursement = () => {
         onClose={closeAlert}
         buttons={[{ label: "OK", onClick: closeAlert }]}
       >
+        <h3>{alertModal.title}</h3>
         <p>{alertModal.message}</p>
       </Modal>
     </div>

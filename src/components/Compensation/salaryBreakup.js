@@ -758,7 +758,7 @@ const SalaryBreakup = () => {
       }
     };
 
-    if (API_KEY && meId) {
+    if (meId) {
       fetchSalaryBreakupData();
     } else {
       openMessageModal(

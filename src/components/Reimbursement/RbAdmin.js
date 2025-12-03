@@ -7,6 +7,7 @@ import { FaFileInvoice } from "react-icons/fa6";
 import axios from "axios";
 import Reimbursement from "./Reimbursement";
 import Modal from "../Modal/Modal";
+import ParticipantSelection from "./ParticipantSelection";
 
 const RbAdmin = () => {
   const [employees, setEmployees] = useState([]);
@@ -21,16 +22,22 @@ const RbAdmin = () => {
   const [paymentStatusUpdates, setPaymentStatusUpdates] = useState({});
   const [comments, setComments] = useState({});
   const [statusFilter, setStatusFilter] = useState("pending");
-  const employeeData = JSON.parse(localStorage.getItem("dashboardData"));
+  const employeeData = JSON.parse(
+    localStorage.getItem("dashboardData") || "{}"
+  );
   const employeeId = employeeData?.employeeId;
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPaymentClaim, setSelectedPaymentClaim] = useState(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState("");
   const [view, setView] = useState("all");
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState("");
   const [projectSelections, setProjectSelections] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [employeeOptions, setEmployeeOptions] = useState([]);
+  const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
+  const [participantsForEdit, setParticipantsForEdit] = useState([]);
+  const [participantsSaving, setParticipantsSaving] = useState(false);
 
   const formatDisplayDate = (raw) => {
     if (!raw) return "N/A";
@@ -52,19 +59,14 @@ const RbAdmin = () => {
         switch (statusFilter) {
           case "approved":
             return status === "approved";
-
           case "rejected":
             return status === "rejected";
-
           case "pending":
             return status === "pending";
-
           case "approved_pending":
             return status === "approved" && pay === "pending";
-
           case "approved_paid":
             return status === "approved" && pay === "paid";
-
           default:
             return false;
         }
@@ -98,20 +100,82 @@ const RbAdmin = () => {
     };
 
     fetchProjects();
+    fetchEmployeeOptions();
   }, []);
 
-  const [alertModal, setAlertModal] = useState({
-    isVisible: false,
-    title: "",
-    message: "",
-  });
-
-  const showAlert = (message, title = "") => {
-    setAlertModal({ isVisible: true, title, message });
+  const fetchEmployeeOptions = async () => {
+    try {
+      const resp = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/reimbursement/employees`,
+        {
+          withCredentials: true,
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+        }
+      );
+      const list = Array.isArray(resp.data)
+        ? resp.data
+        : resp.data?.data || resp.data || [];
+      const mapped = (list || []).map((r) => {
+        const id = r.employee_id || r.id || r.employeeId || r.empId;
+        const name =
+          r.name ||
+          r.employee_name ||
+          `${r.first_name || ""} ${r.last_name || ""}`.trim();
+        return {
+          employee_id: id,
+          name,
+          position: r.position || r.designation || "",
+          department_name: r.department_name || "",
+        };
+      });
+      setEmployeeOptions(mapped);
+    } catch (err) {
+      console.warn(
+        "Could not fetch employees for participant selection. Falling back to demo list."
+      );
+      setEmployeeOptions([
+        { employee_id: employeeId || "E000", name: "You", position: "" },
+        { employee_id: "E1001", name: "Priya Sharma", position: "Developer" },
+        { employee_id: "E1002", name: "Rahul Verma", position: "Analyst" },
+      ]);
+    }
   };
 
-  const closeAlert = () => {
-    setAlertModal({ isVisible: false, title: "", message: "" });
+  const getParticipantNamesForClaim = (claim = {}) => {
+    const partRaw =
+      claim.participants ||
+      claim.participant_ids ||
+      claim.participant_names ||
+      [];
+    let part = [];
+    try {
+      if (typeof partRaw === "string" && partRaw.trim()) {
+        part = JSON.parse(partRaw);
+      } else part = Array.isArray(partRaw) ? partRaw : [];
+    } catch (e) {
+      if (partRaw && typeof partRaw === "string")
+        part = partRaw
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      else part = Array.isArray(partRaw) ? partRaw : [];
+    }
+    if (!part || part.length === 0) {
+      if (claim.employee_name) return claim.employee_name;
+      return "You";
+    }
+
+    const names = part.map((p) => {
+      if (typeof p === "object")
+        return p.name || p.employee_name || p.employee_id || JSON.stringify(p);
+      const found = employeeOptions.find(
+        (e) => String(e.employee_id) === String(p) || String(e.id) === String(p)
+      );
+      if (found) return found.name;
+      return String(p);
+    });
+
+    return names.join(", ");
   };
 
   useEffect(() => {
@@ -131,18 +195,18 @@ const RbAdmin = () => {
           },
         }
       );
-      setEmployees(response.data);
+      setEmployees(response.data || []);
 
       const attachmentsMap = {};
-      response.data.forEach((employee) => {
-        employee.claims.forEach((claim) => {
+      (response.data || []).forEach((employee) => {
+        (employee.claims || []).forEach((claim) => {
           attachmentsMap[claim.id] = claim.attachments || [];
         });
       });
       setAttachments(attachmentsMap);
       const initialProjects = {};
-      response.data.forEach((emp) =>
-        emp.claims.forEach((claim) => {
+      (response.data || []).forEach((emp) =>
+        (emp.claims || []).forEach((claim) => {
           if (claim.project) {
             initialProjects[claim.id] = claim.project;
           }
@@ -178,25 +242,34 @@ const RbAdmin = () => {
           const month = match[2];
           const empId = claim.employee_id;
           const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.filename}`;
-          const response = await axios.get(fileUrl, {
-            withCredentials: true,
-            headers: {
-              "x-api-key": process.env.REACT_APP_API_KEY,
-              Authorization: `Bearer ${authToken}`,
-            },
-            responseType: "blob",
-          });
-          return {
-            name: file.filename,
-            url: URL.createObjectURL(
-              new Blob([response.data], {
-                type: response.headers["content-type"],
-              })
-            ),
-          };
+          try {
+            const response = await axios.get(fileUrl, {
+              withCredentials: true,
+              headers: {
+                "x-api-key": process.env.REACT_APP_API_KEY,
+                Authorization: authToken ? `Bearer ${authToken}` : undefined,
+              },
+              responseType: "blob",
+            });
+            return {
+              name: file.filename,
+              url: URL.createObjectURL(
+                new Blob([response.data], {
+                  type: response.headers["content-type"],
+                })
+              ),
+            };
+          } catch (err) {
+            console.warn(
+              "attachment fetch failed for",
+              file,
+              err?.message || err
+            );
+            return null;
+          }
         })
       );
-      setSelectedFiles(fetchedFiles.filter(Boolean));
+      setSelectedFiles((fetchedFiles || []).filter(Boolean));
       setSelectedClaim(claim);
       setIsModalOpen(true);
     } catch (error) {
@@ -231,10 +304,6 @@ const RbAdmin = () => {
     setStatusUpdates((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handlePaymentStatusChange = (id, value) => {
-    setPaymentStatusUpdates((prev) => ({ ...prev, [id]: value }));
-  };
-
   const updateStatus = async (id) => {
     if (!statusUpdates[id]) {
       showAlert("Please select a status.");
@@ -249,7 +318,7 @@ const RbAdmin = () => {
 
     const updatedStatus = statusUpdates[id];
     const approverComment = comments?.[id] || "";
-    const employeeId = employeeData?.employeeId;
+    const employeeIdLocal = employeeData?.employeeId;
 
     try {
       await axios.put(
@@ -257,7 +326,7 @@ const RbAdmin = () => {
         {
           status: updatedStatus,
           approver_comments: approverComment,
-          approver_id: employeeId,
+          approver_id: employeeIdLocal,
           project,
         },
         {
@@ -325,6 +394,15 @@ const RbAdmin = () => {
     }
   };
 
+  const sanitizeFileName = (name) => {
+    if (!name) return "";
+    return name
+      .replace(/[\u0000-\u001F<>:"/\\|?*]+/g, "")
+      .trim()
+      .replace(/\s+/g, "_")
+      .substring(0, 160);
+  };
+
   const handleDownloadPDF = async (claim) => {
     try {
       const response = await axios.get(
@@ -338,13 +416,17 @@ const RbAdmin = () => {
         }
       );
 
-      const cd = response.headers["content-disposition"];
-
       let filename = "";
+      const empName = claim.employee_name || claim.employeeName || claim.name;
+      if (empName) {
+        const base = sanitizeFileName(empName) || `Reimbursement_${claim.id}`;
+        filename = `${base}_Reimbursement_${claim.id}.pdf`;
+      }
 
-      if (cd) {
+      if (!filename) {
+        const cd = response.headers["content-disposition"];
         const filenameRegex = /filename[^;=\n]*=(['"]?)([^;\n]*)\1/;
-        const matches = filenameRegex.exec(cd);
+        const matches = filenameRegex.exec(cd || "");
         if (matches != null && matches[2]) {
           filename = matches[2];
         }
@@ -354,9 +436,7 @@ const RbAdmin = () => {
         filename = `Reimbursement_${claim.id}.pdf`;
       }
 
-      if (!filename.toLowerCase().endsWith(".pdf")) {
-        filename += ".pdf";
-      }
+      if (!filename.toLowerCase().endsWith(".pdf")) filename += ".pdf";
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
@@ -370,6 +450,70 @@ const RbAdmin = () => {
     } catch (error) {
       console.error("Error downloading reimbursement PDF:", error);
       showAlert("There was an issue downloading the file.");
+    }
+  };
+
+  const openParticipantsModal = (claim) => {
+    let existing = claim.participants || claim.participant_ids || [];
+    try {
+      if (typeof existing === "string" && existing.trim()) {
+        existing = JSON.parse(existing);
+      }
+    } catch (e) {
+      if (typeof existing === "string") {
+        existing = existing
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      } else existing = Array.isArray(existing) ? existing : [];
+    }
+    const ids = (existing || []).map((p) => {
+      if (typeof p === "object")
+        return p.employee_id || p.id || p.employeeId || String(p);
+      return String(p);
+    });
+    setParticipantsForEdit(ids);
+    setSelectedClaim(claim);
+    setIsParticipantsModalOpen(true);
+  };
+
+  const saveParticipants = async () => {
+    if (!selectedClaim) return;
+    setParticipantsSaving(true);
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${selectedClaim.id}/participants`,
+        { participants: participantsForEdit },
+        {
+          withCredentials: true,
+          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
+        }
+      );
+      showAlert("Participants updated.");
+      setIsParticipantsModalOpen(false);
+      fetchEmployees();
+    } catch (err) {
+      console.error("Error saving participants:", err);
+      showAlert("Failed to save participants.");
+    } finally {
+      setParticipantsSaving(false);
+    }
+  };
+
+  const handleParticipantSelectionChange = (value) => {
+    if (!value) {
+      setParticipantsForEdit([]);
+      return;
+    }
+    if (Array.isArray(value)) {
+      const ids = value
+        .map((v) => v.employee_id || v.id || v.empId || String(v))
+        .filter(Boolean)
+        .map(String);
+      setParticipantsForEdit(ids);
+    } else {
+      const id = value.employee_id || value.id || value.empId || String(value);
+      setParticipantsForEdit(id ? [String(id)] : []);
     }
   };
 
@@ -412,6 +556,24 @@ const RbAdmin = () => {
       console.error(err);
       showAlert("Failed to download Excel. Please try again.");
     }
+  };
+
+  const [alertModal, setAlertModal] = useState({
+    isVisible: false,
+    title: "",
+    message: "",
+  });
+  const showAlert = (message, title = "") =>
+    setAlertModal({ isVisible: true, title, message });
+  const closeAlert = () =>
+    setAlertModal({ isVisible: false, title: "", message: "" });
+
+  const openPaymentModal = (claim) => {
+    if (!claim) return;
+    setSelectedPaymentClaim(claim);
+    const current = (claim.payment_status || "").toLowerCase().trim();
+    setSelectedPaymentOption(current || "pending");
+    setIsPaymentModalOpen(true);
   };
 
   return (
@@ -483,6 +645,7 @@ const RbAdmin = () => {
               <FiDownload /> Export
             </button>
           </div>
+
           <div className="rb-atable-container">
             {filteredEmployees.map((employee) => {
               const filteredClaims = employee.claims;
@@ -534,6 +697,7 @@ const RbAdmin = () => {
                       )}
                     </div>
                   </div>
+
                   {expandedRows[employee.employee_id] && (
                     <div className="reimbursement-table-scroll">
                       <div className="rb-sub-container">
@@ -545,6 +709,8 @@ const RbAdmin = () => {
                               <th>Date</th>
                               <th>Amount</th>
                               <th>Purpose</th>
+                              <th>Participants</th>
+                              <th>Invoice(s)</th>
                               <th>Attachments</th>
                               <th>Status</th>
                               <th>Projects</th>
@@ -575,6 +741,72 @@ const RbAdmin = () => {
                                 >
                                   {claim.purpose}
                                 </td>
+
+                                <td className="participants-cell-col">
+                                  <div className="rbadmin-comments">
+                                    <div
+                                      className="rbadmin-comments"
+                                      title={getParticipantNamesForClaim(claim)}
+                                    >
+                                      {getParticipantNamesForClaim(claim)}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td
+                                  className="invoice-cell"
+                                  title={(() => {
+                                    let invs =
+                                      claim.invoices ||
+                                      claim.invoice_numbers ||
+                                      claim.invoice_no ||
+                                      [];
+                                    try {
+                                      if (
+                                        typeof invs === "string" &&
+                                        invs.trim()
+                                      )
+                                        invs = JSON.parse(invs);
+                                    } catch (e) {
+                                      if (typeof invs === "string")
+                                        invs = invs
+                                          .split(",")
+                                          .map((s) => s.trim())
+                                          .filter(Boolean);
+                                      else
+                                        invs = Array.isArray(invs) ? invs : [];
+                                    }
+                                    return Array.isArray(invs) && invs.length
+                                      ? invs.join(", ")
+                                      : "-";
+                                  })()}
+                                >
+                                  {(() => {
+                                    let invs =
+                                      claim.invoices ||
+                                      claim.invoice_numbers ||
+                                      claim.invoice_no ||
+                                      [];
+                                    try {
+                                      if (
+                                        typeof invs === "string" &&
+                                        invs.trim()
+                                      )
+                                        invs = JSON.parse(invs);
+                                    } catch (e) {
+                                      if (typeof invs === "string")
+                                        invs = invs
+                                          .split(",")
+                                          .map((s) => s.trim())
+                                          .filter(Boolean);
+                                      else
+                                        invs = Array.isArray(invs) ? invs : [];
+                                    }
+                                    return Array.isArray(invs) && invs.length
+                                      ? invs.join(", ")
+                                      : "-";
+                                  })()}
+                                </td>
+
                                 <td>
                                   {attachments[claim.id] &&
                                   attachments[claim.id].length > 0 ? (
@@ -682,11 +914,7 @@ const RbAdmin = () => {
                                       .trim() === "pending" ? (
                                       <button
                                         className="pending-payment-btn"
-                                        onClick={() => {
-                                          setSelectedPaymentClaim(claim);
-                                          setSelectedPaymentOption("");
-                                          setIsPaymentModalOpen(true);
-                                        }}
+                                        onClick={() => openPaymentModal(claim)}
                                       >
                                         Pending
                                       </button>
@@ -706,7 +934,7 @@ const RbAdmin = () => {
                                       </span>
                                     )
                                   ) : (
-                                    <span>{claim.payment_status}</span>
+                                    <span>{claim.payment_status || "-"}</span>
                                   )}
                                 </td>
                                 <td>
@@ -766,6 +994,63 @@ const RbAdmin = () => {
         <Reimbursement />
       )}
 
+      {isParticipantsModalOpen && (
+        <Modal
+          isVisible={isParticipantsModalOpen}
+          onClose={() => setIsParticipantsModalOpen(false)}
+          buttons={[
+            {
+              label: "Cancel",
+              onClick: () => setIsParticipantsModalOpen(false),
+            },
+            {
+              label: participantsSaving ? "Saving..." : "Save",
+              onClick: saveParticipants,
+              disabled: participantsSaving,
+            },
+          ]}
+        >
+          <h3>Manage Participants</h3>
+          <p style={{ marginTop: 0 }}>
+            Select employees to be saved as participants for this claim.
+          </p>
+
+          <ParticipantSelection
+            departmentId={employeeData?.department_id || ""}
+            selectionMode="group"
+            onSelectionChange={handleParticipantSelectionChange}
+            initialSelection={
+              participantsForEdit && participantsForEdit.length
+                ? employeeOptions.filter((eo) =>
+                    participantsForEdit.includes(String(eo.employee_id))
+                  )
+                : []
+            }
+            limit={500}
+          />
+
+          <div className="participants-modal-selected">
+            <div className="selected-title">Selected:</div>
+            <div className="selected-list">
+              {participantsForEdit && participantsForEdit.length ? (
+                participantsForEdit.map((pid) => {
+                  const found = employeeOptions.find(
+                    (e) => String(e.employee_id) === String(pid)
+                  );
+                  return (
+                    <div key={pid} className="selected-item">
+                      {found ? `${found.name} [${pid}]` : pid}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="selected-none">No participants selected.</div>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {isPaymentModalOpen && (
         <Modal
           isVisible={isPaymentModalOpen}
@@ -821,6 +1106,10 @@ const RbAdmin = () => {
               onClick={async () => {
                 if (!selectedPaymentOption) {
                   showAlert("Please select an option.");
+                  return;
+                }
+                if (!selectedPaymentClaim) {
+                  showAlert("No claim selected.");
                   return;
                 }
                 try {
