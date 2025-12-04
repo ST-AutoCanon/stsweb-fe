@@ -650,7 +650,7 @@ const RbTeamLead = () => {
           <div className="rb-atable-container">
             {filteredEmployees.map((employee) => {
               const filteredClaims = employee.claims;
-              if (filteredClaims.length === 0) return null;
+              if (!filteredClaims.length) return null;
               return (
                 <div key={employee.employee_id} className="employee-section">
                   <div
@@ -658,12 +658,14 @@ const RbTeamLead = () => {
                     onClick={() => toggleRow(employee.employee_id)}
                   >
                     <div className="empId-rows">
-                      <span>{employee.claims[0]?.employee_name}</span>
-                      <span>{employee.employee_id}</span>
+                      <span>
+                        {employee.claims[0]?.employee_name} - [
+                        {employee.employee_id}]
+                      </span>
                     </div>
                     <div className="emp-rows">
-                      Total Amount Claiming: Rs{" "}
                       <span>
+                        Total Amount Claiming: Rs{" "}
                         {filteredClaims
                           .reduce(
                             (sum, claim) =>
@@ -674,12 +676,13 @@ const RbTeamLead = () => {
                       </span>
                     </div>
                     <div className="emp-rows">
-                      Amount Approved: Rs{" "}
                       <span>
+                        Amount Approved: Rs{" "}
                         {filteredClaims
-                          .filter((c) => c.status === "approved")
+                          .filter((claim) => claim.status === "approved")
                           .reduce(
-                            (sum, c) => sum + parseFloat(c.total_amount || 0),
+                            (sum, claim) =>
+                              sum + parseFloat(claim.total_amount || 0),
                             0
                           )
                           .toLocaleString("en-IN")}

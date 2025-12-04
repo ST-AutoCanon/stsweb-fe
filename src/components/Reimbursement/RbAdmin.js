@@ -657,16 +657,14 @@ const RbAdmin = () => {
                     onClick={() => toggleRow(employee.employee_id)}
                   >
                     <div className="empId-rows">
-                      <span className="employee-name">
-                        {employee.claims[0]?.employee_name} -
-                      </span>
-                      <span className="employee-id">
-                        [{employee.employee_id}]
+                      <span>
+                        {employee.claims[0]?.employee_name} - [
+                        {employee.employee_id}]
                       </span>
                     </div>
                     <div className="emp-rows">
-                      Total Amount Claiming: Rs{" "}
                       <span>
+                        Total Amount Claiming: Rs{" "}
                         {filteredClaims
                           .reduce(
                             (sum, claim) =>
@@ -677,8 +675,8 @@ const RbAdmin = () => {
                       </span>
                     </div>
                     <div className="emp-rows">
-                      Amount Approved: Rs{" "}
                       <span>
+                        Amount Approved: Rs{" "}
                         {filteredClaims
                           .filter((claim) => claim.status === "approved")
                           .reduce(

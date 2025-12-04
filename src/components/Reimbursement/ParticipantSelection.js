@@ -19,7 +19,14 @@ const ParticipantSelection = ({
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(() => {
     if (!Array.isArray(initialSelection)) return [];
-    return initialSelection.filter(Boolean);
+    return initialSelection.filter(Boolean).map((it) =>
+      typeof it === "object"
+        ? {
+            employee_id: it.employee_id || it.id || it.employeeId,
+            name: it.name || it.employee_name || "",
+          }
+        : { employee_id: it, name: String(it) }
+    );
   });
   const [error, setError] = useState(null);
 
@@ -167,6 +174,82 @@ const ParticipantSelection = ({
     if (selectionMode) setMode(selectionMode);
   }, [selectionMode]);
 
+  const selectionIdsFromArray = (arr) =>
+    (arr || [])
+      .filter(Boolean)
+      .map((it) =>
+        typeof it === "object" ? it.employee_id || it.id || it.employeeId : it
+      )
+      .filter(Boolean)
+      .map(String);
+
+  const areIdSetsEqual = (aArr, bArr) => {
+    const a = selectionIdsFromArray(aArr);
+    const b = selectionIdsFromArray(bArr);
+    if (a.length !== b.length) return false;
+    const aSet = new Set(a);
+    for (const x of b) if (!aSet.has(String(x))) return false;
+    return true;
+  };
+
+  useEffect(() => {
+    if (!Array.isArray(initialSelection)) {
+      if (selected.length !== 0) setSelected([]);
+      return;
+    }
+
+    const normalized = initialSelection
+      .filter(Boolean)
+      .map((it) =>
+        typeof it === "object"
+          ? {
+              employee_id: it.employee_id || it.id || it.employeeId,
+              name:
+                it.name ||
+                it.employee_name ||
+                (it.raw && (it.raw.name || it.raw.employee_name)) ||
+                "",
+            }
+          : { employee_id: it, name: String(it) }
+      )
+      .filter((n) => n.employee_id);
+
+    const dedup = [];
+    const seen = new Set();
+    for (const n of normalized) {
+      const idStr = String(n.employee_id);
+      if (!idStr) continue;
+      if (seen.has(idStr)) continue;
+      seen.add(idStr);
+      dedup.push(n);
+    }
+
+    if (areIdSetsEqual(dedup, selected)) {
+      return;
+    }
+
+    setSelected(dedup);
+  }, [initialSelection]);
+
+  useEffect(() => {
+    if (!employees || employees.length === 0) return;
+    let changed = false;
+    const empMap = new Map();
+    for (const e of employees) {
+      if (e && e.employee_id) empMap.set(String(e.employee_id), e.name || "");
+    }
+    const patched = selected.map((s) => {
+      const id = String(s.employee_id);
+      const realName = empMap.get(id);
+      if (realName && realName !== s.name) {
+        changed = true;
+        return { ...s, name: realName };
+      }
+      return s;
+    });
+    if (changed) setSelected(patched);
+  }, [employees]);
+
   useEffect(() => {
     if (parentControlsMode && typeof onModeChange === "function")
       onModeChange(mode);
@@ -191,19 +274,37 @@ const ParticipantSelection = ({
 
   const handleSelectSingle = (emp) => {
     if (!emp) return;
-    setSelected([emp]);
+    const obj = {
+      employee_id: emp.employee_id || emp.id || emp.employeeId,
+      name:
+        emp.name ||
+        emp.employee_name ||
+        String(emp.employee_id || emp.id || emp.employeeId),
+    };
+    setSelected([obj]);
   };
 
   const handleToggleGroup = (emp) => {
     if (!emp) return;
-    const exists = selected.find(
-      (s) => String(s.employee_id) === String(emp.employee_id)
+    const empId = emp.employee_id || emp.id || emp.employeeId;
+    const existsIndex = selected.findIndex(
+      (s) => String(s.employee_id) === String(empId)
     );
-    if (exists)
+    if (existsIndex !== -1) {
       setSelected((prev) =>
-        prev.filter((p) => String(p.employee_id) !== String(emp.employee_id))
+        prev.filter((p) => String(p.employee_id) !== String(empId))
       );
-    else setSelected((prev) => [...prev, emp]);
+    } else {
+      const obj = {
+        employee_id: empId,
+        name: emp.name || emp.employee_name || String(empId),
+      };
+      setSelected((prev) => {
+        if (prev.some((p) => String(p.employee_id) === String(empId)))
+          return prev;
+        return [...prev, obj];
+      });
+    }
   };
 
   const handleRemoveChip = (emp) => {

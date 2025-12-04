@@ -3,8 +3,8 @@ import axios from "axios";
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 const API_KEY = process.env.REACT_APP_API_KEY || "";
 
-const meId =
-  JSON.parse(localStorage.getItem("dashboardData") || "{}")?.employeeId || "";
+const employeeData = JSON.parse(localStorage.getItem("dashboardData") || "{}");
+const meId = employeeData?.employeeId;
 
 const getCurrentYearMonth = () => {
   const now = new Date();

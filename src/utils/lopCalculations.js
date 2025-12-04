@@ -1,9 +1,8 @@
 import axios from "axios";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
-const meId = JSON.parse(
-  localStorage.getItem("dashboardData") || "{}"
-).employeeId;
+const employeeData = JSON.parse(localStorage.getItem("dashboardData") || "{}");
+const meId = employeeData?.employeeId;
 
 const fetchLOPData = async (employeeId) => {
   try {

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import { CiCirclePlus, CiCircleMinus } from "react-icons/ci";
 import ParticipantSelection from "./ParticipantSelection";
@@ -29,6 +29,7 @@ const ReimbursementForm = (props) => {
     setShowForm,
     setParticipants,
     setFormData,
+    participants = [],
   } = props;
 
   const uid = useMemo(() => Math.random().toString(36).slice(2, 8), []);
@@ -36,6 +37,8 @@ const ReimbursementForm = (props) => {
   const maxDateISO = new Date(Date.now() - 86400000).toLocaleDateString(
     "en-CA"
   );
+
+  const formRef = useRef(null);
 
   const ensureInvoicesArray = () => {
     if (!formData.invoices || !Array.isArray(formData.invoices)) {
@@ -83,6 +86,7 @@ const ReimbursementForm = (props) => {
                   onChange={(e) => handleInvoiceChange(i, e.target.value)}
                   placeholder="Enter invoice or transaction number"
                   aria-required="true"
+                  required
                 />
 
                 {i === source.length - 1 ? (
@@ -144,6 +148,115 @@ const ReimbursementForm = (props) => {
   const invoicesValid =
     cleanedInvoices.length > 0 && !hasEmptyInvoice && !duplicateInvoice;
 
+  const initialSelectionForChild = useMemo(() => {
+    if (!Array.isArray(participants)) return [];
+    return participants
+      .filter(Boolean)
+      .map((p) => {
+        if (typeof p === "object") {
+          return {
+            employee_id: p.employee_id || p.id || p.employeeId,
+            name: p.name || p.employee_name || "",
+          };
+        }
+        // p is id -> try to find name in employeeOptions
+        const found = (employeeOptions || []).find(
+          (e) =>
+            String(e.employee_id) === String(p) ||
+            String(e.id) === String(p) ||
+            String(e.empId) === String(p)
+        );
+        return {
+          employee_id: p,
+          name: found ? found.name : String(p),
+        };
+      })
+      .filter((x) => x.employee_id);
+  }, [participants, employeeOptions]);
+
+  const onFormSubmit = (e) => {
+    if (invoicesValid) {
+      handleSubmit(e);
+      return;
+    }
+
+    e.preventDefault();
+
+    const formEl = formRef.current;
+    if (!formEl) return;
+
+    if (duplicateInvoice) {
+      const invoicesArr = Array.isArray(formData.invoices)
+        ? formData.invoices
+        : formData.invoices
+        ? [formData.invoices]
+        : [];
+      const dupIndex = invoicesArr.findIndex(
+        (v) =>
+          String(v || "").toLowerCase() ===
+          String(duplicateInvoice || "").toLowerCase()
+      );
+      const input =
+        formEl.querySelector(`[name="invoice_${dupIndex}"]`) ||
+        formEl.querySelector(".invoice-input");
+      if (input) {
+        try {
+          input.setCustomValidity(
+            `Duplicate invoice in form: "${duplicateInvoice}"`
+          );
+        } catch {}
+        if (typeof input.reportValidity === "function") {
+          input.reportValidity();
+        } else {
+          try {
+            formEl.reportValidity();
+          } catch {}
+        }
+        try {
+          input.focus();
+        } catch {}
+        setTimeout(() => {
+          try {
+            input.setCustomValidity("");
+          } catch {}
+        }, 1500);
+        return;
+      }
+    }
+
+    if (hasEmptyInvoice) {
+      const invoicesArr = Array.isArray(formData.invoices)
+        ? formData.invoices
+        : formData.invoices
+        ? [formData.invoices]
+        : [];
+      const emptyIndex = invoicesArr.findIndex((v) => !String(v || "").trim());
+      const input =
+        formEl.querySelector(`[name="invoice_${emptyIndex}"]`) ||
+        formEl.querySelector(".invoice-input");
+      if (input) {
+        try {
+          input.setCustomValidity("");
+        } catch {}
+        if (typeof input.reportValidity === "function") {
+          input.reportValidity();
+        } else {
+          try {
+            formEl.reportValidity();
+          } catch {}
+        }
+        try {
+          input.focus();
+        } catch {}
+        return;
+      }
+    }
+
+    try {
+      formEl.reportValidity();
+    } catch {}
+  };
+
   return (
     <div className="rb-modal">
       <div
@@ -162,23 +275,9 @@ const ReimbursementForm = (props) => {
         </div>
 
         <form
+          ref={formRef}
           className="reimbursement-form"
-          onSubmit={(e) => {
-            if (!invoicesValid) {
-              e.preventDefault();
-              if (hasEmptyInvoice) {
-                alert("Please fill all invoice fields or remove empty rows.");
-              } else if (duplicateInvoice) {
-                alert(
-                  `Duplicate invoice in form: "${duplicateInvoice}". Please remove duplicates.`
-                );
-              } else {
-                alert("Please add at least one invoice (marked *).");
-              }
-              return;
-            }
-            handleSubmit(e);
-          }}
+          onSubmit={onFormSubmit}
         >
           <div className="claim-type">
             <label>
@@ -254,7 +353,7 @@ const ReimbursementForm = (props) => {
                   selectionMode="group"
                   onModeChange={(m) => setParticipantMode(m)}
                   onSelectionChange={onParticipantSelectionChange}
-                  initialSelection={[]}
+                  initialSelection={initialSelectionForChild}
                   limit={500}
                   hideModeToggle={true}
                 />
@@ -307,7 +406,7 @@ const ReimbursementForm = (props) => {
                 </div>
               )}
 
-              {formData.transport_type && (
+              {(formData.transport_type || formData._forceShowTransport) && (
                 <div className="rb-main-form">
                   <div className="rb-form-grid">
                     {formData.transport_type === "Outstation" ? (
@@ -509,13 +608,6 @@ const ReimbursementForm = (props) => {
                               Duplicate invoice in form: "{duplicateInvoice}".
                             </p>
                           )}
-                          {!hasEmptyInvoice &&
-                            !duplicateInvoice &&
-                            cleanedInvoices.length === 0 && (
-                              <p className="rb-error-message">
-                                At least one invoice is required.
-                              </p>
-                            )}
                         </div>
                       )}
                     </div>
@@ -643,13 +735,6 @@ const ReimbursementForm = (props) => {
                           Duplicate invoice in form: "{duplicateInvoice}".
                         </p>
                       )}
-                      {!hasEmptyInvoice &&
-                        !duplicateInvoice &&
-                        cleanedInvoices.length === 0 && (
-                          <p className="rb-error-message">
-                            At least one invoice is required.
-                          </p>
-                        )}
                     </div>
                   )}
                 </div>
@@ -756,13 +841,6 @@ const ReimbursementForm = (props) => {
                           Duplicate invoice in form: "{duplicateInvoice}".
                         </p>
                       )}
-                      {!hasEmptyInvoice &&
-                        !duplicateInvoice &&
-                        cleanedInvoices.length === 0 && (
-                          <p className="rb-error-message">
-                            At least one invoice is required.
-                          </p>
-                        )}
                     </div>
                   )}
                 </div>
@@ -883,13 +961,6 @@ const ReimbursementForm = (props) => {
                           Duplicate invoice in form: "{duplicateInvoice}".
                         </p>
                       )}
-                      {!hasEmptyInvoice &&
-                        !duplicateInvoice &&
-                        cleanedInvoices.length === 0 && (
-                          <p className="rb-error-message">
-                            At least one invoice is required.
-                          </p>
-                        )}
                     </div>
                   )}
                 </div>
@@ -987,13 +1058,6 @@ const ReimbursementForm = (props) => {
                           Duplicate invoice in form: "{duplicateInvoice}".
                         </p>
                       )}
-                      {!hasEmptyInvoice &&
-                        !duplicateInvoice &&
-                        cleanedInvoices.length === 0 && (
-                          <p className="rb-error-message">
-                            At least one invoice is required.
-                          </p>
-                        )}
                     </div>
                   )}
                 </div>
@@ -1009,11 +1073,8 @@ const ReimbursementForm = (props) => {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="rb-submit"
-              disabled={!invoicesValid}
-            >
+
+            <button type="submit" className="rb-submit">
               {editingId ? "Update" : "Submit"}
             </button>
           </div>
