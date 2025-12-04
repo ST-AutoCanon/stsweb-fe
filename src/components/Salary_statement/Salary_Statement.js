@@ -258,7 +258,7 @@ const Salary_Statement = () => {
           "esic",
           "gratuity",
           "professional tax",
-          "income tax",
+
           "insurance",
           "lop deduction",
           "gross salary",
@@ -321,7 +321,7 @@ const Salary_Statement = () => {
             "ESIC",
             "Gratuity",
             "Professional Tax",
-            "Income Tax",
+
             "Insurance",
             "LOP Deduction",
             "Gross Salary",
@@ -495,7 +495,7 @@ const Salary_Statement = () => {
           esic: parseFloat(row["ESIC"] || 0),
           gratuity: parseFloat(row["Gratuity"] || 0),
           professional_tax: parseFloat(row["Professional Tax"] || 0),
-          income_tax: parseFloat(row["Income Tax"] || 0),
+
           insurance: parseFloat(row["Insurance"] || 0),
           lop_days: parseInt(row["LOP Days"] || 0),
           lop_deduction: parseFloat(row["LOP Deduction"] || 0),
