@@ -164,6 +164,7 @@ const Salary_Statement = () => {
         const cleaned = cleanKeys(row);
         return {
           ...cleaned,
+          TDS: cleaned["TDS"] ?? 0,
           "Advance Recovery": cleaned["Advance Recovery"] ?? 0,
           "Net Salary": cleaned["Net Salary"] ?? 0,
           "Gross Salary": cleaned["Gross Salary"] ?? 0,
@@ -256,9 +257,10 @@ const Salary_Statement = () => {
           "employee pf",
           "employer pf",
           "esic",
+          "tds",
           "gratuity",
           "professional tax",
-
+          "income tax",
           "insurance",
           "lop deduction",
           "gross salary",
@@ -319,9 +321,10 @@ const Salary_Statement = () => {
             "Employee PF",
             "Employer PF",
             "ESIC",
+            "TDS",
             "Gratuity",
             "Professional Tax",
-
+            "Income Tax",
             "Insurance",
             "LOP Deduction",
             "Gross Salary",
@@ -493,9 +496,9 @@ const Salary_Statement = () => {
           employee_pf: parseFloat(row["Employee PF"] || 0),
           employer_pf: parseFloat(row["Employer PF"] || 0),
           esic: parseFloat(row["ESIC"] || 0),
+          tds: parseFloat(row["TDS"] || 0),
           gratuity: parseFloat(row["Gratuity"] || 0),
           professional_tax: parseFloat(row["Professional Tax"] || 0),
-
           insurance: parseFloat(row["Insurance"] || 0),
           lop_days: parseInt(row["LOP Days"] || 0),
           lop_deduction: parseFloat(row["LOP Deduction"] || 0),
@@ -505,6 +508,8 @@ const Salary_Statement = () => {
               ? parseFloat(row["Net Salary"] || 0)
               : 0,
           payslip_generated: 0,
+          status: "Approved",
+          payslip_generation: "disabled",
         }))
         .filter((item) => item.employee_id && item.full_name);
 
