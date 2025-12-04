@@ -13,6 +13,7 @@
   justify-content: space-between;
   align-items: center;
   margin: 5% 0;
+  width: 95%;
 }
 
 .rb-filter-group {
@@ -63,7 +64,7 @@
 }
 
 .rb-atable-container {
-  width: 100%;
+  width: 95%;
   display: flex;
   flex-direction: column;
   gap: 15px;

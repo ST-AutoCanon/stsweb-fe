@@ -18,6 +18,11 @@ import ParticipantSelection from "./ParticipantSelection";
 import AttachmentsModal from "./AttachmentModal";
 import ReimbursementForm from "./ReimbursementForm";
 
+const ALLOWED_EXT = ["pdf", "png", "jpg", "jpeg"];
+const ALLOWED_MIME = ["application/pdf", "image/png", "image/jpeg"];
+const MAX_BYTES_PER_FILE = 5 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
+
 const claimTypes = [
   {
     icon: <MdEmojiTransportation className="claim-icons" />,
@@ -34,6 +39,53 @@ const claimTypes = [
     label: "Miscellaneous",
   },
 ];
+
+const normalizeFilename = (fileName) =>
+  fileName ? encodeURIComponent(fileName) : null;
+
+const fileExtFromName = (name = "") =>
+  String(name).includes(".") ? String(name).split(".").pop().toLowerCase() : "";
+
+const isHTMLString = (s) =>
+  typeof s === "string" && /<\s*!doctype|<\s*html/i.test(s.trim());
+
+const tryExtractYearMonthFromPath = (filePath) => {
+  if (!filePath) return {};
+  const p = filePath.replace(/\\/g, "/");
+  const m = p.match(/\/reimbursement\/(\d{4})\/(\d{2})\/([^/]+)\/([^/]+)$/);
+  if (m) return { year: m[1], month: m[2], empId: m[3], filename: m[4] };
+  const parts = p.split("/").filter(Boolean);
+  if (parts.length >= 4) {
+    const filename = parts[parts.length - 1];
+    const empId = parts[parts.length - 2];
+    const month = parts[parts.length - 3];
+    const year = parts[parts.length - 4];
+    const okYear = year && /^\d{4}$/.test(year) ? year : null;
+    const okMonth = month && /^\d{2}$/.test(month) ? month : null;
+    return { year: okYear, month: okMonth, empId: empId || null, filename };
+  }
+  return {};
+};
+
+const buildBackendAttachmentUrl = (BACKEND, year, month, empId, filename) => {
+  if (!BACKEND) return null;
+  if (!year || !month || !empId || !filename) return null;
+  return `${BACKEND}/reimbursement/${year}/${month}/${empId}/${normalizeFilename(
+    filename
+  )}`;
+};
+
+const tryParseDate = (s) => {
+  if (!s && s !== 0) return null;
+  if (s instanceof Date && !isNaN(s)) return s;
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+};
+
+const normalizeStartOfDay = (d) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+const normalizeEndOfDay = (d) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
 const role = localStorage.getItem("userRole") || "";
 
@@ -131,6 +183,7 @@ const Reimbursement = () => {
     project: "",
     attachments: null,
     invoices: [],
+    _forceShowTransport: false,
   });
 
   const RAW_BACKEND =
@@ -159,7 +212,20 @@ const Reimbursement = () => {
   ) => {
     const data = err?.response?.data;
     if (data) {
-      if (typeof data === "string") return data;
+      if (typeof data === "string") {
+        const trimmed = data.trim();
+        if (isHTMLString(trimmed)) {
+          const status = err?.response?.status;
+          if (status === 415)
+            return `Invalid file type. Allowed: ${ALLOWED_EXT.join(
+              ", "
+            ).toUpperCase()}.`;
+          if (status === 403 || status === 401)
+            return "You are not authorized to upload this file.";
+          return "Server rejected the uploaded file (invalid/forbidden). Please check file type and try again.";
+        }
+        return data;
+      }
       if (data.error) return data.error;
       if (data.message) return data.message;
       if (data.errors) {
@@ -169,6 +235,91 @@ const Reimbursement = () => {
     }
     if (err?.message) return err.message;
     return fallback;
+  };
+
+  const validateFileObject = (file) => {
+    if (!file || typeof file !== "object")
+      return { ok: false, reason: "Invalid file" };
+    if (!(file instanceof File)) return { ok: true };
+    const ext = fileExtFromName(file.name);
+    if (!ALLOWED_EXT.includes(ext))
+      return { ok: false, reason: "Invalid file type" };
+    if (file.type && !ALLOWED_MIME.includes(file.type)) {
+      return { ok: false, reason: "Invalid file mime type" };
+    }
+    if (file.size > MAX_BYTES_PER_FILE)
+      return {
+        ok: false,
+        reason: `File too large (max ${MAX_BYTES_PER_FILE / 1024 / 1024} MB)`,
+      };
+    return { ok: true };
+  };
+
+  const validateFilesArray = (files = []) => {
+    const invalids = [];
+    const valids = [];
+    let totalBytes = 0;
+    for (const f of files) {
+      if (f instanceof File) totalBytes += f.size;
+    }
+    if (totalBytes > MAX_TOTAL_BYTES) {
+      return {
+        ok: false,
+        invalids: [],
+        valids: [],
+        reason: `Total selected files exceed maximum allowed size (${
+          MAX_TOTAL_BYTES / 1024 / 1024
+        } MB).`,
+      };
+    }
+    for (const f of files) {
+      const res = validateFileObject(f);
+      if (!res.ok)
+        invalids.push({ file: f, reason: res.reason || "Invalid file" });
+      else valids.push(f);
+    }
+    return { ok: invalids.length === 0, invalids, valids };
+  };
+
+  const handleFileUpload = (e) => {
+    try {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) {
+        setSelectedFiles([]);
+        setFormData((p) => ({ ...p, attachments: null }));
+        return;
+      }
+
+      const validation = validateFilesArray(files);
+
+      if (!validation.ok) {
+        if (validation.reason) {
+          showAlert(validation.reason, "Invalid files");
+          setSelectedFiles([]);
+          setFormData((p) => ({ ...p, attachments: null }));
+          return;
+        }
+
+        if (validation.invalids && validation.invalids.length) {
+          const names = validation.invalids
+            .map((i) => `${i.file?.name || "(unknown)"} — ${i.reason}`)
+            .join("\n");
+          showAlert(
+            `The following files are not allowed:\n${names}`,
+            "Invalid file(s)"
+          );
+          setFormData((p) => ({ ...p, attachments: validation.valids }));
+          setSelectedFiles(validation.valids.map((f) => f.name));
+          return;
+        }
+      }
+
+      setFormData((p) => ({ ...p, attachments: files }));
+      setSelectedFiles(files.map((f) => f.name));
+    } catch (err) {
+      console.error("handleFileUpload error", err);
+      showAlert("Could not process selected files. Please try again.");
+    }
   };
 
   const fetchReimbursements = useCallback(async () => {
@@ -267,17 +418,6 @@ const Reimbursement = () => {
     fetchEmployees();
   }, []);
 
-  const tryParseDate = (s) => {
-    if (!s && s !== 0) return null;
-    if (s instanceof Date && !isNaN(s)) return s;
-    const d = new Date(s);
-    return isNaN(d) ? null : d;
-  };
-  const normalizeStartOfDay = (d) =>
-    new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-  const normalizeEndOfDay = (d) =>
-    new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
-
   const parseClaimRange = (claim) => {
     let start = null,
       end = null;
@@ -348,36 +488,37 @@ const Reimbursement = () => {
       claim_type: value,
       transport_type: "",
       no_of_days: "",
+      _forceShowTransport: false,
     }));
     setSelectedFiles([]);
   };
 
   const handleTransportSubTypeChange = (type) => {
-    setFormData((p) => ({ ...p, transport_type: type }));
+    setFormData((p) => ({
+      ...p,
+      transport_type: type,
+      _forceShowTransport: false,
+    }));
     if (type === "Outstation") setFormData((p) => ({ ...p, no_of_days: "" }));
   };
 
   const handleNoOfDaysChange = (e) =>
     setFormData((p) => ({ ...p, no_of_days: e.target.value }));
 
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files || []);
-    setSelectedFiles(files.map((f) => f.name));
-    setFormData((p) => ({ ...p, attachments: files }));
-  };
-
   const handleEdit = (claim) => {
     setEditingId(claim.id);
     setShowForm(true);
     const attach = attachments[claim.id] || [];
+
     const existingParticipants =
       claim.participants || claim.participant_ids || [];
-    const ids =
+    const idsRaw =
       Array.isArray(existingParticipants) && existingParticipants.length
         ? existingParticipants.map((x) =>
             typeof x === "object" ? x.employee_id || x.id : x
           )
         : [employeeId];
+    const ids = Array.from(new Set(idsRaw.filter(Boolean)));
     setParticipants(ids);
     setParticipantMode(ids.length > 1 ? "group" : "single");
 
@@ -400,11 +541,32 @@ const Reimbursement = () => {
     if (!Array.isArray(existingInvoices))
       existingInvoices = existingInvoices ? [String(existingInvoices)] : [];
 
+    let transportType = claim.transport_type || "";
+    let forceShowTransport = false;
+    if (
+      !transportType &&
+      (claim.claim_type === "Transportation" ||
+        claim.claim_type === "transportation")
+    ) {
+      const hasTransportHints =
+        (claim.no_of_days && String(claim.no_of_days).trim()) ||
+        (claim.from_date && String(claim.from_date).trim()) ||
+        (claim.to_date && String(claim.to_date).trim()) ||
+        (claim.date && String(claim.date).trim()) ||
+        (claim.transport_amount && String(claim.transport_amount).trim()) ||
+        (claim.travel_from && String(claim.travel_from).trim()) ||
+        (claim.travel_to && String(claim.travel_to).trim());
+      if (hasTransportHints) {
+        transportType = "";
+        forceShowTransport = true;
+      }
+    }
+
     setFormData({
       employeeId: claim.employeeId || claim.employee_id || employeeId,
       department_id: claim.department_id || departmentId,
       claim_type: claim.claim_type || "",
-      transport_type: claim.transport_type || "",
+      transport_type: transportType || claim.transport_type || "",
       transport_amount: claim.transport_amount || "",
       da: claim.da || "",
       fromDate: claim.from_date
@@ -428,6 +590,7 @@ const Reimbursement = () => {
       project: claim.project || "",
       attachments: attach,
       invoices: existingInvoices,
+      _forceShowTransport: forceShowTransport,
     });
     setSelectedFiles(
       (attach || []).map((a) => a.file_name || a.name).filter(Boolean)
@@ -444,49 +607,46 @@ const Reimbursement = () => {
         return "You";
       return "-";
     }
-    const ids = part.map((p) =>
-      typeof p === "object" ? p.employee_id || p.id || p.employeeId : p
+
+    const ids = Array.from(
+      new Set(
+        (part || [])
+          .map((p) =>
+            typeof p === "object" ? p.employee_id || p.id || p.employeeId : p
+          )
+          .filter(Boolean)
+      )
     );
+
     const names = ids.map((id) => {
+      if (Array.isArray(part)) {
+        const foundInClaim = part.find((p) => {
+          const pid =
+            typeof p === "object" ? p.employee_id || p.id || p.employeeId : p;
+          return String(pid) === String(id);
+        });
+        if (foundInClaim && (foundInClaim.name || foundInClaim.employee_name)) {
+          return foundInClaim.name || foundInClaim.employee_name;
+        }
+      }
+
       const found = employeeOptions.find(
         (e) =>
-          String(e.employee_id) === String(id) || String(e.id) === String(id)
+          String(e.employee_id) === String(id) ||
+          String(e.id) === String(id) ||
+          String(e.empId) === String(id)
       );
       if (found) return found.name;
+
       if (String(id) === String(employeeId)) return "You";
+
       return String(id);
     });
+
     return names.join(", ");
   };
 
-  const normalizeFilename = (fileName) =>
-    fileName ? encodeURIComponent(fileName) : null;
-
-  const tryExtractYearMonthFromPath = (filePath) => {
-    if (!filePath) return {};
-    const p = filePath.replace(/\\/g, "/");
-    const m = p.match(/\/reimbursement\/(\d{4})\/(\d{2})\/([^/]+)\/([^/]+)$/);
-    if (m) return { year: m[1], month: m[2], empId: m[3], filename: m[4] };
-    const parts = p.split("/").filter(Boolean);
-    if (parts.length >= 4) {
-      const filename = parts[parts.length - 1];
-      const empId = parts[parts.length - 2];
-      const month = parts[parts.length - 3];
-      const year = parts[parts.length - 4];
-      const okYear = year && /^\d{4}$/.test(year) ? year : null;
-      const okMonth = month && /^\d{2}$/.test(month) ? month : null;
-      return { year: okYear, month: okMonth, empId: empId || null, filename };
-    }
-    return {};
-  };
-
-  const buildBackendAttachmentUrl = (year, month, empId, filename) => {
-    if (!BACKEND) return null;
-    if (!year || !month || !empId || !filename) return null;
-    return `${BACKEND}/reimbursement/${year}/${month}/${empId}/${normalizeFilename(
-      filename
-    )}`;
-  };
+  const tryExtractYearMonthFromPathLocal = tryExtractYearMonthFromPath;
 
   const handleOpenAttachments = async (files = [], claim = {}) => {
     try {
@@ -501,7 +661,7 @@ const Reimbursement = () => {
             const fileName = f.file_name || f.filename || f.name;
             let year, month, empId, filename;
             if (f.file_path) {
-              const meta = tryExtractYearMonthFromPath(f.file_path);
+              const meta = tryExtractYearMonthFromPathLocal(f.file_path);
               year = meta.year;
               month = meta.month;
               empId = meta.empId;
@@ -520,6 +680,7 @@ const Reimbursement = () => {
             let urlToFetch = null;
             if (year && month && empId && filename)
               urlToFetch = buildBackendAttachmentUrl(
+                BACKEND,
                 year,
                 month,
                 empId,
@@ -645,10 +806,34 @@ const Reimbursement = () => {
       }
     }
 
+    const attachmentsForValidation = formData.attachments || [];
+    const attachmentsArray = Array.isArray(attachmentsForValidation)
+      ? attachmentsForValidation
+      : [attachmentsForValidation];
+
+    const validation = validateFilesArray(attachmentsArray);
+    if (!validation.ok) {
+      if (validation.reason) {
+        showAlert(validation.reason, "Invalid files");
+      } else if (validation.invalids && validation.invalids.length) {
+        const names = validation.invalids
+          .map((i) => `${i.file?.name || "(unknown)"} — ${i.reason}`)
+          .join("\n");
+        showAlert(
+          `Cannot submit. The following files are not allowed:\n${names}`,
+          "Invalid file(s)"
+        );
+      } else {
+        showAlert("Cannot submit due to invalid attachments.");
+      }
+      setSubmitErrorMessage("Invalid attachments present.");
+      return;
+    }
+
     try {
       const fd = new FormData();
       Object.keys(formData).forEach((k) => {
-        if (k === "attachments") return;
+        if (k === "attachments" || k === "_forceShowTransport") return;
         const val = formData[k];
         if (val !== undefined && val !== null && k !== "invoices")
           fd.append(k, val);
@@ -661,8 +846,12 @@ const Reimbursement = () => {
       if (participants && participants.length)
         fd.append("participants", JSON.stringify(participants));
       fd.append("role", role || "Employee");
-      if (formData.attachments && formData.attachments.length)
-        formData.attachments.forEach((file) => fd.append("attachments", file));
+
+      if (formData.attachments && Array.isArray(formData.attachments)) {
+        formData.attachments.forEach((file) => {
+          if (file instanceof File) fd.append("attachments", file);
+        });
+      }
 
       const cfg = {
         withCredentials: true,
@@ -698,6 +887,7 @@ const Reimbursement = () => {
         attachments: null,
         total_amount: "",
         invoices: [],
+        _forceShowTransport: false,
       }));
       setSelectedFiles([]);
       fetchReimbursements();
@@ -806,13 +996,16 @@ const Reimbursement = () => {
 
   const shouldShowParticipantControls = () => {
     if (!formData.claim_type) return false;
-    if (formData.claim_type === "Transportation")
-      return !!formData.transport_type;
+    const ct = String(formData.claim_type || "").toLowerCase();
+
+    if (ct === "transportation")
+      return !!formData.transport_type || !!formData._forceShowTransport;
+
     if (
-      formData.claim_type === "Meals" ||
-      formData.claim_type === "Miscellaneous"
+      ["meals", "miscellaneous", "telecommunication", "stationary"].includes(ct)
     )
       return true;
+
     return false;
   };
 
@@ -885,6 +1078,7 @@ const Reimbursement = () => {
               project: "",
               attachments: null,
               invoices: [],
+              _forceShowTransport: false,
             });
           }}
         >
@@ -1004,7 +1198,7 @@ const Reimbursement = () => {
                   </td>
                   <td>{claim.payment_status}</td>
                   <td className="rb-actions-column">
-                    <button
+                    <MdOutlineEdit
                       className={`icons-btn ${!canEdit ? "disabled-icon" : ""}`}
                       aria-disabled={!canEdit}
                       disabled={!canEdit}
@@ -1015,11 +1209,9 @@ const Reimbursement = () => {
                       }}
                       title={canEdit ? "Edit" : "Cannot edit"}
                       aria-label={`Edit reimbursement ${claim.id}`}
-                    >
-                      <MdOutlineEdit className="md-edit" />
-                    </button>
+                    />
 
-                    <button
+                    <MdDeleteOutline
                       className={`icons-btn ${
                         !canDelete ? "disabled-icon" : ""
                       }`}
@@ -1031,9 +1223,7 @@ const Reimbursement = () => {
                       }}
                       title={canDelete ? "Delete" : "Cannot delete"}
                       aria-label={`Delete reimbursement ${claim.id}`}
-                    >
-                      <MdDeleteOutline className="md-delete" />
-                    </button>
+                    />
                   </td>
                 </tr>
               );
@@ -1191,6 +1381,7 @@ const Reimbursement = () => {
           setShowForm={setShowForm}
           setParticipants={setParticipants}
           setFormData={setFormData}
+          participants={participants}
         />
       )}
 
@@ -1219,7 +1410,7 @@ const Reimbursement = () => {
         buttons={[{ label: "OK", onClick: closeAlert }]}
       >
         <h3>{alertModal.title}</h3>
-        <p>{alertModal.message}</p>
+        <p style={{ whiteSpace: "pre-wrap" }}>{alertModal.message}</p>
       </Modal>
     </div>
   );

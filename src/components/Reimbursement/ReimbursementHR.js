@@ -10,6 +10,8 @@ import Modal from "../Modal/Modal";
 import ParticipantSelection from "./ParticipantSelection";
 
 const ReimbursementHR = () => {
+  const isFrozen = true;
+
   const [employees, setEmployees] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
   const [submittedFrom, setSubmittedFrom] = useState("");
@@ -278,6 +280,10 @@ const ReimbursementHR = () => {
   };
 
   const updateStatus = async (id) => {
+    if (isFrozen) {
+      showAlert("Editing is disabled.");
+      return;
+    }
     if (!statusUpdates[id]) {
       showAlert("Please select a status.");
       return;
@@ -327,7 +333,7 @@ const ReimbursementHR = () => {
   const sanitizeFileName = (name) => {
     if (!name) return "";
     return name
-      .replace(/[\u0000-\u001F<>:"/\\|?*]+/g, "")
+      .replace(/[\u0000-\u001F<>:\"/\\|?*]+/g, "")
       .trim()
       .replace(/\s+/g, "_")
       .substring(0, 160);
@@ -355,7 +361,7 @@ const ReimbursementHR = () => {
         const cd = response.headers["content-disposition"];
         filename = `Reimbursement_${claim.id}.pdf`;
         if (cd) {
-          const match = cd.match(/filename="?([^"]+)"?/);
+          const match = cd.match(/filename="?([^\"]+)"?/);
           if (match?.[1]) filename = match[1];
         }
       }
@@ -394,7 +400,7 @@ const ReimbursementHR = () => {
       const cd = resp.headers["content-disposition"];
       let filename = "reimbursements.xlsx";
       if (cd) {
-        const match = cd.match(/filename="?([^"]+)"?/);
+        const match = cd.match(/filename="?([^\"]+)"?/);
         if (match?.[1]) filename = match[1];
       }
       const blob = new Blob([resp.data], {
@@ -514,12 +520,50 @@ const ReimbursementHR = () => {
   };
 
   const openPaymentModal = (claim) => {
+    if (isFrozen) {
+      showAlert("Editing/payment status updates are disabled.");
+      return;
+    }
     if (!claim) return;
     setSelectedPaymentClaim(claim);
     const current = (claim.payment_status || "").toLowerCase();
     setSelectedPaymentOption(current || "pending");
     setIsPaymentModalOpen(true);
   };
+
+  useEffect(() => {
+    const id = "reimbursement-hr-frozen-css";
+    if (document.getElementById(id)) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.innerHTML = `
+      .HR-rb-admin-rbadmin-comments-full {
+        white-space: normal !important;
+        overflow: visible !important;
+        word-wrap: break-word !important;
+        max-width: 420px !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        text-align: left !important;
+      }
+      /* Keep the dropdown visually the same but non-interactive when frozen */
+      .HR-rb-admin-rb-status-dropdown.frozen {
+        pointer-events: none;
+        opacity: 0.98;
+      }
+      .HR-rb-admin-pending-payment-btn-frozen {
+        pointer-events: none;
+        opacity: 0.9;
+        cursor: default;
+      }
+      .HR-rb-admin-update-btn-frozen {
+        pointer-events: none;
+        opacity: 0.6;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
   return (
     <div className="HR-rb-admin">
@@ -786,7 +830,9 @@ const ReimbursementHR = () => {
                                     </span>
                                   ) : (
                                     <select
-                                      className="HR-rb-admin-rb-status-dropdown"
+                                      className={`HR-rb-admin-rb-status-dropdown ${
+                                        isFrozen ? "frozen" : ""
+                                      }`}
                                       value={
                                         statusUpdates[claim.id] ||
                                         claim.status ||
@@ -798,6 +844,7 @@ const ReimbursementHR = () => {
                                           e.target.value
                                         )
                                       }
+                                      disabled={isFrozen}
                                     >
                                       <option value="">Pending</option>
                                       <option value="approved">Approve</option>
@@ -813,7 +860,9 @@ const ReimbursementHR = () => {
                                     </div>
                                   ) : (
                                     <select
-                                      className="HR-rb-admin-rb-status-dropdown"
+                                      className={`HR-rb-admin-rb-status-dropdown ${
+                                        isFrozen ? "frozen" : ""
+                                      }`}
                                       value={projectSelections[claim.id] || ""}
                                       onChange={(e) =>
                                         setProjectSelections((prev) => ({
@@ -821,6 +870,7 @@ const ReimbursementHR = () => {
                                           [claim.id]: e.target.value,
                                         }))
                                       }
+                                      disabled={isFrozen}
                                     >
                                       <option value="">Select</option>
                                       <option value="STS CLAIM">
@@ -835,9 +885,13 @@ const ReimbursementHR = () => {
                                   )}
                                 </td>
                                 <td>
-                                  {claim.status === "approved" ||
+                                  {isFrozen ||
+                                  claim.status === "approved" ||
                                   claim.status === "rejected" ? (
-                                    <div className="HR-rb-admin-rbadmin-comments">
+                                    <div
+                                      className="HR-rb-admin-rbadmin-comments-full"
+                                      title={claim.approver_comments || ""}
+                                    >
                                       {claim.approver_comments || "No comments"}
                                     </div>
                                   ) : (
@@ -862,9 +916,16 @@ const ReimbursementHR = () => {
                                     claim.payment_status?.toLowerCase() ===
                                       "pending" ? (
                                       <button
-                                        className="HR-rb-admin-pending-payment-btn"
-                                        onClick={() => openPaymentModal(claim)}
+                                        className={`HR-rb-admin-pending-payment-btn ${
+                                          isFrozen
+                                            ? "HR-rb-admin-pending-payment-btn-frozen"
+                                            : ""
+                                        }`}
+                                        onClick={() =>
+                                          !isFrozen && openPaymentModal(claim)
+                                        }
                                         title="Update payment status"
+                                        disabled={isFrozen}
                                       >
                                         Pending
                                       </button>
@@ -892,15 +953,17 @@ const ReimbursementHR = () => {
                                       type="button"
                                       className={`HR-rb-admin-action-btn ${
                                         claim.status === "approved" ||
-                                        claim.status === "rejected"
-                                          ? "HR-rb-admin-action-disabled"
+                                        claim.status === "rejected" ||
+                                        isFrozen
+                                          ? "HR-rb-admin-action-disabled HR-rb-admin-update-btn-frozen"
                                           : ""
                                       }`}
                                       onClick={() => updateStatus(claim.id)}
                                       aria-label={`Update status ${claim.id}`}
                                       disabled={
                                         claim.status === "approved" ||
-                                        claim.status === "rejected"
+                                        claim.status === "rejected" ||
+                                        isFrozen
                                       }
                                     >
                                       <FaFileInvoice className="HR-rb-admin-action-icon" />

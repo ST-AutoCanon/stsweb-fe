@@ -6,11 +6,12 @@
 
 .reimbursement-table-scroll {
   margin-top: 2%;
-  height: 400px;
+  max-height: 400px;
   overflow-y: auto;
   overflow-x: auto;
   border: 1px solid #ddd;
   margin-bottom: 3%;
+  max-width: 100%;
 }
 .invoice-label::after {
   content: " *";
@@ -117,7 +118,8 @@
 .purpose-attachment-invoices {
   box-sizing: border-box;
   width: 100%;
-  margin-top: 8px;
+  padding: 0;
+  margin: 0;
 }
 
 .purpose-attachment-invoices .rb-form-grid {
@@ -132,10 +134,6 @@
 }
 .purpose-attachment-invoices.full-width .rb-form-grid {
   grid-template-columns: 1fr;
-}
-
-.purpose-attachment-invoices .rb-groups {
-  margin-bottom: 0.8rem;
 }
 
 .purpose-attachment-invoices .rb-groups label {
@@ -347,6 +345,11 @@
   color: #fff;
 }
 
+.icons-btn {
+  font-size: x-large;
+  padding: 0% 5%;
+}
+
 .pa-groups textarea,
 .attachment-wrapper textarea {
   padding: 2%;
@@ -523,14 +526,14 @@
   border: 1px solid #ccc;
   background-color: #fff;
   border-radius: 5px;
-  width: 95%;
+  width: 100%;
 }
 
 .rb-groups select {
   padding: 2%;
   border: 1px solid #ccc;
   border-radius: 5px;
-  width: 99%;
+  width: 100%;
 }
 
 .reimbursement-form-button {
@@ -716,6 +719,7 @@
 .attachment-upload {
   display: flex;
   align-items: center;
+  margin: 15px 15px 0 0;
 }
 
 .hidden-file-input {
@@ -735,18 +739,14 @@
 .rb-error-message {
   color: red;
   font-weight: bold;
-  margin-top: 10px;
-  text-align: center;
+  margin: 0;
+  text-align: left;
 }
 
 .disabled-icon {
   color: grey;
   pointer-events: none;
   opacity: 0.5;
-}
-
-.rb-actions-column {
-  min-width: 75px;
 }
 
 .rb-reimbursement-cards {
@@ -936,7 +936,6 @@
   }
 }
 
-/* Mobile View */
 @media (max-width: 768px) {
   .rb-modal {
     display: flex;
@@ -1109,7 +1108,7 @@
 }
 
 .participant-controls-wrapper {
-  margin-top: 12px;
+  margin: 12px;
 }
 
 .participant-mode-toggle {
@@ -1151,7 +1150,6 @@
 .rb-modal .rb-modal-content.show-participants {
   max-width: 950px;
 }
-
 
 .participant-row-inline {
   display: flex;
@@ -1437,8 +1435,7 @@
   min-width: 640px;
   box-sizing: border-box;
 
-  min-height: 520px; 
-  max-height: 80vh; 
+  max-height: 80vh;
   overflow-y: auto;
 }
 
@@ -1525,6 +1522,7 @@
 .rb-sub-table th,
 .rb-sub-table td {
   vertical-align: middle;
+  padding: 4px;
 }
 
 .action-icon,
