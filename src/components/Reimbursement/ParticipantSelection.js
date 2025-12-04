@@ -49,10 +49,38 @@ const ParticipantSelection = ({
   const authToken =
     localStorage.getItem("authToken") || localStorage.getItem("token");
 
+  const readLoggedEmployeeId = () => {
+    try {
+      const rawDashboard = localStorage.getItem("dashboardData");
+      if (rawDashboard) {
+        const parsed = JSON.parse(rawDashboard);
+        if (parsed) {
+          return (
+            parsed.employeeId ||
+            parsed.employee_id ||
+            parsed.id ||
+            parsed.empId ||
+            parsed.emp_id ||
+            null
+          );
+        }
+      }
+    } catch (e) {}
+    return (
+      localStorage.getItem("x-employee-id") ||
+      localStorage.getItem("employeeId") ||
+      localStorage.getItem("employee_id") ||
+      null
+    );
+  };
+
+  const loggedEmployeeId = readLoggedEmployeeId();
+
   const buildHeaders = () => {
     const headers = {};
     if (apiKey) headers["x-api-key"] = apiKey;
     if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+    if (loggedEmployeeId) headers["x-employee-id"] = String(loggedEmployeeId);
     return headers;
   };
 
@@ -83,6 +111,23 @@ const ParticipantSelection = ({
       if (Array.isArray(res.data?.result)) return res.data.result;
       return null;
     } catch (err) {
+      if (err?.response?.data) {
+        const body = err.response.data;
+        const bodyMsg =
+          (typeof body === "string" && body) ||
+          body?.error ||
+          body?.message ||
+          null;
+        if (
+          bodyMsg &&
+          String(bodyMsg).toLowerCase().includes("missing x-employee-id")
+        ) {
+          const e = new Error("Missing x-employee-id header");
+          e.code = "MISSING_X_EMPLOYEE_ID";
+          throw e;
+        }
+      }
+
       if (axios.isCancel(err)) throw err;
       return null;
     }
@@ -100,7 +145,10 @@ const ParticipantSelection = ({
       setError(null);
 
       const params = {};
-      if (q && String(q).trim()) params.q = String(q).trim();
+      if (q && String(q).trim()) {
+        params.q = String(q).trim();
+        params.search = String(q).trim();
+      }
       if (departmentId) params.departmentId = departmentId;
       if (limit) params.limit = limit;
 
@@ -115,7 +163,17 @@ const ParticipantSelection = ({
             );
             if (results && results.length) break;
           } catch (err) {
+            if (err?.code === "MISSING_X_EMPLOYEE_ID") {
+              setEmployees([]);
+              setError(
+                "Server requires x-employee-id header for this request. Please ensure you're logged in."
+              );
+              setLoading(false);
+              return;
+            }
             if (axios.isCancel(err)) throw err;
+
+            console.warn("endpoint failed:", url, err?.message || err);
           }
         }
 
