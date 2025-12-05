@@ -31,9 +31,16 @@ export function SocketProvider({ children }) {
     }
 
     const sock = io(process.env.REACT_APP_BACKEND_URL.replace("/api", ""), {
-      path: "/api/socket.io",
       query: { userId },
-      transports: ["websocket"],
+      extraHeaders: {
+        "x-employee-id": userId,
+      },
+      transports: ["polling", "websocket"],
+      transportOptions: {
+        polling: {
+          withCredentials: true,
+        },
+      },
       reconnectionAttempts: 5,
       timeout: 20000,
     });
