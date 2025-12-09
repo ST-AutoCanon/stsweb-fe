@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
@@ -21,6 +22,7 @@ const SalaryDetails = () => {
   const [employeeLopData, setEmployeeLopData] = useState({});
   const [employeeIncentiveData, setEmployeeIncentiveData] = useState({});
   const [personalMap, setPersonalMap] = useState({});
+  const [validSelectedEmployees, setValidSelectedEmployees] = useState([]);
   const [workingDays, setWorkingDays] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -358,6 +360,37 @@ const SalaryDetails = () => {
         { withCredentials: true, headers: requestHeaders }
       );
       setPersonalMap(personalRes.data.data || {});
+
+      // Compute valid selected employees (where salary details can be calculated successfully)
+      const allSelected = getSelectedEmployees();
+      const validEmployees = allSelected.filter((emp) => {
+        try {
+          const salaryDetails = calculateSalaryDetails(
+            emp.ctc,
+            emp.plan_data,
+            emp.employee_id,
+            overtimeRecords || [],
+            bonusRecords || [],
+            advances || [],
+            employeeIncentiveData || {},
+            employeeLopData
+          );
+          return !!salaryDetails;
+        } catch (e) {
+          console.error(
+            `Error calculating salary details for ${emp.employee_id}:`,
+            e
+          );
+          return false;
+        }
+      });
+
+      if (validEmployees.length === 0) {
+        showAlert("No valid employees selected for processing. Please check the selected employees.");
+        return;
+      }
+
+      setValidSelectedEmployees(validEmployees);
       setShowPreviewModal(true);
     } catch (error) {
       console.error("Error fetching personal details for preview:", error);
@@ -371,6 +404,7 @@ const SalaryDetails = () => {
 
   const handleCloseModal = () => {
     setShowPreviewModal(false);
+    setValidSelectedEmployees([]);
     setPersonalMap({});
     setShowBankReportOptions(false);
   };
@@ -562,8 +596,7 @@ const SalaryDetails = () => {
     return { headers, rows };
   };
 
-  const downloadBankReportExcel = () => {
-    const selectedData = getSelectedEmployees();
+  const downloadBankReportExcel = (selectedData) => {
     if (selectedData.length === 0) return;
     const { headers, rows } = generateBankReportData(selectedData);
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows.map((r) => r.row)]);
@@ -579,8 +612,7 @@ const SalaryDetails = () => {
     XLSX.writeFile(wb, "bank-report.xlsx");
   };
 
-  const downloadBankReportPDF = () => {
-    const selectedData = getSelectedEmployees();
+  const downloadBankReportPDF = (selectedData) => {
     if (selectedData.length === 0) return;
     const { headers, rows } = generateBankReportData(selectedData);
     const cleanedRows = rows.map((r) => {
@@ -640,40 +672,32 @@ const SalaryDetails = () => {
       showAlert("Missing credentials. Please log in again.");
       return;
     }
-    const selectedData = getSelectedEmployees();
+    const selectedData = validSelectedEmployees;
     if (selectedData.length === 0) {
-      showAlert("No employees selected.");
+      showAlert("No valid employees selected.");
       return;
     }
     try {
-      const employeeIds = selectedData.map((emp) => emp.employee_id);
-      const personalRes = await axios.post(
-        `${BASE_URL}/api/compensation/employee-personal-details`,
-        { employeeIds },
-        { withCredentials: true, headers: requestHeaders }
-      );
-      setPersonalMap(personalRes.data.data || {});
-      if (format === "excel") await downloadBankReportExcel();
-      else if (format === "pdf") await downloadBankReportPDF();
+      if (format === "excel") downloadBankReportExcel(selectedData);
+      else if (format === "pdf") downloadBankReportPDF(selectedData);
       else if (format === "both") {
-        await downloadBankReportExcel();
-        await downloadBankReportPDF();
+        downloadBankReportExcel(selectedData);
+        downloadBankReportPDF(selectedData);
       }
       setShowBankReportOptions(false);
       setShowPreviewModal(false);
     } catch (error) {
-      console.error("Error fetching personal details for bank report:", error);
+      console.error("Error generating bank report:", error);
       if (error.response?.status === 400 || error.response?.status === 401) {
         showAlert("Authentication failed. Please log in again.");
       } else {
-        showAlert("Failed to fetch employee details for bank report");
+        showAlert("Failed to generate bank report");
       }
     }
   };
 
   const handleDownloadSelected = () => {
-    const selectedData = getSelectedEmployees();
-    downloadExcel(selectedData);
+    downloadExcel(validSelectedEmployees);
     setShowPreviewModal(false);
   };
 
@@ -701,40 +725,29 @@ const SalaryDetails = () => {
       return;
     }
     try {
-      const selectedData = getSelectedEmployees();
+      const selectedData = validSelectedEmployees;
       if (selectedData.length === 0) {
-        showAlert("No employees selected.");
+        showAlert("No valid employees selected.");
         return;
       }
 
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const currentMonthAbbrev = getAbbrevMonth(currentDate);
-      const currentMonthNum = currentDate.getMonth() + 1;
-      const currentMonthStr = String(currentMonthNum).padStart(2, "0");
 
-      const fullSalaryData = selectedData
+      let fullSalaryData = selectedData
         .map((emp) => {
           try {
-            let salaryDetails;
-            try {
-              salaryDetails = calculateSalaryDetails(
-                emp.ctc,
-                emp.plan_data,
-                emp.employee_id,
-                overtimeRecords || [],
-                bonusRecords || [],
-                advances || [],
-                employeeIncentiveData || {},
-                employeeLopData
-              );
-            } catch (calcError) {
-              console.error(
-                `Error calculating salary details for ${emp.employee_id}:`,
-                calcError
-              );
-              salaryDetails = null;
-            }
+            const salaryDetails = calculateSalaryDetails(
+              emp.ctc,
+              emp.plan_data,
+              emp.employee_id,
+              overtimeRecords || [],
+              bonusRecords || [],
+              advances || [],
+              employeeIncentiveData || {},
+              employeeLopData
+            );
 
             if (!salaryDetails) {
               return null;
@@ -802,10 +815,41 @@ const SalaryDetails = () => {
         return;
       }
 
+      // Fetch existing data for the month to merge and avoid erasing
+      let salaryDataToSave = fullSalaryData;
+      try {
+        const existingRes = await axios.get(
+          `${BASE_URL}/api/salary-details/get-monthly`,
+          {
+            params: { month: currentMonthAbbrev, year: currentYear },
+            withCredentials: true,
+            headers: requestHeaders,
+          }
+        );
+        const existingSalaryData = existingRes.data.data || [];
+
+        // Merge: update existing or add new
+        const mergedSalaryData = [...existingSalaryData];
+        fullSalaryData.forEach((newItem) => {
+          const index = mergedSalaryData.findIndex(
+            (item) => item.employee_id === newItem.employee_id
+          );
+          if (index > -1) {
+            mergedSalaryData[index] = { ...mergedSalaryData[index], ...newItem };
+          } else {
+            mergedSalaryData.push(newItem);
+          }
+        });
+        salaryDataToSave = mergedSalaryData;
+      } catch (fetchError) {
+        console.warn("Could not fetch existing data, proceeding with new data only:", fetchError);
+        // If fetch fails (e.g., no existing data or endpoint issue), save only new
+      }
+
       const response = await axios.post(
         `${BASE_URL}/api/salary-details/save`,
         {
-          salaryData: fullSalaryData,
+          salaryData: salaryDataToSave,
           month: currentMonthAbbrev,
           year: currentYear,
         },
@@ -813,8 +857,9 @@ const SalaryDetails = () => {
       );
 
       if (response.data.success) {
+        const rowsInserted = response.data.rowsInserted || salaryDataToSave.length;
         showAlert(
-          `Data saved successfully in table: ${response.data.tableName} (${response.data.rowsInserted} rows)`
+          `Data saved successfully in table: ${response.data.tableName} (${rowsInserted} rows)`
         );
 
         const approvedRes = await axios.get(
@@ -1166,41 +1211,10 @@ const SalaryDetails = () => {
   };
 
   const renderPreviewTableRows = (employeesToRender) => {
+    // Since employeesToRender is already filtered to valid ones, no need for additional checks
     return (
       <tbody>
         {employeesToRender.map((emp) => {
-          let salaryDetails;
-          try {
-            salaryDetails = calculateSalaryDetails(
-              emp.ctc,
-              emp.plan_data,
-              emp.employee_id,
-              overtimeRecords || [],
-              bonusRecords || [],
-              advances || [],
-              employeeIncentiveData || {},
-              employeeLopData
-            );
-          } catch (e) {
-            console.error(
-              `Error calculating salary details for ${emp.employee_id}:`,
-              e
-            );
-            salaryDetails = null;
-          }
-
-          if (!salaryDetails) {
-            return (
-              <tr key={emp.employee_id}>
-                <td className="sd-preview-table-cell">N/A</td>
-                <td className="sd-preview-table-cell">{emp.full_name}</td>
-                <td className="sd-preview-table-cell">N/A</td>
-                <td className="sd-preview-table-cell">N/A</td>
-                <td className="sd-preview-table-cell sd-align-right">N/A</td>
-              </tr>
-            );
-          }
-
           const monthlyBonusPay = calculateMonthlyBonusPay(
             emp.ctc,
             bonusRecords
@@ -1209,6 +1223,17 @@ const SalaryDetails = () => {
             currentMonth: { days: 0, value: "0.00", currency: "INR" },
           };
           const lopDeduction = parseFloat(lopData.yearly?.value || "0.00");
+
+          const salaryDetails = calculateSalaryDetails(
+            emp.ctc,
+            emp.plan_data,
+            emp.employee_id,
+            overtimeRecords || [],
+            bonusRecords || [],
+            advances || [],
+            employeeIncentiveData || {},
+            employeeLopData
+          );
 
           const { localNet } = calculateLocalGrossNet(
             salaryDetails,
@@ -1241,8 +1266,6 @@ const SalaryDetails = () => {
   if (isLoading) {
     return <div className="sd-loading">Loading...</div>;
   }
-
-  const selectedData = getSelectedEmployees();
 
   return (
     <div className="sd-container">
@@ -1392,8 +1415,8 @@ const SalaryDetails = () => {
           <div className="sd-preview-content">
             <div className="sd-preview-header">
               <h2>
-                Selected Employees Salary Preview ({selectedData.length}{" "}
-                selected)
+                Selected Employees Salary Preview ({validSelectedEmployees.length}{" "}
+                valid selected)
               </h2>
               <button className="sd-close-button" onClick={handleCloseModal}>
                 ×
@@ -1410,7 +1433,7 @@ const SalaryDetails = () => {
                     <th className="sd-align-right">Net Payable</th>
                   </tr>
                 </thead>
-                {renderPreviewTableRows(selectedData)}
+                {renderPreviewTableRows(validSelectedEmployees)}
               </table>
             </div>
             <div className="sd-preview-footer">

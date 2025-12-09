@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -168,7 +169,7 @@ function generatePayslipPDF(
     .setFont("helvetica", "normal")
     .text(String(attendance.total_working_days || "N/A"), 60, 96);
 
-  doc.setFont("helvetica", "bold").text("UIN No:", 20, 103);
+  doc.setFont("helvetica", "bold").text("UAN No:", 20, 103);
   doc
     .setFont("helvetica", "normal")
     .text(getVal(payrollData.uin_number), 60, 103);
@@ -197,7 +198,7 @@ function generatePayslipPDF(
     .setFont("helvetica", "normal")
     .text(
       `${getVal(bankDetails.account_number)} ${
-        bankDetails.bank_name ? `(${bankDetails.bank_name})` : ""
+        bankDetails.bank_name ? `` : ""
       }`.trim(),
       140,
       89

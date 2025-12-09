@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import generatePayslipPDF from "../../utils/generatePayslipPDF2";
 import "./generate_payslip.css";
 import Modal from "../Modal/Modal";
-
 const GeneratePayslip = () => {
   const [showModal, setShowModal] = useState(false);
   const [preview, setPreview] = useState(false);
@@ -20,13 +20,11 @@ const GeneratePayslip = () => {
   });
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
   const API_KEY = process.env.REACT_APP_API_KEY;
   const meId = JSON.parse(
     localStorage.getItem("dashboardData") || "{}"
   ).employeeId;
   const headers = { "x-api-key": API_KEY, "x-employee-id": meId };
-
   const [formData, setFormData] = useState({
     employeeName: "",
     employeeId: "STS001",
@@ -48,29 +46,23 @@ const GeneratePayslip = () => {
     professionalTax: "",
     tds: "",
   });
-
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
-
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
-
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
     message: "",
   });
-
   const handleViewDetails = (employee) => {
     setViewDetailsModal({ isVisible: true, employee });
   };
-
   const closeViewDetails = () => {
     setViewDetailsModal({ isVisible: false, employee: null });
   };
-
   useEffect(() => {
     const fetchEmployeeData = async () => {
       try {
@@ -90,10 +82,8 @@ const GeneratePayslip = () => {
         showAlert("Error fetching employee data: " + error.message, "Error");
       }
     };
-
     fetchEmployeeData();
   }, [API_KEY]);
-
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchQuery.trim() === "") {
@@ -111,10 +101,8 @@ const GeneratePayslip = () => {
         setFilteredEmployeeData(filtered);
       }
     }, 300);
-
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, employeeData]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "employeeId") {
@@ -132,7 +120,6 @@ const GeneratePayslip = () => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -143,13 +130,10 @@ const GeneratePayslip = () => {
       showAlert(validationError, "Validation Error");
       return;
     }
-
     setIsLoading(true);
     setError(null);
     setSuccess(null);
-
     const payslipData = preparePayslipData();
-
     try {
       await generatePayslipPDF(
         payslipData.payrollData,
@@ -181,14 +165,11 @@ const GeneratePayslip = () => {
       parseFloat(formData.professionalTax) || 0,
       parseFloat(formData.tds) || 0,
     ];
-
     const grossEarnings = earnings.reduce((sum, val) => sum + val, 0);
     const totalDeductions = deductions.reduce((sum, val) => sum + val, 0);
     const netSalary = grossEarnings - totalDeductions;
-
     return { grossEarnings, totalDeductions, netSalary };
   };
-
   const validateForm = () => {
     const requiredFields = [
       "employeeName",
@@ -206,18 +187,15 @@ const GeneratePayslip = () => {
       "otherAllowance",
       "tds",
     ];
-
     for (const field of requiredFields) {
       if (!formData[field] || formData[field].trim() === "") {
         return `Please fill in ${fieldLabels[field]}`;
       }
     }
-
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
     if (formData.dateOfJoining && !datePattern.test(formData.dateOfJoining)) {
       return "Date of Joining must be in YYYY-MM-DD format";
     }
-
     const date = new Date(formData.dateOfJoining);
     if (
       formData.dateOfJoining &&
@@ -225,7 +203,6 @@ const GeneratePayslip = () => {
     ) {
       return "Please enter a valid Date of Joining in YYYY-MM-DD format";
     }
-
     const numericFields = [
       "workingDays",
       "leavesTaken",
@@ -245,16 +222,13 @@ const GeneratePayslip = () => {
         return `${fieldLabels[field]} must be a valid non-negative number`;
       }
     }
-
     const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
     if (formData.panNumber && !panPattern.test(formData.panNumber)) {
       return "PAN Number must be in the format AAAAA9999A (e.g., ABCDE1234F)";
     }
-
     if (!["Male", "Female"].includes(formData.gender)) {
       return "Gender must be either Male or Female";
     }
-
     if (!selectedMonth || selectedMonth < 1 || selectedMonth > 12) {
       return "Please select a valid month (1-12)";
     }
@@ -265,18 +239,25 @@ const GeneratePayslip = () => {
     ) {
       return "Please select a valid year";
     }
-
     return null;
   };
-
   const prepareBackendData = () => {
     const { grossEarnings, totalDeductions, netSalary } = calculateSummary();
+    let dateOfJoiningAdjusted = formData.dateOfJoining || "";
+    if (dateOfJoiningAdjusted) {
+      const date = new Date(dateOfJoiningAdjusted + "T00:00:00");
+      date.setDate(date.getDate() + 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      dateOfJoiningAdjusted = `${year}-${month}-${day}`;
+    }
     return {
       employee_name: formData.employeeName || "",
       employee_id: formData.employeeId || "",
       gender: formData.gender || "",
       designation: formData.designation || "",
-      date_of_joining: formData.dateOfJoining || "",
+      date_of_joining: dateOfJoiningAdjusted,
       account_no: formData.accountNo || "",
       working_days: parseInt(formData.workingDays) || 0,
       leaves_taken: parseInt(formData.leavesTaken) || 0,
@@ -298,10 +279,8 @@ const GeneratePayslip = () => {
       year: parseInt(selectedYear) || 0,
     };
   };
-
   const preparePayslipData = () => {
     const { grossEarnings, totalDeductions, netSalary } = calculateSummary();
-
     return {
       payrollData: {
         employee_name: formData.employeeName,
@@ -342,7 +321,6 @@ const GeneratePayslip = () => {
       },
     };
   };
-
   const handleEdit = (employee) => {
     setFormData({
       employeeName: employee.employee_name || "",
@@ -384,7 +362,6 @@ const GeneratePayslip = () => {
     setError(null);
     setSuccess(null);
   };
-
   const handleSaveToBackend = async () => {
     const validationError = validateForm();
     if (validationError) {
@@ -392,27 +369,16 @@ const GeneratePayslip = () => {
       showAlert(validationError, "Validation Error");
       return;
     }
-
-    if (!API_KEY) {
-      setError("API key is missing. Please contact support.");
-      showAlert(
-        "API key is missing. Please contact support.",
-        "Configuration Error"
-      );
-      return;
-    }
-
+   
     setIsLoading(true);
     setError(null);
     setSuccess(null);
-
     const backendData = prepareBackendData();
     const isEditing = !!editingEmployeeId;
     const url = isEditing
       ? `${process.env.REACT_APP_BACKEND_URL}/old-employee/edit`
       : `${process.env.REACT_APP_BACKEND_URL}/old-employee/save`;
     const method = isEditing ? "PUT" : "POST";
-
     try {
       const response = await fetch(url, {
         method,
@@ -423,23 +389,19 @@ const GeneratePayslip = () => {
         },
         body: JSON.stringify(backendData),
       });
-
       if (!response.ok && response.status !== 201) {
         const result = await response.json();
         throw new Error(
           result.message || `HTTP ${response.status}: ${response.statusText}`
         );
       }
-
       const result = await response.json();
-
       showAlert(
         isEditing
           ? "Employee data updated successfully!"
           : "Payslip data saved successfully!",
         "Success"
       );
-
       const updatedResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/old-employee/list`,
         { credentials: "include", headers }
@@ -452,7 +414,6 @@ const GeneratePayslip = () => {
         console.error("Failed to fetch updated employee list");
         showAlert("Failed to fetch updated employee list", "Error");
       }
-
       setShowModal(false);
       setFormData({
         employeeName: "",
@@ -490,7 +451,6 @@ const GeneratePayslip = () => {
       setIsLoading(false);
     }
   };
-
   const handlePreview = async () => {
     const validationError = validateForm();
     if (validationError) {
@@ -498,11 +458,9 @@ const GeneratePayslip = () => {
       showAlert(validationError, "Validation Error");
       return;
     }
-
     setError(null);
     setSuccess(null);
     const payslipData = preparePayslipData();
-
     try {
       const pdfBlob = await generatePayslipPDF(
         payslipData.payrollData,
@@ -529,12 +487,10 @@ const GeneratePayslip = () => {
       showAlert("Failed to generate PDF preview: " + error.message, "Error");
     }
   };
-
   const handleDownloadForEmployee = async (employee) => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
-
     try {
       const earnings = [
         parseFloat(employee.basic) || 0,
@@ -550,7 +506,6 @@ const GeneratePayslip = () => {
       const grossEarnings = earnings.reduce((sum, val) => sum + val, 0);
       const totalDeductions = deductions.reduce((sum, val) => sum + val, 0);
       const netSalary = grossEarnings - totalDeductions;
-
       const payslipData = {
         payrollData: {
           employee_id: employee.employee_id || "STS001",
@@ -598,7 +553,6 @@ const GeneratePayslip = () => {
             : new Date().toISOString().split("T")[0],
         },
       };
-
       await generatePayslipPDF(
         payslipData.payrollData,
         payslipData.selectedDate,
@@ -607,7 +561,6 @@ const GeneratePayslip = () => {
         payslipData.employeeDetails,
         true
       );
-
       setSuccess(
         `Payslip for ${employee.employee_name} downloaded successfully!`
       );
@@ -635,7 +588,6 @@ const GeneratePayslip = () => {
       }
     };
   }, [pdfUrl]);
-
   const fieldLabels = {
     employeeName: "Employee Name",
     employeeId: "Employee ID",
@@ -645,7 +597,7 @@ const GeneratePayslip = () => {
     accountNo: "Account Number",
     workingDays: "Working Days",
     leavesTaken: "Leaves Taken",
-    uinNo: "UIN No",
+    uinNo: "UAN No",
     panNumber: "PAN Number",
     esiNumber: "ESI Number",
     pfNumber: "PF Number",
@@ -662,7 +614,6 @@ const GeneratePayslip = () => {
     selectedMonth: "Month",
     selectedYear: "Year",
   };
-
   const requiredFields = [
     "employeeName",
     "employeeId",
@@ -681,7 +632,6 @@ const GeneratePayslip = () => {
     "selectedMonth",
     "selectedYear",
   ];
-
   const detailFields = [
     "accountNo",
     "workingDays",
@@ -701,7 +651,6 @@ const GeneratePayslip = () => {
     "totalDeductions",
     "netSalary",
   ];
-
   const tableHeaders = [
     "Employee Name",
     "Employee ID",
@@ -712,7 +661,6 @@ const GeneratePayslip = () => {
     "Edit Data",
     "Download",
   ];
-
   const fieldKeys = Object.keys(formData).concat([
     "selectedMonth",
     "selectedYear",
@@ -721,7 +669,6 @@ const GeneratePayslip = () => {
   for (let i = 0; i < fieldKeys.length; i += 3) {
     rows.push(fieldKeys.slice(i, i + 3));
   }
-
   return (
     <div className="generatePayslip-container">
       <div className="generatePayslip-header">
@@ -770,7 +717,6 @@ const GeneratePayslip = () => {
           Create Payslip
         </button>
       </div>
-
       <div className="generatePayslip-table-container">
         <table className="generatePayslip-table">
           <thead>
@@ -833,7 +779,6 @@ const GeneratePayslip = () => {
           </tbody>
         </table>
       </div>
-
       {showModal && (
         <div className="generatePayslip-popup-overlay">
           <div className="generatePayslip-popup-box">
@@ -1041,7 +986,6 @@ const GeneratePayslip = () => {
           </div>
         </div>
       )}
-
       {viewDetailsModal.isVisible && viewDetailsModal.employee && (
         <Modal
           isVisible={viewDetailsModal.isVisible}
@@ -1106,7 +1050,6 @@ const GeneratePayslip = () => {
           </div>
         </Modal>
       )}
-
       <Modal
         isVisible={alertModal.isVisible}
         onClose={closeAlert}
@@ -1118,5 +1061,4 @@ const GeneratePayslip = () => {
     </div>
   );
 };
-
 export default GeneratePayslip;
