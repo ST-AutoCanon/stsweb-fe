@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import "./assets.css";
 import axios from "axios";
@@ -41,19 +42,17 @@ const Assets = () => {
   const [status, setStatus] = useState("In Use");
   const [assignedAssets, setAssignedAssets] = useState([]);
   const [popupSuggestions, setPopupSuggestions] = useState({});
-
   const togglePopup = () => {
     if (showPopup) {
       resetFormforaddasset();
     }
     setShowPopup(!showPopup);
   };
-
   const [showAssignPopup, setShowAssignPopup] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [assignments, setAssignments] = useState([]);
   const [assignmentRowsByAsset, setAssignmentRowsByAsset] = useState({});
-
+  const [initialAssignmentRowsByAsset, setInitialAssignmentRowsByAsset] = useState({});
   const [employeeSuggestions, setEmployeeSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -68,12 +67,10 @@ const Assets = () => {
     title: "",
     message: "",
   });
-
   const handleSelectSuggestion = (name) => {
     setAssignedTo(name);
     setEmployeeSuggestions([]);
   };
-
   const handleAssignedToInputChange = async (e, index) => {
     const value = e.target.value;
     updateAssignment(index, "assignedTo", value);
@@ -259,7 +256,6 @@ const Assets = () => {
           responseType: "blob",
         }
       );
-
       const fileURL = window.URL.createObjectURL(new Blob([response.data]));
       window.open(fileURL, "_blank");
     } catch (error) {
@@ -270,14 +266,11 @@ const Assets = () => {
       showAlert("Failed to open document.");
     }
   };
-
   const openAssignPopup = (asset) => {
     const assetId = asset.id;
     setSelectedAssetId(assetId);
     setSelectedAsset(asset);
-
     let formattedAssignments = [];
-
     if (
       asset.assigned_to &&
       asset.assigned_to !== "null" &&
@@ -288,7 +281,6 @@ const Assets = () => {
           typeof asset.assigned_to === "string"
             ? JSON.parse(asset.assigned_to)
             : asset.assigned_to;
-
         if (Array.isArray(parsed) && parsed.length > 0) {
           formattedAssignments = parsed.reverse().map((a) => ({
             assignedTo: a.name || "",
@@ -303,7 +295,6 @@ const Assets = () => {
         console.error("Error parsing assigned_to JSON:", err);
       }
     }
-
     if (formattedAssignments.length === 0) {
       formattedAssignments = [
         {
@@ -317,15 +308,17 @@ const Assets = () => {
         },
       ];
     }
-
+    const initialRows = [...formattedAssignments];
     setAssignmentRowsByAsset((prev) => ({
       ...prev,
-      [assetId]: formattedAssignments,
+      [assetId]: initialRows,
     }));
-
+    setInitialAssignmentRowsByAsset((prev) => ({
+      ...prev,
+      [assetId]: initialRows,
+    }));
     setShowAssignPopup(true);
   };
-
   const closeAssignPopup = () => {
     setShowAssignPopup(false);
     setSelectedAsset(null);
@@ -356,7 +349,6 @@ const Assets = () => {
         status: rows[0].assigningStatus,
         comments: rows[0].comments || "",
       };
-
       const requiredFields = ["assetId", "assignedTo", "startDate", "status"];
       for (const field of requiredFields) {
         if (!firstAssignment[field]) {
@@ -364,6 +356,10 @@ const Assets = () => {
           showAlert(`Missing value for "${field}"`);
           return;
         }
+      }
+      if (firstAssignment.status === "Returned" && !firstAssignment.returnDate) {
+        showAlert("Please select a return date before marking as Returned.");
+        return;
       }
       if (!firstAssignment.returnDate) {
         firstAssignment.returnDate = null;
@@ -376,8 +372,29 @@ const Assets = () => {
           headers,
         }
       );
-      showAlert("Asset Assigned successfully ");
-      closeAssignPopup();
+      const successMessage = firstAssignment.status === "Returned" ? "Asset returned successfully!" : "Asset assigned successfully!";
+      showAlert(successMessage);
+      if (firstAssignment.status === "Returned") {
+        const submittedRow = { ...rows[0] };
+        setInitialAssignmentRowsByAsset((prev) => ({
+          ...prev,
+          [selectedAssetId]: [...(prev[selectedAssetId] || []), submittedRow],
+        }));
+        const newRow = {
+          assignedTo: "",
+          employeeId: "",
+          startDate: new Date().toISOString().split("T")[0],
+          returnDate: "",
+          assigningStatus: "Unassigned",
+          comments: "",
+        };
+        setAssignmentRowsByAsset((prev) => ({
+          ...prev,
+          [selectedAssetId]: [newRow, ...(prev[selectedAssetId] || [])],
+        }));
+      } else {
+        closeAssignPopup();
+      }
       fetchAssets();
     } catch (error) {
       console.error(
@@ -421,7 +438,6 @@ const Assets = () => {
       showAlert("No document available.");
       return;
     }
-
     const fileName = documentPath.split("/").pop().trim();
     const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/assets/download/${fileName}`;
     try {
@@ -430,7 +446,6 @@ const Assets = () => {
         withCredentials: true,
         responseType: "blob",
       });
-
       if (response.data.type === "text/html") {
         console.error("Server returned an HTML error page (likely 404).");
         showAlert(
@@ -438,18 +453,14 @@ const Assets = () => {
         );
         return;
       }
-
       const extension = fileName.split(".").pop().toLowerCase();
       let mimeType = "application/octet-stream";
-
       if (extension === "pdf") mimeType = "application/pdf";
       else if (["jpg", "jpeg"].includes(extension)) mimeType = "image/jpeg";
       else if (extension === "png") mimeType = "image/png";
-
       const fileBlob = new Blob([response.data], { type: mimeType });
       const fileURL = window.URL.createObjectURL(fileBlob);
       window.open(fileURL, "_blank");
-
       setTimeout(() => window.URL.revokeObjectURL(fileURL), 1000);
     } catch (error) {
       console.error("Error opening document:", {
@@ -463,7 +474,6 @@ const Assets = () => {
       );
     }
   };
-
   const handleSave = async () => {
     if (!assetName || !configuration || !valuationDate || !assignedTo) {
       showAlert(
@@ -553,7 +563,6 @@ const Assets = () => {
         console.error("❌ Asset ID is undefined or missing.");
         return;
       }
-
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/assets/assigned/${assetId}`,
         { withCredentials: true, headers }
@@ -670,9 +679,8 @@ const Assets = () => {
       const isFilled =
         topRow.assignedTo &&
         topRow.startDate &&
-        topRow.returnDate &&
         topRow.assigningStatus &&
-        topRow.comments;
+        (topRow.assigningStatus !== "Returned" || topRow.returnDate);
       if (!isFilled) {
         showAlert(
           "Please fill out the current top row before adding a new one."
@@ -704,6 +712,10 @@ const Assets = () => {
         [selectedAssetId]: updatedRows,
       };
     });
+  };
+  const handleStatusChange = (index, e) => {
+    const newStatus = e.target.value;
+    updateAssignment(index, "assigningStatus", newStatus);
   };
   useEffect(() => {
     if (assetId) {
@@ -1108,7 +1120,6 @@ const Assets = () => {
                     >
                       <td>{asset.asset_id}</td>
                       <td>{asset.asset_code}</td>
-
                       <td title={asset.asset_name}>
                         {truncateWords(asset.asset_name, 3)}
                       </td>
@@ -1315,7 +1326,6 @@ const Assets = () => {
           <p>
             <strong>Category:</strong> {selectedAsset.category}
           </p>
-
           <div className="assignpopup-overlay">
             <div className="assignpopup-content">
               <h3>Assign Asset</h3>
@@ -1341,105 +1351,111 @@ const Assets = () => {
               <div className="assetform-header">
                 <div>Assigned To</div>
                 <div>Start Date</div>
-                <div>Return Date</div>
                 <div>Status</div>
+                <div>Return Date</div>
                 <div>Comments</div>
               </div>
-
-              {assignmentRowsByAsset[selectedAssetId]?.map(
-                (assignment, index) => (
-                  <div key={index} className="assetform-row">
-                    <div style={{ position: "relative", width: "100%" }}>
-                      <input
-                        type="text"
-                        placeholder="Assigned To"
-                        value={assignment.assignedTo}
-                        onChange={(e) => handleAssignedToInputChange(e, index)}
-                        onBlur={() => handleBlurAssignPopup(index)}
-                        className={`input-style ${
-                          fieldErrors[index]?.assignedTo ? "error-border" : ""
-                        }`}
-                        autoComplete="off"
-                      />
-                      {popupSuggestions[index]?.length > 0 && (
-                        <ul
-                          style={{
-                            position: "absolute",
-                            top: "100%",
-                            left: "0px",
-                            background: "#fff",
-                            border: "1px solid #ccc",
-                            zIndex: 9999,
-                            width: "250px",
-                            listStyle: "none",
-                            padding: 0,
-                            margin: 0,
-                            maxHeight: "150px",
-                            overflowY: "auto",
-                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                          }}
-                        >
-                          {popupSuggestions[index].map((emp, i) => (
-                            <li
-                              key={i}
-                              onClick={() => handleSuggestionSelect(emp, index)}
-                              style={{
-                                padding: "8px",
-                                cursor: "pointer",
-                                borderBottom: "1px solid #eee",
-                              }}
-                            >
-                              {emp.name} ({emp.employeeId})
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    <input
-                      type="date"
-                      value={assignment.startDate}
-                      onChange={(e) =>
-                        updateAssignment(index, "startDate", e.target.value)
+              {(() => {
+                const rows = assignmentRowsByAsset[selectedAssetId] || [];
+                const initialRows = initialAssignmentRowsByAsset[selectedAssetId] || [];
+                const addedCount = rows.length - initialRows.length;
+                return (
+                  <>
+                    {rows.map((assignment, index) => {
+                      let isFrozen = false;
+                      if (index < addedCount) {
+                        isFrozen = false;
+                      } else {
+                        const histIndex = index - addedCount;
+                        if (histIndex < initialRows.length && initialRows[histIndex].assigningStatus === "Returned") {
+                          isFrozen = true;
+                        }
                       }
-                      className={`input-style ${
-                        fieldErrors[index]?.startDate ? "error-border" : ""
-                      }`}
-                    />
-                    <input
-                      type="date"
-                      value={assignment.returnDate}
-                      onChange={(e) =>
-                        updateAssignment(index, "returnDate", e.target.value)
-                      }
-                      className={`input-style ${
-                        fieldErrors[index]?.returnDate ? "error-border" : ""
-                      }`}
-                    />
-                    <select
-                      value={assignment.assigningStatus}
-                      onChange={(e) =>
-                        updateAssignment(
-                          index,
-                          "assigningStatus",
-                          e.target.value
-                        )
-                      }
-                    >
-                      <option value="Unassigned">Unassigned</option>
-                      <option value="Assigned">Assigned</option>
-                      <option value="Returned">Returned</option>
-                      <option value="Decommissioned">Decommissioned</option>
-                    </select>
-                    <textarea
-                      placeholder="Enter comments"
-                      value={assignment.comments}
-                      onChange={(e) =>
-                        updateAssignment(index, "comments", e.target.value)
-                      }
-                    />
-                  </div>
-                )
-              )}
+                      return (
+                        <div key={index} className="assetform-row">
+                          <div style={{ position: "relative", width: "100%" }}>
+                            <input
+                              type="text"
+                              placeholder="Assigned To"
+                              value={assignment.assignedTo}
+                              onChange={(e) => !isFrozen && handleAssignedToInputChange(e, index)}
+                              onBlur={() => !isFrozen && handleBlurAssignPopup(index)}
+                              disabled={isFrozen}
+                              className={`input-style ${fieldErrors[index]?.assignedTo ? "error-border" : ""} ${isFrozen ? "frozen-input" : ""}`}
+                              autoComplete="off"
+                            />
+                            {!isFrozen && popupSuggestions[index]?.length > 0 && (
+                              <ul
+                                style={{
+                                  position: "absolute",
+                                  top: "100%",
+                                  left: "0px",
+                                  background: "#fff",
+                                  border: "1px solid #ccc",
+                                  zIndex: 9999,
+                                  width: "250px",
+                                  listStyle: "none",
+                                  padding: 0,
+                                  margin: 0,
+                                  maxHeight: "150px",
+                                  overflowY: "auto",
+                                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                }}
+                              >
+                                {popupSuggestions[index].map((emp, i) => (
+                                  <li
+                                    key={i}
+                                    onClick={() => handleSuggestionSelect(emp, index)}
+                                    style={{
+                                      padding: "8px",
+                                      cursor: "pointer",
+                                      borderBottom: "1px solid #eee",
+                                    }}
+                                  >
+                                    {emp.name} ({emp.employeeId})
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                          <input
+                            type="date"
+                            value={assignment.startDate}
+                            onChange={(e) => !isFrozen && updateAssignment(index, "startDate", e.target.value)}
+                            disabled={isFrozen}
+                            className={`input-style ${fieldErrors[index]?.startDate ? "error-border" : ""} ${isFrozen ? "frozen-input" : ""}`}
+                          />
+                          <select
+                            value={assignment.assigningStatus}
+                            onChange={(e) => !isFrozen && handleStatusChange(index, e)}
+                            disabled={isFrozen}
+                            className={`${isFrozen ? "frozen-input" : ""}`}
+                          >
+                            <option value="Unassigned">Unassigned</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="Returned">Returned</option>
+                            <option value="Decommissioned">Decommissioned</option>
+                          </select>
+                          <input
+                            type="date"
+                            value={assignment.returnDate}
+                            onChange={(e) => !isFrozen && updateAssignment(index, "returnDate", e.target.value)}
+                            disabled={isFrozen || assignment.assigningStatus !== "Returned"}
+                            className={`input-style ${fieldErrors[index]?.returnDate ? "error-border" : ""} ${isFrozen || assignment.assigningStatus !== "Returned" ? "frozen-input" : ""}`}
+                          />
+                          <textarea
+                            placeholder="Enter comments"
+                            value={assignment.comments}
+                            onChange={(e) => !isFrozen && updateAssignment(index, "comments", e.target.value)}
+                            disabled={isFrozen}
+                            className={`${isFrozen ? "frozen-input" : ""}`}
+                          />
+                        </div>
+                      );
+                    })}
+                  </>
+                );
+              })()}
             </div>
           </div>
           {showForm && (
