@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -100,7 +101,6 @@ const TaskManagement = () => {
       let finalTranscript = "";
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        // Only take final text (not interim repeated text)
         if (event.results[i].isFinal) {
           finalTranscript += event.results[i][0].transcript;
         }
@@ -174,27 +174,45 @@ const TaskManagement = () => {
     }
   }, []);
 
+  // ==================== CHANGED ONLY THIS PART ====================
+  // Now using the same hierarchy API as SupervisorPlanViewer
   useEffect(() => {
     if (!supervisorId) return;
+
     const fetchEmployees = async () => {
       setLoadingEmployees(true);
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/employees`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/hierarchy`,
           {
             withCredentials: true,
             headers: { "x-employee-id": supervisorId },
           }
         );
-        if (
-          !response.data.employees ||
-          !Array.isArray(response.data.employees)
-        ) {
-          throw new Error(
-            "No employees found in response or invalid data format"
-          );
-        }
-        setEmployees(response.data.employees);
+
+        // API returns response.data.hierarchy → tree structure
+        const hierarchy = Array.isArray(response.data.hierarchy)
+          ? response.data.hierarchy
+          : [];
+
+        // Flatten the tree to get all employees (including sub-ordinates)
+        const flattenEmployees = (nodes) => {
+          let list = [];
+          nodes.forEach((node) => {
+            list.push({
+              employee_id: node.employee_id,
+              employee_name: node.employee_name,
+            });
+            if (node.children && node.children.length > 0) {
+              list = list.concat(flattenEmployees(node.children));
+            }
+          });
+          return list;
+        };
+
+        const flatList = flattenEmployees(hierarchy);
+
+        setEmployees(flatList);
         setError(null);
       } catch (err) {
         let errorMessage = "Failed to fetch employees";
@@ -213,11 +231,13 @@ const TaskManagement = () => {
         setLoadingEmployees(false);
       }
     };
+
     fetchEmployees();
   }, [supervisorId]);
+  // ================================================================
 
   useEffect(() => {
-    if (!supervisorId || !employees.length) return; // Wait for employees to be loaded
+    if (!supervisorId || !employees.length) return;
     const fetchTasks = async () => {
       setLoadingTasks(true);
       try {
@@ -228,7 +248,7 @@ const TaskManagement = () => {
             headers: { "x-employee-id": supervisorId },
           }
         );
-        // Filter tasks to include only those assigned to employees under the supervisor
+
         const validEmployeeIds = new Set(
           employees.map((emp) => emp.employee_id)
         );
@@ -248,7 +268,7 @@ const TaskManagement = () => {
               employeeId: task.employee_id,
               user: {
                 name: employee?.employee_name || "Unknown Employee",
-                profile: "", // No photo URL
+                profile: "",
               },
               progress: task.percentage,
               messages: [],
@@ -453,7 +473,6 @@ const TaskManagement = () => {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/employee-tasks/update/${taskId}`,
         updateData,
-
         { withCredentials: true, headers: { "x-employee-id": supervisorId } }
       );
       if (
@@ -697,7 +716,7 @@ const TaskManagement = () => {
           employeeId,
           user: {
             name: selectedEmployee.employee_name,
-            profile: "", // No photo URL
+            profile: "",
           },
           progress: percentage,
           messages: [],
@@ -893,7 +912,7 @@ const TaskManagement = () => {
                                   role="img"
                                   aria-label="messages"
                                 >
-                                  💬
+                                  
                                 </span>
                               </div>
                             </div>
@@ -921,7 +940,7 @@ const TaskManagement = () => {
                       onClick={closeDetails}
                       aria-label="Close"
                     >
-                      ✕
+                      X
                     </button>
                   </div>
                   <div className="task-details-meta">
@@ -1082,17 +1101,13 @@ const TaskManagement = () => {
                   <div className="task-tabs">
                     <div className="task-tab-header">
                       <button
-                        className={`task-tab-btn ${
-                          activeTab === "Progress" ? "task-active" : ""
-                        }`}
+                        className={`task-tab-btn ${activeTab === "Progress" ? "task-active" : ""}`}
                         onClick={() => setActiveTab("Progress")}
                       >
                         Progress
                       </button>
                       <button
-                        className={`task-tab-btn ${
-                          activeTab === "Clarification" ? "task-active" : ""
-                        }`}
+                        className={`task-tab-btn ${activeTab === "Clarification" ? "task-active" : ""}`}
                         onClick={() => setActiveTab("Clarification")}
                       >
                         Clarification
@@ -1126,7 +1141,7 @@ const TaskManagement = () => {
                                     </div>
                                     <div className="task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      <span>{msg.senderName}</span>
+                                      {/* <span>{msg.senderName}</span> */}
                                     </div>
                                   </div>
                                 ))}
@@ -1192,7 +1207,7 @@ const TaskManagement = () => {
                                     </div>
                                     <div className="task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      <span>{msg.senderName}</span>
+                                      {/* <span>{msg.senderName}</span> */}
                                     </div>
                                   </div>
                                 ))}
@@ -1251,7 +1266,7 @@ const TaskManagement = () => {
                       onClick={closeAssignForm}
                       aria-label="Close"
                     >
-                      ✕
+                      X
                     </button>
                   </div>
                   <div className="assign-form">

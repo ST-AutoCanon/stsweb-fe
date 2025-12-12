@@ -935,7 +935,7 @@ const EmpTaskManagement = () => {
                                     </div>
                                     <div className="emp-task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      <span>{msg.senderName}</span>
+                                      {/* <span>{msg.senderName}</span> */}
                                     </div>
                                   </div>
                                 ))}
@@ -1001,7 +1001,7 @@ const EmpTaskManagement = () => {
                                     </div>
                                     <div className="emp-task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      <span>{msg.senderName}</span>
+                                      {/* <span>{msg.senderName}</span> */}
                                     </div>
                                   </div>
                                 ))}
