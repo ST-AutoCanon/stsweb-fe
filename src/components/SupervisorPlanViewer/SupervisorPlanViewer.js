@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
@@ -29,6 +30,9 @@ const SupervisorPlanViewer = () => {
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [error, setError] = useState(null);
+
+  const [openNodes, setOpenNodes] = useState({});
+
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     message: "",
@@ -39,6 +43,26 @@ const SupervisorPlanViewer = () => {
   const showAlert = (message) => {
     setAlertModal({ isVisible: true, message });
     setTimeout(() => setAlertModal({ isVisible: false, message: "" }), 5000);
+  };
+
+  // --- Build Employee Tree ---
+  const buildEmployeeTree = (employees) => {
+    const map = {};
+    const roots = [];
+
+    employees.forEach((emp) => {
+      map[emp.employee_id] = { ...emp, children: [] };
+    });
+
+    employees.forEach((emp) => {
+      if (map[emp.supervisor_id]) {
+        map[emp.supervisor_id].children.push(map[emp.employee_id]);
+      } else {
+        roots.push(map[emp.employee_id]);
+      }
+    });
+
+    return roots;
   };
 
   const formatWeekId = (weekId) => {
@@ -180,41 +204,50 @@ const SupervisorPlanViewer = () => {
   useEffect(() => {
     if (!supervisorId) return;
 
-    const fetchEmployees = async () => {
-      setLoadingEmployees(true);
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/employees`,
-          {
-            withCredentials: true,
-            headers: { "x-employee-id": supervisorId },
-            timeout: 10000,
-          }
-        );
-        const empData = Array.isArray(response.data.employees)
-          ? response.data.employees.map((emp) => ({
-              ...emp,
-              employee_id: emp.employee_id?.trim().toUpperCase(),
-            }))
-          : [];
-        setEmployees(empData);
-        setSelectedEmployee(empData[0]?.employee_id || null);
-        setError(empData.length === 0 ? "No employees assigned to you." : null);
-      } catch (err) {
-        const errorMessage = err.response
-          ? `Error ${err.response.status}: ${
-              err.response.data?.error || err.response.statusText
-            }`
-          : err.code === "ECONNABORTED"
-          ? "Request timed out: Unable to connect to server"
-          : `Network error: ${err.message}`;
-        console.error("Error fetching employees:", errorMessage);
-        setError(errorMessage);
-        setEmployees([]);
-      } finally {
-        setLoadingEmployees(false);
+   const fetchEmployees = async () => {
+  setLoadingEmployees(true);
+
+  try {
+    const response = await axios.get(
+      `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/hierarchy`,   // <-- updated API
+      {
+        withCredentials: true,
+        headers: { "x-employee-id": supervisorId },
+        timeout: 10000,
       }
-    };
+    );
+
+    // API returns response.data.hierarchy
+    const empData = Array.isArray(response.data.hierarchy)
+      ? response.data.hierarchy.map((emp) => ({
+          ...emp,
+          employee_id: emp.employee_id?.trim().toUpperCase(),
+          supervisor_id: emp.supervisor_id?.trim().toUpperCase(),
+        }))
+      : [];
+
+    // Convert flat list → tree
+    const employeeTree = buildEmployeeTree(empData);
+    setEmployees(employeeTree);
+
+    setSelectedEmployee(empData[0]?.employee_id || null);
+    setError(empData.length === 0 ? "No employees under your hierarchy." : null);
+
+  } catch (err) {
+    const errorMessage = err.response
+      ? `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText}`
+      : err.code === "ECONNABORTED"
+      ? "Request timed out: Unable to connect to server"
+      : `Network error: ${err.message}`;
+
+    console.error("Error fetching employees:", errorMessage);
+    setError(errorMessage);
+    setEmployees([]);
+  } finally {
+    setLoadingEmployees(false);
+  }
+};
+
 
     const fetchHolidays = async () => {
       setLoadingHolidays(true);
@@ -784,16 +817,73 @@ const SupervisorPlanViewer = () => {
     emp.employee_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!supervisorId) {
-    return (
-      <div className="supervisor-plan-wrapper">
-        <div className="supervisor-plan-error-message">
-          {error || "Supervisor ID is missing. Please "}
-          <a href="/login">log in again</a>.
-        </div>
-      </div>
-    );
-  }
+
+  const toggleNode = (id) => {
+  setOpenNodes((prev) => ({
+    ...prev,
+    [id]: !prev[id],
+  }));
+};
+
+ 
+
+const EmployeeNode = ({ emp, level = 0 }) => {
+  const hasChildren = emp.children && emp.children.length > 0;
+  const isOpen = openNodes[emp.employee_id] || false;
+
+  return (
+    <>
+      <li
+        className={
+          selectedEmployee === emp.employee_id
+            ? "supervisor-plan-active"
+            : ""
+        }
+        style={{
+          // paddingLeft: `${level * 20}px`,
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          cursor: "pointer",
+        }}
+      >
+        {hasChildren ? (
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleNode(emp.employee_id);
+            }}
+            style={{ fontSize: "12px" }}
+          >
+            {isOpen ? "▼" : "▶"}
+          </span>
+        ) : (
+          <span style={{ width: "12px" }}></span>
+        )}
+
+        {/* EMPLOYEE NAME */}
+        <span
+          onClick={() => setSelectedEmployee(emp.employee_id)}
+          style={{
+            fontWeight: level === 0 ? "normal" : "normal",
+            flex: 1,
+          }}
+        >
+          {emp.employee_name}
+        </span>
+      </li>
+
+      {hasChildren && isOpen &&
+        emp.children.map((child) => (
+          <EmployeeNode
+            key={child.employee_id}
+            emp={child}
+            level={level + 1}
+          />
+        ))}
+    </>
+  );
+};
 
   return (
     <div className="supervisor-plan-wrapper">
@@ -820,7 +910,8 @@ const SupervisorPlanViewer = () => {
           className="supervisor-plan-search-bar"
           style={{
             padding: "8px",
-            fontSize: "11px",
+            fontSize: "10px",
+            
             marginBottom: "10px",
             borderRadius: "4px",
             border: "1px solid #ccc",
@@ -829,24 +920,20 @@ const SupervisorPlanViewer = () => {
         {error && <p style={{ color: "red" }}>{error}</p>}
         {loadingEmployees || loadingHolidays || loadingLeaves ? (
           <p>Loading employees...</p>
-        ) : filteredEmployees.length === 0 ? (
-          <p>No employees match the search criteria.</p>
+        ) : employees.length === 0 ? (
+          <p>No employees under your hierarchy.</p>
         ) : (
+          // <ul className="supervisor-plan-employee-scroll">
+          //   {employees.map((root) => (
+          //     <EmployeeNode key={root.employee_id} emp={root} level={0} />
+          //   ))}
+          // </ul>
           <ul className="supervisor-plan-employee-scroll">
-            {filteredEmployees.map((emp) => (
-              <li
-                key={emp.employee_id}
-                className={
-                  selectedEmployee === emp.employee_id
-                    ? "supervisor-plan-active"
-                    : ""
-                }
-                onClick={() => setSelectedEmployee(emp.employee_id)}
-              >
-                {emp.employee_name}
-              </li>
-            ))}
-          </ul>
+  {employees.map((root) => (
+    <EmployeeNode key={root.employee_id} emp={root} level={0} />
+  ))}
+</ul>
+
         )}
       </div>
       <div className="supervisor-plan-task-details">
@@ -958,10 +1045,10 @@ const SupervisorPlanViewer = () => {
                                 {effectiveReviewStatus !== "pending" && (
                                   <span className="supervisor-plan-status-icon">
                                     {effectiveReviewStatus === "approved" &&
-                                      "✅"}
-                                    {effectiveReviewStatus === "struck" && "📝"}
+                                      "Checkmark"}
+                                    {effectiveReviewStatus === "struck" && "Pencil"}
                                     {effectiveReviewStatus ===
-                                      "suspended_review" && "⛔"}
+                                      "suspended_review" && "Prohibited"}
                                   </span>
                                 )}
                                 <span

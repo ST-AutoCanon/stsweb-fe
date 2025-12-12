@@ -591,15 +591,29 @@ export default function useProjectForm({
   };
 
   const handleStatusChange = (index, newStatus) => {
-    setFormData((prevData) => {
-      const updatedFinancialDetails = [...prevData.financialDetails];
-      updatedFinancialDetails[index] = {
-        ...updatedFinancialDetails[index],
-        status: newStatus,
-        completed_date:
-          newStatus === "Received" ? new Date().toLocaleDateString() : "",
+    setFormData((prev) => {
+      const updatedFin = [...prev.financialDetails];
+
+      let updatedRow = { ...updatedFin[index], status: newStatus };
+
+      if (newStatus === "Received") {
+        updatedRow.completed_date = formatDate(new Date());
+      }
+
+      if (newStatus === "not Initiated") {
+        updatedRow.completed_date = null;
+      }
+
+      if (newStatus === "Pending") {
+        updatedRow.completed_date = null;
+      }
+
+      updatedFin[index] = updatedRow;
+
+      return {
+        ...prev,
+        financialDetails: updatedFin,
       };
-      return { ...prevData, financialDetails: updatedFinancialDetails };
     });
   };
 
