@@ -22,4 +22,6 @@ export const VALID_SALARY_HEADERS = [
   "LOP Deduction",
   "Gross Salary",
   "Net Salary",
+"Payslip_generation",
+"Payslip Action"
 ];
