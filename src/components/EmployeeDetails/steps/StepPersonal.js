@@ -1,427 +1,174 @@
-import React, { useEffect, useState } from "react";
-import { MdOutlineCancel } from "react-icons/md";
+import React from "react";
 import FileInput from "../FileInput";
 
-export default function StepProfessional({ data, onChange, departments = [] }) {
-  const [roleOptions, setRoleOptions] = useState([]);
-  const [positionsList, setPositionsList] = useState([]);
-  const [supervisorsList, setSupervisorsList] = useState([]);
-  const [prevSupervisor, setPrevSupervisor] = useState(null);
-  const [historyFetched, setHistoryFetched] = useState(false);
-
-  const API_KEY = process.env.REACT_APP_API_KEY;
-  const BASE_URL = process.env.REACT_APP_BACKEND_URL;
-
-  const formatDate = (iso) => {
-    if (!iso) return "";
-    return iso.split("T")[0];
-  };
-
-  useEffect(() => {
-    if (!data.employee_id) {
-      setPrevSupervisor(null);
-      setHistoryFetched(false);
-      return;
-    }
-
-    setHistoryFetched(false);
-
-    fetch(`${BASE_URL}/supervisor/history/${data.employee_id}`, {
-      credentials: "include",
-      headers: { "x-api-key": API_KEY },
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        const entries =
-          json && json.data && Array.isArray(json.data.history)
-            ? json.data.history
-            : Array.isArray(json.data)
-            ? json.data
-            : Array.isArray(json)
-            ? json
-            : [];
-
-        if (!entries.length) {
-          setPrevSupervisor(null);
-          setHistoryFetched(true);
-          return;
-        }
-
-        entries.sort((a, b) => {
-          const da = a.start_date ? new Date(a.start_date) : new Date(0);
-          const db = b.start_date ? new Date(b.start_date) : new Date(0);
-          return da - db;
-        });
-
-        let currentIndex = entries.findIndex((e) => e.end_date === null);
-        if (currentIndex === -1) currentIndex = entries.length - 1;
-
-        const currentSupId = entries[currentIndex]?.supervisor_id;
-
-        let prev = null;
-        for (let i = currentIndex - 1; i >= 0; i--) {
-          const e = entries[i];
-          if (!e) continue;
-          if (!currentSupId || e.supervisor_id !== currentSupId) {
-            prev = e;
-            break;
-          }
-        }
-
-        if (prev) {
-          prev = {
-            ...prev,
-            start_date: prev.start_date ? prev.start_date.split("T")[0] : "",
-            end_date: prev.end_date ? prev.end_date.split("T")[0] : null,
-          };
-        }
-
-        setPrevSupervisor(prev);
-        setHistoryFetched(true);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch supervisor history:", err);
-        setPrevSupervisor(null);
-        setHistoryFetched(true);
-      });
-  }, [data.employee_id]);
-
-  useEffect(() => {
-    fetch(`${BASE_URL}/user_roles`, {
-      credentials: "include",
-      headers: { "x-api-key": API_KEY },
-    })
-      .then((r) => r.json())
-      .then((json) => setRoleOptions(json.data || []))
-      .catch(() => setRoleOptions([]));
-  }, []);
-
-  useEffect(() => {
-    if (!data.role) {
-      setPositionsList([]);
-      return;
-    }
-    const deptParam = data.department_id || "";
-    fetch(
-      `${BASE_URL}/positions?role=${encodeURIComponent(
-        data.role
-      )}&department_id=${deptParam}`,
-      { credentials: "include", headers: { "x-api-key": API_KEY } }
-    )
-      .then((res) => res.json())
-      .then((json) => setPositionsList(json.data || []))
-      .catch(() => setPositionsList([]));
-  }, [data.role, data.department_id]);
-
-  useEffect(() => {
-    if (!data.position) {
-      setSupervisorsList([]);
-      return;
-    }
-    const deptParam = data.department_id || "";
-    fetch(
-      `${BASE_URL}/positions/supervisors?position=${encodeURIComponent(
-        data.position
-      )}&department_id=${deptParam}`,
-      { credentials: "include", headers: { "x-api-key": API_KEY } }
-    )
-      .then((res) => res.json())
-      .then((json) => setSupervisorsList(json.data || []))
-      .catch(() => setSupervisorsList([]));
-  }, [data.position, data.department_id]);
-
-  const expList = Array.isArray(data.experience) ? data.experience : [];
-  const isAdmin = (data.role || "").toLowerCase() === "admin";
-  const isSupAdmin = (data.role || "").toLowerCase() === "super admin";
-  const isTopRole = data.role === "CEO" || data.role === "Senior Manager";
-  const isCEO = (data.role || "").toLowerCase() === "ceo";
-
-  const updateExperience = (idx, field, value) => {
-    const newList = [...expList];
-    newList[idx] = { ...newList[idx], [field]: value };
-    onChange("experience", newList);
-  };
-
-  const addExperience = () => {
-    onChange("experience", [
-      ...expList,
-      { company: "", role: "", start_date: "", end_date: "", doc: null },
-    ]);
-  };
-
-  const removeExperience = (idx) => {
-    const newList = expList.filter((_, i) => i !== idx);
-    onChange("experience", newList);
-  };
-
-  const totalMonths = expList.reduce((sum, exp) => {
-    if (exp.start_date && exp.end_date) {
-      const start = new Date(exp.start_date);
-      const end = new Date(exp.end_date);
-      if (end > start) {
-        const months =
-          (end.getFullYear() - start.getFullYear()) * 12 +
-          (end.getMonth() - start.getMonth());
-        return sum + months;
-      }
-    }
-    return sum;
-  }, 0);
-
-  const years = Math.floor(totalMonths / 12);
-  const months = totalMonths % 12;
+export default function StepPersonal({ data, onChange }) {
+  const today = new Date().toISOString().split("T")[0];
+  const eighteenYearsAgo = new Date();
+  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+  const maxDob = eighteenYearsAgo.toISOString().split("T")[0];
 
   return (
-    <div className="step-professional">
+    <div className="step-personal">
       <label>
+        First Name<span className="required">*</span>
         <input
-          type="radio"
-          name="domain"
-          value="ST"
-          checked={data.domain === "ST"}
-          onChange={() => onChange("domain", "ST")}
+          type="text"
+          name="first_name"
+          value={data.first_name || ""}
+          onChange={(e) => onChange("first_name", e.target.value)}
+          pattern="^[A-Z][a-zA-Z]+$"
+          title="Must start with a capital letter and contain only letters"
           required
         />
-        ST
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="domain"
-          value="STS"
-          checked={data.domain === "STS"}
-          onChange={() => onChange("domain", "STS")}
-          required
-        />
-        STS
       </label>
 
-      <div className="step-personal">
-        <label>
-          Employee Type<span className="required">*</span>
-          <select
-            name="employee_type"
-            value={data.employee_type || ""}
-            onChange={(e) => onChange("employee_type", e.target.value)}
-            required
-          >
-            <option value="">Select</option>
-            <option value="Permanent">Permanent</option>
-            <option value="Consultant">Consultant</option>
-          </select>
-        </label>
-
-        <label>
-          Joining Date<span className="required">*</span>
-          <input
-            type="date"
-            value={data.joining_date || ""}
-            onChange={(e) => onChange("joining_date", e.target.value)}
-          />
-        </label>
-
-        <label>
-          Role<span className="required">*</span>
-          <select
-            name="role"
-            value={data.role || ""}
-            onChange={(e) => onChange("role", e.target.value)}
-            required
-          >
-            <option value="">Select</option>
-            {roleOptions.map((r) => (
-              <option key={r.id} value={r.name}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Department<span className="required">*</span>
-          <select
-            name="department_id"
-            value={data.department_id || ""}
-            onChange={(e) => onChange("department_id", e.target.value)}
-            required
-            disabled={isAdmin || isSupAdmin || isTopRole}
-          >
-            <option value="">Select</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Position<span className="required">*</span>
-          <select
-            name="position"
-            value={data.position || ""}
-            onChange={(e) => onChange("position", e.target.value)}
-            required
-            disabled={isAdmin || isSupAdmin}
-          >
-            <option value="">Select</option>
-            {positionsList.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {historyFetched ? (
-          prevSupervisor ? (
-            <div className="previous-supervisor">
-              <label>
-                Previously Reporting To :
-                <br />
-                &nbsp;
-                <strong>{prevSupervisor.supervisor_name}</strong>
-                <br />
-                &nbsp;({prevSupervisor.start_date} ↔{" "}
-                {prevSupervisor.end_date || "Present"})
-              </label>
-            </div>
-          ) : (
-            <div className="previous-supervisor">
-              <small>No previously reporting to on record.</small>
-            </div>
-          )
-        ) : (
-          <div className="previous-supervisor">
-            <small>Loading previously reporting to…</small>
-          </div>
-        )}
-
-        <label>
-          Reporting To<span className="required">*</span>
-          <select
-            name="supervisor_id"
-            value={data.supervisor_id || ""}
-            onChange={(e) => onChange("supervisor_id", e.target.value)}
-            required
-            disabled={isAdmin || isSupAdmin || isCEO}
-          >
-            <option value="">Select</option>
-            {supervisorsList.map((s) => (
-              <option key={s.employee_id} value={s.employee_id}>
-                {s.name}-{s.position}({s.department})
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Salary (CTC)<span className="required">*</span>
-          <input
-            type="number"
-            name="salary"
-            value={data.salary || ""}
-            onChange={(e) => onChange("salary", e.target.value)}
-            required
-          />
-        </label>
-      </div>
-
-      <div className="edu-add-row">
-        <button type="button" className="pj-next-btn" onClick={addExperience}>
-          + Add Experience
-        </button>
-        <div className="total-experience">
-          <strong>
-            Total Experience:{" "}
-            {years > 0 && `${years} yr${years > 1 ? "s" : ""} `}{" "}
-            {months > 0 && `${months} mo${months > 1 ? "s" : ""}`}
-            {years === 0 && months === 0 && "0"}
-          </strong>
-        </div>
-      </div>
-
-      <div className="exp-box">
-        {expList.map((exp, idx) => (
-          <div className="st-pro" key={idx}>
-            <label>
-              Company Name
-              <input
-                type="text"
-                value={exp.company}
-                onChange={(e) =>
-                  updateExperience(idx, "company", e.target.value)
-                }
-              />
-            </label>
-
-            <label>
-              Role / Designation
-              <input
-                type="text"
-                value={exp.role}
-                onChange={(e) => updateExperience(idx, "role", e.target.value)}
-              />
-            </label>
-
-            <label>
-              Start Date
-              <input
-                type="date"
-                value={exp.start_date || ""}
-                onChange={(e) =>
-                  updateExperience(idx, "start_date", e.target.value)
-                }
-              />
-            </label>
-
-            <label>
-              End Date
-              <input
-                type="date"
-                value={exp.end_date || ""}
-                onChange={(e) =>
-                  updateExperience(idx, "end_date", e.target.value)
-                }
-              />
-            </label>
-
-            <FileInput
-              name={`experience[${idx}][doc]`}
-              label="Experience Letter"
-              accept=".pdf,image/*"
-              multiple
-              existingUrl={exp.doc_url}
-              onChange={(name, file) => updateExperience(idx, "doc", file)}
-            />
-
-            <MdOutlineCancel
-              className="remove-qual-btn"
-              onClick={() => removeExperience(idx)}
-            />
-          </div>
-        ))}
-      </div>
-
-      <div className="st-pro">
-        <FileInput
-          name="resume"
-          label="Resume Upload"
-          accept=".pdf"
+      <label>
+        Last Name<span className="required">*</span>
+        <input
+          type="text"
+          name="last_name"
+          value={data.last_name || ""}
+          onChange={(e) => onChange("last_name", e.target.value)}
+          pattern="^[A-Z][a-zA-Z]*$"
+          title="Must start with a capital letter and contain only letters"
           required
-          existingUrl={data.resume_url}
-          onChange={onChange}
         />
+      </label>
 
-        <FileInput
-          name="other_docs"
-          label="Other Documents"
-          accept=".pdf,image/*"
-          multiple
-          existingUrl={data.other_docs_urls}
-          onChange={onChange}
+      <label>
+        Date of Birth<span className="required">*</span>
+        <input
+          type="date"
+          name="dob"
+          max={maxDob}
+          value={data.dob ? data.dob.split("T")[0] : ""}
+          onChange={(e) => onChange("dob", e.target.value)}
+          title={`You must be at least 18 years old (born on or before ${maxDob})`}
+          required
         />
-      </div>
+      </label>
+
+      <label>
+        Email<span className="required">*</span>
+        <input
+          type="email"
+          name="email"
+          value={data.email || ""}
+          onChange={(e) => onChange("email", e.target.value)}
+          required
+        />
+      </label>
+
+      <label>
+        Alternate Email
+        <input
+          type="email"
+          name="alternate_email"
+          value={data.alternate_email || ""}
+          onChange={(e) => onChange("alternate_email", e.target.value)}
+        />
+      </label>
+
+      <label>
+        Mobile<span className="required">*</span>
+        <input
+          type="tel"
+          name="phone_number"
+          value={data.phone_number || ""}
+          onChange={(e) => onChange("phone_number", e.target.value)}
+          pattern="^[6-9]\d{9}$"
+          title="10‑digit Indian mobile number starting with 6–9"
+          required
+        />
+      </label>
+
+      <label>
+        Alternate Mobile
+        <input
+          type="tel"
+          name="alternate_number"
+          value={data.alternate_number || ""}
+          onChange={(e) => onChange("alternate_number", e.target.value)}
+          pattern="^[6-9]\d{9}$"
+          title="10‑digit Indian mobile number starting with 6–9"
+        />
+      </label>
+
+      <label>
+        Gender<span className="required">*</span>
+        <select
+          name="gender"
+          value={data.gender || ""}
+          onChange={(e) => onChange("gender", e.target.value)}
+          required
+        >
+          <option value="">Select</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+      </label>
+
+      <label>
+        Blood Group
+        <select
+          name="blood_group"
+          value={data.blood_group || ""}
+          onChange={(e) => onChange("blood_group", e.target.value)}
+        >
+          <option value="">Select</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
+        </select>
+      </label>
+
+      <label>
+        Emergency Contact Name<span className="required">*</span>
+        <input
+          type="text"
+          name="emergency_name"
+          value={data.emergency_name || ""}
+          onChange={(e) => onChange("emergency_name", e.target.value)}
+          required
+        />
+      </label>
+
+      <label>
+        Emergency Contact Number<span className="required">*</span>
+        <input
+          type="tel"
+          name="emergency_number"
+          value={data.emergency_number || ""}
+          onChange={(e) => onChange("emergency_number", e.target.value)}
+          pattern="^[6-9]\d{9}$"
+          title="10‑digit Indian mobile number starting with 6–9"
+          required
+        />
+      </label>
+
+      <label>
+        Address
+        <textarea
+          name="address"
+          value={data.address || ""}
+          onChange={(e) => onChange("address", e.target.value)}
+          placeholder="123 Street, City, State, Country"
+        />
+      </label>
+
+      <FileInput
+        name="photo"
+        label="Profile Photo"
+        accept="image/*"
+        existingUrl={data.photo_url}
+        onChange={onChange}
+      />
     </div>
   );
 }
