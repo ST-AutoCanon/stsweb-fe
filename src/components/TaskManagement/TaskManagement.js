@@ -12,6 +12,10 @@ const getProgressColor = (p) => {
   if (p < 70) return "#f59e0b";
   return "#10b981";
 };
+const isProgressMessage = (text) => {
+  const trimmed = text.trim();
+  return /^\d{1,3}%$/.test(trimmed);
+};
 
 const parseDate = (dateStr) => {
   if (!dateStr) return "";
@@ -78,39 +82,37 @@ const TaskManagement = () => {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
 
-  useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+  // Inside the useEffect for speech recognition — FIX DUPLICATE onresult
+useEffect(() => {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) return;
+  if (!SpeechRecognition) return;
 
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = "en-US";
+  recognitionRef.current = new SpeechRecognition();
+  recognitionRef.current.continuous = true;
+  recognitionRef.current.interimResults = false; // 🔥 IMPORTANT
+  recognitionRef.current.lang = "en-US";
 
-    recognitionRef.current.onresult = (event) => {
-      let transcript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
+  recognitionRef.current.onresult = (event) => {
+    let finalTranscript = "";
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript;
       }
-      setMessageText((prev) => (prev + " " + transcript).trim());
-    };
+    }
 
-    recognitionRef.current.onresult = (event) => {
-      let finalTranscript = "";
+    if (finalTranscript) {
+      setMessageText((prev) => (prev + " " + finalTranscript).trim());
+    }
+  };
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        }
-      }
+  return () => {
+    recognitionRef.current?.stop();
+  };
+}, []);
 
-      if (finalTranscript) {
-        setMessageText((prev) => (prev + " " + finalTranscript).trim());
-      }
-    };
-  }, []);
 
   const toggleMic = () => {
     if (!recognitionRef.current) return;
@@ -597,9 +599,10 @@ const TaskManagement = () => {
                       type: activeTab,
                     },
                   ].sort((a, b) => new Date(a.time) - new Date(b.time)),
-                  ...(activeTab === "Progress" && !isNaN(parseInt(text))
-                    ? { progress: parseInt(text) }
-                    : {}),
+                  ...(activeTab === "Progress" && isProgressMessage(text)
+  ? { progress: parseInt(text.replace("%", "")) }
+  : {}),
+
                 }
               : t
           )
@@ -902,20 +905,25 @@ const TaskManagement = () => {
                               </div>
                             </div>
                             <div className="task-footer">
-                              <div className="task-spacer" />
-                              <div
-                                className="task-msg-wrap"
-                                title="Open messages"
-                              >
-                                <span
-                                  className="task-message-icon"
-                                  role="img"
-                                  aria-label="messages"
-                                >
-                                  
-                                </span>
-                              </div>
-                            </div>
+  <div className="task-spacer" />
+  <div
+    className="task-msg-wrap"
+    title="Open messages"
+  >
+    <span
+      className="task-message-icon"
+      role="img"
+      aria-label="messages"
+    >
+      💬
+    </span>
+    {selectedTask?.messages?.length > 0 && (
+      <span className="task-message-count">
+        {selectedTask.messages.length}
+      </span>
+    )}
+  </div>
+</div>
                           </div>
                         );
                       })
@@ -1151,34 +1159,52 @@ const TaskManagement = () => {
                               No progress updates yet.
                             </p>
                           )}
-                          <form
-                            className="task-chat-input"
-                            onSubmit={handleAddMessage}
-                          >
-                            <div className="task-mic-input-wrapper">
-                              <input
-                                type="text"
-                                placeholder="Type message…"
-                                value={messageText}
-                                onChange={(e) => setMessageText(e.target.value)}
-                              />
+                         <form
+  className="task-chat-input"
+  onSubmit={(e) => {
+    e.preventDefault();
+    handleAddMessage(e);
+  }}
+>
+  <div className="task-mic-input-wrapper">
+    <input
+      type="text"
+      placeholder={isListening ? "Listening... speak now" : "Type message…"}
+      value={messageText}
+      onChange={(e) => setMessageText(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (messageText.trim()) {
+            handleAddMessage(e);
+          }
+        }
+      }}
+      autoFocus
+    />
 
-                              <button
-                                type="button"
-                                className={`task-mic-button ${
-                                  isListening ? "listening" : ""
-                                }`}
-                                onClick={toggleMic}
-                              >
-                                <i className="fa-solid fa-microphone"></i>
-                              </button>
-                            </div>
+    <button
+      type="button"
+      className={`task-mic-button ${isListening ? "listening" : ""}`}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMic();
+      }}
+      title={isListening ? "Stop listening" : "Speak"}
+    >
+      <i className="fa-solid fa-microphone"></i>
+    </button>
+  </div>
 
-                            <button type="submit" disabled={loadingMessages}>
-                              Send
-                            </button>
-                          </form>
-                        </div>
+  <button 
+    type="submit" 
+    disabled={!messageText.trim() || loadingMessages}
+    className="task-send-btn"
+  >
+    Send
+  </button>
+</form>                        </div>
                       )}
                       {activeTab === "Clarification" && (
                         <div className="task-clarification-tab">
