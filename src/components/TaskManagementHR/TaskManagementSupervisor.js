@@ -819,13 +819,18 @@ const TaskManagementSupervisor = () => {
                                 {effectiveReviewStatus !== "pending" && (
                                   <span className="task-management-status-icon">
                                     {effectiveReviewStatus === "approved" &&
-                                      "Check mark"}
+                                      "✅"}
                                     {effectiveReviewStatus === "struck" &&
-                                      "Pencil"}
+                                      "📝"}
                                     {effectiveReviewStatus ===
-                                      "suspended_review" && "Prohibited"}
+                                      "suspended_review" && "⛔"}
                                   </span>
                                 )}
+
+
+
+                                
+
                                 <span
                                   className={taskDateStyle.className}
                                   title={taskDateStyle.tooltip}

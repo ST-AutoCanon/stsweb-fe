@@ -378,14 +378,15 @@ const SupervisorPlanViewer = () => {
     const fetchTasks = async () => {
       setLoadingTasks(true);
       try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${supervisorId}`,
-          {
-            withCredentials: true,
-            headers: { "x-employee-id": supervisorId },
-            timeout: 10000,
-          }
-        );
+       const res = await axios.get(
+  `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
+  {
+    withCredentials: true,
+    headers: { "x-employee-id": supervisorId },
+    timeout: 10000,
+  }
+);
+
         const validStatuses = [
           "not started",
           "working",
@@ -1045,10 +1046,10 @@ const EmployeeNode = ({ emp, level = 0 }) => {
                                 {effectiveReviewStatus !== "pending" && (
                                   <span className="supervisor-plan-status-icon">
                                     {effectiveReviewStatus === "approved" &&
-                                      "Checkmark"}
-                                    {effectiveReviewStatus === "struck" && "Pencil"}
+                                      "✅"}
+                                    {effectiveReviewStatus === "struck" && "📝"}
                                     {effectiveReviewStatus ===
-                                      "suspended_review" && "Prohibited"}
+                                      "suspended_review" && "⛔"}
                                   </span>
                                 )}
                                 <span
