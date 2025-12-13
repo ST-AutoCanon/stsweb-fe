@@ -59,7 +59,7 @@
 
 .sidebar li.active {
   background: #ddd;
-  color: white;
+  color: #333;
   font-weight: bold;
 }
 
