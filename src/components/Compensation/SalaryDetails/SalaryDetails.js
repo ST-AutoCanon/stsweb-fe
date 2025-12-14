@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
@@ -29,9 +28,7 @@ const SalaryDetails = () => {
   const [selectedEmployees, setSelectedEmployees] = useState(new Set());
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showBankReportOptions, setShowBankReportOptions] = useState(false);
-
   const [approvedIds, setApprovedIds] = useState([]);
-
   const API_KEY = process.env.REACT_APP_API_KEY;
   const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}`;
   const meId = JSON.parse(
@@ -52,7 +49,6 @@ const SalaryDetails = () => {
     const currentYear = currentDate.getFullYear();
     const currentMonthStr = String(currentDate.getMonth() + 1).padStart(2, "0");
     const monthlyCTC = parseFloat(empCtc) / 12;
-
     const monthlyBonuses = bonusRecords.filter((bonus) => {
       const date = parseApplicableMonth(bonus.applicable_month);
       return (
@@ -61,7 +57,6 @@ const SalaryDetails = () => {
         (date.getMonth() + 1).toString().padStart(2, "0") === currentMonthStr
       );
     });
-
     return monthlyBonuses.reduce((sum, bonus) => {
       let bonusAmount = 0;
       if (bonus.fixed_amount && !isNaN(parseFloat(bonus.fixed_amount))) {
@@ -103,17 +98,31 @@ const SalaryDetails = () => {
     ].reduce((sum, val) => sum + parseFloat(val || 0), 0);
 
     let monthlyDeductionsSum = 0;
+
+    // Always deducted (employee-side or mandatory)
     monthlyDeductionsSum += parseFloat(salaryDetails.advanceRecovery || 0);
-    monthlyDeductionsSum += parseFloat(salaryDetails.employeePF || 0);
+    monthlyDeductionsSum += parseFloat(salaryDetails.tds || 0);
+    monthlyDeductionsSum += lopDeduction;
+
+    // Conditionally deducted based on respective IncludeInCtc flags (matching DetailsTab logic)
+    if (planData.pfEmployeeIncludeInCtc !== false) {
+      monthlyDeductionsSum += parseFloat(salaryDetails.employeePF || 0);
+    }
     if (planData.pfEmployerIncludeInCtc !== false) {
       monthlyDeductionsSum += parseFloat(salaryDetails.employerPF || 0);
     }
-    monthlyDeductionsSum += parseFloat(salaryDetails.esic || 0);
-    monthlyDeductionsSum += parseFloat(salaryDetails.gratuity || 0);
-    monthlyDeductionsSum += parseFloat(salaryDetails.professionalTax || 0);
-    monthlyDeductionsSum += parseFloat(salaryDetails.tds || 0);
-    monthlyDeductionsSum += parseFloat(salaryDetails.insurance || 0);
-    monthlyDeductionsSum += lopDeduction;
+    if (planData.esicEmployeeIncludeInCtc !== false) {
+      monthlyDeductionsSum += parseFloat(salaryDetails.esic || 0);
+    }
+    if (planData.gratuityIncludeInCtc !== false) {
+      monthlyDeductionsSum += parseFloat(salaryDetails.gratuity || 0);
+    }
+    if (planData.professionalTaxIncludeInCtc !== false) {
+      monthlyDeductionsSum += parseFloat(salaryDetails.professionalTax || 0);
+    }
+    if (planData.insuranceEmployeeIncludeInCtc !== false) {
+      monthlyDeductionsSum += parseFloat(salaryDetails.insurance || 0);
+    }
 
     const localGross = monthlyEarningsSum;
     const localNet = localGross - monthlyDeductionsSum;
@@ -127,10 +136,8 @@ const SalaryDetails = () => {
         setIsLoading(false);
         return;
       }
-
       try {
         setIsLoading(true);
-
         const [
           compensationsRes,
           employeesRes,
@@ -193,17 +200,13 @@ const SalaryDetails = () => {
             })
             .catch(() => ({ data: { approvedIds: [] } })),
         ]);
-
         setApprovedIds(approvedRes.data.approvedIds || []);
-
         const wd = workingDaysRes.data?.data?.totalWorkingDays ?? "N/A";
         setWorkingDays(wd);
-
         const compensationMap = new Map();
         (compensationsRes.data?.data || []).forEach((comp) => {
           compensationMap.set(comp.compensation_plan_name, comp.plan_data);
         });
-
         const enrichedEmployeesMap = new Map();
         (employeesRes.data?.data || []).forEach((emp) => {
           if (!enrichedEmployeesMap.has(emp.employee_id)) {
@@ -215,13 +218,11 @@ const SalaryDetails = () => {
             });
           }
         });
-
         const enrichedEmployees = Array.from(enrichedEmployeesMap.values());
         setEmployees(enrichedEmployees);
         setAdvances(advancesRes.data?.data || []);
         setOvertimeRecords(overtimeRes.data?.data || []);
         setBonusRecords(bonusRes.data?.data || []);
-
         const lopDataPromises = enrichedEmployees.map((emp) =>
           calculateLOPEffect(emp.employee_id)
             .then((result) => ({
@@ -247,7 +248,6 @@ const SalaryDetails = () => {
           {}
         );
         setEmployeeLopData(lopDataMap);
-
         const incentiveDataPromises = enrichedEmployees.map((emp) =>
           calculateIncentives(emp.employee_id)
             .then((result) => ({
@@ -284,7 +284,6 @@ const SalaryDetails = () => {
         setIsLoading(false);
       }
     };
-
     fetchSalaryBreakupData();
   }, []);
 
@@ -296,6 +295,7 @@ const SalaryDetails = () => {
         .includes(searchQuery.toLowerCase()) ||
       emp.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     title: "",
@@ -309,9 +309,9 @@ const SalaryDetails = () => {
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
+
   const handleRowSelect = (employeeId) => {
     if (isApproved(employeeId)) return;
-
     setSelectedEmployees((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(employeeId)) {
@@ -327,7 +327,6 @@ const SalaryDetails = () => {
     const selectable = filteredEmployees
       .filter((emp) => !isApproved(emp.employee_id))
       .map((emp) => emp.employee_id);
-
     if (selectedEmployees.size === selectable.length) {
       setSelectedEmployees(new Set());
     } else {
@@ -360,8 +359,6 @@ const SalaryDetails = () => {
         { withCredentials: true, headers: requestHeaders }
       );
       setPersonalMap(personalRes.data.data || {});
-
-      // Compute valid selected employees (where salary details can be calculated successfully)
       const allSelected = getSelectedEmployees();
       const validEmployees = allSelected.filter((emp) => {
         try {
@@ -384,12 +381,10 @@ const SalaryDetails = () => {
           return false;
         }
       });
-
       if (validEmployees.length === 0) {
         showAlert("No valid employees selected for processing. Please check the selected employees.");
         return;
       }
-
       setValidSelectedEmployees(validEmployees);
       setShowPreviewModal(true);
     } catch (error) {
@@ -411,7 +406,6 @@ const SalaryDetails = () => {
 
   const downloadExcel = (employeesToExport = filteredEmployees) => {
     if (employeesToExport.length === 0) return;
-
     const rows = employeesToExport.map((emp) => {
       let salaryDetails;
       try {
@@ -432,26 +426,21 @@ const SalaryDetails = () => {
         );
         salaryDetails = null;
       }
-
       if (!salaryDetails) {
         return Array(23).fill("N/A");
       }
-
       const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
-
       const lopData = employeeLopData[emp.employee_id] || {
         currentMonth: { days: 0, value: "0.00", currency: "INR" },
       };
       const lopDays = parseFloat(lopData.yearly?.days || 0);
       const lopDeduction = parseFloat(lopData.yearly?.value || "0.00");
-
       const { localGross, localNet } = calculateLocalGrossNet(
         salaryDetails,
         monthlyBonusPay,
         lopDeduction,
         emp.plan_data
       );
-
       return [
         emp.employee_id,
         emp.full_name,
@@ -463,7 +452,7 @@ const SalaryDetails = () => {
         salaryDetails.incentivePay || 0,
         salaryDetails.overtimePay || 0,
         salaryDetails.statutoryBonus || 0,
-        monthlyBonusPay, // Use local bonus
+        monthlyBonusPay,
         salaryDetails.advanceRecovery || 0,
         salaryDetails.employeePF || 0,
         salaryDetails.employerPF || 0,
@@ -478,7 +467,6 @@ const SalaryDetails = () => {
         localNet > 0 ? localNet : 0,
       ];
     });
-
     const headers = [
       "ID",
       "Name",
@@ -502,9 +490,10 @@ const SalaryDetails = () => {
       "LOP Days",
       "LOP Deduction",
       "Gross Salary",
-      "Net Salary",
+     "Net Salary",
+"Payslip_generation",
+"Payslip Action"
     ];
-
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     ws["!cols"] = [
       { wch: 8 },
@@ -557,17 +546,14 @@ const SalaryDetails = () => {
         );
         salaryDetails = null;
       }
-
       if (!salaryDetails) {
         return { row: Array(5).fill("N/A"), netSalary: 0 };
       }
-
       const monthlyBonusPay = calculateMonthlyBonusPay(emp.ctc, bonusRecords);
       const lopData = employeeLopData[emp.employee_id] || {
         currentMonth: { days: 0, value: "0.00", currency: "INR" },
       };
       const lopDeduction = parseFloat(lopData.yearly?.value || "0.00");
-
       const { localNet } = calculateLocalGrossNet(
         salaryDetails,
         monthlyBonusPay,
@@ -575,7 +561,6 @@ const SalaryDetails = () => {
         emp.plan_data
       );
       const netSalary = localNet > 0 ? localNet : 0;
-
       const personalDetails = personalMap[emp.employee_id] || {
         pan_number: "N/A",
         uan_number: "N/A",
@@ -591,7 +576,6 @@ const SalaryDetails = () => {
         netSalary,
       };
     });
-
     const headers = ["ID", "Name", "PAN Number", "UAN Number", "Net Payable"];
     return { headers, rows };
   };
@@ -730,11 +714,9 @@ const SalaryDetails = () => {
         showAlert("No valid employees selected.");
         return;
       }
-
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const currentMonthAbbrev = getAbbrevMonth(currentDate);
-
       let fullSalaryData = selectedData
         .map((emp) => {
           try {
@@ -748,29 +730,24 @@ const SalaryDetails = () => {
               employeeIncentiveData || {},
               employeeLopData
             );
-
             if (!salaryDetails) {
               return null;
             }
-
             const monthlyBonusPay = calculateMonthlyBonusPay(
               emp.ctc,
               bonusRecords
             );
-
             const lopData = employeeLopData[emp.employee_id] || {
               currentMonth: { days: 0, value: "0.00", currency: "INR" },
             };
             const lopDays = parseFloat(lopData.yearly?.days || 0);
             const lopDeduction = parseFloat(lopData.yearly?.value || "0.00");
-
             const { localGross, localNet } = calculateLocalGrossNet(
               salaryDetails,
               monthlyBonusPay,
               lopDeduction,
               emp.plan_data
             );
-
             return {
               employee_id: emp.employee_id,
               full_name: emp.full_name,
@@ -807,15 +784,12 @@ const SalaryDetails = () => {
           }
         })
         .filter((data) => data !== null);
-
       if (fullSalaryData.length === 0) {
         showAlert(
           "Failed to generate salary data for any selected employees. Check console for errors."
         );
         return;
       }
-
-      // Fetch existing data for the month to merge and avoid erasing
       let salaryDataToSave = fullSalaryData;
       try {
         const existingRes = await axios.get(
@@ -827,8 +801,6 @@ const SalaryDetails = () => {
           }
         );
         const existingSalaryData = existingRes.data.data || [];
-
-        // Merge: update existing or add new
         const mergedSalaryData = [...existingSalaryData];
         fullSalaryData.forEach((newItem) => {
           const index = mergedSalaryData.findIndex(
@@ -843,9 +815,7 @@ const SalaryDetails = () => {
         salaryDataToSave = mergedSalaryData;
       } catch (fetchError) {
         console.warn("Could not fetch existing data, proceeding with new data only:", fetchError);
-        // If fetch fails (e.g., no existing data or endpoint issue), save only new
       }
-
       const response = await axios.post(
         `${BASE_URL}/api/salary-details/save`,
         {
@@ -855,20 +825,17 @@ const SalaryDetails = () => {
         },
         { withCredentials: true, headers: requestHeaders }
       );
-
       if (response.data.success) {
         const rowsInserted = response.data.rowsInserted || salaryDataToSave.length;
         showAlert(
           `Data saved successfully in table: ${response.data.tableName} (${rowsInserted} rows)`
         );
-
         const approvedRes = await axios.get(
           `${BASE_URL}/api/salary-details/approved-ids`,
           { withCredentials: true, headers: requestHeaders }
         );
         const newApprovedIds = approvedRes.data.approvedIds || [];
         setApprovedIds(newApprovedIds);
-
         setSelectedEmployees((prev) => {
           const newSet = new Set(prev);
           newApprovedIds.forEach((id) => newSet.delete(String(id)));
@@ -917,7 +884,6 @@ const SalaryDetails = () => {
             );
             salaryDetails = null;
           }
-
           if (!salaryDetails) {
             return (
               <tr
@@ -974,26 +940,22 @@ const SalaryDetails = () => {
               </tr>
             );
           }
-
           const monthlyBonusPay = calculateMonthlyBonusPay(
             emp.ctc,
             bonusRecords
           );
-
           const lopData = employeeLopData[emp.employee_id] || {
             currentMonth: { days: 0, value: "0.00", currency: "INR" },
           };
           const lopDays = parseFloat(lopData.yearly?.days || 0);
           const lopDeduction = parseFloat(lopData.yearly?.value || "0.00");
           const isSelected = selectedEmployees.has(emp.employee_id);
-
           const { localGross, localNet } = calculateLocalGrossNet(
             salaryDetails,
             monthlyBonusPay,
             lopDeduction,
             emp.plan_data
           );
-
           return (
             <tr
               key={emp.employee_id}
@@ -1107,8 +1069,7 @@ const SalaryDetails = () => {
                       maximumFractionDigits: 2,
                     })}`
                   : "N/A"}
-              </td>{" "}
-              {/* Local Bonus: Monthly Accurate */}
+              </td>
               <td className="sd-table-cell sd-align-right sd-deduction">
                 {salaryDetails.advanceRecovery > 0
                   ? `₹${salaryDetails.advanceRecovery.toLocaleString(
@@ -1175,8 +1136,7 @@ const SalaryDetails = () => {
               </td>
               <td className="sd-table-cell sd-align-right sd-deduction">
                 {lopDays > 0 ? lopDays.toFixed(0) : "N/A"}
-              </td>{" "}
-              {/* LOP Days: Yearly to match DetailsTab */}
+              </td>
               <td className="sd-table-cell sd-align-right sd-deduction">
                 {lopDeduction > 0
                   ? `₹${lopDeduction.toLocaleString(undefined, {
@@ -1184,8 +1144,7 @@ const SalaryDetails = () => {
                       maximumFractionDigits: 2,
                     })}`
                   : "N/A"}
-              </td>{" "}
-              {/* LOP Value: Yearly to match DetailsTab */}
+              </td>
               <td className="sd-table-cell sd-align-right">
                 {localGross > 0
                   ? `₹${localGross.toLocaleString(undefined, {
@@ -1201,8 +1160,7 @@ const SalaryDetails = () => {
                       maximumFractionDigits: 2,
                     })}`
                   : "N/A"}
-              </td>{" "}
-              {/* Local Net: Matches DetailsTab */}
+              </td>
             </tr>
           );
         })}
@@ -1211,7 +1169,6 @@ const SalaryDetails = () => {
   };
 
   const renderPreviewTableRows = (employeesToRender) => {
-    // Since employeesToRender is already filtered to valid ones, no need for additional checks
     return (
       <tbody>
         {employeesToRender.map((emp) => {
@@ -1223,7 +1180,6 @@ const SalaryDetails = () => {
             currentMonth: { days: 0, value: "0.00", currency: "INR" },
           };
           const lopDeduction = parseFloat(lopData.yearly?.value || "0.00");
-
           const salaryDetails = calculateSalaryDetails(
             emp.ctc,
             emp.plan_data,
@@ -1234,7 +1190,6 @@ const SalaryDetails = () => {
             employeeIncentiveData || {},
             employeeLopData
           );
-
           const { localNet } = calculateLocalGrossNet(
             salaryDetails,
             monthlyBonusPay,
@@ -1242,7 +1197,6 @@ const SalaryDetails = () => {
             emp.plan_data
           );
           const netSalary = localNet > 0 ? localNet : 0;
-
           return (
             <tr key={emp.employee_id}>
               <td className="sd-preview-table-cell">{emp.employee_id}</td>
@@ -1408,7 +1362,6 @@ const SalaryDetails = () => {
       ) : (
         <p className="sd-no-data">No employees found</p>
       )}
-
       {showPreviewModal && (
         <div className="sd-preview-modal">
           <div className="sd-preview-overlay" onClick={handleCloseModal}></div>
