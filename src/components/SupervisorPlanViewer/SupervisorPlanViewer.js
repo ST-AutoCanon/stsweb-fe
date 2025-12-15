@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
@@ -30,6 +31,9 @@ const SupervisorPlanViewer = () => {
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [error, setError] = useState(null);
+// const [reworkFrozenTasks, setReworkFrozenTasks] = useState({});
+const [justSavedRework, setJustSavedRework] = useState({});
+const [savedSupStatus, setSavedSupStatus] = useState({});
 
   const [openNodes, setOpenNodes] = useState({});
 
@@ -45,25 +49,67 @@ const SupervisorPlanViewer = () => {
     setTimeout(() => setAlertModal({ isVisible: false, message: "" }), 5000);
   };
 
-  // --- Build Employee Tree ---
-  const buildEmployeeTree = (employees) => {
-    const map = {};
-    const roots = [];
 
-    employees.forEach((emp) => {
-      map[emp.employee_id] = { ...emp, children: [] };
-    });
 
-    employees.forEach((emp) => {
-      if (map[emp.supervisor_id]) {
-        map[emp.supervisor_id].children.push(map[emp.employee_id]);
-      } else {
-        roots.push(map[emp.employee_id]);
+  // 🔹 Employee level lookup map
+const employeeLevelMap = React.useMemo(() => {
+  const map = {};
+
+  const traverse = (nodes) => {
+    nodes.forEach((emp) => {
+      map[emp.employee_id] = emp.level;
+      if (emp.children && emp.children.length > 0) {
+        traverse(emp.children);
       }
     });
-
-    return roots;
   };
+
+  traverse(employees);
+  return map;
+}, [employees]);
+
+const canEditByHierarchy = (taskEmployeeId) => {
+  // Find employee in hierarchy
+  const findEmployee = (nodes) => {
+    for (const emp of nodes) {
+      if (emp.employee_id === taskEmployeeId) return emp;
+      if (emp.children?.length) {
+        const found = findEmployee(emp.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const employee = findEmployee(employees);
+
+  // ✅ Only direct reports of logged-in supervisor
+  return employee?.supervisor_id === supervisorId;
+};
+
+
+  // --- Build Employee Tree ---
+ const buildEmployeeTree = (employees) => {
+  const map = {};
+  const roots = [];
+
+  employees.forEach((emp) => {
+    map[emp.employee_id] = { ...emp, children: [], level: 0 };
+  });
+
+  employees.forEach((emp) => {
+    if (map[emp.supervisor_id]) {
+      map[emp.employee_id].level =
+        map[emp.supervisor_id].level + 1;
+      map[emp.supervisor_id].children.push(map[emp.employee_id]);
+    } else {
+      roots.push(map[emp.employee_id]);
+    }
+  });
+
+  return roots;
+};
+
 
   const formatWeekId = (weekId) => {
     if (!weekId) return "N/A";
@@ -180,6 +226,11 @@ const SupervisorPlanViewer = () => {
 
     recognitionRef.current = null;
   };
+const getNextDay = (dateStr) => {
+  const date = new Date(dateStr);
+  date.setDate(date.getDate() + 1);
+  return date.toISOString().split("T")[0];
+};
 
   useEffect(() => {
     const data = localStorage.getItem("dashboardData");
@@ -411,6 +462,14 @@ const SupervisorPlanViewer = () => {
           setSelectedWeekId(weekIds[weekIds.length - 1]);
         }
         setError(null);
+        const statusMap = {};
+taskData.forEach((t) => {
+  statusMap[t.task_id] = t.sup_status;
+});
+setSavedSupStatus(statusMap);
+setTasks(taskData);
+
+
       } catch (err) {
         const errorMessage = err.response
           ? `Error ${err.response.status}: ${
@@ -569,6 +628,19 @@ const SupervisorPlanViewer = () => {
             timeout: 10000,
           }
         );
+// if (task.sup_status === "re-work") {
+//   setReworkFrozenTasks((prev) => ({
+//     ...prev,
+//     [taskId]: true,
+//   }));
+// }
+if (updateData.sup_status === "re-work") {
+  setJustSavedRework((prev) => ({
+    ...prev,
+    [taskId]: true,
+  }));
+}
+
 
         updateData.sup_status = "re-work";
         await axios.put(
@@ -612,12 +684,23 @@ const SupervisorPlanViewer = () => {
         );
         showAlert("Task updated successfully");
       }
+      setSavedSupStatus((prev) => ({
+  ...prev,
+  [taskId]: updateData.sup_status,
+}));
+
 
       setPendingReviewChanges((prev) => {
         const newPrev = { ...prev };
         delete newPrev[taskId];
         return newPrev;
       });
+// if (task.sup_status === "re-work") {
+//   setReworkFrozenTasks((prev) => ({
+//     ...prev,
+//     [taskId]: true,
+//   }));
+// }
 
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${supervisorId}`,
@@ -644,6 +727,11 @@ const SupervisorPlanViewer = () => {
             }))
           : [];
       setTasks(taskData);
+      const statusMap = {};
+taskData.forEach((t) => {
+  statusMap[t.task_id] = t.sup_status;
+});
+setSavedSupStatus(statusMap);
     } catch (err) {
       const errorMessage = err.response
         ? `Error ${err.response.status}: ${
@@ -657,6 +745,7 @@ const SupervisorPlanViewer = () => {
       showAlert(`Failed to update task: ${errorMessage}`);
     }
   };
+
 
   const statusColor = (status) => {
     switch (status) {
@@ -924,11 +1013,6 @@ const EmployeeNode = ({ emp, level = 0 }) => {
         ) : employees.length === 0 ? (
           <p>No employees under your hierarchy.</p>
         ) : (
-          // <ul className="supervisor-plan-employee-scroll">
-          //   {employees.map((root) => (
-          //     <EmployeeNode key={root.employee_id} emp={root} level={0} />
-          //   ))}
-          // </ul>
           <ul className="supervisor-plan-employee-scroll">
   {employees.map((root) => (
     <EmployeeNode key={root.employee_id} emp={root} level={0} />
@@ -1000,8 +1084,30 @@ const EmployeeNode = ({ emp, level = 0 }) => {
                         const effectiveReviewStatus =
                           pendingReviewChanges[task.task_id] ||
                           task.sup_review_status;
-                        const isFrozen =
-                          task.sup_review_status === "suspended_review";
+  //                    const isFrozen =
+  // task.sup_review_status === "suspended_review" ||
+  // reworkFrozenTasks[task.task_id];
+
+// const hierarchyFrozen = !canEditByHierarchy(task.employee_id);
+
+// const isFrozen =
+//   hierarchyFrozen ||
+//   task.sup_review_status === "suspended_review" ||
+//   reworkFrozenTasks[task.task_id];
+const hierarchyFrozen = !canEditByHierarchy(task.employee_id);
+
+// Freeze ONLY if backend-saved status is re-work
+const reworkFrozenFromDB =
+  savedSupStatus[task.task_id] === "re-work";
+
+const isFrozen =
+  hierarchyFrozen ||
+  task.sup_review_status === "suspended_review" ||
+  reworkFrozenFromDB;
+
+
+
+                          
                         const showReviewSelect =
                           task.sup_review_status === "pending" &&
                           !pendingReviewChanges[task.task_id];
@@ -1266,12 +1372,13 @@ const EmployeeNode = ({ emp, level = 0 }) => {
                                 </label>
                               )}
                               <button
-                                className="supervisor-plan-update-task-button"
-                                onClick={() => saveTaskField(task.task_id)}
-                                disabled={!editable || isFrozen}
-                              >
-                                Update
-                              </button>
+  className="supervisor-plan-update-task-button"
+  onClick={() => saveTaskField(task.task_id)}
+  disabled={!editable || isFrozen}
+>
+  Update
+</button>
+
                             </div>
                           </div>
                         );

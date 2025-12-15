@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { MdMic, MdMicOff } from "react-icons/md";
 import axios from "axios";
@@ -28,10 +29,15 @@ const SupervisorPlanViewerAdmin = () => {
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [error, setError] = useState(null);
+
+  const [reworkFrozenTasks, setReworkFrozenTasks] = useState({});
+
   const [alertModal, setAlertModal] = useState({
     isVisible: false,
     message: "",
   });
+
+  
   const [configModal, setConfigModal] = useState({
     isVisible: false,
     freezeDaysSupervisor: "",
@@ -281,67 +287,77 @@ const SupervisorPlanViewerAdmin = () => {
     fetchApprovedLeaves();
   }, [supervisorId]);
 
-  useEffect(() => {
-    if (!supervisorId) return;
+ useEffect(() => {
+  if (!supervisorId) return;
 
-    const fetchTasks = async () => {
-      setLoadingTasks(true);
-      try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
-          {
-            withCredentials: true,
-            headers: {
-              "x-employee-id": supervisorId,
-              "x-api-key": process.env.REACT_APP_API_KEY || "",
-            },
-            timeout: 10000,
-          }
-        );
-        const validStatuses = [
-          "not started",
-          "working",
-          "completed",
-          "suspended",
-        ];
-        const taskData =
-          res.data.success && Array.isArray(res.data.data)
-            ? res.data.data.map((task) => ({
-                ...task,
-                employee_id: task.employee_id?.trim().toUpperCase(),
-                emp_status: validStatuses.includes(task.emp_status)
-                  ? task.emp_status
-                  : "not started",
-                week_id: Number(task.week_id),
-              }))
-            : [];
-        setTasks(taskData);
-        if (taskData.length > 0) {
-          const weekIds = [
-            ...new Set(taskData.map((task) => task.week_id)),
-          ].sort((a, b) => a - b);
-          setSelectedWeekId(weekIds[weekIds.length - 1] || null);
-        } else {
-          setSelectedWeekId(null);
+  const fetchTasks = async () => {
+    setLoadingTasks(true);
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
+        {
+          withCredentials: true,
+          headers: {
+            "x-employee-id": supervisorId,
+            "x-api-key": process.env.REACT_APP_API_KEY || "",
+          },
+          timeout: 10000,
         }
-        setError(null);
-      } catch (err) {
-        const errorMessage = err.response
-          ? `Error ${err.response.status}: ${
-              err.response.data?.error || err.response.statusText
-            }`
-          : err.code === "ECONNABORTED"
-          ? "Request timed out: Unable to connect to server"
-          : `Network error: ${err.message}`;
-        setError(errorMessage);
-        setTasks([]);
-      } finally {
-        setLoadingTasks(false);
-      }
-    };
+      );
 
-    fetchTasks();
-  }, [supervisorId]);
+      const validStatuses = ["not started", "working", "completed", "suspended"];
+      const taskData =
+        res.data.success && Array.isArray(res.data.data)
+          ? res.data.data.map((task) => ({
+              ...task,
+              employee_id: task.employee_id?.trim().toUpperCase(),
+              emp_status: validStatuses.includes(task.emp_status)
+                ? task.emp_status
+                : "not started",
+              week_id: Number(task.week_id),
+              project_id: task.project_id,
+              project_name: task.project_name,
+            }))
+          : [];
+
+      // 🔹 Mark all backend re-work tasks as frozen
+      const initialReworkFrozen = {};
+      taskData.forEach((task) => {
+        if (task.sup_status === "re-work") {
+          initialReworkFrozen[task.task_id] = true;
+        }
+      });
+      setReworkFrozenTasks(initialReworkFrozen);
+
+      setTasks(taskData);
+
+      if (taskData.length > 0) {
+        const weekIds = [...new Set(taskData.map((task) => task.week_id))].sort(
+          (a, b) => a - b
+        );
+        setSelectedWeekId(weekIds[weekIds.length - 1] || null);
+      } else {
+        setSelectedWeekId(null);
+      }
+      setError(null);
+    } catch (err) {
+      const errorMessage = err.response
+        ? `Error ${err.response.status}: ${
+            err.response.data?.error || err.response.statusText
+          }`
+        : err.code === "ECONNABORTED"
+        ? "Request timed out: Unable to connect to server"
+        : `Network error: ${err.message}`;
+      setError(errorMessage);
+      setTasks([]);
+    } finally {
+      setLoadingTasks(false);
+    }
+  };
+
+  fetchTasks();
+}, [supervisorId]);
+
 
   useEffect(() => {
     if (!selectedEmployee) return;
@@ -533,6 +549,8 @@ const SupervisorPlanViewerAdmin = () => {
       return;
     }
 
+
+
     try {
       const effectiveReviewStatus =
         pendingReviewChanges[taskId] || task.sup_review_status;
@@ -601,6 +619,11 @@ const SupervisorPlanViewerAdmin = () => {
             timeout: 10000,
           }
         );
+// freeze this task AFTER successful re-work update
+setReworkFrozenTasks((prev) => ({
+  ...prev,
+  [taskId]: true,
+}));
 
         showAlert(response.data.message || "New task created successfully");
 
@@ -641,6 +664,12 @@ const SupervisorPlanViewerAdmin = () => {
             timeout: 10000,
           }
         );
+        // freeze this task AFTER successful re-work update
+setReworkFrozenTasks((prev) => ({
+  ...prev,
+  [taskId]: true,
+}));
+
         showAlert("Task updated successfully");
       }
 
@@ -649,6 +678,8 @@ const SupervisorPlanViewerAdmin = () => {
         delete newPrev[taskId];
         return newPrev;
       });
+
+      
 
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
@@ -1062,8 +1093,15 @@ const SupervisorPlanViewerAdmin = () => {
                         const effectiveReviewStatus =
                           pendingReviewChanges[task.task_id] ||
                           task.sup_review_status;
-                        const isFrozen =
-                          task.sup_review_status === "suspended_review";
+                        // Freeze tasks that came from backend as re-work or suspended_review
+// const isBackendRework = task.sup_status === "re-work" && !reworkFrozenTasks[task.task_id];
+// Freeze only if:
+// 1. The task is suspended_review
+// 2. The task came from backend as re-work (already saved)
+const isFrozen = 
+  task.sup_review_status === "suspended_review" ||
+  (task.sup_status === "re-work" && reworkFrozenTasks[task.task_id]);
+
                         const showReviewSelect =
                           task.sup_review_status === "pending" &&
                           !pendingReviewChanges[task.task_id];
