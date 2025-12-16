@@ -1195,8 +1195,7 @@ const isFrozen =
                             </div>
                             {isFrozen && (
                               <div className="supervisor-plan-frozen-message">
-                                This task is suspended and frozen. No edits
-                                allowed.
+                               No edits allowed.
                               </div>
                             )}
                             <div className="supervisor-plan-edit-section">

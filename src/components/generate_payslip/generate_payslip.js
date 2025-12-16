@@ -928,61 +928,74 @@ const GeneratePayslip = () => {
               </div>
             )}
             <div className="generatePayslip-form-buttons">
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setPreview(false);
-                  setError(null);
-                  setSuccess(null);
-                  if (pdfUrl) {
-                    URL.revokeObjectURL(pdfUrl);
-                    setPdfUrl(null);
-                  }
-                  setEditingEmployeeId(null);
-                  setSelectedMonth(new Date().getMonth() + 1);
-                  setSelectedYear(new Date().getFullYear());
-                }}
-                className="generatePayslip-cancel-btn"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              {preview ? (
-                <>
-                  <button
-                    onClick={handleSaveToBackend}
-                    className="generatePayslip-save-btn"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="generatePayslip-download-btn"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Downloading..." : "Download"}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={handleSaveToBackend}
-                    className="generatePayslip-save-btn"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    onClick={handlePreview}
-                    className="generatePayslip-preview-btn"
-                    disabled={isLoading}
-                  >
-                    Preview
-                  </button>
-                </>
-              )}
-            </div>
+  <button
+    onClick={() => {
+      if (preview) {
+        // Back to form from preview
+        setPreview(false);
+        setError(null);
+        setSuccess(null);
+        if (pdfUrl) {
+          URL.revokeObjectURL(pdfUrl);
+          setPdfUrl(null);
+        }
+      } else {
+        // Full cancel from form
+        setShowModal(false);
+        setPreview(false);
+        setError(null);
+        setSuccess(null);
+        if (pdfUrl) {
+          URL.revokeObjectURL(pdfUrl);
+          setPdfUrl(null);
+        }
+        setEditingEmployeeId(null);
+        setSelectedMonth(new Date().getMonth() + 1);
+        setSelectedYear(new Date().getFullYear());
+      }
+    }}
+    className={preview ? "generatePayslip-back-btn" : "generatePayslip-cancel-btn"}
+    disabled={isLoading}
+  >
+    {preview ? "Back" : "Cancel"}
+  </button>
+
+  {preview ? (
+    <>
+      <button
+        onClick={handleSaveToBackend}
+        className="generatePayslip-save-btn"
+        disabled={isLoading}
+      >
+        {isLoading ? "Saving..." : "Save"}
+      </button>
+      <button
+        onClick={handleDownloadPDF}
+        className="generatePayslip-download-btn"
+        disabled={isLoading}
+      >
+        {isLoading ? "Downloading..." : "Download"}
+      </button>
+    </>
+  ) : (
+    <>
+      <button
+        onClick={handleSaveToBackend}
+        className="generatePayslip-save-btn"
+        disabled={isLoading}
+      >
+        {isLoading ? "Saving..." : "Save"}
+      </button>
+      <button
+        onClick={handlePreview}
+        className="generatePayslip-preview-btn"
+        disabled={isLoading}
+      >
+        Preview
+      </button>
+    </>
+  )}
+</div>
           </div>
         </div>
       )}

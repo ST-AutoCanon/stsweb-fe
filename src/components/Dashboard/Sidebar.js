@@ -441,7 +441,7 @@ const canSeeSupervisorTaskView =
           <span className="icon">
             <MdIcons.MdOutlinePeople size={20} />
           </span>
-          <span>Employee Tasks</span>
+          <span>My Task</span>
         </li>
 
         {canSeeSupervisorTaskView && (
@@ -450,9 +450,9 @@ const canSeeSupervisorTaskView =
             onClick={() => handleMenuClick(item, "supervisor")}
           >
             <span className="icon">
-              <MdIcons.MdOutlineDashboard size={20} />
+              <MdIcons.MdOutlinePeople size={20} />
             </span>
-            <span>My Task Management</span>
+            <span>Team tasks</span>
           </li>
         )}
 
