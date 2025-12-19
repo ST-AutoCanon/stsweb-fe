@@ -12,6 +12,7 @@ import ParticipantSelection from "./ParticipantSelection";
 const RbAdmin = () => {
   const [employees, setEmployees] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
+  const [expandedClaims, setExpandedClaims] = useState({}); // NEW: per-claim expand state
   const [submittedFrom, setSubmittedFrom] = useState("");
   const [submittedTo, setSubmittedTo] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -47,6 +48,33 @@ const RbAdmin = () => {
     const mon = d.toLocaleString("en-GB", { month: "short" });
     const year = d.getFullYear();
     return `${day}-${mon}-${year}`;
+  };
+
+  // invoice parsing helper (mirrors employee side)
+  const parseInvoicesFromClaim = (claimOrInv) => {
+    let invs = claimOrInv || [];
+    try {
+      if (typeof invs === "object" && Array.isArray(invs))
+        return invs.map((i) => String(i).trim()).filter(Boolean);
+      if (typeof invs === "string" && invs.trim()) {
+        // try JSON then CSV fallback
+        try {
+          const parsed = JSON.parse(invs);
+          if (Array.isArray(parsed))
+            return parsed.map((i) => String(i).trim()).filter(Boolean);
+        } catch (_) {
+          return invs
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+      }
+      return Array.isArray(invs)
+        ? invs.map((i) => String(i).trim()).filter(Boolean)
+        : [];
+    } catch (e) {
+      return [];
+    }
   };
 
   const filteredEmployees = employees
@@ -195,17 +223,19 @@ const RbAdmin = () => {
           },
         }
       );
-      setEmployees(response.data || []);
+      const data = response.data || [];
+      setEmployees(data);
 
       const attachmentsMap = {};
-      (response.data || []).forEach((employee) => {
+      (data || []).forEach((employee) => {
         (employee.claims || []).forEach((claim) => {
           attachmentsMap[claim.id] = claim.attachments || [];
         });
       });
       setAttachments(attachmentsMap);
+
       const initialProjects = {};
-      (response.data || []).forEach((emp) =>
+      (data || []).forEach((emp) =>
         (emp.claims || []).forEach((claim) => {
           if (claim.project) {
             initialProjects[claim.id] = claim.project;
@@ -220,12 +250,15 @@ const RbAdmin = () => {
   };
 
   const toggleRow = (employeeId) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [employeeId]: !prev[employeeId],
-    }));
+    setExpandedRows((prev) => ({ ...prev, [employeeId]: !prev[employeeId] }));
   };
 
+  // NEW: per-claim expand
+  const toggleClaimExpand = (claimId) => {
+    setExpandedClaims((prev) => ({ ...prev, [claimId]: !prev[claimId] }));
+  };
+
+  // Updated to accept objects with filename | file_name | name
   const handleOpenAttachments = async (files, claim) => {
     try {
       if (!files || files.length === 0) {
@@ -235,13 +268,23 @@ const RbAdmin = () => {
       const authToken = localStorage.getItem("token");
       const fetchedFiles = await Promise.all(
         files.map(async (file) => {
-          if (!file?.filename) return null;
-          const match = file.filename.match(/^(\d{4})-(\d{2})-\d{2}/);
-          if (!match) return null;
+          const candidateFilename =
+            file.filename || file.file_name || file.name;
+          if (!candidateFilename) return null;
+          // try to extract YYYY-MM-DD prefix from filename
+          const match = candidateFilename.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (!match) {
+            // fallback: try underscore date 'YYYY-MM-DD_' or other patterns
+            const match2 = candidateFilename.match(
+              /^(\d{4})[-_](\d{2})[-_](\d{2})/
+            );
+            if (!match2) return null;
+            match = match2;
+          }
           const year = match[1];
           const month = match[2];
           const empId = claim.employee_id;
-          const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${file.filename}`;
+          const fileUrl = `${process.env.REACT_APP_BACKEND_URL}/reimbursement/${year}/${month}/${empId}/${candidateFilename}`;
           try {
             const response = await axios.get(fileUrl, {
               withCredentials: true,
@@ -252,7 +295,7 @@ const RbAdmin = () => {
               responseType: "blob",
             });
             return {
-              name: file.filename,
+              name: candidateFilename,
               url: URL.createObjectURL(
                 new Blob([response.data], {
                   type: response.headers["content-type"],
@@ -274,7 +317,7 @@ const RbAdmin = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching attachments:", error);
-      showAlert("No attachments found for this screen .");
+      showAlert("No attachments found for this screen.");
     }
   };
 
@@ -718,241 +761,452 @@ const RbAdmin = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {filteredClaims.map((claim, index) => (
-                              <tr key={claim.id}>
-                                <td>{index + 1}</td>
-                                <td>{claim.claim_type}</td>
-                                <td>
-                                  {claim.date_range
-                                    ? claim.date_range
-                                        .split(" - ")
-                                        .map(formatDisplayDate)
-                                        .join(" - ")
-                                    : claim.date
-                                    ? formatDisplayDate(claim.date)
-                                    : "N/A"}
-                                </td>
-                                <td>₹{claim.total_amount}</td>
-                                <td
-                                  className="purpose-cell"
-                                  title={claim.purpose}
-                                >
-                                  {claim.purpose}
-                                </td>
+                            {filteredClaims.map((claim, index) => {
+                              const lines = Array.isArray(claim.lines)
+                                ? claim.lines
+                                    .slice()
+                                    .sort(
+                                      (a, b) =>
+                                        (a.line_index || 0) -
+                                        (b.line_index || 0)
+                                    )
+                                : [];
 
-                                <td className="participants-cell-col">
-                                  <div className="rbadmin-comments">
-                                    <div
-                                      className="rbadmin-comments"
+                              // prefer claim-level date_range -> claim.date -> first line payload date -> fallback
+                              const firstLinePayload =
+                                lines && lines.length
+                                  ? lines[0].payload || {}
+                                  : {};
+                              const firstLineDate =
+                                firstLinePayload.date ||
+                                firstLinePayload.from_date ||
+                                firstLinePayload.to_date ||
+                                null;
+
+                              // aggregated claim-level invoices (dedup)
+                              let claimInvs = parseInvoicesFromClaim(
+                                claim.invoices ||
+                                  claim.invoice_numbers ||
+                                  claim.invoice_no
+                              );
+                              const invSet = new Set(
+                                (claimInvs || []).map((i) => String(i).trim())
+                              );
+                              (lines || []).forEach((ln) => {
+                                const linv =
+                                  ln?.payload?.invoices ||
+                                  ln?.payload?.invoice ||
+                                  [];
+                                parseInvoicesFromClaim(linv).forEach((i) => {
+                                  if (i) invSet.add(String(i).trim());
+                                });
+                              });
+                              const claimInvDisplay = Array.from(invSet).length
+                                ? Array.from(invSet).join(", ")
+                                : "-";
+
+                              return (
+                                <React.Fragment
+                                  key={
+                                    claim.id ||
+                                    `${employee.employee_id}-${index}`
+                                  }
+                                >
+                                  {/* main claim row */}
+                                  <tr className="claim-main-row">
+                                    <td>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          toggleClaimExpand(claim.id)
+                                        }
+                                        aria-expanded={
+                                          !!expandedClaims[claim.id]
+                                        }
+                                        title={
+                                          expandedClaims[claim.id]
+                                            ? "Collapse"
+                                            : "Expand"
+                                        }
+                                        style={{ minWidth: 36 }}
+                                      >
+                                        {expandedClaims[claim.id] ? "−" : "+"}
+                                      </button>{" "}
+                                      {index + 1}
+                                    </td>
+
+                                    <td>{claim.claim_type || "-"}</td>
+
+                                    <td>
+                                      {claim.date_range
+                                        ? claim.date_range
+                                            .split(" - ")
+                                            .map(formatDisplayDate)
+                                            .join(" - ")
+                                        : claim.date || firstLineDate
+                                        ? formatDisplayDate(
+                                            claim.date || firstLineDate
+                                          )
+                                        : "N/A"}
+                                    </td>
+
+                                    <td>₹{claim.aggregated_total}</td>
+
+                                    <td
+                                      className="purpose-cell"
+                                      title={claim.purpose}
+                                    >
+                                      {claim.purpose || claim.comments || "-"}
+                                    </td>
+
+                                    <td
+                                      className="participants-cell-col"
                                       title={getParticipantNamesForClaim(claim)}
                                     >
-                                      {getParticipantNamesForClaim(claim)}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td
-                                  className="invoice-cell"
-                                  title={(() => {
-                                    let invs =
-                                      claim.invoices ||
-                                      claim.invoice_numbers ||
-                                      claim.invoice_no ||
-                                      [];
-                                    try {
-                                      if (
-                                        typeof invs === "string" &&
-                                        invs.trim()
-                                      )
-                                        invs = JSON.parse(invs);
-                                    } catch (e) {
-                                      if (typeof invs === "string")
-                                        invs = invs
-                                          .split(",")
-                                          .map((s) => s.trim())
-                                          .filter(Boolean);
-                                      else
-                                        invs = Array.isArray(invs) ? invs : [];
-                                    }
-                                    return Array.isArray(invs) && invs.length
-                                      ? invs.join(", ")
-                                      : "-";
-                                  })()}
-                                >
-                                  {(() => {
-                                    let invs =
-                                      claim.invoices ||
-                                      claim.invoice_numbers ||
-                                      claim.invoice_no ||
-                                      [];
-                                    try {
-                                      if (
-                                        typeof invs === "string" &&
-                                        invs.trim()
-                                      )
-                                        invs = JSON.parse(invs);
-                                    } catch (e) {
-                                      if (typeof invs === "string")
-                                        invs = invs
-                                          .split(",")
-                                          .map((s) => s.trim())
-                                          .filter(Boolean);
-                                      else
-                                        invs = Array.isArray(invs) ? invs : [];
-                                    }
-                                    return Array.isArray(invs) && invs.length
-                                      ? invs.join(", ")
-                                      : "-";
-                                  })()}
-                                </td>
+                                      <div className="rbadmin-comments">
+                                        {getParticipantNamesForClaim(claim)}
+                                      </div>
+                                    </td>
 
-                                <td>
-                                  {attachments[claim.id] &&
-                                  attachments[claim.id].length > 0 ? (
-                                    <button
-                                      className="attachments-btn"
-                                      onClick={() =>
-                                        handleOpenAttachments(
-                                          attachments[claim.id],
-                                          claim
+                                    <td
+                                      className="invoice-cell"
+                                      title={claimInvDisplay}
+                                    >
+                                      {claimInvDisplay}
+                                    </td>
+
+                                    <td>
+                                      {attachments[claim.id] &&
+                                      attachments[claim.id].length > 0 ? (
+                                        <button
+                                          className="attachments-btn"
+                                          onClick={() =>
+                                            handleOpenAttachments(
+                                              attachments[claim.id],
+                                              claim
+                                            )
+                                          }
+                                        >
+                                          <MdOutlineRemoveRedEye className="eye-icon" />{" "}
+                                          View
+                                        </button>
+                                      ) : claim.line_attachments_map &&
+                                        Object.keys(claim.line_attachments_map)
+                                          .length > 0 ? (
+                                        <button
+                                          className="attachments-btn"
+                                          onClick={() =>
+                                            handleOpenAttachments(
+                                              Object.values(
+                                                claim.line_attachments_map
+                                              ).flat(),
+                                              claim
+                                            )
+                                          }
+                                        >
+                                          <MdOutlineRemoveRedEye className="eye-icon" />{" "}
+                                          View Line Attachments
+                                        </button>
+                                      ) : (
+                                        "No Attachments"
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      {claim.status === "approved" ||
+                                      claim.status === "rejected" ? (
+                                        <span
+                                          className={`status-label ${claim.status}`}
+                                        >
+                                          <span className="status-dot"></span>
+                                          {claim.status
+                                            .charAt(0)
+                                            .toUpperCase() +
+                                            claim.status.slice(1)}
+                                        </span>
+                                      ) : (
+                                        <select
+                                          className="rb-status-dropdown"
+                                          value={
+                                            statusUpdates[claim.id] ||
+                                            claim.status ||
+                                            ""
+                                          }
+                                          onChange={(e) =>
+                                            handleStatusChange(
+                                              claim.id,
+                                              e.target.value
+                                            )
+                                          }
+                                        >
+                                          <option value="">Pending</option>
+                                          <option value="approved">
+                                            Approve
+                                          </option>
+                                          <option value="rejected">
+                                            Reject
+                                          </option>
+                                        </select>
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      {claim.status === "approved" ||
+                                      claim.status === "rejected" ? (
+                                        <div className="rbadmin-comments">
+                                          {projectSelections[claim.id] ||
+                                            claim.project}
+                                        </div>
+                                      ) : (
+                                        <select
+                                          className="rb-status-dropdown"
+                                          value={
+                                            projectSelections[claim.id] || ""
+                                          }
+                                          onChange={(e) =>
+                                            setProjectSelections((prev) => ({
+                                              ...prev,
+                                              [claim.id]: e.target.value,
+                                            }))
+                                          }
+                                        >
+                                          <option value="">Select</option>
+                                          <option value="STS CLAIM">
+                                            STS CLAIM
+                                          </option>
+                                          {projects.map((project, idx) => (
+                                            <option key={idx} value={project}>
+                                              {project}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      {claim.status === "approved" ||
+                                      claim.status === "rejected" ? (
+                                        <div className="rbadmin-comments">
+                                          {claim.approver_comments ||
+                                            "No comments"}
+                                        </div>
+                                      ) : (
+                                        <input
+                                          type="text"
+                                          placeholder="Enter comments"
+                                          value={comments[claim.id] || ""}
+                                          onChange={(e) =>
+                                            setComments((prev) => ({
+                                              ...prev,
+                                              [claim.id]: e.target.value,
+                                            }))
+                                          }
+                                        />
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      {claim.status?.toLowerCase().trim() ===
+                                      "approved" ? (
+                                        !claim.payment_status ||
+                                        claim.payment_status
+                                          ?.toLowerCase()
+                                          .trim() === "pending" ? (
+                                          <button
+                                            className="pending-payment-btn"
+                                            onClick={() =>
+                                              openPaymentModal(claim)
+                                            }
+                                          >
+                                            Pending
+                                          </button>
+                                        ) : (
+                                          <span>
+                                            {claim.payment_status
+                                              ? claim.payment_status
+                                                  .charAt(0)
+                                                  .toUpperCase() +
+                                                claim.payment_status.slice(1)
+                                              : "N/A"}
+                                            {claim.paid_date
+                                              ? ` (${formatDisplayDate(
+                                                  claim.paid_date
+                                                )})`
+                                              : ""}
+                                          </span>
                                         )
-                                      }
-                                    >
-                                      <MdOutlineRemoveRedEye className="eye-icon" />{" "}
-                                      View
-                                    </button>
-                                  ) : (
-                                    "No Attachments"
-                                  )}
-                                </td>
-                                <td>
-                                  {claim.status === "approved" ||
-                                  claim.status === "rejected" ? (
-                                    <span
-                                      className={`status-label ${claim.status}`}
-                                    >
-                                      <span className="status-dot"></span>
-                                      {claim.status.charAt(0).toUpperCase() +
-                                        claim.status.slice(1)}
-                                    </span>
-                                  ) : (
-                                    <select
-                                      className="rb-status-dropdown"
-                                      value={
-                                        statusUpdates[claim.id] || claim.status
-                                      }
-                                      onChange={(e) =>
-                                        handleStatusChange(
-                                          claim.id,
-                                          e.target.value
-                                        )
-                                      }
-                                    >
-                                      <option value="">Pending</option>
-                                      <option value="approved">Approve</option>
-                                      <option value="rejected">Reject</option>
-                                    </select>
-                                  )}
-                                </td>
-                                <td>
-                                  {claim.status === "approved" ||
-                                  claim.status === "rejected" ? (
-                                    <div className="rbadmin-comments">
-                                      {projectSelections[claim.id] ||
-                                        claim.project}
-                                    </div>
-                                  ) : (
-                                    <select
-                                      className="rb-status-dropdown"
-                                      value={projectSelections[claim.id] || ""}
-                                      onChange={(e) =>
-                                        setProjectSelections((prev) => ({
-                                          ...prev,
-                                          [claim.id]: e.target.value,
-                                        }))
-                                      }
-                                    >
-                                      <option value="">Select</option>
-                                      <option value="STS CLAIM">
-                                        STS CLAIM
-                                      </option>
-                                      {projects.map((project, index) => (
-                                        <option key={index} value={project}>
-                                          {project}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  )}
-                                </td>
-                                <td>
-                                  {claim.status === "approved" ||
-                                  claim.status === "rejected" ? (
-                                    <div className="rbadmin-comments">
-                                      {claim.approver_comments || "No comments"}
-                                    </div>
-                                  ) : (
-                                    <input
-                                      type="text"
-                                      placeholder="Enter comments"
-                                      value={comments[claim.id] || ""}
-                                      onChange={(e) =>
-                                        setComments((prev) => ({
-                                          ...prev,
-                                          [claim.id]: e.target.value,
-                                        }))
-                                      }
-                                    />
-                                  )}
-                                </td>
-                                <td>
-                                  {claim.status?.toLowerCase().trim() ===
-                                  "approved" ? (
-                                    !claim.payment_status ||
-                                    claim.payment_status
-                                      ?.toLowerCase()
-                                      .trim() === "pending" ? (
-                                      <button
-                                        className="pending-payment-btn"
-                                        onClick={() => openPaymentModal(claim)}
-                                      >
-                                        Pending
-                                      </button>
-                                    ) : (
-                                      <span>
-                                        {claim.payment_status
-                                          ? claim.payment_status
-                                              .charAt(0)
-                                              .toUpperCase() +
-                                            claim.payment_status.slice(1)
-                                          : "N/A"}
-                                        {claim.paid_date
-                                          ? ` (${formatDisplayDate(
-                                              claim.paid_date
-                                            )})`
-                                          : ""}
-                                      </span>
-                                    )
-                                  ) : (
-                                    <span>{claim.payment_status || "-"}</span>
-                                  )}
-                                </td>
-                                <td>
-                                  <FaFileInvoice
-                                    size={24}
-                                    className="update-btn"
-                                    onClick={() => updateStatus(claim.id)}
-                                    disabled={
-                                      claim.status === "approved" ||
-                                      claim.status === "rejected"
-                                    }
-                                  />
-                                  <FiDownload
-                                    size={24}
-                                    className="download-btn"
-                                    onClick={() => handleDownloadPDF(claim)}
-                                  />
-                                </td>
-                              </tr>
-                            ))}
+                                      ) : (
+                                        <span>
+                                          {claim.payment_status || "-"}
+                                        </span>
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      <FaFileInvoice
+                                        size={24}
+                                        className="update-btn"
+                                        onClick={() => updateStatus(claim.id)}
+                                        disabled={
+                                          claim.status === "approved" ||
+                                          claim.status === "rejected"
+                                        }
+                                      />
+                                      <FiDownload
+                                        size={24}
+                                        className="download-btn"
+                                        onClick={() => handleDownloadPDF(claim)}
+                                      />
+                                    </td>
+                                  </tr>
+
+                                  {/* expanded line rows – columns aligned with the table header */}
+                                  {expandedClaims[claim.id] &&
+                                    (lines.length
+                                      ? lines
+                                      : [{ id: null, payload: claim }]
+                                    ).map((line, li) => {
+                                      const payload = line.payload || {};
+
+                                      // line-level invoices, if none fall back to claim-level union
+                                      const lineInvs = parseInvoicesFromClaim(
+                                        payload.invoices ||
+                                          payload.invoice ||
+                                          []
+                                      );
+                                      const lnInvDisplay =
+                                        Array.isArray(lineInvs) &&
+                                        lineInvs.length
+                                          ? lineInvs.join(", ")
+                                          : claimInvDisplay;
+
+                                      // attachments for this line (server-side shape -> claim.line_attachments_map)
+                                      const lineAttachMap =
+                                        claim.line_attachments_map || {};
+                                      const attachmentsForThis =
+                                        (line &&
+                                          (lineAttachMap[String(line.id)] ||
+                                            lineAttachMap[line.id])) ||
+                                        [];
+
+                                      const amount = line
+                                        ? line.total_amount ||
+                                          payload.total_amount ||
+                                          0
+                                        : 0;
+                                      const dateDisplay =
+                                        payload.date ||
+                                        payload.from_date ||
+                                        payload.to_date ||
+                                        null;
+
+                                      return (
+                                        <tr
+                                          key={`line-${claim.id}-${
+                                            line.id ?? li
+                                          }`}
+                                          className="claim-line-row"
+                                        >
+                                          {/* Sl No (empty) */}
+                                          <td></td>
+
+                                          {/* Claim Type (empty) */}
+                                          <td></td>
+
+                                          {/* Date (column 3) */}
+                                          <td>
+                                            {dateDisplay
+                                              ? Array.isArray(dateDisplay)
+                                                ? dateDisplay
+                                                    .map(formatDisplayDate)
+                                                    .join(" - ")
+                                                : formatDisplayDate(dateDisplay)
+                                              : "N/A"}
+                                          </td>
+
+                                          {/* Amount (column 4) */}
+                                          <td>
+                                            {Number(amount || 0).toFixed(2)}
+                                          </td>
+
+                                          {/* Purpose (column 5) */}
+                                          <td style={{ paddingLeft: 12 }}>
+                                            {payload.purpose || "-"}
+                                          </td>
+
+                                          {/* Participants (column 6) — show claim participants (line-level participants not modeled) */}
+                                          <td
+                                            className="participants-cell-col"
+                                            title={getParticipantNamesForClaim(
+                                              claim
+                                            )}
+                                          >
+                                            <div className="rbadmin-comments">
+                                              {getParticipantNamesForClaim(
+                                                claim
+                                              )}
+                                            </div>
+                                          </td>
+
+                                          {/* Invoice(s) (column 7) */}
+                                          <td
+                                            className="invoice-cell"
+                                            title={lnInvDisplay}
+                                          >
+                                            {lnInvDisplay}
+                                          </td>
+
+                                          {/* Attachments (column 8) */}
+                                          <td>
+                                            {attachmentsForThis &&
+                                            attachmentsForThis.length > 0 ? (
+                                              <button
+                                                className="attachments-btn"
+                                                onClick={() =>
+                                                  handleOpenAttachments(
+                                                    attachmentsForThis.map(
+                                                      (a) => ({
+                                                        filename:
+                                                          a.file_name ||
+                                                          a.filename ||
+                                                          a.fileName,
+                                                        file_name:
+                                                          a.file_name ||
+                                                          a.filename,
+                                                      })
+                                                    ),
+                                                    claim
+                                                  )
+                                                }
+                                              >
+                                                <MdOutlineRemoveRedEye className="eye-icon" />{" "}
+                                                View
+                                              </button>
+                                            ) : (
+                                              "Not Attached"
+                                            )}
+                                          </td>
+
+                                          {/* Status (column 9) */}
+                                          <td></td>
+
+                                          {/* Projects (column 10) */}
+                                          <td></td>
+
+                                          {/* Approver Comments (column 11) */}
+                                          <td></td>
+
+                                          {/* Payment Status (column 12) */}
+                                          <td></td>
+
+                                          {/* Actions (column 13) */}
+                                          <td></td>
+                                        </tr>
+                                      );
+                                    })}
+                                </React.Fragment>
+                              );
+                            })}
                           </tbody>
                           <tfoot>
                             <tr className="total-row">
@@ -1073,7 +1327,7 @@ const RbAdmin = () => {
                   value="rejected"
                   checked={selectedPaymentOption === "rejected"}
                   onChange={(e) => setSelectedPaymentOption(e.target.value)}
-                />
+                />{" "}
                 Reject
               </label>
 
@@ -1084,7 +1338,7 @@ const RbAdmin = () => {
                   value="pending"
                   checked={selectedPaymentOption === "pending"}
                   onChange={(e) => setSelectedPaymentOption(e.target.value)}
-                />
+                />{" "}
                 Pending
               </label>
               <label style={{ marginLeft: "20px" }}>
@@ -1094,7 +1348,7 @@ const RbAdmin = () => {
                   value="paid"
                   checked={selectedPaymentOption === "paid"}
                   onChange={(e) => setSelectedPaymentOption(e.target.value)}
-                />
+                />{" "}
                 Payable
               </label>
             </div>
@@ -1119,9 +1373,7 @@ const RbAdmin = () => {
                     },
                     {
                       withCredentials: true,
-                      headers: {
-                        "x-api-key": process.env.REACT_APP_API_KEY,
-                      },
+                      headers: { "x-api-key": process.env.REACT_APP_API_KEY },
                     }
                   );
                   showAlert("Payment status updated successfully.");

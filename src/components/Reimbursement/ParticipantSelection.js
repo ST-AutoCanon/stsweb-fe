@@ -251,10 +251,7 @@ const ParticipantSelection = ({
   };
 
   useEffect(() => {
-    if (!Array.isArray(initialSelection)) {
-      if (selected.length !== 0) setSelected([]);
-      return;
-    }
+    if (!Array.isArray(initialSelection)) return;
 
     const normalized = initialSelection
       .filter(Boolean)
@@ -262,32 +259,14 @@ const ParticipantSelection = ({
         typeof it === "object"
           ? {
               employee_id: it.employee_id || it.id || it.employeeId,
-              name:
-                it.name ||
-                it.employee_name ||
-                (it.raw && (it.raw.name || it.raw.employee_name)) ||
-                "",
+              name: it.name || it.employee_name || "",
             }
           : { employee_id: it, name: String(it) }
       )
       .filter((n) => n.employee_id);
 
-    const dedup = [];
-    const seen = new Set();
-    for (const n of normalized) {
-      const idStr = String(n.employee_id);
-      if (!idStr) continue;
-      if (seen.has(idStr)) continue;
-      seen.add(idStr);
-      dedup.push(n);
-    }
-
-    if (areIdSetsEqual(dedup, selected)) {
-      return;
-    }
-
-    setSelected(dedup);
-  }, [initialSelection]);
+    setSelected(normalized);
+  }, []);
 
   useEffect(() => {
     if (!employees || employees.length === 0) return;
@@ -315,13 +294,9 @@ const ParticipantSelection = ({
 
   useEffect(() => {
     if (typeof onSelectionChange === "function") {
-      if (mode === "single") {
-        onSelectionChange(selected[0] || null);
-      } else {
-        onSelectionChange(selected.slice());
-      }
+      onSelectionChange(selected.slice());
     }
-  }, [selected, mode]);
+  }, [selected]);
 
   const handleModeChange = (newMode) => {
     setMode(newMode);
