@@ -19,6 +19,7 @@ const RbTeamLead = () => {
   const [view, setView] = useState("team");
   const [employees, setEmployees] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
+  const [expandedClaims, setExpandedClaims] = useState({});
   const [submittedFrom, setSubmittedFrom] = useState("");
   const [submittedTo, setSubmittedTo] = useState("");
   const [attachments, setAttachments] = useState({});
@@ -580,6 +581,10 @@ const RbTeamLead = () => {
     );
   };
 
+  const toggleClaimExpand = (claimId) => {
+    setExpandedClaims((prev) => ({ ...prev, [claimId]: !prev[claimId] }));
+  };
+
   return (
     <div className="rb-admin">
       <h2>Reimbursement Requests</h2>
@@ -720,226 +725,482 @@ const RbTeamLead = () => {
                           </thead>
                           <tbody>
                             {filteredClaims.map((rb, index) => {
-                              const invs = parseInvoicesForClaim(rb);
-                              const invDisplay =
-                                Array.isArray(invs) && invs.length
-                                  ? invs.join(", ")
-                                  : "-";
-                              return (
-                                <tr key={rb.id}>
-                                  <td>{index + 1}</td>
-                                  <td>{rb.claim_type}</td>
-                                  <td>
-                                    {rb.date_range
-                                      ? rb.date_range
-                                          .split(" - ")
-                                          .map(formatDisplayDate)
-                                          .join(" - ")
-                                      : rb.date
-                                      ? formatDisplayDate(rb.date)
-                                      : "N/A"}
-                                  </td>
-                                  <td>₹{rb.total_amount}</td>
-                                  <td
-                                    className="purpose-cell"
-                                    title={rb.purpose}
-                                  >
-                                    {rb.purpose}
-                                  </td>
+                              // normalize lines & sort by line_index
+                              const lines = Array.isArray(rb.lines)
+                                ? rb.lines
+                                    .slice()
+                                    .sort(
+                                      (a, b) =>
+                                        (a.line_index || 0) -
+                                        (b.line_index || 0)
+                                    )
+                                : [];
 
-                                  <td className="participants-cell-col">
-                                    <div className="rbadmin-comments">
-                                      <div
-                                        className="rbadmin-comments"
-                                        title={getParticipantNamesForClaim(rb)}
+                              // claim-level invoices (may be JSON string or CSV); parseInvoicesForClaim exists above
+                              const claimLevelInvs = parseInvoicesForClaim(rb);
+                              const invSet = new Set(
+                                (claimLevelInvs || []).map((i) =>
+                                  String(i).trim()
+                                )
+                              );
+
+                              // include any line-level invoices into the set (dedupe)
+                              lines.forEach((ln) => {
+                                const lnInvRaw =
+                                  ln?.payload?.invoices ||
+                                  ln?.payload?.invoice ||
+                                  [];
+                                // attempt to parse string/array
+                                let parsed = lnInvRaw;
+                                try {
+                                  if (
+                                    typeof parsed === "string" &&
+                                    parsed.trim()
+                                  )
+                                    parsed = JSON.parse(parsed);
+                                } catch (e) {
+                                  // fall through to split below
+                                }
+                                if (typeof parsed === "string") {
+                                  parsed = parsed
+                                    .split(",")
+                                    .map((s) => s.trim())
+                                    .filter(Boolean);
+                                }
+                                if (Array.isArray(parsed)) {
+                                  parsed.forEach((i) => {
+                                    if (i) invSet.add(String(i).trim());
+                                  });
+                                }
+                              });
+
+                              const claimInvDisplay = invSet.size
+                                ? Array.from(invSet).join(", ")
+                                : "-";
+
+                              // prefer rb.date_range -> rb.date -> first line payload date
+                              const firstLinePayload =
+                                lines && lines.length
+                                  ? lines[0].payload || {}
+                                  : {};
+                              const firstLineDate =
+                                firstLinePayload.date ||
+                                firstLinePayload.from_date ||
+                                firstLinePayload.to_date ||
+                                null;
+
+                              const mainDate = rb.date_range
+                                ? rb.date_range
+                                : rb.date
+                                ? rb.date
+                                : firstLineDate;
+
+                              // amount: aggregated_total preferred else total_amount
+                              const amountDisplay =
+                                rb.aggregated_total || rb.total_amount || 0;
+
+                              return (
+                                <React.Fragment
+                                  key={
+                                    rb.id || `${employee.employee_id}-${index}`
+                                  }
+                                >
+                                  {/* main claim row */}
+                                  <tr className="claim-main-row">
+                                    <td>
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleClaimExpand(rb.id)}
+                                        aria-expanded={!!expandedClaims[rb.id]}
+                                        title={
+                                          expandedClaims[rb.id]
+                                            ? "Collapse"
+                                            : "Expand"
+                                        }
+                                        style={{ minWidth: 36 }}
                                       >
+                                        {expandedClaims[rb.id] ? "−" : "+"}
+                                      </button>{" "}
+                                      {index + 1}
+                                    </td>
+
+                                    <td>{rb.claim_type || "-"}</td>
+
+                                    <td>
+                                      {rb.date_range
+                                        ? rb.date_range
+                                            .split(" - ")
+                                            .map((d) => formatDisplayDate(d))
+                                            .join(" - ")
+                                        : mainDate
+                                        ? formatDisplayDate(mainDate)
+                                        : "N/A"}
+                                    </td>
+
+                                    <td>₹{amountDisplay}</td>
+
+                                    <td
+                                      className="purpose-cell"
+                                      title={rb.purpose}
+                                    >
+                                      {rb.purpose || rb.comments || "-"}
+                                    </td>
+
+                                    <td
+                                      className="participants-cell-col"
+                                      title={getParticipantNamesForClaim(rb)}
+                                    >
+                                      <div className="rbadmin-comments">
                                         {getParticipantNamesForClaim(rb)}
                                       </div>
-                                    </div>
-                                  </td>
+                                    </td>
 
-                                  <td
-                                    className="invoice-cell"
-                                    title={invDisplay}
-                                    style={{
-                                      maxWidth: 180,
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    {invDisplay}
-                                  </td>
+                                    <td
+                                      className="invoice-cell"
+                                      title={claimInvDisplay}
+                                      style={{
+                                        maxWidth: 180,
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {claimInvDisplay}
+                                    </td>
 
-                                  <td>
-                                    {attachments[rb.id] &&
-                                    attachments[rb.id].length > 0 ? (
-                                      <button
-                                        className="attachments-btn"
-                                        onClick={() =>
-                                          handleOpenAttachments(
-                                            attachments[rb.id],
-                                            rb
-                                          )
-                                        }
-                                      >
-                                        <MdOutlineRemoveRedEye className="eye-icon" />{" "}
-                                        View
-                                      </button>
-                                    ) : (
-                                      "Not Attached"
-                                    )}
-                                  </td>
-
-                                  <td>
-                                    {rb.status === "approved" ||
-                                    rb.status === "rejected" ? (
-                                      <span
-                                        className={`status-label ${rb.status}`}
-                                      >
-                                        <span className="status-dot"></span>
-                                        {rb.status.charAt(0).toUpperCase() +
-                                          rb.status.slice(1)}
-                                      </span>
-                                    ) : (
-                                      <select
-                                        className="rb-status-dropdown"
-                                        value={
-                                          statusUpdates[rb.id] ||
-                                          rb.status ||
-                                          ""
-                                        }
-                                        onChange={(e) =>
-                                          handleStatusChange(
-                                            rb.id,
-                                            e.target.value
-                                          )
-                                        }
-                                      >
-                                        <option value="">Pending</option>
-                                        <option value="approved">
-                                          Approve
-                                        </option>
-                                        <option value="rejected">Reject</option>
-                                      </select>
-                                    )}
-                                  </td>
-
-                                  <td>
-                                    {rb.status === "approved" ||
-                                    rb.status === "rejected" ? (
-                                      <div className="rbadmin-comments">
-                                        {projectSelections[rb.id] || rb.project}
-                                      </div>
-                                    ) : (
-                                      <select
-                                        className="rb-status-dropdown"
-                                        value={projectSelections[rb.id] || ""}
-                                        onChange={(e) =>
-                                          setProjectSelections((prev) => ({
-                                            ...prev,
-                                            [rb.id]: e.target.value,
-                                          }))
-                                        }
-                                      >
-                                        <option value="">Select</option>
-                                        <option value="STS CLAIM">
-                                          STS CLAIM
-                                        </option>
-                                        {projects.map((project, idx) => (
-                                          <option key={idx} value={project}>
-                                            {project}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    )}
-                                  </td>
-
-                                  <td>
-                                    {rb.status === "approved" ||
-                                    rb.status === "rejected" ? (
-                                      <div className="rbadmin-comments">
-                                        {rb.approver_comments || "No comments"}
-                                      </div>
-                                    ) : (
-                                      <input
-                                        type="text"
-                                        placeholder="Enter comments"
-                                        value={comments[rb.id] || ""}
-                                        onChange={(e) =>
-                                          setComments((prev) => ({
-                                            ...prev,
-                                            [rb.id]: e.target.value,
-                                          }))
-                                        }
-                                      />
-                                    )}
-                                  </td>
-
-                                  <td>
-                                    {rb.status?.toLowerCase().trim() ===
-                                    "approved" ? (
-                                      !rb.payment_status ||
-                                      rb.payment_status
-                                        ?.toLowerCase()
-                                        .trim() === "pending" ? (
+                                    <td>
+                                      {attachments[rb.id] &&
+                                      attachments[rb.id].length > 0 ? (
                                         <button
-                                          className="pending-payment-btn"
-                                          onClick={() => {
-                                            setSelectedPaymentClaim(rb);
-                                            const current = rb.payment_status
-                                              ? String(rb.payment_status)
-                                                  .toLowerCase()
-                                                  .trim()
-                                              : "pending";
-                                            setSelectedPaymentOption(current);
-                                            setIsPaymentModalOpen(true);
-                                          }}
+                                          className="attachments-btn"
+                                          onClick={() =>
+                                            handleOpenAttachments(
+                                              attachments[rb.id],
+                                              rb
+                                            )
+                                          }
                                         >
-                                          Pending
+                                          <MdOutlineRemoveRedEye className="eye-icon" />{" "}
+                                          View
+                                        </button>
+                                      ) : rb.line_attachments_map &&
+                                        Object.keys(rb.line_attachments_map)
+                                          .length > 0 ? (
+                                        <button
+                                          className="attachments-btn"
+                                          onClick={() =>
+                                            handleOpenAttachments(
+                                              Object.values(
+                                                rb.line_attachments_map
+                                              ).flat(),
+                                              rb
+                                            )
+                                          }
+                                        >
+                                          <MdOutlineRemoveRedEye className="eye-icon" />{" "}
+                                          View Line Attachments
                                         </button>
                                       ) : (
-                                        <span>
-                                          {rb.payment_status
-                                            ? rb.payment_status
-                                                .charAt(0)
-                                                .toUpperCase() +
-                                              rb.payment_status.slice(1)
-                                            : "N/A"}
-                                          {rb.paid_date
-                                            ? ` (${formatDisplayDate(
-                                                rb.paid_date
-                                              )})`
-                                            : ""}
-                                        </span>
-                                      )
-                                    ) : (
-                                      <span>{rb.payment_status || "-"}</span>
-                                    )}
-                                  </td>
+                                        "Not Attached"
+                                      )}
+                                    </td>
 
-                                  <td>
-                                    <FaFileInvoice
-                                      size={24}
-                                      className="update-btn"
-                                      onClick={() => {
-                                        if (
-                                          rb.status === "approved" ||
-                                          rb.status === "rejected"
+                                    <td>
+                                      {rb.status === "approved" ||
+                                      rb.status === "rejected" ? (
+                                        <span
+                                          className={`status-label ${rb.status}`}
+                                        >
+                                          <span className="status-dot"></span>
+                                          {rb.status.charAt(0).toUpperCase() +
+                                            rb.status.slice(1)}
+                                        </span>
+                                      ) : (
+                                        <select
+                                          className="rb-status-dropdown"
+                                          value={
+                                            statusUpdates[rb.id] ||
+                                            rb.status ||
+                                            ""
+                                          }
+                                          onChange={(e) =>
+                                            handleStatusChange(
+                                              rb.id,
+                                              e.target.value
+                                            )
+                                          }
+                                        >
+                                          <option value="">Pending</option>
+                                          <option value="approved">
+                                            Approve
+                                          </option>
+                                          <option value="rejected">
+                                            Reject
+                                          </option>
+                                        </select>
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      {rb.status === "approved" ||
+                                      rb.status === "rejected" ? (
+                                        <div className="rbadmin-comments">
+                                          {projectSelections[rb.id] ||
+                                            rb.project}
+                                        </div>
+                                      ) : (
+                                        <select
+                                          className="rb-status-dropdown"
+                                          value={projectSelections[rb.id] || ""}
+                                          onChange={(e) =>
+                                            setProjectSelections((prev) => ({
+                                              ...prev,
+                                              [rb.id]: e.target.value,
+                                            }))
+                                          }
+                                        >
+                                          <option value="">Select</option>
+                                          <option value="STS CLAIM">
+                                            STS CLAIM
+                                          </option>
+                                          {projects.map((project, idx) => (
+                                            <option key={idx} value={project}>
+                                              {project}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      {rb.status === "approved" ||
+                                      rb.status === "rejected" ? (
+                                        <div className="rbadmin-comments">
+                                          {rb.approver_comments ||
+                                            "No comments"}
+                                        </div>
+                                      ) : (
+                                        <input
+                                          type="text"
+                                          placeholder="Enter comments"
+                                          value={comments[rb.id] || ""}
+                                          onChange={(e) =>
+                                            setComments((prev) => ({
+                                              ...prev,
+                                              [rb.id]: e.target.value,
+                                            }))
+                                          }
+                                        />
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      {rb.status?.toLowerCase().trim() ===
+                                      "approved" ? (
+                                        !rb.payment_status ||
+                                        rb.payment_status
+                                          ?.toLowerCase()
+                                          .trim() === "pending" ? (
+                                          <button
+                                            className="pending-payment-btn"
+                                            onClick={() => {
+                                              setSelectedPaymentClaim(rb);
+                                              const current = rb.payment_status
+                                                ? String(rb.payment_status)
+                                                    .toLowerCase()
+                                                    .trim()
+                                                : "pending";
+                                              setSelectedPaymentOption(current);
+                                              setIsPaymentModalOpen(true);
+                                            }}
+                                          >
+                                            Pending
+                                          </button>
+                                        ) : (
+                                          <span>
+                                            {rb.payment_status
+                                              ? rb.payment_status
+                                                  .charAt(0)
+                                                  .toUpperCase() +
+                                                rb.payment_status.slice(1)
+                                              : "N/A"}
+                                            {rb.paid_date
+                                              ? ` (${formatDisplayDate(
+                                                  rb.paid_date
+                                                )})`
+                                              : ""}
+                                          </span>
                                         )
-                                          return;
-                                        updateStatus(rb.id);
-                                      }}
-                                      title="Update status"
-                                    />
-                                    <FiDownload
-                                      size={24}
-                                      className="download-btn"
-                                      onClick={() => handleDownloadPDF(rb)}
-                                      title="Download PDF"
-                                    />
-                                  </td>
-                                </tr>
+                                      ) : (
+                                        <span>{rb.payment_status || "-"}</span>
+                                      )}
+                                    </td>
+
+                                    <td>
+                                      <FaFileInvoice
+                                        size={24}
+                                        className="update-btn"
+                                        onClick={() => {
+                                          if (
+                                            rb.status === "approved" ||
+                                            rb.status === "rejected"
+                                          )
+                                            return;
+                                          updateStatus(rb.id);
+                                        }}
+                                        title="Update status"
+                                      />
+                                      <FiDownload
+                                        size={24}
+                                        className="download-btn"
+                                        onClick={() => handleDownloadPDF(rb)}
+                                        title="Download PDF"
+                                      />
+                                    </td>
+                                  </tr>
+
+                                  {/* expanded line rows aligned to header */}
+                                  {expandedClaims[rb.id] &&
+                                    (lines.length
+                                      ? lines
+                                      : [{ id: null, payload: rb }]
+                                    ).map((line, li) => {
+                                      const payload = line.payload || {};
+                                      // line invoices fallback to claim-level if none
+                                      const lineInvsRaw =
+                                        payload.invoices ||
+                                        payload.invoice ||
+                                        [];
+                                      let lineInvs = [];
+                                      try {
+                                        if (
+                                          typeof lineInvsRaw === "string" &&
+                                          lineInvsRaw.trim()
+                                        ) {
+                                          lineInvs = JSON.parse(lineInvsRaw);
+                                        } else if (Array.isArray(lineInvsRaw)) {
+                                          lineInvs = lineInvsRaw;
+                                        }
+                                      } catch (e) {
+                                        if (typeof lineInvsRaw === "string") {
+                                          lineInvs = lineInvsRaw
+                                            .split(",")
+                                            .map((s) => s.trim())
+                                            .filter(Boolean);
+                                        }
+                                      }
+                                      const lnInvDisplay =
+                                        Array.isArray(lineInvs) &&
+                                        lineInvs.length
+                                          ? lineInvs.join(", ")
+                                          : claimInvDisplay;
+
+                                      // attachments for this line
+                                      const lineAttachMap =
+                                        rb.line_attachments_map || {};
+                                      const attachmentsForThis =
+                                        (line &&
+                                          (lineAttachMap[String(line.id)] ||
+                                            lineAttachMap[line.id])) ||
+                                        [];
+
+                                      const lineAmount = line
+                                        ? line.total_amount ||
+                                          payload.total_amount ||
+                                          0
+                                        : 0;
+                                      const dateDisplay =
+                                        payload.date ||
+                                        payload.from_date ||
+                                        payload.to_date ||
+                                        null;
+
+                                      return (
+                                        <tr
+                                          key={`line-${rb.id}-${line.id ?? li}`}
+                                          className="claim-line-row"
+                                        >
+                                          {/* Sl No */}
+                                          <td></td>
+                                          {/* Claim Type */}
+                                          <td></td>
+                                          {/* Date (column 3) */}
+                                          <td>
+                                            {dateDisplay
+                                              ? Array.isArray(dateDisplay)
+                                                ? dateDisplay
+                                                    .map(formatDisplayDate)
+                                                    .join(" - ")
+                                                : formatDisplayDate(dateDisplay)
+                                              : "N/A"}
+                                          </td>
+                                          {/* Amount (column 4) */}
+                                          <td>
+                                            {Number(lineAmount || 0).toFixed(2)}
+                                          </td>
+                                          {/* Purpose (column 5) */}
+                                          <td style={{ paddingLeft: 12 }}>
+                                            {payload.purpose || "-"}
+                                          </td>
+                                          {/* Participants (column 6) */}
+                                          <td
+                                            className="participants-cell-col"
+                                            title={getParticipantNamesForClaim(
+                                              rb
+                                            )}
+                                          >
+                                            <div className="rbadmin-comments">
+                                              {getParticipantNamesForClaim(rb)}
+                                            </div>
+                                          </td>
+                                          {/* Invoice(s) (column 7) */}
+                                          <td
+                                            className="invoice-cell"
+                                            title={lnInvDisplay}
+                                          >
+                                            {lnInvDisplay}
+                                          </td>
+                                          {/* Attachments (column 8) */}
+                                          <td>
+                                            {attachmentsForThis &&
+                                            attachmentsForThis.length > 0 ? (
+                                              <button
+                                                className="attachments-btn"
+                                                onClick={() =>
+                                                  handleOpenAttachments(
+                                                    attachmentsForThis.map(
+                                                      (a) => ({
+                                                        filename:
+                                                          a.file_name ||
+                                                          a.filename ||
+                                                          a.fileName,
+                                                        file_name:
+                                                          a.file_name ||
+                                                          a.filename,
+                                                      })
+                                                    ),
+                                                    rb
+                                                  )
+                                                }
+                                              >
+                                                <MdOutlineRemoveRedEye className="eye-icon" />{" "}
+                                                View
+                                              </button>
+                                            ) : (
+                                              "Not Attached"
+                                            )}
+                                          </td>
+                                          {/* Status (column 9) */} <td></td>
+                                          {/* Projects (column 10) */} <td></td>
+                                          {/* Approver Comments (column 11) */}{" "}
+                                          <td></td>
+                                          {/* Payment Status (column 12) */}{" "}
+                                          <td></td>
+                                          {/* Actions (column 13) */} <td></td>
+                                        </tr>
+                                      );
+                                    })}
+                                </React.Fragment>
                               );
                             })}
                           </tbody>

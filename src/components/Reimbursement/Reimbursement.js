@@ -89,6 +89,53 @@ const normalizeEndOfDay = (d) =>
 
 const role = localStorage.getItem("userRole") || "";
 
+const defaultRowForType = (type) => {
+  const base = {
+    purpose: "",
+    attachments: [],
+    invoices: [],
+    total_amount: "",
+  };
+
+  switch (type) {
+    case "Transportation":
+    case "transportation":
+      return {
+        ...base,
+        travel_from: "",
+        travel_to: "",
+        transport_amount: "",
+        accommodation_fees: "",
+        da: "",
+      };
+    case "Meals":
+    case "meals":
+      return {
+        ...base,
+        meal_type: "",
+        meals_objective: "",
+      };
+    case "Telecommunication":
+    case "telecommunication":
+      return {
+        ...base,
+        service_provider: "",
+      };
+    case "Stationary":
+    case "stationary":
+      return {
+        ...base,
+        stationary: "",
+        purchasing_item: "",
+      };
+    case "Miscellaneous":
+    case "miscellaneous":
+      return { ...base };
+    default:
+      return { ...base };
+  }
+};
+
 const Reimbursement = () => {
   const [reimbursements, setReimbursements] = useState([]);
   const [filteredReimbursements, setFilteredReimbursements] = useState([]);
@@ -96,6 +143,18 @@ const Reimbursement = () => {
   const [toDate, setToDate] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [expandedClaims, setExpandedClaims] = useState(new Set());
+
+  const toggleExpand = (claimId) => {
+    setExpandedClaims((prev) => {
+      const s = new Set(prev);
+      if (s.has(claimId)) s.delete(claimId);
+      else s.add(claimId);
+      return s;
+    });
+  };
+
+  const isExpanded = (claimId) => expandedClaims.has(claimId);
 
   const authToken = localStorage.getItem("authToken");
   const employeeData = JSON.parse(
@@ -119,7 +178,7 @@ const Reimbursement = () => {
     role === "Admin" ? "approved" : "pending"
   );
 
-  const [participantMode, setParticipantMode] = useState("single"); // 'single'|'group'
+  const [participantMode, setParticipantMode] = useState("single");
   const [participants, setParticipants] = useState(
     employeeId ? [employeeId] : []
   );
@@ -281,7 +340,7 @@ const Reimbursement = () => {
     return { ok: invalids.length === 0, invalids, valids };
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e, meta = {}) => {
     try {
       const files = Array.from(e.target.files || []);
       if (!files.length) {
@@ -291,7 +350,6 @@ const Reimbursement = () => {
       }
 
       const validation = validateFilesArray(files);
-
       if (!validation.ok) {
         if (validation.reason) {
           showAlert(validation.reason, "Invalid files");
@@ -299,7 +357,6 @@ const Reimbursement = () => {
           setFormData((p) => ({ ...p, attachments: null }));
           return;
         }
-
         if (validation.invalids && validation.invalids.length) {
           const names = validation.invalids
             .map((i) => `${i.file?.name || "(unknown)"} — ${i.reason}`)
@@ -312,6 +369,34 @@ const Reimbursement = () => {
           setSelectedFiles(validation.valids.map((f) => f.name));
           return;
         }
+      }
+
+      const rowIndex =
+        meta && typeof meta.rowIndex === "number" ? meta.rowIndex : null;
+      const claimType = formData.claim_type;
+
+      if (rowIndex !== null && claimType) {
+        const rowsObj =
+          formData.claim_rows && typeof formData.claim_rows === "object"
+            ? { ...formData.claim_rows }
+            : {};
+        const rows = Array.isArray(rowsObj[claimType])
+          ? rowsObj[claimType].slice()
+          : [];
+
+        while (rows.length <= rowIndex)
+          rows.push({ ...defaultRowForType(claimType) });
+
+        rows[rowIndex] = {
+          ...(rows[rowIndex] || {}),
+          _files: files,
+          attachments: files.map((f) => f.name),
+        };
+
+        rowsObj[claimType] = rows;
+        setFormData((p) => ({ ...p, claim_rows: rowsObj }));
+        if (rowIndex === 0) setSelectedFiles(files.map((f) => f.name));
+        return;
       }
 
       setFormData((p) => ({ ...p, attachments: files }));
@@ -481,8 +566,6 @@ const Reimbursement = () => {
     setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleClaimTypeChange = (value) => {
-    setParticipantMode("single");
-    setParticipants(employeeId ? [employeeId] : []);
     setFormData((p) => ({
       ...p,
       claim_type: value,
@@ -505,95 +588,75 @@ const Reimbursement = () => {
   const handleNoOfDaysChange = (e) =>
     setFormData((p) => ({ ...p, no_of_days: e.target.value }));
 
+  const buildClaimRowsFromLines = (lines = [], claimType) => {
+    if (!Array.isArray(lines)) return {};
+
+    return {
+      [claimType]: lines
+        .sort((a, b) => a.line_index - b.line_index)
+        .map((line) => ({
+          ...defaultRowForType(claimType),
+          ...(line.payload || {}),
+          total_amount: line.total_amount || line.payload?.total_amount || "",
+        })),
+    };
+  };
+
   const handleEdit = (claim) => {
     setEditingId(claim.id);
     setShowForm(true);
-    const attach = attachments[claim.id] || [];
 
-    const existingParticipants =
-      claim.participants || claim.participant_ids || [];
-    const idsRaw =
-      Array.isArray(existingParticipants) && existingParticipants.length
-        ? existingParticipants.map((x) =>
-            typeof x === "object" ? x.employee_id || x.id : x
-          )
+    const claimType = claim.claim_type || "";
+    const firstLine = claim.lines?.[0]?.payload || {};
+
+    const ids =
+      Array.isArray(claim.participants) && claim.participants.length
+        ? claim.participants
         : [employeeId];
-    const ids = Array.from(new Set(idsRaw.filter(Boolean)));
+
     setParticipants(ids);
     setParticipantMode(ids.length > 1 ? "group" : "single");
 
-    let existingInvoices =
-      claim.invoices || claim.invoice_numbers || claim.invoice_no || [];
-    try {
-      if (typeof existingInvoices === "string" && existingInvoices.trim())
-        existingInvoices = JSON.parse(existingInvoices);
-    } catch (e) {
-      if (typeof existingInvoices === "string") {
-        existingInvoices = existingInvoices
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      } else
-        existingInvoices = Array.isArray(existingInvoices)
-          ? existingInvoices
-          : [];
-    }
-    if (!Array.isArray(existingInvoices))
-      existingInvoices = existingInvoices ? [String(existingInvoices)] : [];
-
-    let transportType = claim.transport_type || "";
-    let forceShowTransport = false;
-    if (
-      !transportType &&
-      (claim.claim_type === "Transportation" ||
-        claim.claim_type === "transportation")
-    ) {
-      const hasTransportHints =
-        (claim.no_of_days && String(claim.no_of_days).trim()) ||
-        (claim.from_date && String(claim.from_date).trim()) ||
-        (claim.to_date && String(claim.to_date).trim()) ||
-        (claim.date && String(claim.date).trim()) ||
-        (claim.transport_amount && String(claim.transport_amount).trim()) ||
-        (claim.travel_from && String(claim.travel_from).trim()) ||
-        (claim.travel_to && String(claim.travel_to).trim());
-      if (hasTransportHints) {
-        transportType = "";
-        forceShowTransport = true;
-      }
-    }
+    const claimRows = buildClaimRowsFromLines(claim.lines, claimType);
 
     setFormData({
-      employeeId: claim.employeeId || claim.employee_id || employeeId,
+      employeeId: claim.employee_id || employeeId,
       department_id: claim.department_id || departmentId,
-      claim_type: claim.claim_type || "",
-      transport_type: transportType || claim.transport_type || "",
-      transport_amount: claim.transport_amount || "",
-      da: claim.da || "",
-      fromDate: claim.from_date
-        ? claim.from_date.substring(0, 10)
-        : claim.fromDate || "",
-      toDate: claim.to_date
-        ? claim.to_date.substring(0, 10)
-        : claim.toDate || "",
-      date: claim.date ? claim.date.substring(0, 10) : claim.date || "",
-      travel_from: claim.travel_from || "",
-      travel_to: claim.travel_to || "",
-      meals_objective: claim.meals_objective || "",
-      purpose: claim.purpose || "",
-      purchasing_item: claim.purchasing_item || "",
-      accommodation_fees: claim.accommodation_fees || "",
-      no_of_days: claim.no_of_days || "",
-      total_amount: claim.total_amount || "",
-      meal_type: claim.meal_type || "",
-      stationary: claim.stationary || "",
-      service_provider: claim.service_provider || "",
+
+      claim_type: claimType,
+      transport_type: claim.transport_type || "",
+
+      purpose: firstLine.purpose || claim.comments || "",
+      date: firstLine.date || "",
+      fromDate: firstLine.from_date || "",
+      toDate: firstLine.to_date || "",
+      travel_from: firstLine.travel_from || "",
+      travel_to: firstLine.travel_to || "",
+      meals_objective: firstLine.meals_objective || "",
+      purchasing_item: firstLine.purchasing_item || "",
+      accommodation_fees: firstLine.accommodation_fees || "",
+      da: firstLine.da || "",
+      meal_type: firstLine.meal_type || "",
+      service_provider: firstLine.service_provider || "",
+      stationary: firstLine.stationairy_item || "",
+
+      total_amount: claim.aggregated_total || "",
+
       project: claim.project || "",
-      attachments: attach,
-      invoices: existingInvoices,
-      _forceShowTransport: forceShowTransport,
+      invoices: parseInvoicesFromClaim(claim),
+
+      attachments: attachments[claim.id] || [],
+
+      claim_rows: claimRows,
+
+      participants: ids,
+      participant_mode: ids.length > 1 ? "group" : "single",
+
+      _forceShowTransport: false,
     });
+
     setSelectedFiles(
-      (attach || []).map((a) => a.file_name || a.name).filter(Boolean)
+      (attachments[claim.id] || []).map((a) => a.file_name).filter(Boolean)
     );
   };
 
@@ -755,12 +818,31 @@ const Reimbursement = () => {
       return;
     }
 
-    const rawInvoices =
+    const mainRaw =
       formData.invoices && Array.isArray(formData.invoices)
         ? formData.invoices
         : formData.invoices
         ? [formData.invoices]
         : [];
+
+    const claimType = formData.claim_type || null;
+    const rowsObj =
+      formData.claim_rows && typeof formData.claim_rows === "object"
+        ? formData.claim_rows
+        : {};
+    const rowsForType = Array.isArray(rowsObj[claimType])
+      ? rowsObj[claimType]
+      : [];
+
+    const rowRaw = rowsForType.flatMap((r) => {
+      if (!r || typeof r !== "object") return [];
+      if (Array.isArray(r.invoices)) return r.invoices;
+      if (r.invoices === undefined || r.invoices === null) return [];
+      return [String(r.invoices)];
+    });
+
+    const rawInvoices = [...mainRaw, ...rowRaw];
+
     const cleanedInvoices = (rawInvoices || [])
       .map((i) => (i || "").toString().trim())
       .filter(Boolean);
@@ -788,19 +870,20 @@ const Reimbursement = () => {
       if (editingId && String(claim.id) === String(editingId)) return;
       const invs = parseInvoicesFromClaim(claim);
       invs.forEach((inv) => {
-        const key = inv.toLowerCase();
-        if (!existingMap[key]) existingMap[key] = claim.id;
+        existingMap[inv.toLowerCase()] = claim.id;
       });
     });
-
     for (const inv of cleanedInvoices) {
-      const key = inv.toLowerCase();
-      if (existingMap[key]) {
+      if (existingMap[inv.toLowerCase()]) {
         showAlert(
-          `Duplicate invoice detected: "${inv}" is already used in reimbursement ID ${existingMap[key]}. Please verify and use a unique invoice number.`
+          `Duplicate invoice detected: "${inv}" is already used in reimbursement ID ${
+            existingMap[inv.toLowerCase()]
+          }. Please verify and use a unique invoice number.`
         );
         setSubmitErrorMessage(
-          `Duplicate invoice "${inv}" found in claim ${existingMap[key]}.`
+          `Duplicate invoice "${inv}" found in claim ${
+            existingMap[inv.toLowerCase()]
+          }.`
         );
         return;
       }
@@ -810,12 +893,10 @@ const Reimbursement = () => {
     const attachmentsArray = Array.isArray(attachmentsForValidation)
       ? attachmentsForValidation
       : [attachmentsForValidation];
-
     const validation = validateFilesArray(attachmentsArray);
     if (!validation.ok) {
-      if (validation.reason) {
-        showAlert(validation.reason, "Invalid files");
-      } else if (validation.invalids && validation.invalids.length) {
+      if (validation.reason) showAlert(validation.reason, "Invalid files");
+      else if (validation.invalids && validation.invalids.length) {
         const names = validation.invalids
           .map((i) => `${i.file?.name || "(unknown)"} — ${i.reason}`)
           .join("\n");
@@ -823,40 +904,104 @@ const Reimbursement = () => {
           `Cannot submit. The following files are not allowed:\n${names}`,
           "Invalid file(s)"
         );
-      } else {
-        showAlert("Cannot submit due to invalid attachments.");
-      }
+      } else showAlert("Cannot submit due to invalid attachments.");
       setSubmitErrorMessage("Invalid attachments present.");
       return;
     }
 
     try {
       const fd = new FormData();
-      Object.keys(formData).forEach((k) => {
-        if (k === "attachments" || k === "_forceShowTransport") return;
-        const val = formData[k];
-        if (val !== undefined && val !== null && k !== "invoices")
-          fd.append(k, val);
+
+      const claimType = formData.claim_type || null;
+      const rowsObj =
+        formData.claim_rows && typeof formData.claim_rows === "object"
+          ? formData.claim_rows
+          : {};
+      const rowsForType = Array.isArray(rowsObj[claimType])
+        ? rowsObj[claimType]
+        : [];
+
+      const lines = rowsForType.map((r, idx) => {
+        const payload = { ...(r || {}) };
+
+        if (payload._files) delete payload._files;
+
+        if (payload.invoices && !Array.isArray(payload.invoices)) {
+          payload.invoices = [String(payload.invoices)];
+        }
+
+        if (idx === 0) {
+          if (formData.date) payload.date = formData.date;
+          if (formData.fromDate) payload.from_date = formData.fromDate;
+          if (formData.toDate) payload.to_date = formData.toDate;
+        }
+
+        const totalNum = Number(payload.total_amount || 0);
+        const total = Number.isFinite(totalNum) ? totalNum : 0;
+
+        return {
+          line_type: claimType,
+          payload,
+          total_amount: Number(total).toFixed(2),
+        };
       });
 
-      if (cleanedInvoices && cleanedInvoices.length) {
-        fd.append("invoices", JSON.stringify(cleanedInvoices));
-      }
+      fd.append("lines", JSON.stringify(lines));
 
-      if (participants && participants.length)
-        fd.append("participants", JSON.stringify(participants));
+      if (cleanedInvoices && cleanedInvoices.length)
+        fd.append("invoices", JSON.stringify(cleanedInvoices));
+
       fd.append("role", role || "Employee");
 
+      if (claimType) fd.append("claim_type", claimType);
+      if (formData.transport_type)
+        fd.append("transport_type", formData.transport_type);
+      if (formData.project) fd.append("project", formData.project);
+      if (formData.purpose) fd.append("comments", formData.purpose);
+
+      const attachmentsMeta = {};
+
+      rowsForType.forEach((r, idx) => {
+        const files = Array.isArray(r._files) ? r._files : [];
+        for (const file of files) {
+          fd.append("attachments", file, file.name);
+          attachmentsMeta[file.name] = idx;
+        }
+      });
+
       if (formData.attachments && Array.isArray(formData.attachments)) {
-        formData.attachments.forEach((file) => {
-          if (file instanceof File) fd.append("attachments", file);
-        });
+        for (const file of formData.attachments) {
+          if (file instanceof File) {
+            fd.append("attachments", file, file.name);
+          }
+        }
+      }
+
+      if (Object.keys(attachmentsMeta).length > 0) {
+        fd.append("attachmentsMeta", JSON.stringify(attachmentsMeta));
+      }
+
+      if (formData.department_id)
+        fd.append("department_id", String(formData.department_id));
+
+      const finalParticipants =
+        Array.isArray(participants) && participants.length
+          ? participants.map((p) => (typeof p === "object" ? p.employee_id : p))
+          : [];
+
+      fd.append("participants", JSON.stringify(finalParticipants));
+
+      const empToSend = formData.employeeId || employeeId || "";
+      if (empToSend) {
+        fd.append("employeeId", String(empToSend));
+        fd.append("employee_id", String(empToSend));
       }
 
       const cfg = {
         withCredentials: true,
-        headers: { ...buildHeaders(), "Content-Type": "multipart/form-data" },
+        headers: { ...buildHeaders(), "x-employee-id": String(empToSend) },
       };
+
       let res;
       if (editingId) {
         res = await axios.put(
@@ -888,6 +1033,7 @@ const Reimbursement = () => {
         total_amount: "",
         invoices: [],
         _forceShowTransport: false,
+        claim_rows: {},
       }));
       setSelectedFiles([]);
       fetchReimbursements();
@@ -923,22 +1069,25 @@ const Reimbursement = () => {
   };
 
   const onParticipantSelectionChange = (value) => {
-    if (participantMode === "single") {
-      if (!value) setParticipants([]);
-      else {
-        const id =
-          value.employee_id || value.id || value.employeeId || value.empId;
-        setParticipants(id ? [id] : []);
-      }
-    } else {
-      if (!Array.isArray(value)) setParticipants([]);
-      else {
-        const ids = value
-          .map((v) => v.employee_id || v.id || v.employeeId || v.empId)
-          .filter(Boolean);
-        setParticipants(ids);
-      }
+    if (!value) {
+      setParticipants([]);
+      return;
     }
+
+    if (Array.isArray(value)) {
+      const ids = value
+        .map((v) => v?.employee_id || v?.id || v?.employeeId || v?.empId)
+        .filter(Boolean);
+
+      setParticipants(ids);
+      setParticipantMode(ids.length > 1 ? "group" : "single");
+      return;
+    }
+
+    const id = value.employee_id || value.id || value.employeeId || value.empId;
+
+    setParticipants(id ? [id] : []);
+    setParticipantMode("single");
   };
 
   const renderSingleTile = () => {
@@ -983,16 +1132,51 @@ const Reimbursement = () => {
   };
 
   const filterClaims = filteredReimbursements || [];
-  const totalAmount = (filteredReimbursements || []).reduce(
-    (s, c) => s + (parseFloat(c.total_amount) || 0),
-    0
-  );
-  const approvedAmount = (filteredReimbursements || [])
-    .filter((c) => (c.status || "").toLowerCase() === "approved")
-    .reduce((s, c) => s + (parseFloat(c.total_amount) || 0), 0);
-  const rejectedAmount = (filteredReimbursements || [])
-    .filter((c) => (c.status || "").toLowerCase() === "rejected")
-    .reduce((s, c) => s + (parseFloat(c.total_amount) || 0), 0);
+  const displayRows = [];
+  (filterClaims || []).forEach((claim) => {
+    const lines = Array.isArray(claim.lines)
+      ? claim.lines
+          .slice()
+          .sort((a, b) => (a.line_index || 0) - (b.line_index || 0))
+      : [];
+    if (lines.length === 0) {
+      displayRows.push({ claim, line: null, isFirstLine: true, rowSpan: 1 });
+    } else {
+      lines.forEach((line, li) => {
+        displayRows.push({
+          claim,
+          line,
+          isFirstLine: li === 0,
+          rowSpan: lines.length,
+        });
+      });
+    }
+  });
+
+  const totalAmount = displayRows.reduce((s, r) => {
+    const amt = r.line
+      ? Number(r.line.total_amount || r.line.payload?.total_amount || 0)
+      : Number(r.claim?.aggregated_total || 0);
+    return s + (isNaN(amt) ? 0 : Number(amt));
+  }, 0);
+
+  const approvedAmount = displayRows
+    .filter((r) => (r.claim.status || "").toLowerCase() === "approved")
+    .reduce((s, r) => {
+      const amt = r.line
+        ? Number(r.line.total_amount || r.line.payload?.total_amount || 0)
+        : Number(r.claim?.aggregated_total || 0);
+      return s + (isNaN(amt) ? 0 : Number(amt));
+    }, 0);
+
+  const rejectedAmount = displayRows
+    .filter((r) => (r.claim.status || "").toLowerCase() === "rejected")
+    .reduce((s, r) => {
+      const amt = r.line
+        ? Number(r.line.total_amount || r.line.payload?.total_amount || 0)
+        : Number(r.claim?.aggregated_total || 0);
+      return s + (isNaN(amt) ? 0 : Number(amt));
+    }, 0);
 
   const shouldShowParticipantControls = () => {
     if (!formData.claim_type) return false;
@@ -1054,8 +1238,6 @@ const Reimbursement = () => {
             setSelectedFiles([]);
             setShowForm(true);
             setEditingId(null);
-            setParticipantMode("single");
-            setParticipants(employeeId ? [employeeId] : []);
             setFormData({
               employeeId,
               department_id: departmentId,
@@ -1107,128 +1289,365 @@ const Reimbursement = () => {
             </tr>
           </thead>
           <tbody>
-            {filterClaims.map((claim, index) => {
-              let invs =
-                claim.invoices ||
-                claim.invoice_numbers ||
-                claim.invoice_no ||
-                [];
-              try {
-                if (typeof invs === "string" && invs.trim())
-                  invs = JSON.parse(invs);
-              } catch (e) {
-                if (typeof invs === "string")
-                  invs = invs
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean);
-                else invs = Array.isArray(invs) ? invs : [];
-              }
-              const invDisplay =
-                Array.isArray(invs) && invs.length ? invs.join(", ") : "-";
+            {filterClaims.length === 0 ? (
+              <tr>
+                <td colSpan="12" style={{ textAlign: "center" }}>
+                  No claims found
+                </td>
+              </tr>
+            ) : (
+              filterClaims.map((claim, claimIdx) => {
+                // --- inside filterClaims.map((claim, claimIdx) => { ... }) ---
 
-              const isPending =
-                (claim.status || "").toLowerCase() === "pending";
+                const lines = Array.isArray(claim.lines)
+                  ? claim.lines
+                      .slice()
+                      .sort((a, b) => (a.line_index || 0) - (b.line_index || 0))
+                  : [];
 
-              const canEdit = isPending;
-              const canDelete = isPending;
+                // derive claim-level invoices (fallback to first line's invoices if needed)
+                let claimLevelInvs = parseInvoicesFromClaim(claim);
+                if (!Array.isArray(claimLevelInvs))
+                  claimLevelInvs = claimLevelInvs
+                    ? [String(claimLevelInvs)]
+                    : [];
 
-              return (
-                <tr key={claim.id}>
-                  <td>{index + 1}</td>
-                  <td>{claim.claim_type}</td>
-                  <td
-                    className="participants-cell"
-                    title={getParticipantNamesForClaim(claim)}
-                  >
-                    {getParticipantNamesForClaim(claim)}
-                  </td>
-                  <td>
-                    {claim.date_range
-                      ? claim.date_range
-                          .split(" - ")
-                          .map(formatDisplayDate)
-                          .join(" - ")
-                      : claim.date
-                      ? formatDisplayDate(claim.date)
-                      : claim.from_date && claim.to_date
-                      ? `${formatDisplayDate(
-                          claim.from_date
-                        )} - ${formatDisplayDate(claim.to_date)}`
-                      : "N/A"}
-                  </td>
-                  <td>
-                    <div className="rbadmin-comments">{claim.purpose}</div>
-                  </td>
-                  <td className="invoice-cell" title={invDisplay}>
-                    {invDisplay}
-                  </td>
-                  <td>{claim.total_amount}</td>
-                  <td>
-                    {attachments[claim.id]?.length > 0 ? (
-                      <button
-                        className="attachments-btn"
-                        onClick={() =>
-                          handleOpenAttachments(attachments[claim.id], claim)
-                        }
+                // if there's no claim-level invoice but first line has, use that for summary
+                if (
+                  (!claimLevelInvs || claimLevelInvs.length === 0) &&
+                  lines.length > 0
+                ) {
+                  const firstPayloadInvs =
+                    (lines[0].payload && lines[0].payload.invoices) || [];
+                  if (
+                    Array.isArray(firstPayloadInvs) &&
+                    firstPayloadInvs.length
+                  ) {
+                    claimLevelInvs = firstPayloadInvs.slice();
+                  } else if (
+                    typeof firstPayloadInvs === "string" &&
+                    firstPayloadInvs.trim()
+                  ) {
+                    try {
+                      claimLevelInvs = JSON.parse(firstPayloadInvs);
+                      if (!Array.isArray(claimLevelInvs))
+                        claimLevelInvs = [String(claimLevelInvs)];
+                    } catch {
+                      claimLevelInvs = firstPayloadInvs
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean);
+                    }
+                  }
+                }
+                const claimInvDisplay =
+                  Array.isArray(claimLevelInvs) && claimLevelInvs.length
+                    ? claimLevelInvs.join(", ")
+                    : "-";
+
+                // derive primary claim date: prefer claim-level fields, otherwise use first line's payload.date
+                let primaryClaimDate = null;
+                if (claim.date_range) {
+                  primaryClaimDate = claim.date_range; // keep original date_range string (you already format elsewhere)
+                } else if (claim.date) {
+                  primaryClaimDate = claim.date;
+                } else if (claim.from_date && claim.to_date) {
+                  primaryClaimDate = `${claim.from_date} - ${claim.to_date}`;
+                } else if (
+                  lines.length > 0 &&
+                  lines[0].payload &&
+                  (lines[0].payload.date || lines[0].payload.from_date)
+                ) {
+                  // fallback to the first line's payload date/from_date
+                  if (lines[0].payload.date)
+                    primaryClaimDate = lines[0].payload.date;
+                  else if (
+                    lines[0].payload.from_date &&
+                    lines[0].payload.to_date
+                  )
+                    primaryClaimDate = `${lines[0].payload.from_date} - ${lines[0].payload.to_date}`;
+                  else if (lines[0].payload.from_date)
+                    primaryClaimDate = lines[0].payload.from_date;
+                }
+
+                const isOpen = isExpanded(claim.id);
+
+                // main row summary (one per claim)
+                return (
+                  <React.Fragment key={`claim-${claim.id || claimIdx}`}>
+                    <tr className="claim-main-row">
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => toggleExpand(claim.id)}
+                          aria-expanded={isOpen}
+                          title={isOpen ? "Collapse" : "Expand"}
+                          style={{ minWidth: 36 }}
+                        >
+                          {isOpen ? "−" : "+"}
+                        </button>{" "}
+                        {claimIdx + 1}
+                      </td>
+
+                      <td>{claim.claim_type || "-"}</td>
+
+                      <td
+                        className="participants-cell"
+                        title={getParticipantNamesForClaim(claim)}
                       >
-                        <MdOutlineRemoveRedEye className="eye-icon" /> View
-                      </button>
-                    ) : (
-                      "Not Attached"
-                    )}
-                  </td>
-                  <td>
-                    <span
-                      className={`rb-status-label ${
-                        claim.status === "approved"
-                          ? "rb-approved"
-                          : claim.status === "rejected"
-                          ? "rb-rejected"
-                          : ""
-                      }`}
-                    >
-                      {claim.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="rbadmin-comments">
-                      {claim.approver_comments || "No comments"}
-                    </div>
-                  </td>
-                  <td>{claim.payment_status}</td>
-                  <td className="rb-actions-column">
-                    <MdOutlineEdit
-                      className={`icons-btn ${!canEdit ? "disabled-icon" : ""}`}
-                      aria-disabled={!canEdit}
-                      disabled={!canEdit}
-                      onClick={() => {
-                        if (!canEdit) return;
-                        handleEdit(claim);
-                        setShowForm(true);
-                      }}
-                      title={canEdit ? "Edit" : "Cannot edit"}
-                      aria-label={`Edit reimbursement ${claim.id}`}
-                    />
+                        {getParticipantNamesForClaim(claim)}
+                      </td>
 
-                    <MdDeleteOutline
-                      className={`icons-btn ${
-                        !canDelete ? "disabled-icon" : ""
-                      }`}
-                      aria-disabled={!canDelete}
-                      disabled={!canDelete}
-                      onClick={() => {
-                        if (!canDelete) return;
-                        openConfirmDelete(claim.id, claim);
-                      }}
-                      title={canDelete ? "Delete" : "Cannot delete"}
-                      aria-label={`Delete reimbursement ${claim.id}`}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
+                      {/* For the main row show a compact date (use claim-level date_range/date) */}
+                      {/* For the main row show a compact date (use claim-level date_range/date or fallback to first line date) */}
+                      <td>
+                        {primaryClaimDate
+                          ? Array.isArray(primaryClaimDate)
+                            ? primaryClaimDate
+                                .map(formatDisplayDate)
+                                .join(" - ")
+                            : // if it's a string range like "2025-12-01 - 2025-12-03", attempt to split
+                            String(primaryClaimDate).includes(" - ")
+                            ? String(primaryClaimDate)
+                                .split(" - ")
+                                .map(formatDisplayDate)
+                                .join(" - ")
+                            : formatDisplayDate(primaryClaimDate)
+                          : "N/A"}
+                      </td>
+
+                      <td>
+                        <div className="rbadmin-comments">
+                          {claim.purpose || claim.comments || "-"}
+                        </div>
+                      </td>
+
+                      <td className="invoice-cell" title={claimInvDisplay}>
+                        {claimInvDisplay}
+                      </td>
+
+                      {/* show aggregated total for claim on main row */}
+                      <td>
+                        {Number(
+                          claim.aggregated_total || claim.total_amount || 0
+                        ).toFixed(2)}
+                      </td>
+
+                      {/* attachments for claim-level (not line-specific) */}
+                      <td>
+                        {attachments[claim.id] &&
+                        attachments[claim.id].length > 0 ? (
+                          <button
+                            className="attachments-btn"
+                            onClick={() =>
+                              handleOpenAttachments(
+                                attachments[claim.id],
+                                claim
+                              )
+                            }
+                          >
+                            <MdOutlineRemoveRedEye className="eye-icon" /> View
+                          </button>
+                        ) : (
+                          "Not Attached"
+                        )}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`rb-status-label ${
+                            claim.status === "approved"
+                              ? "rb-approved"
+                              : claim.status === "rejected"
+                              ? "rb-rejected"
+                              : ""
+                          }`}
+                        >
+                          {claim.status || "-"}
+                        </span>
+                      </td>
+
+                      <td>
+                        <div className="rbadmin-comments">
+                          {claim.approver_comments || "No comments"}
+                        </div>
+                      </td>
+
+                      <td>{claim.payment_status || "-"}</td>
+
+                      <td className="rb-actions-column">
+                        <MdOutlineEdit
+                          className={`icons-btn ${
+                            (claim.status || "").toLowerCase() !== "pending"
+                              ? "disabled-icon"
+                              : ""
+                          }`}
+                          aria-disabled={
+                            (claim.status || "").toLowerCase() !== "pending"
+                          }
+                          disabled={
+                            (claim.status || "").toLowerCase() !== "pending"
+                          }
+                          onClick={() => {
+                            if (
+                              (claim.status || "").toLowerCase() !== "pending"
+                            )
+                              return;
+                            handleEdit(claim);
+                            setShowForm(true);
+                          }}
+                          title={
+                            (claim.status || "").toLowerCase() === "pending"
+                              ? "Edit"
+                              : "Cannot edit"
+                          }
+                          aria-label={`Edit reimbursement ${claim.id}`}
+                        />
+
+                        <MdDeleteOutline
+                          className={`icons-btn ${
+                            (claim.status || "").toLowerCase() !== "pending"
+                              ? "disabled-icon"
+                              : ""
+                          }`}
+                          aria-disabled={
+                            (claim.status || "").toLowerCase() !== "pending"
+                          }
+                          disabled={
+                            (claim.status || "").toLowerCase() !== "pending"
+                          }
+                          onClick={() => {
+                            if (
+                              (claim.status || "").toLowerCase() !== "pending"
+                            )
+                              return;
+                            openConfirmDelete(claim.id, claim);
+                          }}
+                          title={
+                            (claim.status || "").toLowerCase() === "pending"
+                              ? "Delete"
+                              : "Cannot delete"
+                          }
+                          aria-label={`Delete reimbursement ${claim.id}`}
+                        />
+                      </td>
+                    </tr>
+
+                    {/* expanded child rows: one row per line */}
+                    {isOpen &&
+                      (lines.length
+                        ? lines
+                        : [{ id: null, payload: claim }]
+                      ).map((line, li) => {
+                        const payload = line.payload || {};
+                        // prefer invoices present on line payload otherwise leave blank (claim-level already shown)
+                        let invs =
+                          Array.isArray(payload.invoices) &&
+                          payload.invoices.length
+                            ? payload.invoices
+                            : [];
+                        if (typeof invs === "string" && invs.trim()) {
+                          try {
+                            invs = JSON.parse(invs);
+                          } catch {
+                            invs = invs
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean);
+                          }
+                        }
+                        if (!Array.isArray(invs))
+                          invs = invs ? [String(invs)] : [];
+                        const invDisplay = invs.length ? invs.join(", ") : "-";
+
+                        const dateDisplay =
+                          payload.date ||
+                          payload.from_date ||
+                          payload.to_date ||
+                          null;
+
+                        // try line-specific attachments map (server shape: line_attachments_map)
+                        const lineAttachments =
+                          (claim.line_attachments_map &&
+                            line &&
+                            (claim.line_attachments_map[String(line.id)] ||
+                              claim.line_attachments_map[line.id])) ||
+                          [];
+
+                        const attachmentsForThis =
+                          Array.isArray(lineAttachments) &&
+                          lineAttachments.length
+                            ? lineAttachments
+                            : [];
+
+                        const amount = line
+                          ? line.total_amount || payload.total_amount || 0
+                          : 0;
+
+                        return (
+                          <tr
+                            key={`claim-${claim.id}-line-${line.id ?? li}`}
+                            className="claim-line-row"
+                          >
+                            <td></td>
+                            <td></td>
+                            <td></td>
+
+                            <td>
+                              {dateDisplay
+                                ? Array.isArray(dateDisplay)
+                                  ? dateDisplay
+                                      .map(formatDisplayDate)
+                                      .join(" - ")
+                                  : formatDisplayDate(dateDisplay)
+                                : "N/A"}
+                            </td>
+
+                            <td>
+                              <div style={{ paddingLeft: 8 }}>
+                                {payload.purpose || "-"}
+                              </div>
+                            </td>
+
+                            <td className="invoice-cell" title={invDisplay}>
+                              {invDisplay}
+                            </td>
+
+                            <td>{Number(amount || 0).toFixed(2)}</td>
+
+                            <td>
+                              {attachmentsForThis &&
+                              attachmentsForThis.length > 0 ? (
+                                <button
+                                  className="attachments-btn"
+                                  onClick={() =>
+                                    handleOpenAttachments(
+                                      attachmentsForThis,
+                                      claim
+                                    )
+                                  }
+                                >
+                                  <MdOutlineRemoveRedEye className="eye-icon" />{" "}
+                                  View
+                                </button>
+                              ) : (
+                                "Not Attached"
+                              )}
+                            </td>
+
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                          </tr>
+                        );
+                      })}
+                  </React.Fragment>
+                );
+              })
+            )}
           </tbody>
+
           <tfoot>
             <tr className="total-row">
               <td colSpan="5" className="total-left">
