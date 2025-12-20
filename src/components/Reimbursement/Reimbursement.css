@@ -1687,6 +1687,10 @@
   padding: 4px;
 }
 
+.reimbursement-table th:nth-child(3) {
+  width: 60px;
+}
+
 .action-icon,
 .edit-icon,
 .delete-icon,

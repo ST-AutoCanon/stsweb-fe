@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
@@ -31,9 +29,9 @@ const SupervisorPlanViewer = () => {
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [error, setError] = useState(null);
-// const [reworkFrozenTasks, setReworkFrozenTasks] = useState({});
-const [justSavedRework, setJustSavedRework] = useState({});
-const [savedSupStatus, setSavedSupStatus] = useState({});
+  // const [reworkFrozenTasks, setReworkFrozenTasks] = useState({});
+  const [justSavedRework, setJustSavedRework] = useState({});
+  const [savedSupStatus, setSavedSupStatus] = useState({});
 
   const [openNodes, setOpenNodes] = useState({});
 
@@ -49,78 +47,77 @@ const [savedSupStatus, setSavedSupStatus] = useState({});
     setTimeout(() => setAlertModal({ isVisible: false, message: "" }), 5000);
   };
 
-
-
   // 🔹 Employee level lookup map
-const employeeLevelMap = React.useMemo(() => {
-  const map = {};
+  const employeeLevelMap = React.useMemo(() => {
+    const map = {};
 
-  const traverse = (nodes) => {
-    nodes.forEach((emp) => {
-      map[emp.employee_id] = emp.level;
-      if (emp.children && emp.children.length > 0) {
-        traverse(emp.children);
+    const traverse = (nodes) => {
+      nodes.forEach((emp) => {
+        map[emp.employee_id] = emp.level;
+        if (emp.children && emp.children.length > 0) {
+          traverse(emp.children);
+        }
+      });
+    };
+
+    traverse(employees);
+    return map;
+  }, [employees]);
+
+  const canEditByHierarchy = (taskEmployeeId) => {
+    // Find employee in hierarchy
+    const findEmployee = (nodes) => {
+      for (const emp of nodes) {
+        if (emp.employee_id === taskEmployeeId) return emp;
+        if (emp.children?.length) {
+          const found = findEmployee(emp.children);
+          if (found) return found;
+        }
       }
-    });
+      return null;
+    };
+
+    const employee = findEmployee(employees);
+
+    // ✅ Only direct reports of logged-in supervisor
+    return employee?.supervisor_id === supervisorId;
   };
-
-  traverse(employees);
-  return map;
-}, [employees]);
-
-const canEditByHierarchy = (taskEmployeeId) => {
-  // Find employee in hierarchy
-  const findEmployee = (nodes) => {
-    for (const emp of nodes) {
-      if (emp.employee_id === taskEmployeeId) return emp;
-      if (emp.children?.length) {
-        const found = findEmployee(emp.children);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
-
-  const employee = findEmployee(employees);
-
-  // ✅ Only direct reports of logged-in supervisor
-  return employee?.supervisor_id === supervisorId;
-};
-
 
   // --- Build Employee Tree ---
- const buildEmployeeTree = (employees) => {
-  const map = {};
-  const roots = [];
+  const buildEmployeeTree = (employees) => {
+    const map = {};
+    const roots = [];
 
-  employees.forEach((emp) => {
-    map[emp.employee_id] = { ...emp, children: [], level: 0 };
-  });
+    employees.forEach((emp) => {
+      map[emp.employee_id] = { ...emp, children: [], level: 0 };
+    });
 
-  employees.forEach((emp) => {
-    if (map[emp.supervisor_id]) {
-      map[emp.employee_id].level =
-        map[emp.supervisor_id].level + 1;
-      map[emp.supervisor_id].children.push(map[emp.employee_id]);
-    } else {
-      roots.push(map[emp.employee_id]);
-    }
-  });
+    employees.forEach((emp) => {
+      if (map[emp.supervisor_id]) {
+        map[emp.employee_id].level = map[emp.supervisor_id].level + 1;
+        map[emp.supervisor_id].children.push(map[emp.employee_id]);
+      } else {
+        roots.push(map[emp.employee_id]);
+      }
+    });
 
-  return roots;
-};
-
-
+    return roots;
+  };
   const formatWeekId = (weekId) => {
     if (!weekId) return "N/A";
-    const currentYear = new Date().getFullYear();
-    const startDate = startOfISOWeek(new Date(currentYear, 0, 1));
-    const weekStart = new Date(
-      startDate.getTime() + (weekId - 1) * 7 * 24 * 60 * 60 * 1000
-    );
+
+    const taskForWeek = tasks.find((t) => t.week_id === weekId);
+    const year = taskForWeek
+      ? new Date(taskForWeek.task_date).getFullYear()
+      : new Date().getFullYear();
+
+    const startDate = startOfISOWeek(new Date(year, 0, 1));
+    const weekStart = addDays(startDate, (weekId - 1) * 7);
     const weekEnd = endOfISOWeek(weekStart);
+
     const formattedStart = format(weekStart, "MMM d, yyyy");
     const formattedEnd = format(weekEnd, "MMM d, yyyy");
+
     return `Week ${weekId} (${formattedStart} - ${formattedEnd})`;
   };
 
@@ -226,11 +223,11 @@ const canEditByHierarchy = (taskEmployeeId) => {
 
     recognitionRef.current = null;
   };
-const getNextDay = (dateStr) => {
-  const date = new Date(dateStr);
-  date.setDate(date.getDate() + 1);
-  return date.toISOString().split("T")[0];
-};
+  const getNextDay = (dateStr) => {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split("T")[0];
+  };
 
   useEffect(() => {
     const data = localStorage.getItem("dashboardData");
@@ -255,50 +252,52 @@ const getNextDay = (dateStr) => {
   useEffect(() => {
     if (!supervisorId) return;
 
-   const fetchEmployees = async () => {
-  setLoadingEmployees(true);
+    const fetchEmployees = async () => {
+      setLoadingEmployees(true);
 
-  try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/hierarchy`,   // <-- updated API
-      {
-        withCredentials: true,
-        headers: { "x-employee-id": supervisorId },
-        timeout: 10000,
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/supervisor/hierarchy`, // <-- updated API
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+            timeout: 10000,
+          }
+        );
+
+        // API returns response.data.hierarchy
+        const empData = Array.isArray(response.data.hierarchy)
+          ? response.data.hierarchy.map((emp) => ({
+              ...emp,
+              employee_id: emp.employee_id?.trim().toUpperCase(),
+              supervisor_id: emp.supervisor_id?.trim().toUpperCase(),
+            }))
+          : [];
+
+        // Convert flat list → tree
+        const employeeTree = buildEmployeeTree(empData);
+        setEmployees(employeeTree);
+
+        setSelectedEmployee(empData[0]?.employee_id || null);
+        setError(
+          empData.length === 0 ? "No employees under your hierarchy." : null
+        );
+      } catch (err) {
+        const errorMessage = err.response
+          ? `Error ${err.response.status}: ${
+              err.response.data?.error || err.response.statusText
+            }`
+          : err.code === "ECONNABORTED"
+          ? "Request timed out: Unable to connect to server"
+          : `Network error: ${err.message}`;
+
+        console.error("Error fetching employees:", errorMessage);
+        setError(errorMessage);
+        setEmployees([]);
+      } finally {
+        setLoadingEmployees(false);
       }
-    );
-
-    // API returns response.data.hierarchy
-    const empData = Array.isArray(response.data.hierarchy)
-      ? response.data.hierarchy.map((emp) => ({
-          ...emp,
-          employee_id: emp.employee_id?.trim().toUpperCase(),
-          supervisor_id: emp.supervisor_id?.trim().toUpperCase(),
-        }))
-      : [];
-
-    // Convert flat list → tree
-    const employeeTree = buildEmployeeTree(empData);
-    setEmployees(employeeTree);
-
-    setSelectedEmployee(empData[0]?.employee_id || null);
-    setError(empData.length === 0 ? "No employees under your hierarchy." : null);
-
-  } catch (err) {
-    const errorMessage = err.response
-      ? `Error ${err.response.status}: ${err.response.data?.error || err.response.statusText}`
-      : err.code === "ECONNABORTED"
-      ? "Request timed out: Unable to connect to server"
-      : `Network error: ${err.message}`;
-
-    console.error("Error fetching employees:", errorMessage);
-    setError(errorMessage);
-    setEmployees([]);
-  } finally {
-    setLoadingEmployees(false);
-  }
-};
-
+    };
 
     const fetchHolidays = async () => {
       setLoadingHolidays(true);
@@ -429,14 +428,14 @@ const getNextDay = (dateStr) => {
     const fetchTasks = async () => {
       setLoadingTasks(true);
       try {
-       const res = await axios.get(
-  `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
-  {
-    withCredentials: true,
-    headers: { "x-employee-id": supervisorId },
-    timeout: 10000,
-  }
-);
+        const res = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": supervisorId },
+            timeout: 10000,
+          }
+        );
 
         const validStatuses = [
           "not started",
@@ -463,13 +462,11 @@ const getNextDay = (dateStr) => {
         }
         setError(null);
         const statusMap = {};
-taskData.forEach((t) => {
-  statusMap[t.task_id] = t.sup_status;
-});
-setSavedSupStatus(statusMap);
-setTasks(taskData);
-
-
+        taskData.forEach((t) => {
+          statusMap[t.task_id] = t.sup_status;
+        });
+        setSavedSupStatus(statusMap);
+        setTasks(taskData);
       } catch (err) {
         const errorMessage = err.response
           ? `Error ${err.response.status}: ${
@@ -628,19 +625,18 @@ setTasks(taskData);
             timeout: 10000,
           }
         );
-// if (task.sup_status === "re-work") {
-//   setReworkFrozenTasks((prev) => ({
-//     ...prev,
-//     [taskId]: true,
-//   }));
-// }
-if (updateData.sup_status === "re-work") {
-  setJustSavedRework((prev) => ({
-    ...prev,
-    [taskId]: true,
-  }));
-}
-
+        // if (task.sup_status === "re-work") {
+        //   setReworkFrozenTasks((prev) => ({
+        //     ...prev,
+        //     [taskId]: true,
+        //   }));
+        // }
+        if (updateData.sup_status === "re-work") {
+          setJustSavedRework((prev) => ({
+            ...prev,
+            [taskId]: true,
+          }));
+        }
 
         updateData.sup_status = "re-work";
         await axios.put(
@@ -685,22 +681,21 @@ if (updateData.sup_status === "re-work") {
         showAlert("Task updated successfully");
       }
       setSavedSupStatus((prev) => ({
-  ...prev,
-  [taskId]: updateData.sup_status,
-}));
-
+        ...prev,
+        [taskId]: updateData.sup_status,
+      }));
 
       setPendingReviewChanges((prev) => {
         const newPrev = { ...prev };
         delete newPrev[taskId];
         return newPrev;
       });
-// if (task.sup_status === "re-work") {
-//   setReworkFrozenTasks((prev) => ({
-//     ...prev,
-//     [taskId]: true,
-//   }));
-// }
+      // if (task.sup_status === "re-work") {
+      //   setReworkFrozenTasks((prev) => ({
+      //     ...prev,
+      //     [taskId]: true,
+      //   }));
+      // }
 
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/${supervisorId}`,
@@ -728,10 +723,10 @@ if (updateData.sup_status === "re-work") {
           : [];
       setTasks(taskData);
       const statusMap = {};
-taskData.forEach((t) => {
-  statusMap[t.task_id] = t.sup_status;
-});
-setSavedSupStatus(statusMap);
+      taskData.forEach((t) => {
+        statusMap[t.task_id] = t.sup_status;
+      });
+      setSavedSupStatus(statusMap);
     } catch (err) {
       const errorMessage = err.response
         ? `Error ${err.response.status}: ${
@@ -745,7 +740,6 @@ setSavedSupStatus(statusMap);
       showAlert(`Failed to update task: ${errorMessage}`);
     }
   };
-
 
   const statusColor = (status) => {
     switch (status) {
@@ -865,9 +859,15 @@ setSavedSupStatus(statusMap);
 
   const generateWeekDays = () => {
     if (!selectedWeekId) return [];
-    const currentYear = new Date().getFullYear();
-    const weekStartDate = startOfISOWeek(new Date(currentYear, 0, 1));
-    const adjustedStart = addDays(weekStartDate, (selectedWeekId - 1) * 7);
+
+    const taskForWeek = tasks.find((t) => t.week_id === selectedWeekId);
+    const year = taskForWeek
+      ? new Date(taskForWeek.task_date).getFullYear()
+      : new Date().getFullYear();
+
+    const startOfYearWeek = startOfISOWeek(new Date(year, 0, 1));
+    const adjustedStart = addDays(startOfYearWeek, (selectedWeekId - 1) * 7);
+
     const days = [];
     for (let i = 0; i < 7; i++) {
       const date = addDays(adjustedStart, i);
@@ -907,73 +907,69 @@ setSavedSupStatus(statusMap);
     emp.employee_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-
   const toggleNode = (id) => {
-  setOpenNodes((prev) => ({
-    ...prev,
-    [id]: !prev[id],
-  }));
-};
+    setOpenNodes((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
- 
+  const EmployeeNode = ({ emp, level = 0 }) => {
+    const hasChildren = emp.children && emp.children.length > 0;
+    const isOpen = openNodes[emp.employee_id] || false;
 
-const EmployeeNode = ({ emp, level = 0 }) => {
-  const hasChildren = emp.children && emp.children.length > 0;
-  const isOpen = openNodes[emp.employee_id] || false;
-
-  return (
-    <>
-      <li
-        className={
-          selectedEmployee === emp.employee_id
-            ? "supervisor-plan-active"
-            : ""
-        }
-        style={{
-          // paddingLeft: `${level * 20}px`,
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          cursor: "pointer",
-        }}
-      >
-        {hasChildren ? (
-          <span
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleNode(emp.employee_id);
-            }}
-            style={{ fontSize: "12px" }}
-          >
-            {isOpen ? "▼" : "▶"}
-          </span>
-        ) : (
-          <span style={{ width: "12px" }}></span>
-        )}
-
-        {/* EMPLOYEE NAME */}
-        <span
-          onClick={() => setSelectedEmployee(emp.employee_id)}
+    return (
+      <>
+        <li
+          className={
+            selectedEmployee === emp.employee_id ? "supervisor-plan-active" : ""
+          }
           style={{
-            fontWeight: level === 0 ? "normal" : "normal",
-            flex: 1,
+            // paddingLeft: `${level * 20}px`,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            cursor: "pointer",
           }}
         >
-          {emp.employee_name}
-        </span>
-      </li>
+          {hasChildren ? (
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleNode(emp.employee_id);
+              }}
+              style={{ fontSize: "12px" }}
+            >
+              {isOpen ? "▼" : "▶"}
+            </span>
+          ) : (
+            <span style={{ width: "12px" }}></span>
+          )}
 
-      {hasChildren && isOpen &&
-        emp.children.map((child) => (
-          <EmployeeNode
-            key={child.employee_id}
-            emp={child}
-            level={level + 1}
-          />
-        ))}
-    </>
-  );
-};
+          {/* EMPLOYEE NAME */}
+          <span
+            onClick={() => setSelectedEmployee(emp.employee_id)}
+            style={{
+              fontWeight: level === 0 ? "normal" : "normal",
+              flex: 1,
+            }}
+          >
+            {emp.employee_name}
+          </span>
+        </li>
+
+        {hasChildren &&
+          isOpen &&
+          emp.children.map((child) => (
+            <EmployeeNode
+              key={child.employee_id}
+              emp={child}
+              level={level + 1}
+            />
+          ))}
+      </>
+    );
+  };
 
   return (
     <div className="supervisor-plan-wrapper">
@@ -1001,7 +997,7 @@ const EmployeeNode = ({ emp, level = 0 }) => {
           style={{
             padding: "8px",
             fontSize: "10px",
-            
+
             marginBottom: "10px",
             borderRadius: "4px",
             border: "1px solid #ccc",
@@ -1014,11 +1010,10 @@ const EmployeeNode = ({ emp, level = 0 }) => {
           <p>No employees under your hierarchy.</p>
         ) : (
           <ul className="supervisor-plan-employee-scroll">
-  {employees.map((root) => (
-    <EmployeeNode key={root.employee_id} emp={root} level={0} />
-  ))}
-</ul>
-
+            {employees.map((root) => (
+              <EmployeeNode key={root.employee_id} emp={root} level={0} />
+            ))}
+          </ul>
         )}
       </div>
       <div className="supervisor-plan-task-details">
@@ -1084,30 +1079,29 @@ const EmployeeNode = ({ emp, level = 0 }) => {
                         const effectiveReviewStatus =
                           pendingReviewChanges[task.task_id] ||
                           task.sup_review_status;
-  //                    const isFrozen =
-  // task.sup_review_status === "suspended_review" ||
-  // reworkFrozenTasks[task.task_id];
+                        //                    const isFrozen =
+                        // task.sup_review_status === "suspended_review" ||
+                        // reworkFrozenTasks[task.task_id];
 
-// const hierarchyFrozen = !canEditByHierarchy(task.employee_id);
+                        // const hierarchyFrozen = !canEditByHierarchy(task.employee_id);
 
-// const isFrozen =
-//   hierarchyFrozen ||
-//   task.sup_review_status === "suspended_review" ||
-//   reworkFrozenTasks[task.task_id];
-const hierarchyFrozen = !canEditByHierarchy(task.employee_id);
+                        // const isFrozen =
+                        //   hierarchyFrozen ||
+                        //   task.sup_review_status === "suspended_review" ||
+                        //   reworkFrozenTasks[task.task_id];
+                        const hierarchyFrozen = !canEditByHierarchy(
+                          task.employee_id
+                        );
 
-// Freeze ONLY if backend-saved status is re-work
-const reworkFrozenFromDB =
-  savedSupStatus[task.task_id] === "re-work";
+                        // Freeze ONLY if backend-saved status is re-work
+                        const reworkFrozenFromDB =
+                          savedSupStatus[task.task_id] === "re-work";
 
-const isFrozen =
-  hierarchyFrozen ||
-  task.sup_review_status === "suspended_review" ||
-  reworkFrozenFromDB;
+                        const isFrozen =
+                          hierarchyFrozen ||
+                          task.sup_review_status === "suspended_review" ||
+                          reworkFrozenFromDB;
 
-
-
-                          
                         const showReviewSelect =
                           task.sup_review_status === "pending" &&
                           !pendingReviewChanges[task.task_id];
@@ -1195,7 +1189,8 @@ const isFrozen =
                             </div>
                             {isFrozen && (
                               <div className="supervisor-plan-frozen-message">
-                               No edits allowed.
+                                This task is suspended and frozen. No edits
+                                allowed.
                               </div>
                             )}
                             <div className="supervisor-plan-edit-section">
@@ -1371,13 +1366,12 @@ const isFrozen =
                                 </label>
                               )}
                               <button
-  className="supervisor-plan-update-task-button"
-  onClick={() => saveTaskField(task.task_id)}
-  disabled={!editable || isFrozen}
->
-  Update
-</button>
-
+                                className="supervisor-plan-update-task-button"
+                                onClick={() => saveTaskField(task.task_id)}
+                                disabled={!editable || isFrozen}
+                              >
+                                Update
+                              </button>
                             </div>
                           </div>
                         );

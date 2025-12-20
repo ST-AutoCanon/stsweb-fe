@@ -440,6 +440,30 @@ const Reimbursement = () => {
           }
         })
       );
+      const dataWithAttach = (data || []).map((claim) => {
+        const list = attachmentsData[claim.id] || [];
+        const line_attachments_map = {};
+        const claimLevelAttachments = [];
+
+        list.forEach((a) => {
+          const lineId = a.line_id ?? a.lineId ?? a.line ?? null;
+          if (lineId !== null && lineId !== undefined) {
+            const key = String(lineId);
+            if (!line_attachments_map[key]) line_attachments_map[key] = [];
+            line_attachments_map[key].push(a);
+          } else {
+            claimLevelAttachments.push(a);
+          }
+        });
+
+        return {
+          ...claim,
+          attachments: claimLevelAttachments,
+          line_attachments_map,
+        };
+      });
+
+      setReimbursements(dataWithAttach);
       setAttachments(attachmentsData);
     } catch (err) {
       console.error("Error fetching reimbursements:", err);
@@ -618,7 +642,97 @@ const Reimbursement = () => {
     setParticipants(ids);
     setParticipantMode(ids.length > 1 ? "group" : "single");
 
-    const claimRows = buildClaimRowsFromLines(claim.lines, claimType);
+    const lam = claim.line_attachments_map || {};
+
+    const rawLines = Array.isArray(claim.lines)
+      ? claim.lines
+          .slice()
+          .sort((a, b) => (a.line_index || 0) - (b.line_index || 0))
+      : [];
+    const normalizedRows = rawLines.map((ln, idx) => {
+      const payload =
+        ln.payload && typeof ln.payload === "object" ? { ...ln.payload } : {};
+      const base = {
+        ...defaultRowForType(claimType),
+        ...payload,
+        total_amount:
+          ln.total_amount || payload.total_amount || payload.totalAmount || "",
+      };
+
+      base.dates = base.dates || [];
+
+      if (payload.date_range && typeof payload.date_range === "string") {
+        base.date_range = payload.date_range;
+        const parts = payload.date_range
+          .replace(/\u2013|\u2014/g, "-")
+          .split(/\s*-\s*/);
+        if (parts.length >= 1 && parts[0]) base.from_date = parts[0].trim();
+        if (parts.length >= 2 && parts[1]) base.to_date = parts[1].trim();
+      }
+
+      if (payload.from_date) base.from_date = payload.from_date;
+      if (payload.to_date) base.to_date = payload.to_date;
+
+      if (Array.isArray(payload.dates) && payload.dates.length) {
+        base.dates = payload.dates
+          .map((d) =>
+            d instanceof Date ? d.toISOString().slice(0, 10) : String(d).trim()
+          )
+          .filter(Boolean);
+      }
+
+      if (payload.date) {
+        if (typeof payload.date === "string" && payload.date.includes(",")) {
+          base.dates = base.dates.concat(
+            payload.date
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          );
+        } else {
+          base.date = payload.date;
+        }
+      }
+
+      if (base.date instanceof Date)
+        base.date = base.date.toISOString().slice(0, 10);
+      if (base.from_date instanceof Date)
+        base.from_date = base.from_date.toISOString().slice(0, 10);
+      if (base.to_date instanceof Date)
+        base.to_date = base.to_date.toISOString().slice(0, 10);
+      if (Array.isArray(base.dates)) {
+        base.dates = base.dates
+          .map((d) =>
+            d instanceof Date ? d.toISOString().slice(0, 10) : String(d).trim()
+          )
+          .filter(Boolean);
+      }
+
+      return base;
+    });
+
+    if (Array.isArray(rawLines) && rawLines.length) {
+      for (let i = 0; i < rawLines.length; i++) {
+        const ln = rawLines[i];
+        const rowIndex = typeof ln.line_index === "number" ? ln.line_index : i;
+        const attachList = (lam && (lam[String(ln.id)] || lam[ln.id])) || [];
+        const filenames = attachList
+          .map(
+            (a) => a?.file_name || a?.filename || a?.name || a?.fileName || null
+          )
+          .filter(Boolean);
+
+        if (!normalizedRows[rowIndex])
+          normalizedRows[rowIndex] = { ...defaultRowForType(claimType) };
+        normalizedRows[rowIndex] = {
+          ...(normalizedRows[rowIndex] || {}),
+          attachments: filenames,
+        };
+      }
+    }
+
+    const claimRows = {};
+    if (claimType) claimRows[claimType] = normalizedRows;
 
     const initialList = (attachments[claim.id] || [])
       .map(
@@ -628,6 +742,144 @@ const Reimbursement = () => {
       .filter(Boolean);
     initialAttachmentsRef.current = initialList;
 
+    const firstRow =
+      normalizedRows && normalizedRows.length && normalizedRows[0]
+        ? normalizedRows[0]
+        : {};
+
+    const claimLevelDateStr = claim.date || claim.created_at || "";
+    const claimLevelFromStr = claim.from_date || claim.fromDate || "";
+    const claimLevelToStr = claim.to_date || claim.toDate || "";
+
+    const canonicalizeDateString = (raw) => {
+      if (!raw && raw !== 0) return null;
+      if (Array.isArray(raw) && raw.length) raw = raw[0];
+      let s = String(raw).trim();
+      if (!s) return null;
+
+      if (
+        s.includes("-") &&
+        s.split("-").length >= 2 &&
+        !/^\d{4}-\d{2}-\d{2}$/.test(s)
+      ) {
+        const parts = s
+          .split(/\s*-\s*/)
+          .map((p) => p.trim())
+          .filter(Boolean);
+        if (parts.length) s = parts[0];
+      }
+
+      const d = tryParseDate(s);
+      if (d) return d.toISOString().slice(0, 10);
+
+      const m = s.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+      if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+      return null;
+    };
+
+    const splitRangeToCanon = (s) => {
+      if (!s) return [null, null];
+      const parts = String(s)
+        .replace(/\u2013|\u2014/g, "-")
+        .split(/\s*-\s*/);
+      const a = parts[0] ? canonicalizeDateString(parts[0]) : null;
+      const b = parts[1] ? canonicalizeDateString(parts[1]) : null;
+      return [a, b];
+    };
+
+    const determineNoOfDays = (rows) => {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        const cf = canonicalizeDateString(claimLevelFromStr);
+        const ct = canonicalizeDateString(claimLevelToStr);
+        if (cf && ct) return cf === ct ? "single" : "multiple";
+        if (claimLevelDateStr || cf || ct) return "single";
+        return "";
+      }
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i] || {};
+
+        if (Array.isArray(r.dates) && r.dates.length > 1) return "multiple";
+
+        if (r.date_range && typeof r.date_range === "string") {
+          const [ra, rb] = splitRangeToCanon(r.date_range);
+          if (ra && rb && ra !== rb) return "multiple";
+          if (!ra || !rb) return "multiple";
+        }
+
+        if (r.from_date && r.to_date) {
+          const fa = canonicalizeDateString(r.from_date);
+          const fb = canonicalizeDateString(r.to_date);
+          if (fa && fb && fa !== fb) return "multiple";
+          if (!fa || !fb) return "multiple";
+        }
+      }
+
+      const firstRow = rows[0] || {};
+      const firstCanon =
+        (firstRow.date && canonicalizeDateString(firstRow.date)) ||
+        (Array.isArray(firstRow.dates) &&
+          firstRow.dates[0] &&
+          canonicalizeDateString(firstRow.dates[0])) ||
+        (firstRow.from_date && canonicalizeDateString(firstRow.from_date)) ||
+        canonicalizeDateString(claimLevelDateStr) ||
+        canonicalizeDateString(claimLevelFromStr) ||
+        canonicalizeDateString(claimLevelToStr) ||
+        null;
+
+      if (!firstCanon && firstRow.from_date && firstRow.to_date) {
+        const fa = canonicalizeDateString(firstRow.from_date);
+        const fb = canonicalizeDateString(firstRow.to_date);
+        if (fa && fb && fa === fb) firstCanon = fa;
+      }
+
+      const uniq = new Set();
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i] || {};
+        let canon = null;
+        if (r.date) canon = canonicalizeDateString(r.date);
+        else if (Array.isArray(r.dates) && r.dates.length)
+          canon = canonicalizeDateString(r.dates[0]);
+        else if (r.from_date && r.to_date && r.from_date === r.to_date)
+          canon = canonicalizeDateString(r.from_date);
+        else if (r.from_date && !r.to_date)
+          canon = canonicalizeDateString(r.from_date);
+        else if (r.to_date && !r.from_date)
+          canon = canonicalizeDateString(r.to_date);
+        else if (r.date_range) {
+          const [ra, rb] = splitRangeToCanon(r.date_range);
+          canon = ra || rb || null;
+        }
+
+        if (!canon) canon = firstCanon;
+
+        if (canon) uniq.add(canon);
+        else {
+          return "multiple";
+        }
+      }
+
+      if (uniq.size === 0) return "";
+      if (uniq.size === 1) return "single";
+      return "multiple";
+    };
+
+    const detectedNoOfDays = determineNoOfDays(normalizedRows);
+
+    const topDate =
+      (normalizedRows[0] &&
+        (normalizedRows[0].date ||
+          (Array.isArray(normalizedRows[0].dates) &&
+            normalizedRows[0].dates[0]))) ||
+      claim.date ||
+      "";
+    const topFromDate =
+      (normalizedRows[0] && normalizedRows[0].from_date) ||
+      claim.from_date ||
+      "";
+    const topToDate =
+      (normalizedRows[0] && normalizedRows[0].to_date) || claim.to_date || "";
+
     setFormData({
       employeeId: claim.employee_id || employeeId,
       department_id: claim.department_id || departmentId,
@@ -635,35 +887,36 @@ const Reimbursement = () => {
       claim_type: claimType,
       transport_type: claim.transport_type || "",
 
-      purpose: firstLine.purpose || claim.comments || "",
-      date: firstLine.date || "",
-      fromDate: firstLine.from_date || "",
-      toDate: firstLine.to_date || "",
-      travel_from: firstLine.travel_from || "",
-      travel_to: firstLine.travel_to || "",
-      meals_objective: firstLine.meals_objective || "",
-      purchasing_item: firstLine.purchasing_item || "",
-      accommodation_fees: firstLine.accommodation_fees || "",
-      da: firstLine.da || "",
-      meal_type: firstLine.meal_type || "",
-      service_provider: firstLine.service_provider || "",
-      stationary: firstLine.stationairy_item || "",
+      purpose: firstRow.purpose || claim.comments || "",
+      date: topDate,
+      fromDate: topFromDate,
+      toDate: topToDate,
+      travel_from: firstRow.travel_from || "",
+      travel_to: firstRow.travel_to || "",
+      meals_objective: firstRow.meals_objective || "",
+      purchasing_item: firstRow.purchasing_item || "",
+      accommodation_fees: firstRow.accommodation_fees || "",
+      da: firstRow.da || "",
+      meal_type: firstRow.meal_type || "",
+      service_provider: firstRow.service_provider || "",
+      stationary: firstRow.stationairy_item || "",
 
       total_amount: claim.aggregated_total || "",
 
       project: claim.project || "",
       invoices: parseInvoicesFromClaim(claim),
 
-      attachments: attachments[claim.id] || [],
+      attachments: claim.attachments || [],
 
       claim_rows: claimRows,
 
       participants: ids,
       participant_mode: ids.length > 1 ? "group" : "single",
 
+      no_of_days: detectedNoOfDays || claim.no_of_days || claim.noOfDays || "",
+
       _forceShowTransport: false,
     });
-
     setSelectedFiles(initialList.slice());
   };
 
@@ -968,18 +1221,26 @@ const Reimbursement = () => {
 
       const attachmentsMeta = {};
 
+      const makeClientUniqueName = (file, rowIdx = null) => {
+        const shortUid = Math.random().toString(36).slice(2, 8);
+        const prefix = typeof rowIdx === "number" ? `r${rowIdx}` : "m";
+        return `${prefix}_${Date.now()}_${shortUid}_${file.name}`;
+      };
+
       rowsForType.forEach((r, idx) => {
         const files = Array.isArray(r._files) ? r._files : [];
         for (const file of files) {
-          fd.append("attachments", file, file.name);
-          attachmentsMeta[file.name] = idx;
+          const uniqueName = makeClientUniqueName(file, idx);
+          fd.append("attachments", file, uniqueName);
+          attachmentsMeta[uniqueName] = idx;
         }
       });
 
       if (formData.attachments && Array.isArray(formData.attachments)) {
         for (const file of formData.attachments) {
           if (file instanceof File) {
-            fd.append("attachments", file, file.name);
+            const uniqueName = makeClientUniqueName(file, null);
+            fd.append("attachments", file, uniqueName);
           }
         }
       }
@@ -988,38 +1249,62 @@ const Reimbursement = () => {
         fd.append("attachmentsMeta", JSON.stringify(attachmentsMeta));
       }
 
+      const existingAttachmentsObjects = [];
+
       const currentAttachmentsRaw = formData.attachments || [];
       const currentAttachmentsArr = Array.isArray(currentAttachmentsRaw)
         ? currentAttachmentsRaw
         : [currentAttachmentsRaw];
 
-      const currentExistingNames = currentAttachmentsArr
-        .filter((item) => !(item instanceof File))
-        .map((item) =>
+      for (const item of currentAttachmentsArr) {
+        if (item instanceof File) continue;
+        const name =
           typeof item === "string"
             ? item
             : item?.file_name ||
               item?.filename ||
               item?.name ||
               item?.fileName ||
-              ""
-        )
-        .filter(Boolean);
-
-      const initialNames = Array.isArray(initialAttachmentsRef.current)
-        ? initialAttachmentsRef.current
-        : [];
-
-      const deletedAttachments = initialNames.filter(
-        (n) => !currentExistingNames.includes(n)
-      );
-
-      if (currentExistingNames.length > 0) {
-        fd.append("existingAttachments", JSON.stringify(currentExistingNames));
+              "";
+        const fileName = String(name || "").trim();
+        if (!fileName) continue;
+        existingAttachmentsObjects.push({
+          file_name: fileName,
+          file_path: null,
+        });
       }
 
-      if (deletedAttachments.length > 0) {
-        fd.append("deletedAttachments", JSON.stringify(deletedAttachments));
+      for (let i = 0; i < rowsForType.length; i++) {
+        const r = rowsForType[i] || {};
+        const list = Array.isArray(r.attachments) ? r.attachments : [];
+        for (const it of list) {
+          if (it instanceof File) continue;
+          const name =
+            typeof it === "string"
+              ? it
+              : it?.file_name || it?.filename || it?.name || it?.fileName || "";
+          const fileName = String(name || "").trim();
+          if (!fileName) continue;
+          existingAttachmentsObjects.push({
+            file_name: fileName,
+            file_path: null,
+            line_index: Number(i),
+          });
+        }
+      }
+
+      const seen = new Set();
+      const deduped = [];
+      for (const o of existingAttachmentsObjects) {
+        const key = String(o.file_name || "").trim();
+        if (!key) continue;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(o);
+      }
+
+      if (deduped.length > 0) {
+        fd.append("existingAttachments", JSON.stringify(deduped));
       }
 
       if (formData.department_id)
@@ -1344,43 +1629,40 @@ const Reimbursement = () => {
                       .sort((a, b) => (a.line_index || 0) - (b.line_index || 0))
                   : [];
 
-                let claimLevelInvs = parseInvoicesFromClaim(claim);
-                if (!Array.isArray(claimLevelInvs))
-                  claimLevelInvs = claimLevelInvs
-                    ? [String(claimLevelInvs)]
-                    : [];
+                const invSet = new Set();
 
-                if (
-                  (!claimLevelInvs || claimLevelInvs.length === 0) &&
-                  lines.length > 0
-                ) {
-                  const firstPayloadInvs =
-                    (lines[0].payload && lines[0].payload.invoices) || [];
-                  if (
-                    Array.isArray(firstPayloadInvs) &&
-                    firstPayloadInvs.length
-                  ) {
-                    claimLevelInvs = firstPayloadInvs.slice();
-                  } else if (
-                    typeof firstPayloadInvs === "string" &&
-                    firstPayloadInvs.trim()
-                  ) {
-                    try {
-                      claimLevelInvs = JSON.parse(firstPayloadInvs);
-                      if (!Array.isArray(claimLevelInvs))
-                        claimLevelInvs = [String(claimLevelInvs)];
-                    } catch {
-                      claimLevelInvs = firstPayloadInvs
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean);
-                    }
+                const topInvs = parseInvoicesFromClaim(claim);
+                (topInvs || []).forEach((i) => {
+                  if (i !== undefined && i !== null && String(i).trim())
+                    invSet.add(String(i).trim());
+                });
+
+                lines.forEach((ln) => {
+                  const lnInvRaw =
+                    ln?.payload?.invoices ?? ln?.payload?.invoice ?? [];
+                  let parsed = lnInvRaw;
+                  try {
+                    if (typeof parsed === "string" && parsed.trim())
+                      parsed = JSON.parse(parsed);
+                  } catch (e) {}
+                  if (typeof parsed === "string") {
+                    parsed = parsed
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean);
                   }
-                }
-                const claimInvDisplay =
-                  Array.isArray(claimLevelInvs) && claimLevelInvs.length
-                    ? claimLevelInvs.join(", ")
-                    : "-";
+                  if (Array.isArray(parsed)) {
+                    parsed.forEach((i) => {
+                      if (i !== undefined && i !== null && String(i).trim())
+                        invSet.add(String(i).trim());
+                    });
+                  }
+                });
+
+                const claimLevelInvs = Array.from(invSet);
+                const claimInvDisplay = claimLevelInvs.length
+                  ? claimLevelInvs.join(", ")
+                  : "-";
 
                 let primaryClaimDate = null;
                 if (claim.date_range) {
@@ -1433,18 +1715,20 @@ const Reimbursement = () => {
                       </td>
 
                       <td>
-                        {primaryClaimDate
-                          ? Array.isArray(primaryClaimDate)
-                            ? primaryClaimDate
-                                .map(formatDisplayDate)
-                                .join(" - ")
-                            : String(primaryClaimDate).includes(" - ")
-                            ? String(primaryClaimDate)
-                                .split(" - ")
-                                .map(formatDisplayDate)
-                                .join(" - ")
-                            : formatDisplayDate(primaryClaimDate)
-                          : " "}
+                        <div className="rbadmin-comments">
+                          {primaryClaimDate
+                            ? Array.isArray(primaryClaimDate)
+                              ? primaryClaimDate
+                                  .map(formatDisplayDate)
+                                  .join(" - ")
+                              : String(primaryClaimDate).includes(" - ")
+                              ? String(primaryClaimDate)
+                                  .split(" - ")
+                                  .map(formatDisplayDate)
+                                  .join(" - ")
+                              : formatDisplayDate(primaryClaimDate)
+                            : " "}
+                        </div>
                       </td>
 
                       <td>
@@ -1694,21 +1978,37 @@ const Reimbursement = () => {
 
         <div className="rb-reimbursement-cards">
           {filterClaims.map((claim, idx) => {
-            let invs =
-              claim.invoices || claim.invoice_numbers || claim.invoice_no || [];
-            try {
-              if (typeof invs === "string" && invs.trim())
-                invs = JSON.parse(invs);
-            } catch (e) {
-              if (typeof invs === "string")
-                invs = invs
+            const invSetCard = new Set();
+            const topInvsCard = parseInvoicesFromClaim(claim);
+            (topInvsCard || []).forEach((i) => {
+              if (i !== undefined && i !== null && String(i).trim())
+                invSetCard.add(String(i).trim());
+            });
+            const linesCard = Array.isArray(claim.lines) ? claim.lines : [];
+            linesCard.forEach((ln) => {
+              const lnInvRaw =
+                ln?.payload?.invoices ?? ln?.payload?.invoice ?? [];
+              let parsed = lnInvRaw;
+              try {
+                if (typeof parsed === "string" && parsed.trim())
+                  parsed = JSON.parse(parsed);
+              } catch (e) {}
+              if (typeof parsed === "string") {
+                parsed = parsed
                   .split(",")
                   .map((s) => s.trim())
                   .filter(Boolean);
-              else invs = Array.isArray(invs) ? invs : [];
-            }
-            const invDisplay =
-              Array.isArray(invs) && invs.length ? invs.join(", ") : "-";
+              }
+              if (Array.isArray(parsed)) {
+                parsed.forEach((i) => {
+                  if (i !== undefined && i !== null && String(i).trim())
+                    invSetCard.add(String(i).trim());
+                });
+              }
+            });
+            const invDisplay = Array.from(invSetCard).length
+              ? Array.from(invSetCard).join(", ")
+              : "-";
 
             const isPending = (claim.status || "").toLowerCase() === "pending";
 

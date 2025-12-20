@@ -721,7 +721,7 @@ export default function EmployeeDetails() {
           onClick={() => setFormMode("add")}
           className="add-employee-button"
         >
-          + Add Employee
+          <span className="plus-icon">+</span>Employee
         </button>
       </div>
 
