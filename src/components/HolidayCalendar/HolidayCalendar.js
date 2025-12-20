@@ -82,8 +82,9 @@ const HolidayCalendar = ({ closeCalendar }) => {
       </div>
     );
   };
+
   const handleChange = (newDate) => {
-    if (newDate.getFullYear() === currentYear) {
+    if (newDate.getFullYear() >= currentYear) {
       setDate(newDate);
     }
   };
@@ -99,9 +100,8 @@ const HolidayCalendar = ({ closeCalendar }) => {
           onChange={handleChange}
           value={date}
           minDate={new Date(currentYear, 0, 1)}
-          maxDate={new Date(currentYear, 11, 31)}
           maxDetail="month"
-          tileDisabled={({ date }) => date.getFullYear() !== currentYear}
+          tileDisabled={({ date }) => date.getFullYear() < currentYear}
           tileClassName={tileClassName}
           tileContent={tileContent}
           prev2Label={null}

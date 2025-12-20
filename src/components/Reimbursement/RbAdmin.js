@@ -41,7 +41,7 @@ const RbAdmin = () => {
   const [participantsSaving, setParticipantsSaving] = useState(false);
 
   const formatDisplayDate = (raw) => {
-    if (!raw) return "N/A";
+    if (!raw) return " ";
     const d = raw instanceof Date ? raw : new Date(raw);
     if (isNaN(d)) return raw;
     const day = String(d.getDate()).padStart(2, "0");
@@ -210,6 +210,24 @@ const RbAdmin = () => {
     fetchEmployees();
   }, []);
 
+  // safe numeric read for claim-level amount (handles aggregated_total, total_amount, strings with commas, etc.)
+  const getClaimAmount = (claim = {}) => {
+    const raw =
+      claim?.aggregated_total ??
+      claim?.total_amount ??
+      claim?.totalAmount ??
+      claim?.total ??
+      0;
+    // convert to number safely (strip commas, handle null/empty)
+    const n = parseFloat(
+      String(raw || "")
+        .toString()
+        .replace(/,/g, "")
+        .trim()
+    );
+    return Number.isFinite(n) ? n : 0;
+  };
+
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
@@ -324,22 +342,25 @@ const RbAdmin = () => {
   const totalAmount = employees.reduce(
     (sum, employee) =>
       sum +
-      employee.claims.reduce(
-        (claimSum, claim) => claimSum + parseFloat(claim.total_amount || 0),
-        0
-      ),
+      (Array.isArray(employee.claims)
+        ? employee.claims.reduce(
+            (claimSum, claim) => claimSum + getClaimAmount(claim),
+            0
+          )
+        : 0),
     0
   );
 
   const approvedAmount = employees.reduce(
     (sum, employee) =>
       sum +
-      employee.claims
-        .filter((claim) => claim.status === "approved")
-        .reduce(
-          (claimSum, claim) => claimSum + parseFloat(claim.total_amount || 0),
-          0
-        ),
+      (Array.isArray(employee.claims)
+        ? employee.claims
+            .filter(
+              (claim) => String(claim.status).toLowerCase() === "approved"
+            )
+            .reduce((claimSum, claim) => claimSum + getClaimAmount(claim), 0)
+        : 0),
     0
   );
 
@@ -710,8 +731,7 @@ const RbAdmin = () => {
                         Total Amount Claiming: Rs{" "}
                         {filteredClaims
                           .reduce(
-                            (sum, claim) =>
-                              sum + parseFloat(claim.total_amount || 0),
+                            (sum, claim) => sum + getClaimAmount(claim),
                             0
                           )
                           .toLocaleString("en-IN")}
@@ -721,10 +741,12 @@ const RbAdmin = () => {
                       <span>
                         Amount Approved: Rs{" "}
                         {filteredClaims
-                          .filter((claim) => claim.status === "approved")
+                          .filter(
+                            (claim) =>
+                              String(claim.status).toLowerCase() === "approved"
+                          )
                           .reduce(
-                            (sum, claim) =>
-                              sum + parseFloat(claim.total_amount || 0),
+                            (sum, claim) => sum + getClaimAmount(claim),
                             0
                           )
                           .toLocaleString("en-IN")}
@@ -847,16 +869,18 @@ const RbAdmin = () => {
                                         ? formatDisplayDate(
                                             claim.date || firstLineDate
                                           )
-                                        : "N/A"}
+                                        : " "}
                                     </td>
 
                                     <td>₹{claim.aggregated_total}</td>
 
                                     <td
-                                      className="purpose-cell"
+                                      className="participants-cell-col"
                                       title={claim.purpose}
                                     >
-                                      {claim.purpose || claim.comments || "-"}
+                                      <div className="rbadmin-comments">
+                                        {claim.purpose || claim.comments || "-"}
+                                      </div>
                                     </td>
 
                                     <td
@@ -1027,7 +1051,7 @@ const RbAdmin = () => {
                                                   .charAt(0)
                                                   .toUpperCase() +
                                                 claim.payment_status.slice(1)
-                                              : "N/A"}
+                                              : " "}
                                             {claim.paid_date
                                               ? ` (${formatDisplayDate(
                                                   claim.paid_date
@@ -1121,7 +1145,7 @@ const RbAdmin = () => {
                                                     .map(formatDisplayDate)
                                                     .join(" - ")
                                                 : formatDisplayDate(dateDisplay)
-                                              : "N/A"}
+                                              : " "}
                                           </td>
 
                                           {/* Amount (column 4) */}
@@ -1211,7 +1235,7 @@ const RbAdmin = () => {
                           <tfoot>
                             <tr className="total-row">
                               <td
-                                colSpan="5"
+                                colSpan="7"
                                 style={{
                                   textAlign: "right",
                                   color: "#949494",
@@ -1225,7 +1249,7 @@ const RbAdmin = () => {
                                   Rs {totalAmount}
                                 </span>
                               </td>
-                              <td colSpan="5" style={{ textAlign: "right" }}>
+                              <td colSpan="6" style={{ textAlign: "right" }}>
                                 Amount Approved: Rs{" "}
                                 <span style={{ fontWeight: "bold" }}>
                                   {approvedAmount}

@@ -11,8 +11,18 @@
   overflow-x: auto;
   border: 1px solid #ddd;
   margin-bottom: 3%;
-  max-width: 100%;
+  max-width: 1160px;
 }
+
+.reimbursement-table-scroll2 {
+  margin-top: 2%;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid #ddd;
+  margin-bottom: 3%;
+}
+
 .invoice-label::after {
   content: " *";
   color: #d32f2f;
@@ -258,8 +268,6 @@
   background: #f7faff;
 }
 
-/* Row header: force fields to be columns on a single horizontal line.
-   If width is insufficient the header will horizontally scroll rather than wrap. */
 .row-item .row-header {
   display: grid;
   grid-auto-flow: column; /* place each .field in its own column (in DOM order) */
@@ -271,7 +279,7 @@
   align-items: end;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: auto; /* allow horizontal scroll if many columns */
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   white-space: nowrap; /* helps prevent label/input wrapping inside the header */
   padding-bottom: 6px;
@@ -730,7 +738,7 @@
   display: flex;
   gap: 2%;
   margin: 2%;
-  padding: 0 2%;
+  padding: 0;
   color: #000;
   font-weight: bold;
   cursor: pointer;
@@ -739,6 +747,10 @@
 .sub-tab.active {
   color: #004dc6;
   border-bottom: 2px solid #004dc6;
+}
+
+.rb-main-form {
+  margin: 2%;
 }
 
 .rb-radio {
@@ -1260,7 +1272,8 @@
 }
 
 .participant-controls-wrapper {
-  margin: 12px;
+  margin: 12px 0;
+  width: 1240px;
 }
 
 .participant-mode-toggle {
@@ -1273,6 +1286,8 @@
 .participant-mode-toggle .ps-mode-label {
   display: inline-flex;
   align-items: center;
+  text-align: left;
+  margin: 0;
   gap: 8px;
   cursor: pointer;
 }

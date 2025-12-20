@@ -82,7 +82,7 @@
   position: absolute;
   top: 2px;
   right: 10px;
-  background-color: #d32f2f;
+  background-color: #d86969;
   z-index: 4;
 }
 
@@ -97,11 +97,11 @@
 }
 
 .optional-dot {
-  background-color: #d32f2f;
+  background-color: #9090fd;
 }
 
 .company-dot {
-  background-color: #9090fd;
+  background-color: #79c42b;
 }
 
 .react-tooltip {
@@ -150,9 +150,9 @@
 }
 
 .color-box.optional {
-  background-color: #d32f2f;
+  background-color: #9090fd;
 }
 
 .color-box.company {
-  background-color: #9090fd;
+  background-color: #79c42b;
 }

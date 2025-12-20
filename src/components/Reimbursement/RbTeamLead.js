@@ -112,7 +112,7 @@ const RbTeamLead = () => {
   }, [view]);
 
   const formatDisplayDate = (raw) => {
-    if (!raw) return "N/A";
+    if (!raw) return " ";
     const d = raw instanceof Date ? raw : new Date(raw);
     if (isNaN(d)) return raw;
     const dd = String(d.getDate()).padStart(2, "0");
@@ -465,6 +465,59 @@ const RbTeamLead = () => {
     return names.join(", ");
   };
 
+  // --- add inside component ---
+  const parseAmount = (v) => {
+    if (v === null || v === undefined || v === "") return 0;
+    if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+    const s = String(v)
+      .replace(/,/g, "")
+      .replace(/[^0-9.\-]/g, "")
+      .trim();
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const getClaimAmount = (claim = {}) => {
+    if (!claim) return 0;
+    // prefer aggregated_total, then a few common fallbacks
+    const candidates = [
+      claim.aggregated_total,
+      claim.aggregatedTotal,
+      claim.total_amount,
+      claim.totalAmount,
+      claim.total,
+    ];
+    for (const c of candidates) {
+      const n = parseAmount(c);
+      if (n !== 0) return n;
+    }
+
+    // fallback: sum lines (line.total_amount or payload.total_amount)
+    if (Array.isArray(claim.lines) && claim.lines.length) {
+      return claim.lines.reduce((s, ln) => {
+        if (!ln) return s;
+        const lnCandidates = [
+          ln.total_amount,
+          ln.totalAmount,
+          ln.payload && ln.payload.total_amount,
+          ln.payload && ln.payload.totalAmount,
+        ];
+        for (const lc of lnCandidates) {
+          const lnVal = parseAmount(lc);
+          if (lnVal !== 0) {
+            s += lnVal;
+            return s;
+          }
+        }
+        // If nothing matched, try a safe fallback from ln.total_amount / payload
+        s += parseAmount(ln.total_amount ?? ln.payload?.total_amount ?? 0);
+        return s;
+      }, 0);
+    }
+
+    return 0;
+  };
+
   const openParticipantsModal = (claim) => {
     let existing = claim.participants || claim.participant_ids || [];
     try {
@@ -673,24 +726,32 @@ const RbTeamLead = () => {
                         Total Amount Claiming: Rs{" "}
                         {filteredClaims
                           .reduce(
-                            (sum, claim) =>
-                              sum + parseFloat(claim.total_amount || 0),
+                            (sum, claim) => sum + getClaimAmount(claim),
                             0
                           )
-                          .toLocaleString("en-IN")}
+                          .toLocaleString("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                       </span>
                     </div>
                     <div className="emp-rows">
                       <span>
                         Amount Approved: Rs{" "}
                         {filteredClaims
-                          .filter((claim) => claim.status === "approved")
+                          .filter(
+                            (claim) =>
+                              String(claim.status || "").toLowerCase() ===
+                              "approved"
+                          )
                           .reduce(
-                            (sum, claim) =>
-                              sum + parseFloat(claim.total_amount || 0),
+                            (sum, claim) => sum + getClaimAmount(claim),
                             0
                           )
-                          .toLocaleString("en-IN")}
+                          .toLocaleString("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                       </span>
                     </div>
                     <div className="toggle-btn">
@@ -795,9 +856,7 @@ const RbTeamLead = () => {
                                 ? rb.date
                                 : firstLineDate;
 
-                              // amount: aggregated_total preferred else total_amount
-                              const amountDisplay =
-                                rb.aggregated_total || rb.total_amount || 0;
+                              const amountDisplayNumber = getClaimAmount(rb);
 
                               return (
                                 <React.Fragment
@@ -834,16 +893,27 @@ const RbTeamLead = () => {
                                             .join(" - ")
                                         : mainDate
                                         ? formatDisplayDate(mainDate)
-                                        : "N/A"}
+                                        : " "}
                                     </td>
 
-                                    <td>₹{amountDisplay}</td>
+                                    <td>
+                                      ₹
+                                      {amountDisplayNumber.toLocaleString(
+                                        "en-IN",
+                                        {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                        }
+                                      )}
+                                    </td>
 
                                     <td
-                                      className="purpose-cell"
+                                      className="participants-cell-col"
                                       title={rb.purpose}
                                     >
-                                      {rb.purpose || rb.comments || "-"}
+                                      <div className="rbadmin-comments">
+                                        {rb.purpose || rb.comments || "-"}
+                                      </div>
                                     </td>
 
                                     <td
@@ -1132,17 +1202,14 @@ const RbTeamLead = () => {
                                                     .map(formatDisplayDate)
                                                     .join(" - ")
                                                 : formatDisplayDate(dateDisplay)
-                                              : "N/A"}
+                                              : " "}
                                           </td>
-                                          {/* Amount (column 4) */}
                                           <td>
                                             {Number(lineAmount || 0).toFixed(2)}
                                           </td>
-                                          {/* Purpose (column 5) */}
                                           <td style={{ paddingLeft: 12 }}>
                                             {payload.purpose || "-"}
                                           </td>
-                                          {/* Participants (column 6) */}
                                           <td
                                             className="participants-cell-col"
                                             title={getParticipantNamesForClaim(
