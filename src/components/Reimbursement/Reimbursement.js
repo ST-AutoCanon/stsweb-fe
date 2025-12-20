@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { FaSearch } from "react-icons/fa";
 import {
@@ -144,6 +144,7 @@ const Reimbursement = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [expandedClaims, setExpandedClaims] = useState(new Set());
+  const initialAttachmentsRef = useRef([]);
 
   const toggleExpand = (claimId) => {
     setExpandedClaims((prev) => {
@@ -619,6 +620,14 @@ const Reimbursement = () => {
 
     const claimRows = buildClaimRowsFromLines(claim.lines, claimType);
 
+    const initialList = (attachments[claim.id] || [])
+      .map(
+        (a) =>
+          a?.file_name || a?.filename || a?.name || a?.fileName || String(a)
+      )
+      .filter(Boolean);
+    initialAttachmentsRef.current = initialList;
+
     setFormData({
       employeeId: claim.employee_id || employeeId,
       department_id: claim.department_id || departmentId,
@@ -655,9 +664,7 @@ const Reimbursement = () => {
       _forceShowTransport: false,
     });
 
-    setSelectedFiles(
-      (attachments[claim.id] || []).map((a) => a.file_name).filter(Boolean)
-    );
+    setSelectedFiles(initialList.slice());
   };
 
   const getParticipantNamesForClaim = (claim = {}) => {
@@ -981,6 +988,40 @@ const Reimbursement = () => {
         fd.append("attachmentsMeta", JSON.stringify(attachmentsMeta));
       }
 
+      const currentAttachmentsRaw = formData.attachments || [];
+      const currentAttachmentsArr = Array.isArray(currentAttachmentsRaw)
+        ? currentAttachmentsRaw
+        : [currentAttachmentsRaw];
+
+      const currentExistingNames = currentAttachmentsArr
+        .filter((item) => !(item instanceof File))
+        .map((item) =>
+          typeof item === "string"
+            ? item
+            : item?.file_name ||
+              item?.filename ||
+              item?.name ||
+              item?.fileName ||
+              ""
+        )
+        .filter(Boolean);
+
+      const initialNames = Array.isArray(initialAttachmentsRef.current)
+        ? initialAttachmentsRef.current
+        : [];
+
+      const deletedAttachments = initialNames.filter(
+        (n) => !currentExistingNames.includes(n)
+      );
+
+      if (currentExistingNames.length > 0) {
+        fd.append("existingAttachments", JSON.stringify(currentExistingNames));
+      }
+
+      if (deletedAttachments.length > 0) {
+        fd.append("deletedAttachments", JSON.stringify(deletedAttachments));
+      }
+
       if (formData.department_id)
         fd.append("department_id", String(formData.department_id));
 
@@ -1122,7 +1163,7 @@ const Reimbursement = () => {
   };
 
   const formatDisplayDate = (raw) => {
-    if (!raw) return "N/A";
+    if (!raw) return " ";
     const d = raw instanceof Date ? raw : new Date(raw);
     if (isNaN(d)) return raw;
     const day = String(d.getDate()).padStart(2, "0");
@@ -1270,7 +1311,7 @@ const Reimbursement = () => {
 
       {errorMessage && <p className="rb-error-message">{errorMessage}</p>}
 
-      <div className="reimbursement-table-scroll">
+      <div className="reimbursement-table-scroll2">
         <table className="reimbursement-table">
           <thead>
             <tr>
@@ -1297,22 +1338,18 @@ const Reimbursement = () => {
               </tr>
             ) : (
               filterClaims.map((claim, claimIdx) => {
-                // --- inside filterClaims.map((claim, claimIdx) => { ... }) ---
-
                 const lines = Array.isArray(claim.lines)
                   ? claim.lines
                       .slice()
                       .sort((a, b) => (a.line_index || 0) - (b.line_index || 0))
                   : [];
 
-                // derive claim-level invoices (fallback to first line's invoices if needed)
                 let claimLevelInvs = parseInvoicesFromClaim(claim);
                 if (!Array.isArray(claimLevelInvs))
                   claimLevelInvs = claimLevelInvs
                     ? [String(claimLevelInvs)]
                     : [];
 
-                // if there's no claim-level invoice but first line has, use that for summary
                 if (
                   (!claimLevelInvs || claimLevelInvs.length === 0) &&
                   lines.length > 0
@@ -1345,10 +1382,9 @@ const Reimbursement = () => {
                     ? claimLevelInvs.join(", ")
                     : "-";
 
-                // derive primary claim date: prefer claim-level fields, otherwise use first line's payload.date
                 let primaryClaimDate = null;
                 if (claim.date_range) {
-                  primaryClaimDate = claim.date_range; // keep original date_range string (you already format elsewhere)
+                  primaryClaimDate = claim.date_range;
                 } else if (claim.date) {
                   primaryClaimDate = claim.date;
                 } else if (claim.from_date && claim.to_date) {
@@ -1358,7 +1394,6 @@ const Reimbursement = () => {
                   lines[0].payload &&
                   (lines[0].payload.date || lines[0].payload.from_date)
                 ) {
-                  // fallback to the first line's payload date/from_date
                   if (lines[0].payload.date)
                     primaryClaimDate = lines[0].payload.date;
                   else if (
@@ -1372,7 +1407,6 @@ const Reimbursement = () => {
 
                 const isOpen = isExpanded(claim.id);
 
-                // main row summary (one per claim)
                 return (
                   <React.Fragment key={`claim-${claim.id || claimIdx}`}>
                     <tr className="claim-main-row">
@@ -1398,22 +1432,19 @@ const Reimbursement = () => {
                         {getParticipantNamesForClaim(claim)}
                       </td>
 
-                      {/* For the main row show a compact date (use claim-level date_range/date) */}
-                      {/* For the main row show a compact date (use claim-level date_range/date or fallback to first line date) */}
                       <td>
                         {primaryClaimDate
                           ? Array.isArray(primaryClaimDate)
                             ? primaryClaimDate
                                 .map(formatDisplayDate)
                                 .join(" - ")
-                            : // if it's a string range like "2025-12-01 - 2025-12-03", attempt to split
-                            String(primaryClaimDate).includes(" - ")
+                            : String(primaryClaimDate).includes(" - ")
                             ? String(primaryClaimDate)
                                 .split(" - ")
                                 .map(formatDisplayDate)
                                 .join(" - ")
                             : formatDisplayDate(primaryClaimDate)
-                          : "N/A"}
+                          : " "}
                       </td>
 
                       <td>
@@ -1426,14 +1457,12 @@ const Reimbursement = () => {
                         {claimInvDisplay}
                       </td>
 
-                      {/* show aggregated total for claim on main row */}
                       <td>
                         {Number(
                           claim.aggregated_total || claim.total_amount || 0
                         ).toFixed(2)}
                       </td>
 
-                      {/* attachments for claim-level (not line-specific) */}
                       <td>
                         {attachments[claim.id] &&
                         attachments[claim.id].length > 0 ? (
@@ -1533,14 +1562,12 @@ const Reimbursement = () => {
                       </td>
                     </tr>
 
-                    {/* expanded child rows: one row per line */}
                     {isOpen &&
                       (lines.length
                         ? lines
                         : [{ id: null, payload: claim }]
                       ).map((line, li) => {
                         const payload = line.payload || {};
-                        // prefer invoices present on line payload otherwise leave blank (claim-level already shown)
                         let invs =
                           Array.isArray(payload.invoices) &&
                           payload.invoices.length
@@ -1566,7 +1593,6 @@ const Reimbursement = () => {
                           payload.to_date ||
                           null;
 
-                        // try line-specific attachments map (server shape: line_attachments_map)
                         const lineAttachments =
                           (claim.line_attachments_map &&
                             line &&
@@ -1600,7 +1626,7 @@ const Reimbursement = () => {
                                       .map(formatDisplayDate)
                                       .join(" - ")
                                   : formatDisplayDate(dateDisplay)
-                                : "N/A"}
+                                : " "}
                             </td>
 
                             <td>
@@ -1650,15 +1676,15 @@ const Reimbursement = () => {
 
           <tfoot>
             <tr className="total-row">
-              <td colSpan="5" className="total-left">
+              <td colSpan="4" className="total-left">
                 Total Amount Claiming:{" "}
                 <span className="total-amount">Rs {totalAmount}</span>
               </td>
-              <td colSpan="3" className="total-right">
+              <td colSpan="4" className="total-right">
                 Amount Approved: Rs{" "}
                 <span className="total-amount">{approvedAmount}</span>
               </td>
-              <td colSpan="3" className="total-right">
+              <td colSpan="4" className="total-right">
                 Amount Rejected: Rs{" "}
                 <span className="total-amount">{rejectedAmount}</span>
               </td>
@@ -1709,7 +1735,7 @@ const Reimbursement = () => {
                   </p>
                   <p>
                     <strong>Date:</strong>{" "}
-                    {claim.date ? formatDisplayDate(claim.date) : "N/A"}
+                    {claim.date ? formatDisplayDate(claim.date) : " "}
                   </p>
                   <p>
                     <strong>Purpose:</strong> {claim.purpose}

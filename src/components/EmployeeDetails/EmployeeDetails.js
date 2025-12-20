@@ -193,6 +193,7 @@ export default function EmployeeDetails() {
   const [searchTerm, setSearchTerm] = useState("");
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("All");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [departments, setDepartments] = useState([]);
@@ -621,6 +622,11 @@ export default function EmployeeDetails() {
     fetchEmployees();
   };
 
+  const filteredEmployees = employees.filter((emp) => {
+    if (statusFilter === "All") return true;
+    return emp.status === statusFilter;
+  });
+
   return (
     <div className="employee-details-container">
       <h2>Employee Details</h2>
@@ -638,6 +644,21 @@ export default function EmployeeDetails() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="status-filter-container">
+          <label>
+            <strong>Status:</strong>
+          </label>
+          <select
+            className="status-filter-select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
         </div>
 
         <div className="calendar-input-group">
@@ -752,12 +773,12 @@ export default function EmployeeDetails() {
               </tr>
             </thead>
             <tbody>
-              {employees.length === 0 ? (
+              {filteredEmployees.length === 0 ? (
                 <tr>
                   <td colSpan="10">No employees found</td>
                 </tr>
               ) : (
-                employees.map((emp) => (
+                filteredEmployees.map((emp) => (
                   <tr key={emp.employee_id}>
                     <td>
                       <strong>{emp.employee_id}</strong>

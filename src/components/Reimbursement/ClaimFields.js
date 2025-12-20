@@ -34,6 +34,14 @@ const ClaimFields = ({
     formData.participant_mode || "single"
   );
 
+  const maxDate = useMemo(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, []);
+
   useEffect(() => {
     setLocalParticipantMode(formData.participant_mode || "single");
   }, [formData.participant_mode]);
@@ -245,16 +253,22 @@ const ClaimFields = ({
   };
 
   const handleOutstationFieldChange = (idx, key, value) => {
-    updateRow(idx, key, value);
+    const rows = ensureRowsForCurrentType().slice();
+    if (idx < 0 || idx >= rows.length) return;
 
-    setTimeout(() => {
-      const rows = ensureRowsForCurrentType().slice();
-      if (idx < 0 || idx >= rows.length) return;
-      const row = rows[idx] || {};
-      const latest = { ...(row || {}), [key]: value };
-      const computed = computeOutstationRowTotal(latest);
-      updateRow(idx, "total_amount", computed.toFixed(2));
-    }, 0);
+    const updatedRow = {
+      ...(rows[idx] || {}),
+      [key]: value,
+    };
+
+    const computed = computeOutstationRowTotal(updatedRow);
+
+    rows[idx] = {
+      ...updatedRow,
+      total_amount: computed.toFixed(2),
+    };
+
+    setRowsForCurrentType(rows);
   };
 
   const handleTransportAmountChange = (idx, value) => {
@@ -295,7 +309,13 @@ const ClaimFields = ({
 
   const handleClaimTypeSelect = (label) => {
     setFormData((prev) => {
-      const newPrev = { ...prev, claim_type: label };
+      const newPrev = {
+        ...prev,
+        claim_type: label,
+        participants: [],
+        participant_mode: "single",
+      };
+
       const rowsObj =
         newPrev.claim_rows && typeof newPrev.claim_rows === "object"
           ? { ...newPrev.claim_rows }
@@ -311,6 +331,21 @@ const ClaimFields = ({
       newPrev.claim_rows = rowsObj;
       return newPrev;
     });
+
+    if (typeof onParticipantSelectionChange === "function") {
+      try {
+        onParticipantSelectionChange([]);
+      } catch (e) {
+        console.warn("onParticipantSelectionChange([]) failed:", e);
+      }
+    }
+
+    setLocalParticipantMode("single");
+
+    const modalEl = modalContentRef?.current;
+    if (modalEl) {
+      modalEl.classList.remove("show-participants");
+    }
   };
 
   const renderDateFields = (claimType, isMainRow) => {
@@ -326,6 +361,7 @@ const ClaimFields = ({
                 type="date"
                 name="fromDate"
                 value={formData.fromDate || ""}
+                max={maxDate}
                 onChange={(e) => updateField("fromDate", e.target.value)}
               />
             </div>
@@ -335,6 +371,7 @@ const ClaimFields = ({
                 type="date"
                 name="toDate"
                 value={formData.toDate || ""}
+                max={maxDate}
                 onChange={(e) => updateField("toDate", e.target.value)}
               />
             </div>
@@ -348,6 +385,7 @@ const ClaimFields = ({
               type="date"
               name="date"
               value={formData.date || ""}
+              max={maxDate}
               onChange={(e) => updateField("date", e.target.value)}
             />
           </div>
@@ -361,6 +399,7 @@ const ClaimFields = ({
                 type="date"
                 name="fromDate"
                 value={formData.fromDate || ""}
+                max={maxDate}
                 onChange={(e) => updateField("fromDate", e.target.value)}
               />
             </div>
@@ -370,6 +409,7 @@ const ClaimFields = ({
                 type="date"
                 name="toDate"
                 value={formData.toDate || ""}
+                max={maxDate}
                 onChange={(e) => updateField("toDate", e.target.value)}
               />
             </div>
@@ -386,6 +426,7 @@ const ClaimFields = ({
           type="date"
           name="date"
           value={formData.date || ""}
+          max={maxDate}
           onChange={(e) => updateField("date", e.target.value)}
         />
       </div>
@@ -406,9 +447,9 @@ const ClaimFields = ({
           {rows.map((row, idx) => {
             const isMain = idx === 0;
             const val = (key) =>
-              row && row[key] !== undefined && row[key] !== null
+              row && Object.prototype.hasOwnProperty.call(row, key)
                 ? row[key]
-                : formData[key] || "";
+                : "";
 
             const isOutstation =
               ct === "Transportation" &&
