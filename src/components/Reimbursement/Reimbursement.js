@@ -136,6 +136,16 @@ const defaultRowForType = (type) => {
   }
 };
 
+const makeClientUniqueName = (file, rowIdx = null) => {
+  const ext =
+    file && file.name && file.name.includes(".")
+      ? "." + String(file.name).split(".").pop()
+      : "";
+  const shortUid = Math.random().toString(36).slice(2, 8);
+  const prefix = typeof rowIdx === "number" ? `r${rowIdx}` : "m";
+  return `${prefix}_${Date.now()}_${shortUid}${ext}`;
+};
+
 const Reimbursement = () => {
   const [reimbursements, setReimbursements] = useState([]);
   const [filteredReimbursements, setFilteredReimbursements] = useState([]);
@@ -343,14 +353,14 @@ const Reimbursement = () => {
 
   const handleFileUpload = (e, meta = {}) => {
     try {
-      const files = Array.from(e.target.files || []);
-      if (!files.length) {
+      const rawFiles = Array.from(e.target.files || []);
+      if (!rawFiles.length) {
         setSelectedFiles([]);
         setFormData((p) => ({ ...p, attachments: null }));
         return;
       }
 
-      const validation = validateFilesArray(files);
+      const validation = validateFilesArray(rawFiles);
       if (!validation.ok) {
         if (validation.reason) {
           showAlert(validation.reason, "Invalid files");
@@ -376,6 +386,18 @@ const Reimbursement = () => {
         meta && typeof meta.rowIndex === "number" ? meta.rowIndex : null;
       const claimType = formData.claim_type;
 
+      const clientFiles = rawFiles.map((file) => {
+        try {
+          return new File([file], makeClientUniqueName(file, rowIndex), {
+            type: file.type,
+          });
+        } catch (err) {
+          return file;
+        }
+      });
+
+      const clientNames = clientFiles.map((f) => f.name);
+
       if (rowIndex !== null && claimType) {
         const rowsObj =
           formData.claim_rows && typeof formData.claim_rows === "object"
@@ -390,18 +412,18 @@ const Reimbursement = () => {
 
         rows[rowIndex] = {
           ...(rows[rowIndex] || {}),
-          _files: files,
-          attachments: files.map((f) => f.name),
+          _files: clientFiles,
+          attachments: clientNames,
         };
 
         rowsObj[claimType] = rows;
         setFormData((p) => ({ ...p, claim_rows: rowsObj }));
-        if (rowIndex === 0) setSelectedFiles(files.map((f) => f.name));
+        if (rowIndex === 0) setSelectedFiles(clientNames.slice());
         return;
       }
 
-      setFormData((p) => ({ ...p, attachments: files }));
-      setSelectedFiles(files.map((f) => f.name));
+      setFormData((p) => ({ ...p, attachments: clientFiles }));
+      setSelectedFiles(clientNames.slice());
     } catch (err) {
       console.error("handleFileUpload error", err);
       showAlert("Could not process selected files. Please try again.");
@@ -1221,16 +1243,10 @@ const Reimbursement = () => {
 
       const attachmentsMeta = {};
 
-      const makeClientUniqueName = (file, rowIdx = null) => {
-        const shortUid = Math.random().toString(36).slice(2, 8);
-        const prefix = typeof rowIdx === "number" ? `r${rowIdx}` : "m";
-        return `${prefix}_${Date.now()}_${shortUid}_${file.name}`;
-      };
-
       rowsForType.forEach((r, idx) => {
         const files = Array.isArray(r._files) ? r._files : [];
         for (const file of files) {
-          const uniqueName = makeClientUniqueName(file, idx);
+          const uniqueName = file.name;
           fd.append("attachments", file, uniqueName);
           attachmentsMeta[uniqueName] = idx;
         }
@@ -1239,8 +1255,7 @@ const Reimbursement = () => {
       if (formData.attachments && Array.isArray(formData.attachments)) {
         for (const file of formData.attachments) {
           if (file instanceof File) {
-            const uniqueName = makeClientUniqueName(file, null);
-            fd.append("attachments", file, uniqueName);
+            fd.append("attachments", file, file.name);
           }
         }
       }
@@ -1522,7 +1537,7 @@ const Reimbursement = () => {
   return (
     <div className="reimbursement-container">
       <div className="rb-form-header">
-        {role !== "Manager" && role !== "Admin" && (
+        {role !== "Manager" && role !== "Admin" && role !== "HR" && (
           <h2>Reimbursement Requests</h2>
         )}
       </div>

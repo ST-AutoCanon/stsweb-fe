@@ -284,8 +284,32 @@ const RbTeamLead = () => {
       showAlert("Please select a status.");
       return;
     }
-    const project = projectSelections[id] || "";
-    if (!project) {
+
+    let claim = null;
+    for (const emp of employees) {
+      if (!emp || !Array.isArray(emp.claims)) continue;
+      const found = emp.claims.find((c) => String(c.id) === String(id));
+      if (found) {
+        claim = found;
+        break;
+      }
+    }
+
+    const existingProject = claim?.project || "";
+
+    const manualSelection = Object.prototype.hasOwnProperty.call(
+      projectSelections,
+      id
+    )
+      ? projectSelections[id]
+      : undefined;
+
+    const projectToSend =
+      typeof manualSelection !== "undefined" && manualSelection !== ""
+        ? manualSelection
+        : existingProject;
+
+    if (!projectToSend) {
       showAlert("Please select a project.");
       return;
     }
@@ -304,7 +328,7 @@ const RbTeamLead = () => {
           status: updatedStatus,
           approver_comments: approverComment,
           approver_id: approverId,
-          project,
+          project: projectToSend,
         },
         {
           withCredentials: true,
@@ -313,21 +337,35 @@ const RbTeamLead = () => {
       );
 
       showAlert(`Reimbursement ${updatedStatus} successfully.`);
+
       setEmployees((prevEmployees) =>
         prevEmployees.map((emp) => ({
           ...emp,
-          claims: emp.claims.map((claim) =>
-            claim.id === id
+          claims: emp.claims.map((c) =>
+            String(c.id) === String(id)
               ? {
-                  ...claim,
+                  ...c,
                   status: updatedStatus,
                   approver_comments: approverComment,
-                  project,
+                  project: projectToSend,
                 }
-              : claim
+              : c
           ),
         }))
       );
+
+      setProjectSelections((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, id)) return prev;
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
+      setStatusUpdates((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, id)) return prev;
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
     } catch (error) {
       console.error("Error updating status:", error);
       showAlert("Status update was not successful. Try again later.");
