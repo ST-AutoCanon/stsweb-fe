@@ -121,6 +121,40 @@ const RbTeamLead = () => {
     return `${dd}-${mon}-${yy}`;
   };
 
+  const formatRange = (from, to) => {
+    const f = formatDisplayDate(from);
+    const t = formatDisplayDate(to);
+    if (!f && !t) return " ";
+    if (f && t && f !== t) return `${f} - ${t}`;
+    return f || t;
+  };
+
+  const resolveDateDisplay = (payload = {}, claim = {}) => {
+    if (payload.date_range) {
+      const parts = payload.date_range.split(/\s*-\s*/);
+      if (parts.length >= 2) return formatRange(parts[0], parts[1]);
+    }
+
+    if (payload.from_date || payload.to_date) {
+      return formatRange(payload.from_date, payload.to_date);
+    }
+
+    if (Array.isArray(payload.dates) && payload.dates.length) {
+      return payload.dates.map(formatDisplayDate).join(", ");
+    }
+
+    if (payload.date) return formatDisplayDate(payload.date);
+
+    if (claim.date_range) {
+      const parts = claim.date_range.split(/\s*-\s*/);
+      if (parts.length >= 2) return formatRange(parts[0], parts[1]);
+    }
+
+    if (claim.date) return formatDisplayDate(claim.date);
+
+    return " ";
+  };
+
   const fetchEmployees = async () => {
     try {
       if (!teamLeadId) {
@@ -195,7 +229,6 @@ const RbTeamLead = () => {
         files.map(async (file) => {
           try {
             if (!file?.filename && !file?.file_name) return null;
-            // Accept both filename and file_name keys
             const filename = file.filename || file.file_name;
             const match = filename.match(/^(\d{4})-(\d{2})-\d{2}/);
             if (!match) return null;
@@ -465,7 +498,6 @@ const RbTeamLead = () => {
     return names.join(", ");
   };
 
-  // --- add inside component ---
   const parseAmount = (v) => {
     if (v === null || v === undefined || v === "") return 0;
     if (typeof v === "number") return Number.isFinite(v) ? v : 0;
@@ -479,7 +511,6 @@ const RbTeamLead = () => {
 
   const getClaimAmount = (claim = {}) => {
     if (!claim) return 0;
-    // prefer aggregated_total, then a few common fallbacks
     const candidates = [
       claim.aggregated_total,
       claim.aggregatedTotal,
@@ -492,7 +523,6 @@ const RbTeamLead = () => {
       if (n !== 0) return n;
     }
 
-    // fallback: sum lines (line.total_amount or payload.total_amount)
     if (Array.isArray(claim.lines) && claim.lines.length) {
       return claim.lines.reduce((s, ln) => {
         if (!ln) return s;
@@ -509,7 +539,6 @@ const RbTeamLead = () => {
             return s;
           }
         }
-        // If nothing matched, try a safe fallback from ln.total_amount / payload
         s += parseAmount(ln.total_amount ?? ln.payload?.total_amount ?? 0);
         return s;
       }, 0);
@@ -786,7 +815,6 @@ const RbTeamLead = () => {
                           </thead>
                           <tbody>
                             {filteredClaims.map((rb, index) => {
-                              // normalize lines & sort by line_index
                               const lines = Array.isArray(rb.lines)
                                 ? rb.lines
                                     .slice()
@@ -797,7 +825,6 @@ const RbTeamLead = () => {
                                     )
                                 : [];
 
-                              // claim-level invoices (may be JSON string or CSV); parseInvoicesForClaim exists above
                               const claimLevelInvs = parseInvoicesForClaim(rb);
                               const invSet = new Set(
                                 (claimLevelInvs || []).map((i) =>
@@ -805,13 +832,11 @@ const RbTeamLead = () => {
                                 )
                               );
 
-                              // include any line-level invoices into the set (dedupe)
                               lines.forEach((ln) => {
                                 const lnInvRaw =
                                   ln?.payload?.invoices ||
                                   ln?.payload?.invoice ||
                                   [];
-                                // attempt to parse string/array
                                 let parsed = lnInvRaw;
                                 try {
                                   if (
@@ -819,9 +844,7 @@ const RbTeamLead = () => {
                                     parsed.trim()
                                   )
                                     parsed = JSON.parse(parsed);
-                                } catch (e) {
-                                  // fall through to split below
-                                }
+                                } catch (e) {}
                                 if (typeof parsed === "string") {
                                   parsed = parsed
                                     .split(",")
@@ -839,7 +862,6 @@ const RbTeamLead = () => {
                                 ? Array.from(invSet).join(", ")
                                 : "-";
 
-                              // prefer rb.date_range -> rb.date -> first line payload date
                               const firstLinePayload =
                                 lines && lines.length
                                   ? lines[0].payload || {}
@@ -864,7 +886,6 @@ const RbTeamLead = () => {
                                     rb.id || `${employee.employee_id}-${index}`
                                   }
                                 >
-                                  {/* main claim row */}
                                   <tr className="claim-main-row">
                                     <td>
                                       <button
@@ -886,14 +907,12 @@ const RbTeamLead = () => {
                                     <td>{rb.claim_type || "-"}</td>
 
                                     <td>
-                                      {rb.date_range
-                                        ? rb.date_range
-                                            .split(" - ")
-                                            .map((d) => formatDisplayDate(d))
-                                            .join(" - ")
-                                        : mainDate
-                                        ? formatDisplayDate(mainDate)
-                                        : " "}
+                                      {resolveDateDisplay(
+                                        lines && lines.length
+                                          ? lines[0].payload
+                                          : {},
+                                        rb
+                                      )}
                                     </td>
 
                                     <td>
@@ -1021,7 +1040,12 @@ const RbTeamLead = () => {
                                       ) : (
                                         <select
                                           className="rb-status-dropdown"
-                                          value={projectSelections[rb.id] || ""}
+                                          value={
+                                            projectSelections[rb.id] !==
+                                            undefined
+                                              ? projectSelections[rb.id]
+                                              : rb.project || ""
+                                          }
                                           onChange={(e) =>
                                             setProjectSelections((prev) => ({
                                               ...prev,
@@ -1033,6 +1057,17 @@ const RbTeamLead = () => {
                                           <option value="STS CLAIM">
                                             STS CLAIM
                                           </option>
+
+                                          {rb.project &&
+                                            !projects.includes(rb.project) && (
+                                              <option
+                                                key={`current-${rb.id}`}
+                                                value={rb.project}
+                                              >
+                                                {rb.project}
+                                              </option>
+                                            )}
+
                                           {projects.map((project, idx) => (
                                             <option key={idx} value={project}>
                                               {project}
@@ -1129,14 +1164,12 @@ const RbTeamLead = () => {
                                     </td>
                                   </tr>
 
-                                  {/* expanded line rows aligned to header */}
                                   {expandedClaims[rb.id] &&
                                     (lines.length
                                       ? lines
                                       : [{ id: null, payload: rb }]
                                     ).map((line, li) => {
                                       const payload = line.payload || {};
-                                      // line invoices fallback to claim-level if none
                                       const lineInvsRaw =
                                         payload.invoices ||
                                         payload.invoice ||
@@ -1165,7 +1198,6 @@ const RbTeamLead = () => {
                                           ? lineInvs.join(", ")
                                           : claimInvDisplay;
 
-                                      // attachments for this line
                                       const lineAttachMap =
                                         rb.line_attachments_map || {};
                                       const attachmentsForThis =
@@ -1190,20 +1222,12 @@ const RbTeamLead = () => {
                                           key={`line-${rb.id}-${line.id ?? li}`}
                                           className="claim-line-row"
                                         >
-                                          {/* Sl No */}
                                           <td></td>
-                                          {/* Claim Type */}
                                           <td></td>
-                                          {/* Date (column 3) */}
                                           <td>
-                                            {dateDisplay
-                                              ? Array.isArray(dateDisplay)
-                                                ? dateDisplay
-                                                    .map(formatDisplayDate)
-                                                    .join(" - ")
-                                                : formatDisplayDate(dateDisplay)
-                                              : " "}
+                                            {resolveDateDisplay(payload, rb)}
                                           </td>
+
                                           <td>
                                             {Number(lineAmount || 0).toFixed(2)}
                                           </td>
@@ -1220,14 +1244,12 @@ const RbTeamLead = () => {
                                               {getParticipantNamesForClaim(rb)}
                                             </div>
                                           </td>
-                                          {/* Invoice(s) (column 7) */}
                                           <td
                                             className="invoice-cell"
                                             title={lnInvDisplay}
                                           >
                                             {lnInvDisplay}
                                           </td>
-                                          {/* Attachments (column 8) */}
                                           <td>
                                             {attachmentsForThis &&
                                             attachmentsForThis.length > 0 ? (
@@ -1257,13 +1279,13 @@ const RbTeamLead = () => {
                                               "Not Attached"
                                             )}
                                           </td>
-                                          {/* Status (column 9) */} <td></td>
-                                          {/* Projects (column 10) */} <td></td>
-                                          {/* Approver Comments (column 11) */}{" "}
                                           <td></td>
-                                          {/* Payment Status (column 12) */}{" "}
                                           <td></td>
-                                          {/* Actions (column 13) */} <td></td>
+
+                                          <td></td>
+
+                                          <td></td>
+                                          <td></td>
                                         </tr>
                                       );
                                     })}
