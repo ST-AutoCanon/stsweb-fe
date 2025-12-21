@@ -12,7 +12,7 @@ import ParticipantSelection from "./ParticipantSelection";
 const RbAdmin = () => {
   const [employees, setEmployees] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
-  const [expandedClaims, setExpandedClaims] = useState({}); // NEW: per-claim expand state
+  const [expandedClaims, setExpandedClaims] = useState({});
   const [submittedFrom, setSubmittedFrom] = useState("");
   const [submittedTo, setSubmittedTo] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -27,6 +27,9 @@ const RbAdmin = () => {
     localStorage.getItem("dashboardData") || "{}"
   );
   const employeeId = employeeData?.employeeId;
+  const userRole = localStorage.getItem("userRole").toLowerCase?.() || "";
+  const isHR = userRole === "hr";
+
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPaymentClaim, setSelectedPaymentClaim] = useState(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState("");
@@ -50,14 +53,79 @@ const RbAdmin = () => {
     return `${day}-${mon}-${year}`;
   };
 
-  // invoice parsing helper (mirrors employee side)
+  const formatRange = (from, to) => {
+    const f = formatDisplayDate(from);
+    const t = formatDisplayDate(to);
+    if ((!f || f === " ") && (!t || t === " ")) return " ";
+    if (f && t && f !== t) return `${f} - ${t}`;
+    return f || t || " ";
+  };
+
+  const resolveDateDisplay = (payload = {}, claim = {}) => {
+    try {
+      if (payload) {
+        if (typeof payload === "string" && payload.trim()) {
+          const parts = payload
+            .replace(/\u2013|\u2014/g, "-")
+            .split(/\s*[-–—]\s*/);
+          if (parts.length >= 2)
+            return `${formatDisplayDate(parts[0])} - ${formatDisplayDate(
+              parts[1]
+            )}`;
+        } else if (
+          typeof payload.date_range === "string" &&
+          payload.date_range.trim()
+        ) {
+          const parts = payload.date_range
+            .replace(/\u2013|\u2014/g, "-")
+            .split(/\s*[-–—]\s*/);
+          if (parts.length >= 2)
+            return `${formatDisplayDate(parts[0])} - ${formatDisplayDate(
+              parts[1]
+            )}`;
+        }
+
+        if (payload.from_date || payload.to_date) {
+          return formatRange(payload.from_date, payload.to_date);
+        }
+
+        if (Array.isArray(payload.dates) && payload.dates.length) {
+          return payload.dates.map(formatDisplayDate).join(", ");
+        }
+
+        if (payload.date) return formatDisplayDate(payload.date);
+      }
+
+      if (claim) {
+        if (typeof claim.date_range === "string" && claim.date_range.trim()) {
+          const parts = claim.date_range
+            .replace(/\u2013|\u2014/g, "-")
+            .split(/\s*[-–—]\s*/);
+          if (parts.length >= 2)
+            return `${formatDisplayDate(parts[0])} - ${formatDisplayDate(
+              parts[1]
+            )}`;
+        }
+
+        if (claim.from_date || claim.to_date) {
+          return formatRange(claim.from_date, claim.to_date);
+        }
+
+        if (claim.date) return formatDisplayDate(claim.date);
+      }
+
+      return " ";
+    } catch (e) {
+      return " ";
+    }
+  };
+
   const parseInvoicesFromClaim = (claimOrInv) => {
     let invs = claimOrInv || [];
     try {
       if (typeof invs === "object" && Array.isArray(invs))
         return invs.map((i) => String(i).trim()).filter(Boolean);
       if (typeof invs === "string" && invs.trim()) {
-        // try JSON then CSV fallback
         try {
           const parsed = JSON.parse(invs);
           if (Array.isArray(parsed))
@@ -210,7 +278,6 @@ const RbAdmin = () => {
     fetchEmployees();
   }, []);
 
-  // safe numeric read for claim-level amount (handles aggregated_total, total_amount, strings with commas, etc.)
   const getClaimAmount = (claim = {}) => {
     const raw =
       claim?.aggregated_total ??
@@ -218,7 +285,6 @@ const RbAdmin = () => {
       claim?.totalAmount ??
       claim?.total ??
       0;
-    // convert to number safely (strip commas, handle null/empty)
     const n = parseFloat(
       String(raw || "")
         .toString()
@@ -271,12 +337,10 @@ const RbAdmin = () => {
     setExpandedRows((prev) => ({ ...prev, [employeeId]: !prev[employeeId] }));
   };
 
-  // NEW: per-claim expand
   const toggleClaimExpand = (claimId) => {
     setExpandedClaims((prev) => ({ ...prev, [claimId]: !prev[claimId] }));
   };
 
-  // Updated to accept objects with filename | file_name | name
   const handleOpenAttachments = async (files, claim) => {
     try {
       if (!files || files.length === 0) {
@@ -289,10 +353,8 @@ const RbAdmin = () => {
           const candidateFilename =
             file.filename || file.file_name || file.name;
           if (!candidateFilename) return null;
-          // try to extract YYYY-MM-DD prefix from filename
           const match = candidateFilename.match(/^(\d{4})-(\d{2})-(\d{2})/);
           if (!match) {
-            // fallback: try underscore date 'YYYY-MM-DD_' or other patterns
             const match2 = candidateFilename.match(
               /^(\d{4})[-_](\d{2})[-_](\d{2})/
             );
@@ -794,7 +856,6 @@ const RbAdmin = () => {
                                     )
                                 : [];
 
-                              // prefer claim-level date_range -> claim.date -> first line payload date -> fallback
                               const firstLinePayload =
                                 lines && lines.length
                                   ? lines[0].payload || {}
@@ -805,7 +866,6 @@ const RbAdmin = () => {
                                 firstLinePayload.to_date ||
                                 null;
 
-                              // aggregated claim-level invoices (dedup)
                               let claimInvs = parseInvoicesFromClaim(
                                 claim.invoices ||
                                   claim.invoice_numbers ||
@@ -834,7 +894,6 @@ const RbAdmin = () => {
                                     `${employee.employee_id}-${index}`
                                   }
                                 >
-                                  {/* main claim row */}
                                   <tr className="claim-main-row">
                                     <td>
                                       <button
@@ -860,16 +919,10 @@ const RbAdmin = () => {
                                     <td>{claim.claim_type || "-"}</td>
 
                                     <td>
-                                      {claim.date_range
-                                        ? claim.date_range
-                                            .split(" - ")
-                                            .map(formatDisplayDate)
-                                            .join(" - ")
-                                        : claim.date || firstLineDate
-                                        ? formatDisplayDate(
-                                            claim.date || firstLineDate
-                                          )
-                                        : " "}
+                                      {resolveDateDisplay(
+                                        firstLinePayload,
+                                        claim
+                                      )}
                                     </td>
 
                                     <td>₹{claim.aggregated_total}</td>
@@ -957,11 +1010,13 @@ const RbAdmin = () => {
                                             ""
                                           }
                                           onChange={(e) =>
+                                            !isHR &&
                                             handleStatusChange(
                                               claim.id,
                                               e.target.value
                                             )
                                           }
+                                          disabled={isHR}
                                         >
                                           <option value="">Pending</option>
                                           <option value="approved">
@@ -988,11 +1043,13 @@ const RbAdmin = () => {
                                             projectSelections[claim.id] || ""
                                           }
                                           onChange={(e) =>
+                                            !isHR &&
                                             setProjectSelections((prev) => ({
                                               ...prev,
                                               [claim.id]: e.target.value,
                                             }))
                                           }
+                                          disabled={isHR}
                                         >
                                           <option value="">Select</option>
                                           <option value="STS CLAIM">
@@ -1017,14 +1074,20 @@ const RbAdmin = () => {
                                       ) : (
                                         <input
                                           type="text"
-                                          placeholder="Enter comments"
+                                          placeholder={
+                                            isHR
+                                              ? "View only"
+                                              : "Enter comments"
+                                          }
                                           value={comments[claim.id] || ""}
                                           onChange={(e) =>
+                                            !isHR &&
                                             setComments((prev) => ({
                                               ...prev,
                                               [claim.id]: e.target.value,
                                             }))
                                           }
+                                          disabled={isHR}
                                         />
                                       )}
                                     </td>
@@ -1037,10 +1100,23 @@ const RbAdmin = () => {
                                           ?.toLowerCase()
                                           .trim() === "pending" ? (
                                           <button
-                                            className="pending-payment-btn"
-                                            onClick={() =>
-                                              openPaymentModal(claim)
-                                            }
+                                            className={`pending-payment-btn ${
+                                              isHR ? "disabled" : ""
+                                            }`}
+                                            onClick={() => {
+                                              if (!isHR)
+                                                openPaymentModal(claim);
+                                            }}
+                                            disabled={isHR}
+                                            style={{
+                                              pointerEvents: isHR
+                                                ? "none"
+                                                : "auto",
+                                              opacity: isHR ? 0.4 : 1,
+                                              cursor: isHR
+                                                ? "not-allowed"
+                                                : "pointer",
+                                            }}
                                           >
                                             Pending
                                           </button>
@@ -1069,13 +1145,21 @@ const RbAdmin = () => {
                                     <td>
                                       <FaFileInvoice
                                         size={24}
-                                        className="update-btn"
-                                        onClick={() => updateStatus(claim.id)}
-                                        disabled={
-                                          claim.status === "approved" ||
-                                          claim.status === "rejected"
-                                        }
+                                        className={`update-btn ${
+                                          isHR ? "disabled" : ""
+                                        }`}
+                                        onClick={() => {
+                                          if (!isHR) updateStatus(claim.id);
+                                        }}
+                                        style={{
+                                          pointerEvents: isHR ? "none" : "auto",
+                                          opacity: isHR ? 0.4 : 1,
+                                          cursor: isHR
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        }}
                                       />
+
                                       <FiDownload
                                         size={24}
                                         className="download-btn"
@@ -1084,7 +1168,6 @@ const RbAdmin = () => {
                                     </td>
                                   </tr>
 
-                                  {/* expanded line rows – columns aligned with the table header */}
                                   {expandedClaims[claim.id] &&
                                     (lines.length
                                       ? lines
@@ -1092,7 +1175,6 @@ const RbAdmin = () => {
                                     ).map((line, li) => {
                                       const payload = line.payload || {};
 
-                                      // line-level invoices, if none fall back to claim-level union
                                       const lineInvs = parseInvoicesFromClaim(
                                         payload.invoices ||
                                           payload.invoice ||
@@ -1104,7 +1186,6 @@ const RbAdmin = () => {
                                           ? lineInvs.join(", ")
                                           : claimInvDisplay;
 
-                                      // attachments for this line (server-side shape -> claim.line_attachments_map)
                                       const lineAttachMap =
                                         claim.line_attachments_map || {};
                                       const attachmentsForThis =
@@ -1131,34 +1212,22 @@ const RbAdmin = () => {
                                           }`}
                                           className="claim-line-row"
                                         >
-                                          {/* Sl No (empty) */}
                                           <td></td>
 
-                                          {/* Claim Type (empty) */}
                                           <td></td>
 
-                                          {/* Date (column 3) */}
                                           <td>
-                                            {dateDisplay
-                                              ? Array.isArray(dateDisplay)
-                                                ? dateDisplay
-                                                    .map(formatDisplayDate)
-                                                    .join(" - ")
-                                                : formatDisplayDate(dateDisplay)
-                                              : " "}
+                                            {resolveDateDisplay(payload, claim)}
                                           </td>
 
-                                          {/* Amount (column 4) */}
                                           <td>
                                             {Number(amount || 0).toFixed(2)}
                                           </td>
 
-                                          {/* Purpose (column 5) */}
                                           <td style={{ paddingLeft: 12 }}>
                                             {payload.purpose || "-"}
                                           </td>
 
-                                          {/* Participants (column 6) — show claim participants (line-level participants not modeled) */}
                                           <td
                                             className="participants-cell-col"
                                             title={getParticipantNamesForClaim(
@@ -1172,7 +1241,6 @@ const RbAdmin = () => {
                                             </div>
                                           </td>
 
-                                          {/* Invoice(s) (column 7) */}
                                           <td
                                             className="invoice-cell"
                                             title={lnInvDisplay}
@@ -1180,7 +1248,6 @@ const RbAdmin = () => {
                                             {lnInvDisplay}
                                           </td>
 
-                                          {/* Attachments (column 8) */}
                                           <td>
                                             {attachmentsForThis &&
                                             attachmentsForThis.length > 0 ? (
@@ -1211,19 +1278,14 @@ const RbAdmin = () => {
                                             )}
                                           </td>
 
-                                          {/* Status (column 9) */}
                                           <td></td>
 
-                                          {/* Projects (column 10) */}
                                           <td></td>
 
-                                          {/* Approver Comments (column 11) */}
                                           <td></td>
 
-                                          {/* Payment Status (column 12) */}
                                           <td></td>
 
-                                          {/* Actions (column 13) */}
                                           <td></td>
                                         </tr>
                                       );

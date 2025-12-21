@@ -18,7 +18,6 @@ import PayrollSummary from "../PayrollSummary/PayrollSummary";
 import Reimbursement from "../Reimbursement/Reimbursement";
 import RbAdmin from "../Reimbursement/RbAdmin";
 import RbTeamLead from "../Reimbursement/RbTeamLead";
-import ReimbursementHR from "../Reimbursement/ReimbursementHR";
 import Assets from "../Assets/assets";
 import Vendors from "../vendors/vendors";
 import Chat from "../Chat/ChatPage";
@@ -46,7 +45,8 @@ const Sidebar = () => {
   const [activeItem, setActiveItem] = useState("");
   const [activeSubItem, setActiveSubItem] = useState("");
   const [showProfile, setShowProfile] = useState(false);
-  const [showCompensationDropdown, setShowCompensationDropdown] = useState(false);
+  const [showCompensationDropdown, setShowCompensationDropdown] =
+    useState(false);
   const [showTaskDropdown, setShowTaskDropdown] = useState(false);
   const [showHRTaskDropdown, setShowHRTaskDropdown] = useState(false);
   const [showLeaveDropdown, setShowLeaveDropdown] = useState(false);
@@ -59,44 +59,32 @@ const Sidebar = () => {
     leave: false,
   });
 
-  // FINAL FIX — This will 100% find your employeeId
-let employeeId = localStorage.getItem("employeeId");
+  let employeeId = localStorage.getItem("employeeId");
 
-if (!employeeId) {
-  // Sometimes it's stored inside dashboardData as a JSON string
-  const dashboardData = localStorage.getItem("dashboardData");
-  if (dashboardData) {
-    try {
-      const parsed = JSON.parse(dashboardData);
-      employeeId = parsed.employeeId || parsed.EmployeeId || parsed.id;
-      console.log("Found employeeId from dashboardData:", employeeId);
-    } catch (e) {
-      console.log("dashboardData not valid JSON");
+  if (!employeeId) {
+    const dashboardData = localStorage.getItem("dashboardData");
+    if (dashboardData) {
+      try {
+        const parsed = JSON.parse(dashboardData);
+        employeeId = parsed.employeeId || parsed.EmployeeId || parsed.id;
+        console.log("Found employeeId from dashboardData:", employeeId);
+      } catch (e) {
+        console.log("dashboardData not valid JSON");
+      }
     }
   }
-}
 
-// Final fallback — if still not found
-if (!employeeId) {
-  console.log("Hardcoded employeeId for testing");
-}
+  if (!employeeId) {
+    console.log("Hardcoded employeeId for testing");
+  }
 
-console.log("Final employeeId used:", employeeId);
+  console.log("Final employeeId used:", employeeId);
   const userRole = localStorage.getItem("userRole") || "Employee";
   const [activeNav, setActiveNav] = useState("/dashboard");
 
-  // Track whether logged-in employee has subordinates
   const [hasSubordinates, setHasSubordinates] = useState(false);
 
-  // Anyone with subordinates gets "My Task Management" access
-  // const canSeeSupervisorTaskView = hasSubordinates || userRole === "HR" || userRole === "Admin" || userRole === "Manager";
-// const canSeeSupervisorTaskView =
-//   hasSubordinates || userRole === "HR" || userRole === "Manager";
-// const canSeeSupervisorTaskView =
-//   hasSubordinates && (userRole === "HR" || userRole === "Manager");
-
-const canSeeSupervisorTaskView =
-  hasSubordinates && userRole !== "Admin";
+  const canSeeSupervisorTaskView = hasSubordinates && userRole !== "Admin";
 
   useEffect(() => {
     const storedData = localStorage.getItem("sidebarMenu");
@@ -125,42 +113,41 @@ const canSeeSupervisorTaskView =
   }, [setActiveContent, userRole]);
 
   // Fetch subordinate status
- useEffect(() => {
-  if (!employeeId) {
-    console.log("NO employeeId found in localStorage → API not called");
-    return;
-  }
-
-  console.log("employeeId found:", employeeId);
-  console.log("About to call subordinate status API...");
-
-  const fetchSubordinateStatus = async () => {
-    try {
-      console.log("Calling API now...");
-      const resp = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/subordinate/status`,
-        {
-          withCredentials: true,
-          headers: { "x-employee-id": employeeId },
-        }
-      );
-
-      console.log("API SUCCESS → Response:", resp.data);
-      const hasSubs = resp.data.hasSubordinates === true;
-      setHasSubordinates(hasSubs);
-      console.log("hasSubordinates set to:", hasSubs);
-
-    } catch (err) {
-      console.error("API FAILED:", err);
-      if (err.response) {
-        console.error("Error response:", err.response.data);
-      }
-      setHasSubordinates(false);
+  useEffect(() => {
+    if (!employeeId) {
+      console.log("NO employeeId found in localStorage → API not called");
+      return;
     }
-  };
 
-  fetchSubordinateStatus();
-}, [employeeId]);
+    console.log("employeeId found:", employeeId);
+    console.log("About to call subordinate status API...");
+
+    const fetchSubordinateStatus = async () => {
+      try {
+        console.log("Calling API now...");
+        const resp = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/subordinate/status`,
+          {
+            withCredentials: true,
+            headers: { "x-employee-id": employeeId },
+          }
+        );
+
+        console.log("API SUCCESS → Response:", resp.data);
+        const hasSubs = resp.data.hasSubordinates === true;
+        setHasSubordinates(hasSubs);
+        console.log("hasSubordinates set to:", hasSubs);
+      } catch (err) {
+        console.error("API FAILED:", err);
+        if (err.response) {
+          console.error("Error response:", err.response.data);
+        }
+        setHasSubordinates(false);
+      }
+    };
+
+    fetchSubordinateStatus();
+  }, [employeeId]);
 
   const getTaskManagementPath = () => {
     if (canSeeSupervisorTaskView) return "/TaskManagement/supervisor";
@@ -213,7 +200,7 @@ const canSeeSupervisorTaskView =
     }
 
     if (item.path === "/TaskManagement" && !subOption) {
-      setShowTaskDropdown(prev => !prev);
+      setShowTaskDropdown((prev) => !prev);
       setShowCompensationDropdown(false);
       setShowHRTaskDropdown(false);
       setShowLeaveDropdown(false);
@@ -262,7 +249,9 @@ const canSeeSupervisorTaskView =
     // other menu paths
     switch (item.path) {
       case "/dashboard":
-        setActiveContent(userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />);
+        setActiveContent(
+          userRole === "Admin" ? <MyDashboard /> : <MyEmpDashboard />
+        );
         break;
       case "/Task":
       case "/TaskManagementEmployee":
@@ -281,7 +270,9 @@ const canSeeSupervisorTaskView =
         setActiveContent(<UpdateProject />);
         break;
       case "/leaveQueries":
-        setActiveContent(userRole === "Admin" ? <LeaveQueries /> : <LeaveRequest />);
+        setActiveContent(
+          userRole === "Admin" ? <LeaveQueries /> : <LeaveRequest />
+        );
         break;
       case "/Salary_Statement":
         setActiveContent(<SalaryStatementWrapper />);
@@ -298,11 +289,13 @@ const canSeeSupervisorTaskView =
       case "/reimbursement":
         if (userRole === "Admin") setActiveContent(<RbAdmin />);
         else if (userRole === "Manager") setActiveContent(<RbTeamLead />);
-        else if (userRole === "HR") setActiveContent(<ReimbursementHR />);
+        else if (userRole === "HR") setActiveContent(<RbAdmin />);
         else setActiveContent(<Reimbursement />);
         break;
       case "/employeeQueries":
-        setActiveContent(userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />);
+        setActiveContent(
+          userRole === "Admin" ? <AdminQuery /> : <EmployeeQuery />
+        );
         break;
       case "/assets":
         setActiveContent(<Assets />);
@@ -377,103 +370,136 @@ const canSeeSupervisorTaskView =
         <ul className="flex-1 overflow-y-auto mt-4">
           {menuItems.length > 0 ? (
             menuItems.map((item, index) => {
-              const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
+              const IconComponent =
+                MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
               return (
                 <li key={index} className="relative">
                   <div
                     className={`flex items-center p-4 cursor-pointer hover:bg-gray-700 transition-colors ${
-                      activeItem === item.path && !activeSubItem ? "bg-gray-700" : ""
+                      activeItem === item.path && !activeSubItem
+                        ? "bg-gray-700"
+                        : ""
                     }`}
                     onClick={() => handleMenuClick(item)}
                   >
                     <span className="icon mr-3">
                       <IconComponent size={22} />
                     </span>
-                    <span className="menu-text flex-1 text-sm">{item.label}</span>
+                    <span className="menu-text flex-1 text-sm">
+                      {item.label}
+                    </span>
                   </div>
 
                   {/* Compensation Submenu */}
-                  {item.path === "/compensation" && showCompensationDropdown && (
-                    <ul className="desktop-submenu">
-                      {[
-                        { key: "create", label: "Create Compensation", icon: "MdOutlineAddCircleOutline" },
-                        { key: "assign", label: "Assign Compensation", icon: "MdOutlineAssignmentInd" },
-                        { key: "SalaryBreakupMain", label: "Salary Breakup", icon: "MdOutlineAccountBalance" },
-                        { key: "EmployeeTable", label: "Salary Details", icon: "MdOutlineTableChart" },
-                      ].map((opt) => {
-                        const SubIcon = MdIcons[opt.icon] || MdIcons.MdOutlineDashboard;
-                        return (
-                          <li
-                            key={opt.key}
-                            className={`desktop-submenu-item ${activeSubItem === opt.key ? "active" : ""}`}
-                            onClick={() => handleMenuClick(item, opt.key)}
-                          >
-                            <span className="icon">
-                              <SubIcon size={20} />
-                            </span>
-                            <span>{opt.label}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
+                  {item.path === "/compensation" &&
+                    showCompensationDropdown && (
+                      <ul className="desktop-submenu">
+                        {[
+                          {
+                            key: "create",
+                            label: "Create Compensation",
+                            icon: "MdOutlineAddCircleOutline",
+                          },
+                          {
+                            key: "assign",
+                            label: "Assign Compensation",
+                            icon: "MdOutlineAssignmentInd",
+                          },
+                          {
+                            key: "SalaryBreakupMain",
+                            label: "Salary Breakup",
+                            icon: "MdOutlineAccountBalance",
+                          },
+                          {
+                            key: "EmployeeTable",
+                            label: "Salary Details",
+                            icon: "MdOutlineTableChart",
+                          },
+                        ].map((opt) => {
+                          const SubIcon =
+                            MdIcons[opt.icon] || MdIcons.MdOutlineDashboard;
+                          return (
+                            <li
+                              key={opt.key}
+                              className={`desktop-submenu-item ${
+                                activeSubItem === opt.key ? "active" : ""
+                              }`}
+                              onClick={() => handleMenuClick(item, opt.key)}
+                            >
+                              <span className="icon">
+                                <SubIcon size={20} />
+                              </span>
+                              <span>{opt.label}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
 
                   {/* Task Management Submenu - UPDATED */}
-                 {item.path === "/TaskManagement" && showTaskDropdown && (
-  <ul className="desktop-submenu">
+                  {item.path === "/TaskManagement" && showTaskDropdown && (
+                    <ul className="desktop-submenu">
+                      {userRole === "Admin" ? (
+                        <li
+                          className={`desktop-submenu-item ${
+                            activeSubItem === "admin" ? "active" : ""
+                          }`}
+                          onClick={() => handleMenuClick(item, "admin")}
+                        >
+                          <span className="icon">
+                            <MdIcons.MdOutlineAdminPanelSettings size={20} />
+                          </span>
+                          <span>Admin Task Management</span>
+                        </li>
+                      ) : (
+                        <>
+                          <li
+                            className={`desktop-submenu-item ${
+                              activeSubItem === "employee" ? "active" : ""
+                            }`}
+                            onClick={() => handleMenuClick(item, "employee")}
+                          >
+                            <span className="icon">
+                              <MdIcons.MdOutlinePeople size={20} />
+                            </span>
+                            <span>My Task</span>
+                          </li>
 
-    {userRole === "Admin" ? (
-      <li
-        className={`desktop-submenu-item ${activeSubItem === "admin" ? "active" : ""}`}
-        onClick={() => handleMenuClick(item, "admin")}
-      >
-        <span className="icon">
-          <MdIcons.MdOutlineAdminPanelSettings size={20} />
-        </span>
-        <span>Admin Task Management</span>
-      </li>
-    ) : (
-      <>
-        <li
-          className={`desktop-submenu-item ${activeSubItem === "employee" ? "active" : ""}`}
-          onClick={() => handleMenuClick(item, "employee")}
-        >
-          <span className="icon">
-            <MdIcons.MdOutlinePeople size={20} />
-          </span>
-          <span>My Task</span>
-        </li>
+                          {canSeeSupervisorTaskView && (
+                            <li
+                              className={`desktop-submenu-item ${
+                                activeSubItem === "supervisor" ? "active" : ""
+                              }`}
+                              onClick={() =>
+                                handleMenuClick(item, "supervisor")
+                              }
+                            >
+                              <span className="icon">
+                                <MdIcons.MdOutlinePeople size={20} />
+                              </span>
+                              <span>Team tasks</span>
+                            </li>
+                          )}
 
-        {canSeeSupervisorTaskView && (
-          <li
-            className={`desktop-submenu-item ${activeSubItem === "supervisor" ? "active" : ""}`}
-            onClick={() => handleMenuClick(item, "supervisor")}
-          >
-            <span className="icon">
-              <MdIcons.MdOutlinePeople size={20} />
-            </span>
-            <span>Team tasks</span>
-          </li>
-        )}
-
-        {userRole === "HR" && (
-          <li
-            className={`desktop-submenu-item ${activeSubItem === "hr" ? "active" : ""}`}
-            onClick={() => handleMenuClick(item, "hr")}
-          >
-            <span className="icon">
-              <MdIcons.MdOutlineAdminPanelSettings size={20} />
-            </span>
-            <span>HR Task Management</span>
-          </li>
-        )}
-      </>
-    )}
-
-  </ul>
-)}
-
-
+                          {userRole === "HR" && (
+                            <li
+                              className={`desktop-submenu-item ${
+                                activeSubItem === "hr" ? "active" : ""
+                              }`}
+                              onClick={() => handleMenuClick(item, "hr")}
+                            >
+                              <span className="icon">
+                                <MdIcons.MdOutlineAdminPanelSettings
+                                  size={20}
+                                />
+                              </span>
+                              <span>HR Task Management</span>
+                            </li>
+                          )}
+                        </>
+                      )}
+                    </ul>
+                  )}
                 </li>
               );
             })
@@ -486,42 +512,63 @@ const canSeeSupervisorTaskView =
       {/* Bottom nav for mobile */}
       <div className="bottom-nav fixed bottom-0 w-full bg-white text-black flex justify-around py-2 md:hidden z-50">
         <button
-          className={`p-2 ${activeNav === "/dashboard" ? "text-blue-500" : "text-gray-600"}`}
+          className={`p-2 ${
+            activeNav === "/dashboard" ? "text-blue-500" : "text-gray-600"
+          }`}
           onClick={() => handleMenuClick({ path: "/dashboard" })}
         >
           <MdIcons.MdHome size={26} />
         </button>
         <button
-          className={`p-2 ${activeNav === "/employeeQueries" ? "text-blue-500" : "text-gray-600"}`}
+          className={`p-2 ${
+            activeNav === "/employeeQueries" ? "text-blue-500" : "text-gray-600"
+          }`}
           onClick={() => handleMenuClick({ path: "/employeeQueries" })}
         >
           <MdIcons.MdOutlineContactPhone size={26} />
         </button>
         <button
-          className={`p-2 ${activeNav === "/leaveQueries" ? "text-blue-500" : "text-gray-600"}`}
+          className={`p-2 ${
+            activeNav === "/leaveQueries" ? "text-blue-500" : "text-gray-600"
+          }`}
           onClick={() => handleMenuClick({ path: "/leaveQueries" })}
         >
           <MdIcons.MdOutlineCommentBank size={26} />
         </button>
         <button
-          className={`p-2 ${activeNav === "/reimbursement" ? "text-blue-500" : "text-gray-600"}`}
+          className={`p-2 ${
+            activeNav === "/reimbursement" ? "text-blue-500" : "text-gray-600"
+          }`}
           onClick={() => handleMenuClick({ path: "/reimbursement" })}
         >
           <MdIcons.MdCurrencyRupee size={26} />
         </button>
         <button
-          className={`p-2 ${activeNav === getTaskManagementPath() ? "text-blue-500" : "text-gray-600"}`}
+          className={`p-2 ${
+            activeNav === getTaskManagementPath()
+              ? "text-blue-500"
+              : "text-gray-600"
+          }`}
           onClick={handleDirectTaskClick}
         >
           <MdIcons.MdOutlineTask size={26} />
         </button>
-        <button className="p-2 text-gray-600" onClick={() => setShowMobileMenu(true)}>
+        <button
+          className="p-2 text-gray-600"
+          onClick={() => setShowMobileMenu(true)}
+        >
           <MdIcons.MdMenu size={26} />
         </button>
       </div>
 
       {showMobileMenu && (
-        <div className="mobile-menu-overlay" onClick={() => { setShowMobileMenu(false); closeAllMobileDropdowns(); }}>
+        <div
+          className="mobile-menu-overlay"
+          onClick={() => {
+            setShowMobileMenu(false);
+            closeAllMobileDropdowns();
+          }}
+        >
           <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-header">
               <h2 className="mobile-title">Menu</h2>
@@ -550,7 +597,8 @@ const canSeeSupervisorTaskView =
             <ul className="mobile-list">
               {menuItems.length > 0 ? (
                 menuItems.map((item, index) => {
-                  const IconComponent = MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
+                  const IconComponent =
+                    MdIcons[item.icon] || MdIcons.MdOutlineDashboard;
                   const hasDropdown =
                     item.path === "/compensation" ||
                     item.path === "/TaskManagement" ||
@@ -559,13 +607,19 @@ const canSeeSupervisorTaskView =
                   return (
                     <li key={index} className="mobile-list-item">
                       <div
-                        className={`mobile-item ${activeItem === item.path && !activeSubItem ? "active" : ""}`}
+                        className={`mobile-item ${
+                          activeItem === item.path && !activeSubItem
+                            ? "active"
+                            : ""
+                        }`}
                         onClick={() => {
                           if (hasDropdown) {
                             const key =
-                              item.path === "/compensation" ? "compensation" :
-                              item.path === "/TaskManagement" ? "task" :
-                              "leave";
+                              item.path === "/compensation"
+                                ? "compensation"
+                                : item.path === "/TaskManagement"
+                                ? "task"
+                                : "leave";
                             toggleMobileDropdown(key);
                             return;
                           }
@@ -578,104 +632,131 @@ const canSeeSupervisorTaskView =
                         <span className="mobile-label">{item.label}</span>
                         {hasDropdown && (
                           <span className="mobile-arrow">
-                            {mobileDropdown.compensation && item.path === "/compensation" ? <MdIcons.MdKeyboardArrowDown /> : 
-                             mobileDropdown.task && item.path === "/TaskManagement" ? <MdIcons.MdKeyboardArrowDown /> :
-                             mobileDropdown.leave && item.path === "/leaveQueries" ? <MdIcons.MdKeyboardArrowDown /> :
-                             <MdIcons.MdKeyboardArrowRight />}
+                            {mobileDropdown.compensation &&
+                            item.path === "/compensation" ? (
+                              <MdIcons.MdKeyboardArrowDown />
+                            ) : mobileDropdown.task &&
+                              item.path === "/TaskManagement" ? (
+                              <MdIcons.MdKeyboardArrowDown />
+                            ) : mobileDropdown.leave &&
+                              item.path === "/leaveQueries" ? (
+                              <MdIcons.MdKeyboardArrowDown />
+                            ) : (
+                              <MdIcons.MdKeyboardArrowRight />
+                            )}
                           </span>
                         )}
                       </div>
 
                       {/* Mobile Task Management Submenu */}
-                      {item.path === "/TaskManagement" && mobileDropdown.task && (
-                        <ul className="mobile-submenu">
-                          <li
-                            className={`mobile-submenu-item ${activeSubItem === "employee" ? "active" : ""}`}
-                            onClick={() => {
-                              handleMenuClick(item, "employee");
-                              closeAllMobileDropdowns();
-                              setShowMobileMenu(false);
-                            }}
-                          >
-                            Employee Tasks
-                          </li>
-
-                          {canSeeSupervisorTaskView && (
+                      {item.path === "/TaskManagement" &&
+                        mobileDropdown.task && (
+                          <ul className="mobile-submenu">
                             <li
-                              className={`mobile-submenu-item ${activeSubItem === "supervisor" ? "active" : ""}`}
+                              className={`mobile-submenu-item ${
+                                activeSubItem === "employee" ? "active" : ""
+                              }`}
                               onClick={() => {
-                                handleMenuClick(item, "supervisor");
+                                handleMenuClick(item, "employee");
                                 closeAllMobileDropdowns();
                                 setShowMobileMenu(false);
                               }}
                             >
-                              My Task Management
+                              Employee Tasks
                             </li>
-                          )}
 
-                          {userRole === "HR" && (
-                            <li
-                              className={`mobile-submenu-item ${activeSubItem === "hr" ? "active" : ""}`}
-                              onClick={() => {
-                                handleMenuClick(item, "hr");
-                                closeAllMobileDropdowns();
-                                setShowMobileMenu(false);
-                              }}
-                            >
-                              HR Task Management
-                            </li>
-                          )}
-                        </ul>
-                      )}
+                            {canSeeSupervisorTaskView && (
+                              <li
+                                className={`mobile-submenu-item ${
+                                  activeSubItem === "supervisor" ? "active" : ""
+                                }`}
+                                onClick={() => {
+                                  handleMenuClick(item, "supervisor");
+                                  closeAllMobileDropdowns();
+                                  setShowMobileMenu(false);
+                                }}
+                              >
+                                My Task Management
+                              </li>
+                            )}
+
+                            {userRole === "HR" && (
+                              <li
+                                className={`mobile-submenu-item ${
+                                  activeSubItem === "hr" ? "active" : ""
+                                }`}
+                                onClick={() => {
+                                  handleMenuClick(item, "hr");
+                                  closeAllMobileDropdowns();
+                                  setShowMobileMenu(false);
+                                }}
+                              >
+                                HR Task Management
+                              </li>
+                            )}
+                          </ul>
+                        )}
 
                       {/* Other mobile submenus (compensation, leave) remain unchanged */}
-                      {item.path === "/compensation" && mobileDropdown.compensation && (
-                        <ul className="mobile-submenu">
-                          {[
-                            { key: "create", label: "Create Compensation" },
-                            { key: "assign", label: "Assign Compensation" },
-                            { key: "SalaryBreakupMain", label: "Salary Breakup" },
-                            { key: "EmployeeTable", label: "Salary Details" },
-                          ].map((opt) => (
+                      {item.path === "/compensation" &&
+                        mobileDropdown.compensation && (
+                          <ul className="mobile-submenu">
+                            {[
+                              { key: "create", label: "Create Compensation" },
+                              { key: "assign", label: "Assign Compensation" },
+                              {
+                                key: "SalaryBreakupMain",
+                                label: "Salary Breakup",
+                              },
+                              { key: "EmployeeTable", label: "Salary Details" },
+                            ].map((opt) => (
+                              <li
+                                key={opt.key}
+                                className={`mobile-submenu-item ${
+                                  activeSubItem === opt.key ? "active" : ""
+                                }`}
+                                onClick={() => {
+                                  handleMenuClick(item, opt.key);
+                                  closeAllMobileDropdowns();
+                                  setShowMobileMenu(false);
+                                }}
+                              >
+                                {opt.label}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                      {item.path === "/leaveQueries" &&
+                        userRole === "HR" &&
+                        mobileDropdown.leave && (
+                          <ul className="mobile-submenu">
                             <li
-                              key={opt.key}
-                              className={`mobile-submenu-item ${activeSubItem === opt.key ? "active" : ""}`}
+                              className={`mobile-submenu-item ${
+                                activeSubItem === "employee" ? "active" : ""
+                              }`}
                               onClick={() => {
-                                handleMenuClick(item, opt.key);
+                                handleMenuClick(item, "employee");
                                 closeAllMobileDropdowns();
                                 setShowMobileMenu(false);
                               }}
                             >
-                              {opt.label}
+                              My Leave Requests
                             </li>
-                          ))}
-                        </ul>
-                      )}
-
-                      {item.path === "/leaveQueries" && userRole === "HR" && mobileDropdown.leave && (
-                        <ul className="mobile-submenu">
-                          <li
-                            className={`mobile-submenu-item ${activeSubItem === "employee" ? "active" : ""}`}
-                            onClick={() => {
-                              handleMenuClick(item, "employee");
-                              closeAllMobileDropdowns();
-                              setShowMobileMenu(false);
-                            }}
-                          >
-                            My Leave Requests
-                          </li>
-                          <li
-                            className={`mobile-submenu-item ${activeSubItem === "admin" ? "active" : ""}`}
-                            onClick={() => {
-                              handleMenuClick(item, "admin");
-                              closeAllMobileDropdowns();
-                              setShowMobileMenu(false);
-                            }}
-                          >
-                            Admin Leave Queries
-                          </li>
-                        </ul>
-                      )}
+                            <li
+                              className={`mobile-submenu-item ${
+                                activeSubItem === "admin" ? "active" : ""
+                              }`}
+                              onClick={() => {
+                                handleMenuClick(item, "admin");
+                                closeAllMobileDropdowns();
+                                setShowMobileMenu(false);
+                              }}
+                            >
+                              Admin Leave Queries
+                            </li>
+                          </ul>
+                        )}
                     </li>
                   );
                 })
@@ -688,7 +769,10 @@ const canSeeSupervisorTaskView =
       )}
 
       {showProfile && (
-        <Profile employeeId={employeeId} onClose={() => setShowProfile(false)} />
+        <Profile
+          employeeId={employeeId}
+          onClose={() => setShowProfile(false)}
+        />
       )}
     </>
   );

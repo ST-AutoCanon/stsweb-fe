@@ -170,6 +170,11 @@
   border-radius: 50%;
 }
 
+.update-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .approved {
   background-color: #e6f9ed;
   color: #0f9d58;
