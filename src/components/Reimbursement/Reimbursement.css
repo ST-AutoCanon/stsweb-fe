@@ -1273,7 +1273,7 @@
 
 .participant-controls-wrapper {
   margin: 12px 0;
-  width: 1240px;
+  width: 100%;
 }
 
 .participant-mode-toggle {
