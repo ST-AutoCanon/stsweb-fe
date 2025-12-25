@@ -208,14 +208,23 @@ const Sidebar = () => {
       return;
     }
 
-    if (item.path === "/leaveQueries" && !subOption && userRole === "HR") {
-      setShowLeaveDropdown((prev) => !prev);
-      setShowCompensationDropdown(false);
-      setShowTaskDropdown(false);
-      setShowHRTaskDropdown(false);
-      setActiveSubItem("");
-      return;
-    }
+    // if (item.path === "/leaveQueries" && !subOption && userRole === "HR") {
+    //   setShowLeaveDropdown((prev) => !prev);
+    //   setShowCompensationDropdown(false);
+    //   setShowTaskDropdown(false);
+    //   setShowHRTaskDropdown(false);
+    //   setActiveSubItem("");
+    //   return;
+    // }
+//     if (item.path === "/leaveQueries" && !subOption && userRole === "Admin") {
+//   setShowLeaveDropdown((prev) => !prev);
+//   setShowCompensationDropdown(false);
+//   setShowTaskDropdown(false);
+//   setShowHRTaskDropdown(false);
+//   setActiveSubItem("");
+//   return;
+// }
+
 
     setShowCompensationDropdown(false);
     setShowTaskDropdown(false);
