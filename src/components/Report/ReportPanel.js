@@ -30,12 +30,7 @@ function extractEmployeeIdFromLocalStorage() {
       try {
         const obj = JSON.parse(trimmed);
         return (
-          obj.employeeId ||
-          obj.employee_id ||
-          obj.employee ||
-          obj.id ||
-          obj.employeeId ||
-          null
+          obj.employeeId || obj.employee_id || obj.employee || obj.id || null
         );
       } catch (e) {}
     }
@@ -83,8 +78,7 @@ const inferUserRoleAndDepartment = () => {
               obj.department_id ||
               obj.departmentId ||
               obj.deptId ||
-              obj.department ||
-              obj.department_id;
+              obj.department;
             if (role || dept) return { role, departmentId: dept ?? null };
           } catch (e) {}
         } else {
@@ -291,19 +285,31 @@ export default function ReportPanel() {
   const employeeId = extractEmployeeIdFromLocalStorage();
 
   const inferred = inferUserRoleAndDepartment();
-  const [userRole] = useState(
-    (inferred.role && String(inferred.role).trim()) || null
-  );
+
+  const rawRole = inferred.role ? String(inferred.role).trim() : null;
+  const lowerRawRole = rawRole ? rawRole.toLowerCase() : null;
+  const effectiveRole =
+    lowerRawRole === "hr" || lowerRawRole === "human resources"
+      ? "admin"
+      : rawRole;
+
+  const [userRole] = useState(effectiveRole || null);
+
   const [managerDepartmentIdRaw] = useState(
     inferred.departmentId ? String(inferred.departmentId) : null
   );
 
+  const lowerRole = userRole ? String(userRole).toLowerCase() : "";
+
   const isTeamRole = Boolean(
-    userRole &&
-      String(userRole).toLowerCase &&
+    lowerRole &&
       ["manager", "supervisor", "team lead", "teamlead", "lead"].some((s) =>
-        String(userRole).toLowerCase().includes(s)
+        lowerRole.includes(s)
       )
+  );
+
+  const isAdmin = Boolean(
+    userRole && String(userRole).toLowerCase() === "admin"
   );
 
   const [filterEmployeeId, setFilterEmployeeId] = useState(null);
