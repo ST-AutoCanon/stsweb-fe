@@ -31,17 +31,60 @@ function extractEmployeeIdFromDashboardData(raw) {
   }
 }
 
+function inferRoleFromLocalStorage() {
+  // Try common keys to find role
+  const keys = [
+    "dashboardData",
+    "userProfile",
+    "profile",
+    "user",
+    "dashboardUser",
+    "authUser",
+    "dashboardRole",
+    "role",
+    "userRole",
+  ];
+  try {
+    for (const k of keys) {
+      const v = localStorage.getItem(k);
+      if (!v) continue;
+      if (typeof v === "string" && v.trim().startsWith("{")) {
+        try {
+          const obj = JSON.parse(v);
+          if (!obj) continue;
+          const role =
+            obj.role ||
+            obj.userRole ||
+            obj.roleName ||
+            obj.employee_role ||
+            obj.accessLevel ||
+            obj.type;
+          if (role) return String(role).toLowerCase();
+        } catch (e) {
+          continue;
+        }
+      } else if (typeof v === "string") {
+        // simple string role
+        const s = v.trim().toLowerCase();
+        if (s) return s;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
 export default function EmployeeTypeahead({
   placeholder = "Search by name or email...",
   limit = 10,
   onSelect = () => {},
   onTyping = () => {},
   onClear = () => {},
-
   selectedValue = "",
   isTyping = false,
   minChars = 2,
   debounceMs = 180,
+  // Accept departmentId from parent (ReportPanel passes this)
+  departmentId: departmentIdProp = null,
 }) {
   const [query, setQuery] = useState(selectedValue || "");
   const [suggestions, setSuggestions] = useState([]);
@@ -49,11 +92,6 @@ export default function EmployeeTypeahead({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
-  const teamLeadData = JSON.parse(localStorage.getItem("dashboardData")) || {};
-  const teamLeadId = teamLeadData?.employeeId
-    ? String(teamLeadData.employeeId)
-    : null;
-  const departmentId = teamLeadData?.department_id || null;
 
   const debRef = useRef(null);
   const latestRequestId = useRef(0);
@@ -61,6 +99,52 @@ export default function EmployeeTypeahead({
   const inputRef = useRef(null);
   const lastTypingRef = useRef(false);
   const mountedRef = useRef(true);
+
+  // dashboardData-derived values (fallbacks)
+  let rawDashboard = null;
+  try {
+    rawDashboard =
+      typeof window !== "undefined"
+        ? localStorage.getItem("dashboardData")
+        : null;
+  } catch (e) {
+    rawDashboard = null;
+  }
+
+  const dashboardObj = (() => {
+    try {
+      if (!rawDashboard) return {};
+      if (
+        typeof rawDashboard === "string" &&
+        rawDashboard.trim().startsWith("{")
+      ) {
+        return JSON.parse(rawDashboard);
+      }
+      if (typeof rawDashboard === "object") return rawDashboard;
+      return {};
+    } catch (e) {
+      return {};
+    }
+  })();
+
+  const localDeptFromDashboard =
+    dashboardObj.department_id ?? dashboardObj.departmentId ?? null;
+
+  const roleLower = inferRoleFromLocalStorage(); // e.g. "hr", "admin", "manager"
+  const isHRLocal = roleLower === "hr" || roleLower === "human resources";
+
+  // prefer prop departmentId if provided (non-empty string), otherwise fallback to dashboard value
+  const departmentIdEffective =
+    departmentIdProp !== null &&
+    typeof departmentIdProp !== "undefined" &&
+    String(departmentIdProp).trim() !== ""
+      ? String(departmentIdProp)
+      : localDeptFromDashboard
+      ? String(localDeptFromDashboard)
+      : null;
+
+  // If user is HR, do not limit by department (HR should see all employees)
+  const departmentIdForQuery = isHRLocal ? null : departmentIdEffective;
 
   let employeeId = "";
   try {
@@ -93,7 +177,7 @@ export default function EmployeeTypeahead({
     ) {
       setQuery(selectedValue);
     }
-  }, [selectedValue, isTyping]);
+  }, [selectedValue, isTyping]); // keep controlled from parent when typing state isn't active
 
   useEffect(() => {
     function onDocClick(e) {
@@ -151,7 +235,9 @@ export default function EmployeeTypeahead({
       try {
         params.set("q", trimmed);
         params.set("limit", String(limit));
-        if (departmentId) params.set("department_id", String(departmentId));
+        // only include department filter if we have one AND user is not HR
+        if (departmentIdForQuery)
+          params.set("department_id", String(departmentIdForQuery));
       } catch (e) {}
       const url = `${base.replace(
         /\/$/,
@@ -166,7 +252,7 @@ export default function EmployeeTypeahead({
         const resp = await axios.get(url, {
           withCredentials: true,
           headers,
-          timeout: 10_000,
+          timeout: 10000,
         });
         if (reqId !== latestRequestId.current) return;
         if (!mountedRef.current) return;
@@ -218,7 +304,7 @@ export default function EmployeeTypeahead({
         debRef.current = null;
       }
     };
-  }, [query, limit, departmentId, debounceMs, minChars, employeeId]);
+  }, [query, limit, departmentIdForQuery, debounceMs, minChars, employeeId]);
 
   function handleSelect(item) {
     const name = item.employee_name || item.name || item.email || "";
