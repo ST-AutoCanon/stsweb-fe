@@ -1,223 +1,139 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Login.css";
-import Modal from "../Modal/Modal";
 
-const Login = ({ onClose }) => {
+export default function Login({ onClose }) {
+  const navigate = useNavigate();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
-  const [idleModalVisible, setIdleModalVisible] = useState(false);
-  const navigate = useNavigate();
 
-  const toggleShowPassword = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const [alertModal, setAlertModal] = useState({
-    isVisible: false,
-    title: "",
-    message: "",
-  });
-
-  useEffect(() => {
-    if (sessionStorage.getItem("loggedOutDueToInactivity")) {
-      setIdleModalVisible(true);
-      sessionStorage.removeItem("loggedOutDueToInactivity");
-    }
-  }, []);
-
-  const handleIdleModalClose = () => {
-    setIdleModalVisible(false);
-  };
-
-  const showAlert = (message, title = "") => {
-    setAlertModal({ isVisible: true, title, message });
-  };
-
-  const closeAlert = () => {
-    setAlertModal({ isVisible: false, title: "", message: "" });
-  };
+  const toggleShowPassword = () => setShowPassword((p) => !p);
 
   const closeModal = () => {
     setIsModalOpen(false);
     if (onClose) onClose();
   };
 
-  const handleForgotPassword = async () => {
-    if (!username) {
-      showAlert("Email ID is required to reset the password.");
-      return;
-    }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/forgot-password`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: username }),
-        }
-      );
-      const data = await response.json();
-      response.ok
-        ? showAlert("Password reset email sent!")
-        : setErrorMessage(data.message || "Request failed");
-    } catch (error) {
-      setErrorMessage("An unexpected error occurred.");
-    }
-  };
+  const closeErrorPopup = () => setErrorMessage("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setErrorMessage("");
+
     if (!username || !password) {
       setErrorMessage("Username and password are required.");
       return;
     }
+
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/login`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: username, password }),
-        }
+      sessionStorage.setItem(
+        "EMBED_LOGIN",
+        JSON.stringify({ username, password, orgId: 1 })
       );
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(data.message || "Invalid credentials.");
-        return;
-      }
-
-      localStorage.setItem("userRole", data.message.role);
-      localStorage.setItem("userName", data.message.name);
-      localStorage.setItem("userGender", data.message.gender);
-      localStorage.setItem("username", data.message.email || username);
-      localStorage.setItem(
-        "dashboardData",
-        JSON.stringify(data.message.dashboard)
-      );
-      localStorage.setItem(
-        "sidebarMenu",
-        JSON.stringify(data.message.sidebarMenu)
-      );
-      localStorage.setItem("lastActivity", Date.now());
-
-      closeModal();
-
-      if (
-        username.toLowerCase() === "manish.p@yopmail.com" &&
-        (data.message.role || "").toLowerCase() === "general"
-      ) {
-        navigate("/FacePunch");
-      } else {
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      setErrorMessage("An unexpected error occurred.");
+    } catch (err) {
+      console.warn("sessionStorage write failed", err);
     }
+
+    navigate("/dashboard", {
+      state: { username, password, orgId: 1 },
+    });
+
+    closeModal();
   };
 
+  if (!isModalOpen) return null;
+
   return (
-    isModalOpen && (
-      <div className="login-page">
-        <div className="login-modal">
-          <div className="login-container">
-            <button className="login-close-button" onClick={closeModal}>
-              ×
-            </button>
-            <div className="login-image">
-              <img src="./images/ITService.png" alt="Login illustration" />
-            </div>
-            <div className="login-form">
-              <form onSubmit={handleSubmit}>
-                <div className="login-logo">
-                  <img
-                    src="./images/Loginlogo.png"
-                    alt="Logo"
-                    className="login-logo-img"
-                  />
-                </div>
-                {errorMessage && (
-                  <div className="error-messages">{errorMessage}</div>
-                )}
-                <div className="form-group">
-                  <label htmlFor="username">User Name</label>
+    <div className="login-page">
+      <div className="login-modal">
+        <div className="login-container">
+          <button className="login-close-button" onClick={closeModal}>
+            ×
+          </button>
+
+          <div className="login-image">
+            <img src="./images/ITService.png" alt="Login illustration" />
+          </div>
+
+          <div className="login-form">
+            <form onSubmit={handleSubmit}>
+              <div className="login-logo">
+                <img
+                  src="./images/Loginlogo.png"
+                  alt="Logo"
+                  className="login-logo-img"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="username">User Name</label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                  autoComplete="username"
+                />
+              </div>
+
+              <div className="form-group password-group">
+                <label htmlFor="password">Password</label>
+                <div className="password-input-wrapper">
                   <input
-                    type="text"
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter your username"
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
                   />
+                  <span
+                    className="toggle-password-icon"
+                    onClick={toggleShowPassword}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
                 </div>
-                <div className="form-group password-group">
-                  <label htmlFor="password">Password</label>
-                  <div className="password-input-wrapper">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      id="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                    />
-                    <span
-                      className="toggle-password-icon"
-                      onClick={toggleShowPassword}
-                      role="button"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                      tabIndex={0}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" || e.key === " ")
-                          toggleShowPassword();
-                      }}
-                    >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </span>
-                  </div>
-                </div>
-                <div className="form-options">
-                  <a href="#" onClick={handleForgotPassword}>
-                    Forgot Password?
-                  </a>
-                </div>
+              </div>
+
+              <div className="form-options">
                 <button type="submit" className="btn-login">
                   Login
                 </button>
-              </form>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {errorMessage && (
+        <div className="error-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="error-modal">
+            <div className="error-modal-header">
+              <strong>Error</strong>
+            </div>
+            <div className="error-modal-body">{errorMessage}</div>
+            <div className="error-modal-footer">
+              <button
+                className="error-modal-ok"
+                onClick={() => {
+                  closeErrorPopup();
+                }}
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>
-        {idleModalVisible && (
-          <Modal
-            isVisible={idleModalVisible}
-            onClose={handleIdleModalClose}
-            buttons={[{ label: "OK", onClick: handleIdleModalClose }]}
-          >
-            <p>You have been logged out due to inactivity.</p>
-          </Modal>
-        )}
-        <Modal
-          isVisible={alertModal.isVisible}
-          onClose={closeAlert}
-          buttons={[{ label: "OK", onClick: closeAlert }]}
-        >
-          <p>{alertModal.message}</p>
-        </Modal>
-      </div>
-    )
+      )}
+    </div>
   );
-};
-
-export default Login;
+}

@@ -10,21 +10,16 @@ import About from "./components/About/About";
 import ReachUs from "./components/ReachUs/ReachUs";
 import KnowMore from "./components/KnowMore/KnowMore";
 import Login from "./components/Login/Login";
-import ResetPassword from "./components/ResetPassword/ResetPassword";
 import ITNetworkingServices from "./components/ITNetworkingServices/ITNetworkingServices";
 import OtherServices from "./components/OtherServices/OtherServices";
-import HomologationSupport from "./components/HomologationSupport/HomologationSupport1";
-import ConsultingServices from "./components/ConsultingServices/ConsultingServices";
 import EngineeringServices from "./components/EngineeringServices/EngineeringServices";
 import Prototyping from "./components/Prototyping/Prototyping";
 import ValueEngineering from "./components/ValueEngineering/ValueEngineering";
-import Tooling from "./components/Tooling/Tooling";
 import MainAbout from "./components/MainAbout/MainAbout";
-import CardLayout from "./components/CardLayout/CardLayout";
 import OtherServiceFirst from "./components/OtherServiceFirst/OtherServiceFirst";
+import DashboardIframe from "./components/DashboardIframe/DashboardIframe";
 
 import "./App.css";
-import MajorProjects from "./components/MajorProjects/MajorProjects";
 import ITNetworkFirst from "./components/ITNetworkFirst/ITNetworkFirst";
 import EngineeringServiceFirst from "./components/EngineeringServiceFirst/EngineeringServiceFirst";
 import ChatbotApplication from "./components/ChatbotApplication/ChatbotApplication";
@@ -48,25 +43,6 @@ import CircularDesignNew from "./components/CircularDesignNew/CircularDesignNew"
 import "./App.css";
 import Broucherfirst from "./components/Broucherfirst/Broucherfirst";
 import Feedbackform from "./components/Feedbackform/Feedbackform";
-
-import ProtectedLayout from "./components/Login/ProtecttedLayout";
-import Dashboard from "./components/Dashboard/Dashboard.js";
-import Sidebar from "./components/Dashboard/Sidebar.js";
-import Topbar from "./components/Dashboard/Topbar.js";
-import Profile from "./components/Profile/Profile.js";
-
-import LoginChart from "./components/MyDashboard/LoginChart.js";
-
-import MyEmpDashboard from "./components/MyEmpDashboard/MyEmpDashboard.js";
-import EmpDashcards from "./components/MyEmpDashboard/EmpDashCards.js";
-import EmpSessions from "./components/MyEmpDashboard/EmpSessions.js";
-import EmpWorkDays from "./components/MyEmpDashboard/EmpWorkDays.js";
-import EmpReImbursement from "./components/MyEmpDashboard/EmpReImbursement.js";
-
-import SalaryStatement from "./components/Salary_statement/Salary_Statement.js";
-import FacePunch from "./components/FacePunch/FacePunch.js";
-
-import GeneratePayslip from "./components/generate_payslip/generate_payslip.js";
 
 function App() {
   function urlBase64ToUint8Array(base64String) {
@@ -209,7 +185,7 @@ function App() {
           <Route path="/ReachUs" element={<ReachUs />} />
           <Route path="/KnowMore" element={<KnowMore />} />
           <Route path="/Login" element={<Login />} />
-          <Route path="/ResetPassword" element={<ResetPassword />} />
+          <Route path="/dashboard" element={<DashboardIframe />} />
           <Route path="/MainAbout" element={<MainAbout />} />
           <Route path="/OtherServices" element={<OtherServices />} />
           <Route path="/ITNetworkFirst" element={<ITNetworkFirst />} />
@@ -253,24 +229,6 @@ function App() {
           <Route path="/Feedbackform" element={<Feedbackform />} />
           <Route path="/KnowMoreFirstPage" element={<KnowMoreFirstPage />} />
           <Route path="/Broucher" element={<Broucher />} />
-
-          <Route element={<ProtectedLayout />}>
-            <Route path="/Dashboard" element={<Dashboard />} />
-            <Route path="/Sidebar" element={<Sidebar />} />
-            <Route path="/Topbar" element={<Topbar />} />
-            <Route path="/Profile" element={<Profile />} />
-          </Route>
-
-          <Route path="/LoginChart" element={<LoginChart />} />
-          <Route path="/MyEmpDashboard" element={<MyEmpDashboard />} />
-          <Route path="/EmpDashCards" element={<EmpDashcards />} />
-
-          <Route path="/EmpSessions" element={<EmpSessions />} />
-          <Route path="/EmpWorkDays" element={<EmpWorkDays />} />
-          <Route path="/EmpReImbursement" element={<EmpReImbursement />} />
-          <Route path="/Salary_Statement" element={<SalaryStatement />} />
-          <Route path="/FacePunch" element={<FacePunch />} />
-          <Route path="/generate_payslip" element={<GeneratePayslip />} />
 
           <Route
             path="/EngineeringServices"
