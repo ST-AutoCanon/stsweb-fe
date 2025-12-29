@@ -6,7 +6,7 @@
   padding: 0px;
   position: relative;
   box-sizing: border-box;
-  min-height: calc(100vh - nav-height);
+  min-height: calc(100vh - var(--nav-height));
   margin-top: 70px;
 }
 

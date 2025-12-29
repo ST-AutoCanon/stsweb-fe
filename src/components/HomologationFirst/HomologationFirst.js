@@ -42,7 +42,8 @@ const HomologationFirst = () => {
               strokeWidth="3"
               strokeDasharray="8,8"
               fill="none"
-              marker-end="url(#arrowhead)"
+              markerEnd="none"
+
             />
           </svg>
 

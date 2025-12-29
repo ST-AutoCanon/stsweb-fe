@@ -123,7 +123,7 @@
   font-weight: 500;
   font-size: 1rem;
   color: #1f2937;
-  /* text-transform: none; */
+ 
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -189,11 +189,7 @@
 }
 
 .emp-task-date-pill {
-  /* padding: 4px 10px;
-  border-radius: 12px;
-  background-color: #e5e7eb;
-  color: #374151;
-  font-size: 0.85rem; */
+ 
   min-width: 80px;
   border-radius: 12px;
   text-align: center;
@@ -202,15 +198,7 @@
   text-overflow: ellipsis;
 }
 
-/* .emp-task-start,
-.emp-task-end {
-  background-color: #d1d5db;
-}
 
-.emp-task-overdue {
-  background-color: #fee2e2;
-  color: #dc2626;
-} */
 
 .emp-task-arrow {
   color: #6b7280;
@@ -448,11 +436,17 @@
   width: 100%;
   max-width: 200px;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6b7280 50%),
+    linear-gradient(-45deg, transparent 50%, #6b7280 50%);
+  background-position:
+    calc(100% - 16px) center,
+    calc(100% - 12px) center;
+  background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
 }
+
 
 .emp-task-status-select:focus {
   outline: none;
@@ -649,7 +643,6 @@
   background-color: #28a745;
   transform: translateY(-1px);
 }
-/* ... Existing CSS (including desktop and tablet rules) remains unchanged ... */
 
 @media (max-width: 640px) {
   .emp-task-board-container-1 {
@@ -738,7 +731,6 @@
   .emp-task-details {
     width: 95%;
     padding: 15px;
-    /* max-height: 90vh; */
     margin: 30px;
   }
 
@@ -828,7 +820,7 @@
     white-space: nowrap;
     border-bottom: none;
     margin-bottom: 10px;
-    gap: 8px; /* Added gap for better spacing between tabs */
+    gap: 8px;
     padding: 8px 0;
     scroll-snap-type: x mandatory;
   }
@@ -841,19 +833,19 @@
     border: 1px solid #e5e7eb;
     border-radius: 6px 6px 0 0;
     margin-right: 5px;
-    flex: 1; /* Make tabs equal width for left-right fit */
-    min-width: 48%; /* Ensure two tabs fit side-by-side */
+    flex: 1;
+    min-width: 48%;
     text-align: center;
-    background-color: #f3f4f6; /* Default inactive background */
-    color: #6b7280; /* Default inactive text */
+    background-color: #f3f4f6; 
+    color: #6b7280;
     transition: background-color 0.2s ease, color 0.2s ease;
     scroll-snap-align: center;
   }
 
   .emp-task-tab-btn.emp-task-active {
-    background-color: #28a745; /* Green background for active tab */
-    color: white; /* White text for active */
-    border-color: #28a745; /* Match border to green */
+    background-color: #28a745; 
+    color: white; 
+    border-color: #28a745; 
     font-weight: 600;
   }
 
@@ -863,7 +855,7 @@
   }
 
   .emp-task-tab-btn.emp-task-active:hover {
-    background-color: #218838; /* Darker green on hover for active */
+    background-color: #218838;
     color: white;
   }
 
@@ -900,7 +892,6 @@
     padding: 10px;
   }
 
-  /* Hide scrollbar for clean look */
   .emp-task-tab-header::-webkit-scrollbar {
     display: none;
   }
@@ -914,7 +905,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1; /* 🔥 This makes input take remaining space */
+  flex: 1; 
   width: 100%;
 }
 
