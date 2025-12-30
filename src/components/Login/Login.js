@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Login.css";
+
+import { useLocation } from "react-router-dom";
 
 export default function Login({ onClose }) {
   const navigate = useNavigate();
@@ -21,6 +23,14 @@ export default function Login({ onClose }) {
 
   const closeErrorPopup = () => setErrorMessage("");
 
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.loginError) {
+      setErrorMessage(location.state.loginError);
+    }
+  }, [location.state]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -39,10 +49,11 @@ export default function Login({ onClose }) {
       console.warn("sessionStorage write failed", err);
     }
 
-    navigate("/dashboard", {
-      state: { username, password, orgId: 1 },
-    });
-
+    sessionStorage.setItem(
+      "EMBED_LOGIN",
+      JSON.stringify({ username, password, orgId: 1 })
+    );
+    navigate("/dashboard", { state: { username, password, orgId: 1 } });
     closeModal();
   };
 
@@ -117,9 +128,6 @@ export default function Login({ onClose }) {
       {errorMessage && (
         <div className="error-modal-backdrop" role="dialog" aria-modal="true">
           <div className="error-modal">
-            <div className="error-modal-header">
-              <strong>Error</strong>
-            </div>
             <div className="error-modal-body">{errorMessage}</div>
             <div className="error-modal-footer">
               <button

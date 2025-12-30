@@ -307,18 +307,19 @@ html {
 .error-modal-footer {
   padding: 12px 16px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   border-top: 1px solid #f0f0f0;
   background: #fff;
 }
 
 .error-modal-ok {
-  background: #166279;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
+  background: #166279 !important;
+  color: white !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-size: medium !important;
 }
 
 @media (max-width: 768px) {

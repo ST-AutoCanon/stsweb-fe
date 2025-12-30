@@ -116,10 +116,10 @@ export default function DashboardIframe({
       }
 
       if (msg.type === "login-failed") {
-        console.debug("[Parent] login-failed", msg.error);
-        setStatus("failed");
-        setError(msg.error || "Login failed");
-        return;
+        navigate("/", {
+          replace: true,
+          state: { loginError: msg.error || "Invalid credentials" },
+        });
       }
 
       if (msg.type === "child-logged-out") {
