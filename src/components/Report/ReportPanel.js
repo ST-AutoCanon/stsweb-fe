@@ -659,21 +659,30 @@ export default function ReportPanel() {
       }
     }
 
+    // Always include employee-friendly and id values where applicable (employees component)
     if (component !== "vendors") {
+      // employee id (exact) if available
       if (filterEmployeeId) params.append("employee_id", filterEmployeeId);
+      // employee friendly name (helps server build human-readable meta when id wasn't selected)
+      if (filterEmployeeName) params.append("employee", filterEmployeeName);
+
       if (isTeamRole) {
         const deptToSend = effectiveManagerDepartmentId || "";
-        if (deptToSend) params.append("department_id", deptToSend);
+        if (deptToSend) {
+          params.append("department_id", deptToSend);
+          params.append("department", String(deptToSend));
+        }
       } else {
-        if (filterDepartmentId)
+        if (filterDepartmentId) {
           params.append("department_id", filterDepartmentId);
+          params.append("department", String(filterDepartmentId));
+        }
       }
     }
 
     if (includeFormat) params.append("format", "xlsx");
     return params.toString();
   };
-
   const validateSelection = () => {
     if (!component || component === "select") {
       showAlert("Please select a component first.");
@@ -717,13 +726,17 @@ export default function ReportPanel() {
         return;
       }
 
-      const paramString = buildParams({ includeFormat: false, preview: false });
+      // include format inside buildParams to avoid manual concatenation problems
+      const paramString = buildParams({ includeFormat: true, preview: false });
+      // replace the default xlsx format with actual requested format
+      const finalParamString = paramString.replace(
+        /format=xlsx/i,
+        `format=${encodeURIComponent(format)}`
+      );
 
-      console.debug("[ReportPanel] download -> paramString:", paramString);
+      console.debug("[ReportPanel] download -> paramString:", finalParamString);
 
-      const url = `${base}/api/report/${endpoint}?${paramString}${
-        paramString ? "&" : ""
-      }format=${encodeURIComponent(format)}`;
+      const url = `${base}/api/report/${endpoint}?${finalParamString}`;
 
       let acceptHeader = "*/*";
       if (isPdf) acceptHeader = "application/pdf";

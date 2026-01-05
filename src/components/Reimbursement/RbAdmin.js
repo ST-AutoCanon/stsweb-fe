@@ -8,6 +8,7 @@ import axios from "axios";
 import Reimbursement from "./Reimbursement";
 import Modal from "../Modal/Modal";
 import ParticipantSelection from "./ParticipantSelection";
+import RbAdminOld from "./RbAdminOld";
 
 const RbAdmin = () => {
   const [employees, setEmployees] = useState([]);
@@ -27,7 +28,8 @@ const RbAdmin = () => {
     localStorage.getItem("dashboardData") || "{}"
   );
   const employeeId = employeeData?.employeeId;
-  const userRole = localStorage.getItem("userRole").toLowerCase?.() || "";
+  // safer retrieval of userRole to avoid calling toLowerCase on null
+  const userRole = (localStorage.getItem("userRole") || "").toLowerCase();
   const isHR = userRole === "hr";
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -42,6 +44,8 @@ const RbAdmin = () => {
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
   const [participantsForEdit, setParticipantsForEdit] = useState([]);
   const [participantsSaving, setParticipantsSaving] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("new"); // Track the selected tab
 
   const formatDisplayDate = (raw) => {
     if (!raw) return " ";
@@ -201,13 +205,19 @@ const RbAdmin = () => {
 
   const fetchEmployeeOptions = async () => {
     try {
-      const resp = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/reimbursement/employees`,
-        {
-          withCredentials: true,
-          headers: { "x-api-key": process.env.REACT_APP_API_KEY },
-        }
-      );
+      const endpoint =
+        activeTab === "old"
+          ? `${process.env.REACT_APP_BACKEND_URL}/reimbursement-old/employees`
+          : `${process.env.REACT_APP_BACKEND_URL}/reimbursement/employees`;
+
+      const resp = await axios.get(endpoint, {
+        withCredentials: true,
+        headers: {
+          "x-api-key": process.env.REACT_APP_API_KEY,
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      });
+
       const list = Array.isArray(resp.data)
         ? resp.data
         : resp.data?.data || resp.data || [];
@@ -353,7 +363,7 @@ const RbAdmin = () => {
           const candidateFilename =
             file.filename || file.file_name || file.name;
           if (!candidateFilename) return null;
-          const match = candidateFilename.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          let match = candidateFilename.match(/^(\d{4})-(\d{2})-(\d{2})/);
           if (!match) {
             const match2 = candidateFilename.match(
               /^(\d{4})[-_](\d{2})[-_](\d{2})/
@@ -523,7 +533,7 @@ const RbAdmin = () => {
   const sanitizeFileName = (name) => {
     if (!name) return "";
     return name
-      .replace(/[\u0000-\u001F<>:"/\\|?*]+/g, "")
+      .replace(/[\u0000-\u001F<>:\"/\\|?*]+/g, "")
       .trim()
       .replace(/\s+/g, "_")
       .substring(0, 160);
@@ -702,6 +712,13 @@ const RbAdmin = () => {
     setIsPaymentModalOpen(true);
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === "old") {
+      fetchEmployeeOptions(); // Fetch old data when switching to the old tab
+    }
+  };
+
   return (
     <div className="rb-admin">
       <h2>Reimbursement Requests</h2>
@@ -718,7 +735,15 @@ const RbAdmin = () => {
         >
           Self
         </button>
+        <button
+          className={`tab ${view === "old" ? "active" : ""}`}
+          onClick={() => setView("old")}
+        >
+          Old
+        </button>
       </div>
+
+      {/* Render area: show main admin table for 'all', Reimbursement for 'self', and RbAdminOld for 'old' */}
       {view === "all" ? (
         <>
           <div className="rb-filters">
@@ -1328,9 +1353,11 @@ const RbAdmin = () => {
             })}
           </div>
         </>
-      ) : (
+      ) : view === "self" ? (
         <Reimbursement />
-      )}
+      ) : view === "old" ? (
+        <RbAdminOld />
+      ) : null}
 
       {isParticipantsModalOpen && (
         <Modal

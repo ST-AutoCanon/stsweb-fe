@@ -12,6 +12,8 @@ import axios from "axios";
 
 import Reimbursement from "./Reimbursement";
 import "./RbTeamLead.css";
+import RbTeamLeadOld from "./RbTeamLeadOld";
+
 import Modal from "../Modal/Modal";
 import ParticipantSelection from "./ParticipantSelection";
 
@@ -721,9 +723,15 @@ const RbTeamLead = () => {
         >
           Self
         </button>
+        <button
+          className={`tab ${view === "old" ? "active" : ""}`}
+          onClick={() => setView("old")}
+        >
+          Old
+        </button>
       </div>
 
-      {view === "team" ? (
+      {view === "team" && (
         <div className="rb-main">
           <div className="rb-filters">
             <div className="rb-filter-group">
@@ -1340,9 +1348,13 @@ const RbTeamLead = () => {
             })}
           </div>
         </div>
-      ) : (
-        <Reimbursement />
       )}
+
+      {/* SELF (NEW) */}
+      {view === "self" && <Reimbursement />}
+
+      {/* OLD (OLD DATA) */}
+      {view === "old" && <RbTeamLeadOld />}
 
       {isEditModalOpen && claimToEdit && (
         <Modal
