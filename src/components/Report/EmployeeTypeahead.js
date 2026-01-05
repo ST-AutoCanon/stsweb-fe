@@ -31,49 +31,15 @@ function extractEmployeeIdFromDashboardData(raw) {
   }
 }
 
-function inferRoleFromLocalStorage() {
-  // Try common keys to find role
-  const keys = [
-    "dashboardData",
-    "userProfile",
-    "profile",
-    "user",
-    "dashboardUser",
-    "authUser",
-    "dashboardRole",
-    "role",
-    "userRole",
-  ];
-  try {
-    for (const k of keys) {
-      const v = localStorage.getItem(k);
-      if (!v) continue;
-      if (typeof v === "string" && v.trim().startsWith("{")) {
-        try {
-          const obj = JSON.parse(v);
-          if (!obj) continue;
-          const role =
-            obj.role ||
-            obj.userRole ||
-            obj.roleName ||
-            obj.employee_role ||
-            obj.accessLevel ||
-            obj.type;
-          if (role) return String(role).toLowerCase();
-        } catch (e) {
-          continue;
-        }
-      } else if (typeof v === "string") {
-        // simple string role
-        const s = v.trim().toLowerCase();
-        if (s) return s;
-      }
-    }
-  } catch (e) {}
-  return null;
-}
-
+/**
+ * EmployeeTypeahead
+ *
+ * Props:
+ *  - departmentId (optional) <-- IMPORTANT: this will be used if provided
+ *  - placeholder, limit, onSelect, onTyping, onClear, selectedValue, isTyping, minChars, debounceMs
+ */
 export default function EmployeeTypeahead({
+  departmentId: propDepartmentId = null,
   placeholder = "Search by name or email...",
   limit = 10,
   onSelect = () => {},
@@ -83,8 +49,6 @@ export default function EmployeeTypeahead({
   isTyping = false,
   minChars = 2,
   debounceMs = 180,
-  // Accept departmentId from parent (ReportPanel passes this)
-  departmentId: departmentIdProp = null,
 }) {
   const [query, setQuery] = useState(selectedValue || "");
   const [suggestions, setSuggestions] = useState([]);
@@ -93,58 +57,33 @@ export default function EmployeeTypeahead({
   const [open, setOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
 
+  // read dashboardData from localStorage as fallback if prop not provided
+  const localDashboardRaw =
+    typeof window !== "undefined" ? localStorage.getItem("dashboardData") : "";
+  const localData = (() => {
+    try {
+      return localDashboardRaw ? JSON.parse(localDashboardRaw) : {};
+    } catch {
+      return {};
+    }
+  })();
+
+  const localDepartmentId =
+    localData && (localData.department_id || localData.departmentId)
+      ? String(localData.department_id || localData.departmentId)
+      : null;
+
+  // final departmentId: prefer prop over local storage
+  const departmentId = propDepartmentId
+    ? String(propDepartmentId)
+    : localDepartmentId;
+
   const debRef = useRef(null);
   const latestRequestId = useRef(0);
   const boxRef = useRef(null);
   const inputRef = useRef(null);
   const lastTypingRef = useRef(false);
   const mountedRef = useRef(true);
-
-  // dashboardData-derived values (fallbacks)
-  let rawDashboard = null;
-  try {
-    rawDashboard =
-      typeof window !== "undefined"
-        ? localStorage.getItem("dashboardData")
-        : null;
-  } catch (e) {
-    rawDashboard = null;
-  }
-
-  const dashboardObj = (() => {
-    try {
-      if (!rawDashboard) return {};
-      if (
-        typeof rawDashboard === "string" &&
-        rawDashboard.trim().startsWith("{")
-      ) {
-        return JSON.parse(rawDashboard);
-      }
-      if (typeof rawDashboard === "object") return rawDashboard;
-      return {};
-    } catch (e) {
-      return {};
-    }
-  })();
-
-  const localDeptFromDashboard =
-    dashboardObj.department_id ?? dashboardObj.departmentId ?? null;
-
-  const roleLower = inferRoleFromLocalStorage(); // e.g. "hr", "admin", "manager"
-  const isHRLocal = roleLower === "hr" || roleLower === "human resources";
-
-  // prefer prop departmentId if provided (non-empty string), otherwise fallback to dashboard value
-  const departmentIdEffective =
-    departmentIdProp !== null &&
-    typeof departmentIdProp !== "undefined" &&
-    String(departmentIdProp).trim() !== ""
-      ? String(departmentIdProp)
-      : localDeptFromDashboard
-      ? String(localDeptFromDashboard)
-      : null;
-
-  // If user is HR, do not limit by department (HR should see all employees)
-  const departmentIdForQuery = isHRLocal ? null : departmentIdEffective;
 
   let employeeId = "";
   try {
@@ -177,7 +116,7 @@ export default function EmployeeTypeahead({
     ) {
       setQuery(selectedValue);
     }
-  }, [selectedValue, isTyping]); // keep controlled from parent when typing state isn't active
+  }, [selectedValue, isTyping]); // keep as before
 
   useEffect(() => {
     function onDocClick(e) {
@@ -207,6 +146,7 @@ export default function EmployeeTypeahead({
     }
   }, [query, onTyping, onClear]);
 
+  // MAIN fetch effect — depends on query, departmentId, limit, debounce etc.
   useEffect(() => {
     if (debRef.current) {
       clearTimeout(debRef.current);
@@ -232,13 +172,14 @@ export default function EmployeeTypeahead({
       const reqId = ++latestRequestId.current;
       const base = (getApiBase && getApiBase()) || "";
       const params = new URLSearchParams();
+
       try {
         params.set("q", trimmed);
         params.set("limit", String(limit));
-        // only include department filter if we have one AND user is not HR
-        if (departmentIdForQuery)
-          params.set("department_id", String(departmentIdForQuery));
+        // Use departmentId (prop preferred). Only add it if available.
+        if (departmentId) params.set("department_id", String(departmentId));
       } catch (e) {}
+
       const url = `${base.replace(
         /\/$/,
         ""
@@ -248,14 +189,17 @@ export default function EmployeeTypeahead({
         "x-api-key": process.env.REACT_APP_API_KEY || "",
         "x-employee-id": employeeId || "",
       };
+
       try {
         const resp = await axios.get(url, {
           withCredentials: true,
           headers,
-          timeout: 10000,
+          timeout: 10_000,
         });
+
         if (reqId !== latestRequestId.current) return;
         if (!mountedRef.current) return;
+
         const data = resp && resp.data ? resp.data : {};
         let items = [];
         if (Array.isArray(data)) items = data;
@@ -263,6 +207,7 @@ export default function EmployeeTypeahead({
         else if (Array.isArray(data.data)) items = data.data;
         else if (Array.isArray(data.rows)) items = data.rows;
         else items = [];
+
         if (mountedRef.current && reqId === latestRequestId.current) {
           setSuggestions(items.slice(0, limit));
           setTotalMatches(
@@ -304,7 +249,7 @@ export default function EmployeeTypeahead({
         debRef.current = null;
       }
     };
-  }, [query, limit, departmentIdForQuery, debounceMs, minChars, employeeId]);
+  }, [query, limit, departmentId, debounceMs, minChars, employeeId]);
 
   function handleSelect(item) {
     const name = item.employee_name || item.name || item.email || "";

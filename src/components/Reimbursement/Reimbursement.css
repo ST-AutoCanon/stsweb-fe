@@ -2146,3 +2146,27 @@
   display: block;
   margin-bottom: 6px;
 }
+.view-old-claims-btn {
+  background-color: #79c42b;
+  color: white;
+  border: none;
+  padding: 1% 2%;
+  font-size: medium;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.close-old-claims-btn {
+  background-color: #79c42b;
+  color: white;
+  border: none;
+  padding: 1% 2%;
+  font-size: medium;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

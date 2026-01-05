@@ -13,6 +13,8 @@ import { GiKnifeFork, GiPencilBrush } from "react-icons/gi";
 import { TbTriangleSquareCircle } from "react-icons/tb";
 import "./Reimbursement.css";
 import "./ParticipantSelection.css";
+import ReimbursementOld from "./ReimbursementOld";
+
 import Modal from "../Modal/Modal";
 import ParticipantSelection from "./ParticipantSelection";
 import AttachmentsModal from "./AttachmentModal";
@@ -151,6 +153,7 @@ const Reimbursement = () => {
   const [filteredReimbursements, setFilteredReimbursements] = useState([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [showOldClaims, setShowOldClaims] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [expandedClaims, setExpandedClaims] = useState(new Set());
@@ -1534,6 +1537,14 @@ const Reimbursement = () => {
     return false;
   };
 
+  const handleViewOldClaims = () => {
+    setShowOldClaims(true);
+  };
+
+  const handleCloseOldClaims = () => {
+    setShowOldClaims(false);
+  };
+
   return (
     <div className="reimbursement-container">
       <div className="rb-form-header">
@@ -1606,6 +1617,10 @@ const Reimbursement = () => {
           }}
         >
           Apply Claim
+        </button>
+
+        <button className="view-old-claims-btn" onClick={handleViewOldClaims}>
+          View Old Claims
         </button>
       </div>
 
@@ -2172,6 +2187,18 @@ const Reimbursement = () => {
         <h3>{alertModal.title}</h3>
         <p style={{ whiteSpace: "pre-wrap" }}>{alertModal.message}</p>
       </Modal>
+
+      {showOldClaims && (
+        <div className="old-claims-container">
+          <button
+            className="close-old-claims-btn"
+            onClick={handleCloseOldClaims}
+          >
+            Close Old Claims
+          </button>
+          <ReimbursementOld />
+        </div>
+      )}
     </div>
   );
 };
