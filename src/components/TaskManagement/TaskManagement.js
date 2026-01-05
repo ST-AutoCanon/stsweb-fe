@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -83,36 +82,35 @@ const TaskManagement = () => {
   const recognitionRef = useRef(null);
 
   // Inside the useEffect for speech recognition — FIX DUPLICATE onresult
-useEffect(() => {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) return;
+    if (!SpeechRecognition) return;
 
-  recognitionRef.current = new SpeechRecognition();
-  recognitionRef.current.continuous = true;
-  recognitionRef.current.interimResults = false; // 🔥 IMPORTANT
-  recognitionRef.current.lang = "en-US";
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.continuous = true;
+    recognitionRef.current.interimResults = false; // 🔥 IMPORTANT
+    recognitionRef.current.lang = "en-US";
 
-  recognitionRef.current.onresult = (event) => {
-    let finalTranscript = "";
+    recognitionRef.current.onresult = (event) => {
+      let finalTranscript = "";
 
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript;
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
       }
-    }
 
-    if (finalTranscript) {
-      setMessageText((prev) => (prev + " " + finalTranscript).trim());
-    }
-  };
+      if (finalTranscript) {
+        setMessageText((prev) => (prev + " " + finalTranscript).trim());
+      }
+    };
 
-  return () => {
-    recognitionRef.current?.stop();
-  };
-}, []);
-
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   const toggleMic = () => {
     if (!recognitionRef.current) return;
@@ -600,9 +598,8 @@ useEffect(() => {
                     },
                   ].sort((a, b) => new Date(a.time) - new Date(b.time)),
                   ...(activeTab === "Progress" && isProgressMessage(text)
-  ? { progress: parseInt(text.replace("%", "")) }
-  : {}),
-
+                    ? { progress: parseInt(text.replace("%", "")) }
+                    : {}),
                 }
               : t
           )
@@ -905,25 +902,25 @@ useEffect(() => {
                               </div>
                             </div>
                             <div className="task-footer">
-  <div className="task-spacer" />
-  <div
-    className="task-msg-wrap"
-    title="Open messages"
-  >
-    <span
-      className="task-message-icon"
-      role="img"
-      aria-label="messages"
-    >
-      💬
-    </span>
-    {selectedTask?.messages?.length > 0 && (
-      <span className="task-message-count">
-        {selectedTask.messages.length}
-      </span>
-    )}
-  </div>
-</div>
+                              <div className="task-spacer" />
+                              <div
+                                className="task-msg-wrap"
+                                title="Open messages"
+                              >
+                                <span
+                                  className="task-message-icon"
+                                  role="img"
+                                  aria-label="messages"
+                                >
+                                  💬
+                                </span>
+                                {selectedTask?.messages?.length > 0 && (
+                                  <span className="task-message-count">
+                                    {selectedTask.messages.length}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         );
                       })
@@ -1109,13 +1106,17 @@ useEffect(() => {
                   <div className="task-tabs">
                     <div className="task-tab-header">
                       <button
-                        className={`task-tab-btn ${activeTab === "Progress" ? "task-active" : ""}`}
+                        className={`task-tab-btn ${
+                          activeTab === "Progress" ? "task-active" : ""
+                        }`}
                         onClick={() => setActiveTab("Progress")}
                       >
                         Progress
                       </button>
                       <button
-                        className={`task-tab-btn ${activeTab === "Clarification" ? "task-active" : ""}`}
+                        className={`task-tab-btn ${
+                          activeTab === "Clarification" ? "task-active" : ""
+                        }`}
                         onClick={() => setActiveTab("Clarification")}
                       >
                         Clarification
@@ -1159,52 +1160,59 @@ useEffect(() => {
                               No progress updates yet.
                             </p>
                           )}
-                         <form
-  className="task-chat-input"
-  onSubmit={(e) => {
-    e.preventDefault();
-    handleAddMessage(e);
-  }}
->
-  <div className="task-mic-input-wrapper">
-    <input
-      type="text"
-      placeholder={isListening ? "Listening... speak now" : "Type message…"}
-      value={messageText}
-      onChange={(e) => setMessageText(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          if (messageText.trim()) {
-            handleAddMessage(e);
-          }
-        }
-      }}
-      autoFocus
-    />
+                          <form
+                            className="task-chat-input"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleAddMessage(e);
+                            }}
+                          >
+                            <div className="task-mic-input-wrapper">
+                              <input
+                                type="text"
+                                placeholder={
+                                  isListening
+                                    ? "Listening... speak now"
+                                    : "Type message…"
+                                }
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    if (messageText.trim()) {
+                                      handleAddMessage(e);
+                                    }
+                                  }
+                                }}
+                                autoFocus
+                              />
 
-    <button
-      type="button"
-      className={`task-mic-button ${isListening ? "listening" : ""}`}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMic();
-      }}
-      title={isListening ? "Stop listening" : "Speak"}
-    >
-      <i className="fa-solid fa-microphone"></i>
-    </button>
-  </div>
+                              <button
+                                type="button"
+                                className={`task-mic-button ${
+                                  isListening ? "listening" : ""
+                                }`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  toggleMic();
+                                }}
+                                title={isListening ? "Stop listening" : "Speak"}
+                              >
+                                <i className="fa-solid fa-microphone"></i>
+                              </button>
+                            </div>
 
-  <button 
-    type="submit" 
-    disabled={!messageText.trim() || loadingMessages}
-    className="task-send-btn"
-  >
-    Send
-  </button>
-</form>                        </div>
+                            <button
+                              type="submit"
+                              disabled={!messageText.trim() || loadingMessages}
+                              className="task-send-btn"
+                            >
+                              Send
+                            </button>
+                          </form>{" "}
+                        </div>
                       )}
                       {activeTab === "Clarification" && (
                         <div className="task-clarification-tab">
