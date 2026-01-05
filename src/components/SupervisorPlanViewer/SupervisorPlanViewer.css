@@ -549,9 +549,6 @@
   margin-top: 4px;
 }
 
-
-
-
 @media (max-width: 768px) {
   .supervisor-plan-wrapper {
     flex-direction: column;

@@ -6,18 +6,14 @@ import { MdMic, MdMicNone } from "react-icons/md";
 
 const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [weekOffset, setWeekOffset] = useState(0);
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const dayOfWeek = today.getDay();
   const offsetToMonday = (dayOfWeek + 6) % 7;
   const startOfCurrentWeek = new Date(today);
   startOfCurrentWeek.setDate(today.getDate() - offsetToMonday);
-
   const startDate = new Date(startOfCurrentWeek);
   startDate.setDate(startOfCurrentWeek.getDate() + weekOffset * 7);
-
   const endDate = new Date(startDate);
   endDate.setDate(startDate.getDate() + 6);
 
@@ -29,18 +25,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     const year = start.getFullYear();
     return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
   };
+
   const dateRange = formatDateRange(startDate, endDate);
 
+  // Updated: Returns "YYYY-WW" format like "2025-52", "2026-01"
   const getISOWeekNumber = (date) => {
-    const d = new Date(
-      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-    );
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    // Move to Thursday of current week (ISO week year is determined by Thursday)
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
     const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-    return weekNo;
+    return `${d.getFullYear()}-${String(weekNo).padStart(2, "0")}`;
   };
+
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
 
@@ -49,19 +47,15 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
       alert("Speech Recognition is not supported in this browser.");
       return;
     }
-
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.lang = "en-IN";
     recognitionRef.current.continuous = false;
     recognitionRef.current.interimResults = false;
-
     recognitionRef.current.onstart = () => {
       setIsListening(true);
     };
-
     recognitionRef.current.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setFormData((prev) => ({
@@ -69,15 +63,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         comment: prev.comment ? prev.comment + " " + transcript : transcript,
       }));
     };
-
     recognitionRef.current.onerror = () => {
       setIsListening(false);
     };
-
     recognitionRef.current.onend = () => {
       setIsListening(false);
     };
-
     recognitionRef.current.start();
   };
 
@@ -88,7 +79,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     setIsListening(false);
   };
 
-  const weekId = getISOWeekNumber(startDate);
+  const weekId = getISOWeekNumber(startDate); // Now "2025-52" etc.
 
   const weekDates = [];
   for (let i = 0; i < 7; i++) {
@@ -149,24 +140,21 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const tooltipRef = useRef(null);
   const [assignListeningIndex, setAssignListeningIndex] = useState(null);
+
   const startAssignListening = (index) => {
     if (!("webkitSpeechRecognition" in window)) {
       alert("Speech Recognition is not supported in this browser.");
       return;
     }
-
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.lang = "en-IN";
     recognitionRef.current.continuous = false;
     recognitionRef.current.interimResults = false;
-
     recognitionRef.current.onstart = () => {
       setAssignListeningIndex(index);
     };
-
     recognitionRef.current.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setAssignTasks((prev) =>
@@ -177,15 +165,12 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         )
       );
     };
-
     recognitionRef.current.onerror = () => {
       setAssignListeningIndex(null);
     };
-
     recognitionRef.current.onend = () => {
       setAssignListeningIndex(null);
     };
-
     recognitionRef.current.start();
   };
 
@@ -253,6 +238,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const showAlert = (message, title = "") => {
     setAlertModal({ isVisible: true, title, message });
   };
+
   const closeAlert = () => {
     setAlertModal({ isVisible: false, title: "", message: "" });
   };
@@ -296,7 +282,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     taskDateObj.setHours(0, 0, 0, 0);
     const diffDays = (today - taskDateObj) / (1000 * 3600 * 24);
     const editable = diffDays <= 0 || (diffDays > 0 && diffDays <= freezeDays);
-
     return editable;
   };
 
@@ -363,7 +348,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           },
         })
       );
-
       if (
         !configResponse.data ||
         !configResponse.data.success ||
@@ -399,7 +383,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           }
         }
       }
-
       const holidaysUrl = `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor/holidays/all`;
       const holidaysRes = await withRetry(() =>
         axios.get(holidaysUrl, {
@@ -415,7 +398,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         ? holidaysRes.data.holidays.map((holiday) => holiday.date)
         : [];
       setHolidays(holidayData.length > 0 ? holidayData : ["2025-12-25"]);
-
       const leavesUrl = `${process.env.REACT_APP_BACKEND_URL}/employee/leave/${employeeId}`;
       const leavesRes = await withRetry(() =>
         axios.get(leavesUrl, {
@@ -430,7 +412,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         ? leavesRes.data.data.filter((leave) => leave.status === "Approved")
         : [];
       setApprovedLeaves(approvedLeavesData);
-
       const projectsUrl = `${process.env.REACT_APP_BACKEND_URL}/projects/employeeProjects`;
       const projectsRes = await withRetry(() =>
         axios.get(projectsUrl, {
@@ -447,7 +428,6 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
         newProjects[project.id] = project.project;
       });
       setProjects(newProjects);
-
       const tasksUrl = `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks/employee/${employeeId}`;
       const tasksRes = await withRetry(() =>
         axios.get(tasksUrl, {
@@ -512,6 +492,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
   const handlePreviousWeek = () => {
     setWeekOffset((prev) => Math.max(prev - 1, -3));
   };
+
   const handleNextWeek = () => {
     setWeekOffset((prev) => Math.min(prev + 1, 3));
   };
@@ -1150,16 +1131,20 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     try {
       for (const task of validTasks) {
         for (const date of task.dates) {
-          const [day, month] = date.split(" ");
-          const monthIndex = new Date(
-            Date.parse(`${month} 1, 2025`)
-          ).getMonth();
-          const taskDate = new Date(2025, monthIndex, parseInt(day));
+          const weekDayIndex = weekDates.indexOf(date);
+          if (weekDayIndex === -1) {
+            console.error("Date not found in weekDates:", date);
+            continue;
+          }
+
+          const taskDate = new Date(startDate);
+          taskDate.setDate(startDate.getDate() + weekDayIndex);
           taskDate.setHours(0, 0, 0, 0);
+
           const taskDateStr = formatDateIST(taskDate);
 
           const newTask = {
-            week_id: weekId,
+            week_id: weekId, // Now "2025-52", "2026-01", etc.
             task_date: taskDateStr,
             project_id: task.projectId,
             project_name: task.projectName,
@@ -1173,6 +1158,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             star_rating: null,
             replacement_task: null,
           };
+
           const response = await axios.post(
             `${process.env.REACT_APP_BACKEND_URL}/api/week_tasks`,
             newTask,
@@ -1183,10 +1169,10 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
               },
             }
           );
+
           setTasksData((prev) => {
             const newData = [...prev];
             const dayIndex = newData.findIndex((d) => d.date === date);
-
             if (dayIndex > -1) {
               newData[dayIndex] = {
                 ...newData[dayIndex],
@@ -1200,6 +1186,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
             }
             return newData;
           });
+
           setProjects((prev) => ({
             ...prev,
             [newTask.project_id]: newTask.project_name,
@@ -1231,6 +1218,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     "not started": "#888",
     working: "#007bff",
   };
+
   const statusLabels = {
     completed: "Completed",
     "add on": "Add On",
@@ -1239,11 +1227,13 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     "not started": "Not Started",
     working: "Working",
   };
+
   const reviewColors = {
     approved: "#28a745",
     struck: "#dc3545",
     suspended_review: "#ffc107",
   };
+
   const reviewIcons = {
     approved: "✓",
     struck: "✗",

@@ -162,12 +162,10 @@
 }
 
 .task-title {
-  /* font-weight: 500; */
   font-size: 1rem;
   color: #1f2937;
-  /* text-transform: none; */
+
   overflow: hidden;
-  /* text-overflow: ellipsis; */
 }
 
 .task-id-chip {
@@ -241,16 +239,9 @@
 
 .task-start,
 .task-end {
-  /* background-color: #d1d5db; */
   padding: 4px 10px;
-  /* color: #374151; */
   font-size: 0.75rem;
 }
-
-/* .task-overdue {
-  background-color: #fee2e2;
-  color: #dc2626;
-} */
 
 .task-arrow {
   color: #6b7280;
@@ -465,10 +456,12 @@
   width: 100%;
   max-width: 200px;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+
+  background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%),
+    linear-gradient(-45deg, transparent 50%, #6b7280 50%);
+  background-position: calc(100% - 16px) center, calc(100% - 12px) center;
+  background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
 }
 
 .task-status-select:focus {
@@ -732,7 +725,6 @@
   background-color: #28a745;
   transform: translateY(-1px);
 }
-/* ... Existing CSS remains unchanged ... */
 
 @media (max-width: 640px) {
   .task-board {
@@ -744,7 +736,7 @@
     margin: 20px;
   }
   .task-tab-header {
-    flex-direction: row; /* Row for left-right layout */
+    flex-direction: row;
     overflow-x: auto;
     white-space: nowrap;
     border-bottom: none;
@@ -762,14 +754,14 @@
     font-size: 0.9rem;
     margin: 0;
     scroll-snap-align: center;
-    background-color: #f3f4f6; /* Default background for inactive */
-    color: #6b7280; /* Default text color */
+    background-color: #f3f4f6;
+    color: #6b7280;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
   .task-tab-btn.task-active {
-    background-color: #28a745; /* Active background (green) */
-    color: #ffffff; /* Active text color: white */
-    border-color: #28a745; /* Match border to background */
+    background-color: #28a745;
+    color: #ffffff;
+    border-color: #28a745;
     font-weight: 600;
   }
   .task-tab-btn:hover {
@@ -777,7 +769,7 @@
     color: #374151;
   }
   .task-tab-btn.task-active:hover {
-    background-color: #218838; /* Slightly darker green on hover for active */
+    background-color: #218838;
     color: #ffffff;
   }
   .assign-task-modal .form-row {
@@ -788,7 +780,6 @@
     width: 100%;
   }
 
-  /* Hide scrollbar */
   .task-tab-header::-webkit-scrollbar {
     display: none;
   }
@@ -812,7 +803,6 @@
   width: 38px;
   height: 38px;
   margin-left: 8px;
-  /* border-radius: 50%; */
   cursor: pointer;
   justify-content: center;
   align-items: center;
