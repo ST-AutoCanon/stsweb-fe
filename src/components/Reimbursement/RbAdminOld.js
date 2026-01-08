@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./RbAdminOld.css";
 import { MdOutlineRemoveRedEye, MdOutlineCancel } from "react-icons/md";
-import { FaSearch, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
 import { FaFileInvoice } from "react-icons/fa6";
 import axios from "axios";
@@ -80,8 +80,6 @@ const RbAdminOld = () => {
         withCredentials: true,
         headers: getAuthHeaders(),
       });
-
-      // backend might return { projects: [...] } or an array directly; handle both
       const projList = response?.data?.projects || response?.data || [];
       setProjects(projList);
     } catch (err) {
@@ -101,6 +99,7 @@ const RbAdminOld = () => {
         params: {
           submittedFrom: submittedFrom || null,
           submittedTo: submittedTo || null,
+          status: statusFilter && statusFilter !== "all" ? statusFilter : null,
         },
       });
 
@@ -267,20 +266,68 @@ const RbAdminOld = () => {
     }
   };
 
-  const updatePaymentStatus = async (id) => {
-    if (!paymentStatusUpdates[id])
-      return showAlert("Please select a payment status.");
+  const openPaymentModal = async (claim) => {
+    if (!claim) return showAlert("No claim selected");
     try {
-      await axios.put(
-        `${BASE}/old/reimbursement/payment-status/${id}`,
-        { payment_status: paymentStatusUpdates[id], user_role: "admin" },
+      await fetchEmployees();
+      const flat = (employees || []).flatMap((e) => e.claims || []);
+      const fresh = flat.find((c) => Number(c.id) === Number(claim.id));
+      if (!fresh) return showAlert("Claim not found. Refresh and try again.");
+      if (String(fresh.status).toLowerCase() !== "approved") {
+        return showAlert(
+          "Payment status can only be updated for approved reimbursements."
+        );
+      }
+      setSelectedPaymentClaim(fresh);
+      setSelectedPaymentOption("");
+      setIsPaymentModalOpen(true);
+    } catch (err) {
+      console.error("Error opening payment modal (admin):", err);
+      showAlert("Unable to open payment modal. Try refreshing.");
+    }
+  };
+
+  const updatePaymentStatus = async () => {
+    if (!selectedPaymentOption)
+      return showAlert("Please select a payment status.");
+    if (!selectedPaymentClaim) return showAlert("No claim selected.");
+
+    try {
+      await fetchEmployees();
+      const flat = (employees || []).flatMap((e) => e.claims || []);
+      const fresh = flat.find(
+        (c) => Number(c.id) === Number(selectedPaymentClaim.id)
+      );
+      if (!fresh) return showAlert("Claim not found. Refresh and try again.");
+
+      if (String(fresh.status).toLowerCase() !== "approved") {
+        return showAlert(
+          "Payment status can only be updated for approved reimbursements."
+        );
+      }
+
+      const payload = {
+        payment_status: selectedPaymentOption,
+        user_role: "admin",
+      };
+
+      const resp = await axios.put(
+        `${BASE}/old/reimbursement/payment-status/${fresh.id}`,
+        payload,
         { withCredentials: true, headers: getAuthHeaders() }
       );
+
       showAlert("Payment status updated successfully.");
+      setIsPaymentModalOpen(false);
       fetchEmployees();
     } catch (err) {
-      console.error("Error updating payment status (old):", err);
-      showAlert("Payment status update failed.");
+      console.error("Error updating payment status (admin):", err);
+      const serverMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        JSON.stringify(err?.response?.data) ||
+        err.message;
+      showAlert(serverMsg);
     }
   };
 
@@ -313,14 +360,16 @@ const RbAdminOld = () => {
       showAlert("There was an issue downloading the file.");
     }
   };
-
-  // search + filter
+  // search + filter (client-side filter as fallback)
   const filteredEmployees = (employees || [])
     .map((emp) => ({
       ...emp,
       claims: (emp.claims || []).filter((claim) => {
         const status = (claim.status || "").toLowerCase().trim();
-        const pay = (claim.payment_status || "").toLowerCase().trim();
+        // normalize payment status: treat empty/null as 'pending'
+        const payRaw = claim.payment_status || "";
+        const pay = String(payRaw).toLowerCase().trim();
+
         switch (statusFilter) {
           case "approved":
             return status === "approved";
@@ -329,11 +378,12 @@ const RbAdminOld = () => {
           case "pending":
             return status === "pending";
           case "approved_pending":
-            return status === "approved" && pay === "pending";
+            // treat missing/empty payment_status as pending
+            return status === "approved" && (pay === "pending" || pay === "");
           case "approved_paid":
             return status === "approved" && pay === "paid";
           default:
-            return false;
+            return true; // "all" or unknown -> don't filter out
         }
       }),
     }))
@@ -346,6 +396,88 @@ const RbAdminOld = () => {
         name.includes(q) || String(e.employee_id).toLowerCase().includes(q)
       );
     });
+
+  // helper to render invoices (may be JSON or plain string)
+  const renderInvoices = (claim) => {
+    if (!claim) return null;
+    const raw = claim.invoices;
+    if (!raw) return "—";
+    try {
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (Array.isArray(parsed)) {
+        return parsed.length ? parsed.join(", ") : "—";
+      }
+      if (typeof parsed === "object") {
+        return Object.values(parsed).join(", ");
+      }
+      return String(parsed);
+    } catch {
+      // not JSON — just return as-is
+      return String(raw);
+    }
+  };
+
+  const exportToCSV = () => {
+    const rows = [
+      [
+        "Employee Name",
+        "Employee ID",
+        "Claim ID",
+        "Claim Type",
+        "Date",
+        "Amount",
+        "Purpose",
+        "Status",
+        "invoices",
+        "Total Amount",
+        "Payment Status",
+        "Project",
+      ],
+    ];
+
+    filteredEmployees.forEach((emp) => {
+      emp.claims.forEach((claim) => {
+        rows.push([
+          emp.claims[0]?.employee_name || "",
+          emp.employee_id || "",
+          claim.id || "",
+          claim.claim_type || "",
+          claim.date ? formatDisplayDate(claim.date) : claim.date_range || "",
+          claim.total_amount ?? "",
+          (claim.purpose || "").replace(/\r?\n|\r/g, " "),
+          claim.status || "",
+          claim.payment_status || "",
+          claim.paid_date ? formatDisplayDate(claim.paid_date) : "",
+          claim.approved_date ? formatDisplayDate(claim.approved_date) : "",
+          [claim.approver_name, claim.approver_designation]
+            .filter(Boolean)
+            .join(" / "),
+          claim.project || "",
+          claim.da ?? "",
+          claim.transport_amount ?? "",
+          (claim.participants || "").replace(/\r?\n|\r/g, " "),
+          claim.meals_objective || "",
+          renderInvoices(claim),
+        ]);
+      });
+    });
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      rows
+        .map((r) =>
+          r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")
+        )
+        .join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "Reimbursements_old_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   // render
   return (
@@ -376,6 +508,18 @@ const RbAdminOld = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              <label>Status By</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="pending">Pending</option>
+                <option value="approved_pending">Approved / Pending</option>
+                <option value="approved_paid">Approved / Paid</option>
+              </select>
             </div>
 
             <div className="rb-filter-group-old">
@@ -400,7 +544,7 @@ const RbAdminOld = () => {
             </button>
             <button
               className="rb-search-old"
-              onClick={() => {}}
+              onClick={exportToCSV}
               style={{ marginLeft: 8 }}
             >
               <FiDownload /> Export
@@ -440,67 +584,91 @@ const RbAdminOld = () => {
                             <th>Amount</th>
                             <th>Purpose</th>
                             <th>Attachments</th>
+                            <th>Invoices</th>
+                            <th>Participants</th>
+                            <th>Total Amount</th>
+                            <th>Meals Obj.</th>
                             <th>Status</th>
                             <th>Projects</th>
-                            <th>Approver Comments</th>
                             <th>Payment Status</th>
+                            <th>Paid Date</th>
                             <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {emp.claims.map((claim, idx) => (
-                            <tr key={claim.id}>
-                              <td>{idx + 1}</td>
-                              <td>{claim.claim_type || "-"}</td>
+                          {emp.claims.map((rb) => (
+                            <tr key={rb.id}>
+                              <td>{emp.claims.indexOf(rb) + 1}</td>
+
+                              {/* Claim Type */}
+                              <td>{rb.claim_type}</td>
+
+                              {/* Date */}
                               <td>
-                                {claim.date
-                                  ? formatDisplayDate(claim.date)
-                                  : claim.date_range || "N/A"}
+                                {formatDisplayDate(rb.date || rb.from_date)}
                               </td>
-                              <td>₹{claim.total_amount}</td>
-                              <td title={claim.purpose}>{claim.purpose}</td>
+
+                              {/* Amount (kept as total_amount) */}
+                              <td>₹{rb.total_amount}</td>
+
+                              {/* Purpose */}
+                              <td title={rb.purpose}>{rb.purpose}</td>
+
+                              {/* Attachments */}
                               <td>
-                                {attachments[claim.id] &&
-                                attachments[claim.id].length > 0 ? (
+                                {attachments[rb.id]?.length ? (
                                   <button
-                                    className="attachments-btn-old"
                                     onClick={() =>
                                       handleOpenAttachments(
-                                        attachments[claim.id],
-                                        claim
+                                        attachments[rb.id],
+                                        rb
                                       )
                                     }
                                   >
-                                    <MdOutlineRemoveRedEye className="eye-icon-old" />{" "}
-                                    View
+                                    <MdOutlineRemoveRedEye /> View
                                   </button>
                                 ) : (
-                                  "No Attachments"
+                                  "N/A"
                                 )}
                               </td>
+
+                              {/* Invoices */}
+                              <td>{renderInvoices(rb)}</td>
+
+                              {/* Participants */}
+                              <td style={{ maxWidth: 200 }}>
+                                {(rb.participants || "—").length > 0
+                                  ? rb.participants
+                                  : "—"}
+                              </td>
+
+                              {/* Total Amount (duplicate of Amount if that's what you want) */}
+                              <td>₹{rb.total_amount}</td>
+
+                              {/* Meals Objective */}
+                              <td title="Meals objective">
+                                {rb.meals_objective || "-"}
+                              </td>
+
+                              {/* Status (approve/reject select or label) */}
                               <td>
-                                {String(claim.status).toLowerCase() ===
+                                {String(rb.status).toLowerCase() ===
                                   "approved" ||
-                                String(claim.status).toLowerCase() ===
+                                String(rb.status).toLowerCase() ===
                                   "rejected" ? (
                                   <span
-                                    className={`status-label-old ${claim.status}`}
+                                    className={`status-label-old ${rb.status}`}
                                   >
-                                    {claim.status}
+                                    {rb.status}
                                   </span>
                                 ) : (
                                   <select
                                     className="rb-status-dropdown-old"
                                     value={
-                                      statusUpdates[claim.id] ||
-                                      claim.status ||
-                                      ""
+                                      statusUpdates[rb.id] || rb.status || ""
                                     }
                                     onChange={(e) =>
-                                      handleStatusChange(
-                                        claim.id,
-                                        e.target.value
-                                      )
+                                      handleStatusChange(rb.id, e.target.value)
                                     }
                                   >
                                     <option value="">Pending</option>
@@ -509,20 +677,22 @@ const RbAdminOld = () => {
                                   </select>
                                 )}
                               </td>
+
+                              {/* Projects */}
                               <td>
-                                {String(claim.status).toLowerCase() ===
+                                {String(rb.status).toLowerCase() ===
                                   "approved" ||
-                                String(claim.status).toLowerCase() ===
+                                String(rb.status).toLowerCase() ===
                                   "rejected" ? (
-                                  projectSelections[claim.id] || claim.project
+                                  projectSelections[rb.id] || rb.project
                                 ) : (
                                   <select
                                     className="rb-status-dropdown-old"
-                                    value={projectSelections[claim.id] || ""}
+                                    value={projectSelections[rb.id] || ""}
                                     onChange={(e) =>
                                       setProjectSelections((p) => ({
                                         ...p,
-                                        [claim.id]: e.target.value,
+                                        [rb.id]: e.target.value,
                                       }))
                                     }
                                   >
@@ -536,56 +706,46 @@ const RbAdminOld = () => {
                                   </select>
                                 )}
                               </td>
+
+                              {/* Payment Status */}
                               <td>
-                                {claim.approver_comments ||
-                                  (claim.status === "approved" ||
-                                  claim.status === "rejected" ? (
-                                    "No comments"
-                                  ) : (
-                                    <input
-                                      value={comments[claim.id] || ""}
-                                      onChange={(e) =>
-                                        setComments((p) => ({
-                                          ...p,
-                                          [claim.id]: e.target.value,
-                                        }))
-                                      }
-                                    />
-                                  ))}
-                              </td>
-                              <td>
-                                {String(claim.status).toLowerCase() ===
+                                {String(rb.status).toLowerCase() ===
                                 "approved" ? (
-                                  !claim.payment_status ||
-                                  claim.payment_status.toLowerCase() ===
+                                  !rb.payment_status ||
+                                  rb.payment_status.toLowerCase() ===
                                     "pending" ? (
                                     <button
                                       className="pending-payment-btn-old"
-                                      onClick={() => {
-                                        setSelectedPaymentClaim(claim);
-                                        setSelectedPaymentOption("");
-                                        setIsPaymentModalOpen(true);
-                                      }}
+                                      onClick={() => openPaymentModal(rb)}
                                     >
                                       Pending
                                     </button>
                                   ) : (
-                                    <span>{claim.payment_status}</span>
+                                    <span>{rb.payment_status}</span>
                                   )
                                 ) : (
-                                  <span>{claim.payment_status || "-"}</span>
+                                  <span>{rb.payment_status || "-"}</span>
                                 )}
                               </td>
+
+                              {/* Paid Date */}
+                              <td>
+                                {rb.paid_date
+                                  ? formatDisplayDate(rb.paid_date)
+                                  : "-"}
+                              </td>
+
+                              {/* Actions */}
                               <td>
                                 <FaFileInvoice
                                   size={20}
                                   className="update-btn-old"
-                                  onClick={() => updateStatus(claim.id)}
+                                  onClick={() => updateStatus(rb.id)}
                                 />
                                 <FiDownload
                                   size={20}
                                   className="download-btn-old"
-                                  onClick={() => handleDownloadPDF(claim)}
+                                  onClick={() => handleDownloadPDF(rb)}
                                 />
                               </td>
                             </tr>
@@ -593,10 +753,11 @@ const RbAdminOld = () => {
                         </tbody>
                         <tfoot>
                           <tr className="total-row-old">
-                            <td colSpan="5" style={{ textAlign: "right" }}>
+                            {/* 18 columns total, split for display */}
+                            <td colSpan="10" style={{ textAlign: "right" }}>
                               Total Amount Claiming: <b>Rs {totalAmount}</b>
                             </td>
-                            <td colSpan="6" style={{ textAlign: "right" }}>
+                            <td colSpan="8" style={{ textAlign: "right" }}>
                               Amount Approved: <b>Rs {approvedAmount}</b>
                             </td>
                           </tr>
@@ -684,9 +845,12 @@ const RbAdminOld = () => {
                   fetchEmployees();
                 } catch (err) {
                   console.error("Error updating payment status (old):", err);
-                  showAlert(
-                    "Could not update payment status. Please try again."
-                  );
+                  const serverMsg =
+                    err?.response?.data?.error ||
+                    err?.response?.data?.message ||
+                    JSON.stringify(err?.response?.data) ||
+                    err.message;
+                  showAlert(serverMsg);
                 }
               }}
             >
