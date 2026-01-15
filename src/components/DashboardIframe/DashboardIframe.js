@@ -236,9 +236,7 @@ export default function DashboardIframe({
 
   return (
     <div>
-      <h1>Dashboard (Embedded)</h1>
-
-      <div style={{ width: "100%", height: "100vh", marginTop: 10 }}>
+      <div style={{ width: "100%", height: "100vh", marginTop: 80 }}>
         <iframe
           ref={iframeRef}
           src={externalLoginUrl}
