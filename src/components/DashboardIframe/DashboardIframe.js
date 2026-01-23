@@ -31,7 +31,7 @@ export default function DashboardIframe({
             username: routeCreds.username,
             password: routeCreds.password,
             orgId: orgIdFromStorage,
-          })
+          }),
         );
       } catch {}
     }
@@ -79,7 +79,7 @@ export default function DashboardIframe({
         "source:",
         ev?.source,
         "data:",
-        ev?.data
+        ev?.data,
       );
 
       const msg = ev?.data || {};
@@ -94,7 +94,7 @@ export default function DashboardIframe({
       if (!originAllowed && !isFromIframeWindow) {
         console.debug(
           "[Parent] ignoring message - origin not allowed and not from iframe window:",
-          ev?.origin
+          ev?.origin,
         );
         return;
       }
@@ -106,19 +106,28 @@ export default function DashboardIframe({
       }
 
       if (msg.type === "login-success") {
-        console.debug("[Parent] login-success");
         try {
           sessionStorage.removeItem("EMBED_LOGIN");
         } catch {}
-        setStatus("success");
-        setShowParentUI(false);
+
+        navigate("/dashboard", {
+          replace: true,
+          state: { loginSuccess: true },
+        });
         return;
       }
 
       if (msg.type === "login-failed") {
+        try {
+          sessionStorage.removeItem("EMBED_LOGIN");
+        } catch {}
+
         navigate("/", {
           replace: true,
-          state: { loginError: msg.error || "Invalid credentials" },
+          state: {
+            openLogin: true,
+            loginError: msg.error || "Invalid credentials",
+          },
         });
       }
 
@@ -139,7 +148,7 @@ export default function DashboardIframe({
           } catch (locErr) {
             console.error(
               "[Parent] window.location.replace('/') failed",
-              locErr
+              locErr,
             );
           }
         }
@@ -176,7 +185,7 @@ export default function DashboardIframe({
               password,
               orgId: orgIdFromStorage,
             },
-            iframeOrigin || "*"
+            iframeOrigin || "*",
           );
           setStatus("sent");
         } catch (err) {
@@ -208,7 +217,7 @@ export default function DashboardIframe({
           password,
           orgId: orgIdFromStorage,
         },
-        iframeOrigin || "*"
+        iframeOrigin || "*",
       );
       setStatus("sent");
     } catch (err) {

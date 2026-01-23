@@ -62,6 +62,13 @@ html {
   margin-bottom: 2%;
 }
 
+/* Inline error style inside the login modal */
+.login-error {
+  color: #a70000;
+  margin: 16px;
+  font-size: 0.95rem;
+}
+
 .h2 {
   margin-bottom: 20px;
   color: #333;
@@ -226,7 +233,9 @@ html {
   top: 20px;
   z-index: 1000;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out, background-color 0.6s ease-in-out;
+  transition:
+    opacity 0.3s ease-in-out,
+    background-color 0.6s ease-in-out;
 }
 
 .btn-open-login:hover {

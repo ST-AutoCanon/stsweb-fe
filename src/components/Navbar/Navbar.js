@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
 import "./Navbar.css";
@@ -48,6 +48,12 @@ const Navbar = () => {
   const CloseModal = () => {
     setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    if (location.state?.loginSuccess) {
+      setIsModalOpen(false);
+    }
+  }, [location.state]);
 
   return (
     <>

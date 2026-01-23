@@ -81,9 +81,8 @@ function App() {
           return;
         }
 
-        const registration = await navigator.serviceWorker.register(
-          "/service-worker.js"
-        );
+        const registration =
+          await navigator.serviceWorker.register("/service-worker.js");
 
         const existingSubscription =
           await registration.pushManager.getSubscription();
@@ -95,7 +94,7 @@ function App() {
               credentials: "include",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ endpoint: existingSubscription.endpoint }),
-            }
+            },
           );
           const { exists } = await res.json();
           if (exists) {
@@ -104,7 +103,7 @@ function App() {
         }
 
         const vapidResponse = await fetch(
-          "https://sukalpatechsolutions.com/api/vapidPublicKey"
+          "https://sukalpatechsolutions.com/api/vapidPublicKey",
         );
         if (!vapidResponse.ok) {
           throw new Error(`Failed to get VAPID key: ${vapidResponse.status}`);
@@ -123,7 +122,7 @@ function App() {
             credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(subscription.toJSON()),
-          }
+          },
         );
 
         if (!res.ok) {
@@ -148,7 +147,7 @@ function App() {
               credentials: "include",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ endpoint: subscription.endpoint }),
-            }
+            },
           );
           const { exists } = await res.json();
           if (!exists) {

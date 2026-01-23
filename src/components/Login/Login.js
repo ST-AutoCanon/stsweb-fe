@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Login.css";
 
-import { useLocation } from "react-router-dom";
-
 export default function Login({ onClose }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -14,22 +13,27 @@ export default function Login({ onClose }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
 
-  const toggleShowPassword = () => setShowPassword((p) => !p);
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    if (onClose) onClose();
-  };
-
-  const closeErrorPopup = () => setErrorMessage("");
-
-  const location = useLocation();
+  const errorRef = useRef(null);
 
   useEffect(() => {
     if (location.state?.loginError) {
       setErrorMessage(location.state.loginError);
     }
   }, [location.state]);
+
+  // focus the inline error for accessibility when it appears
+  useEffect(() => {
+    if (errorMessage && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [errorMessage]);
+
+  const toggleShowPassword = () => setShowPassword((p) => !p);
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    if (onClose) onClose();
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -43,27 +47,32 @@ export default function Login({ onClose }) {
     try {
       sessionStorage.setItem(
         "EMBED_LOGIN",
-        JSON.stringify({ username, password, orgId: 1 })
+        JSON.stringify({ username, password, orgId: 1 }),
       );
     } catch (err) {
       console.warn("sessionStorage write failed", err);
     }
 
-    sessionStorage.setItem(
-      "EMBED_LOGIN",
-      JSON.stringify({ username, password, orgId: 1 })
-    );
-    navigate("/dashboard", { state: { username, password, orgId: 1 } });
-    closeModal();
+    // Just open dashboard route — do NOT close modal yet
+    navigate("/dashboard", { replace: true });
   };
 
   if (!isModalOpen) return null;
 
   return (
     <div className="login-page">
-      <div className="login-modal">
+      <div
+        className="login-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-title"
+      >
         <div className="login-container">
-          <button className="login-close-button" onClick={closeModal}>
+          <button
+            className="login-close-button"
+            onClick={closeModal}
+            aria-label="Close login"
+          >
             ×
           </button>
 
@@ -109,12 +118,24 @@ export default function Login({ onClose }) {
                     onClick={toggleShowPassword}
                     role="button"
                     tabIndex={0}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </span>
                 </div>
               </div>
-
+              {errorMessage && (
+                <div
+                  className="login-error"
+                  role="alert"
+                  tabIndex={-1}
+                  ref={errorRef}
+                >
+                  {errorMessage}
+                </div>
+              )}
               <div className="form-options">
                 <button type="submit" className="btn-login">
                   Login
@@ -124,24 +145,6 @@ export default function Login({ onClose }) {
           </div>
         </div>
       </div>
-
-      {errorMessage && (
-        <div className="error-modal-backdrop" role="dialog" aria-modal="true">
-          <div className="error-modal">
-            <div className="error-modal-body">{errorMessage}</div>
-            <div className="error-modal-footer">
-              <button
-                className="error-modal-ok"
-                onClick={() => {
-                  closeErrorPopup();
-                }}
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
