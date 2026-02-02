@@ -1350,10 +1350,10 @@ const RbTeamLead = () => {
         </div>
       )}
 
-      {/* SELF (NEW) */}
+     
       {view === "self" && <Reimbursement />}
 
-      {/* OLD (OLD DATA) */}
+     
       {view === "old" && <RbTeamLeadOld />}
 
       {isEditModalOpen && claimToEdit && (

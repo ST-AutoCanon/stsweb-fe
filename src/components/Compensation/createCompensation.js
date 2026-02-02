@@ -3322,7 +3322,7 @@ const CreateCompensation = () => {
                         },
                       ]
                         .map((field, idx) => {
-                          if (!formData[field.enableField]) return null; // Skip disabled fields
+                          if (!formData[field.enableField]) return null; 
                           const totalCTC = ctcInput
                             ? parseFloat(ctcInput)
                             : DEFAULT_CTC;

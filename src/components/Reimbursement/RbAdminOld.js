@@ -43,7 +43,7 @@ const RbAdminOld = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPaymentClaim, setSelectedPaymentClaim] = useState(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState("");
-  const [view, setView] = useState("all"); // "all" or "self"
+  const [view, setView] = useState("all");
   const [projects, setProjects] = useState([]);
   const [projectSelections, setProjectSelections] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +71,7 @@ const RbAdminOld = () => {
   useEffect(() => {
     fetchProjects();
     fetchEmployees();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   const fetchProjects = async () => {
@@ -90,7 +90,7 @@ const RbAdminOld = () => {
     }
   };
 
-  // IMPORTANT: this fetches old reimbursements (reimbursement_old table via API)
+ 
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(`${BASE}/old/reimbursements`, {
@@ -106,7 +106,7 @@ const RbAdminOld = () => {
       const data = response.data || [];
       setEmployees(data);
 
-      // build attachments map
+   
       const attachmentsMap = {};
       (data || []).forEach((emp) => {
         (emp.claims || []).forEach((claim) => {
@@ -150,13 +150,13 @@ const RbAdminOld = () => {
           const match =
             candidateFilename.match(/^\d{4}[-_]\d{2}[-_]\d{2}/) ||
             candidateFilename.match(/^(\d{4})[-_](\d{2})/);
-          // try to extract year/month
+         
           let year, month;
           if (match && match.length >= 3) {
             year = match[1];
             month = match[2];
           } else {
-            // fallback: attempt ISO prefix like 2024-12-01
+           
             const m2 = candidateFilename.match(/^(\d{4})-(\d{2})-(\d{2})/);
             if (m2) {
               year = m2[1];
@@ -173,7 +173,7 @@ const RbAdminOld = () => {
               withCredentials: true,
               headers: {
                 ...getAuthHeaders(),
-                // keep Authorization only if token available
+               
                 ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
               },
               responseType: "blob",
@@ -360,13 +360,13 @@ const RbAdminOld = () => {
       showAlert("There was an issue downloading the file.");
     }
   };
-  // search + filter (client-side filter as fallback)
+
   const filteredEmployees = (employees || [])
     .map((emp) => ({
       ...emp,
       claims: (emp.claims || []).filter((claim) => {
         const status = (claim.status || "").toLowerCase().trim();
-        // normalize payment status: treat empty/null as 'pending'
+        
         const payRaw = claim.payment_status || "";
         const pay = String(payRaw).toLowerCase().trim();
 
@@ -378,12 +378,12 @@ const RbAdminOld = () => {
           case "pending":
             return status === "pending";
           case "approved_pending":
-            // treat missing/empty payment_status as pending
+           
             return status === "approved" && (pay === "pending" || pay === "");
           case "approved_paid":
             return status === "approved" && pay === "paid";
           default:
-            return true; // "all" or unknown -> don't filter out
+            return true;
         }
       }),
     }))
@@ -397,7 +397,7 @@ const RbAdminOld = () => {
       );
     });
 
-  // helper to render invoices (may be JSON or plain string)
+ 
   const renderInvoices = (claim) => {
     if (!claim) return null;
     const raw = claim.invoices;
@@ -412,7 +412,7 @@ const RbAdminOld = () => {
       }
       return String(parsed);
     } catch {
-      // not JSON — just return as-is
+     
       return String(raw);
     }
   };
@@ -479,7 +479,6 @@ const RbAdminOld = () => {
     link.remove();
   };
 
-  // render
   return (
     <div className="rb-admin-old">
       <h3>Old Reimbursement Requests</h3>
@@ -600,21 +599,21 @@ const RbAdminOld = () => {
                             <tr key={rb.id}>
                               <td>{emp.claims.indexOf(rb) + 1}</td>
 
-                              {/* Claim Type */}
+                             
                               <td>{rb.claim_type}</td>
 
-                              {/* Date */}
+                             
                               <td>
                                 {formatDisplayDate(rb.date || rb.from_date)}
                               </td>
 
-                              {/* Amount (kept as total_amount) */}
+                            
                               <td>₹{rb.total_amount}</td>
 
-                              {/* Purpose */}
+                         
                               <td title={rb.purpose}>{rb.purpose}</td>
 
-                              {/* Attachments */}
+                           
                               <td>
                                 {attachments[rb.id]?.length ? (
                                   <button
@@ -632,25 +631,25 @@ const RbAdminOld = () => {
                                 )}
                               </td>
 
-                              {/* Invoices */}
+                           
                               <td>{renderInvoices(rb)}</td>
 
-                              {/* Participants */}
+                             
                               <td style={{ maxWidth: 200 }}>
                                 {(rb.participants || "—").length > 0
                                   ? rb.participants
                                   : "—"}
                               </td>
 
-                              {/* Total Amount (duplicate of Amount if that's what you want) */}
+                             
                               <td>₹{rb.total_amount}</td>
 
-                              {/* Meals Objective */}
+                            
                               <td title="Meals objective">
                                 {rb.meals_objective || "-"}
                               </td>
 
-                              {/* Status (approve/reject select or label) */}
+                         
                               <td>
                                 {String(rb.status).toLowerCase() ===
                                   "approved" ||
@@ -678,7 +677,7 @@ const RbAdminOld = () => {
                                 )}
                               </td>
 
-                              {/* Projects */}
+                         
                               <td>
                                 {String(rb.status).toLowerCase() ===
                                   "approved" ||
@@ -707,7 +706,7 @@ const RbAdminOld = () => {
                                 )}
                               </td>
 
-                              {/* Payment Status */}
+                              
                               <td>
                                 {String(rb.status).toLowerCase() ===
                                 "approved" ? (
@@ -728,14 +727,14 @@ const RbAdminOld = () => {
                                 )}
                               </td>
 
-                              {/* Paid Date */}
+                            
                               <td>
                                 {rb.paid_date
                                   ? formatDisplayDate(rb.paid_date)
                                   : "-"}
                               </td>
 
-                              {/* Actions */}
+                          
                               <td>
                                 <FaFileInvoice
                                   size={20}
@@ -753,7 +752,7 @@ const RbAdminOld = () => {
                         </tbody>
                         <tfoot>
                           <tr className="total-row-old">
-                            {/* 18 columns total, split for display */}
+                            
                             <td colSpan="10" style={{ textAlign: "right" }}>
                               Total Amount Claiming: <b>Rs {totalAmount}</b>
                             </td>
@@ -774,7 +773,7 @@ const RbAdminOld = () => {
         <ReimbursementOld />
       )}
 
-      {/* Payment modal */}
+    
       {isPaymentModalOpen && (
         <Modal
           isVisible={isPaymentModalOpen}

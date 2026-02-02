@@ -12,7 +12,7 @@ import {
 import { GiKnifeFork, GiPencilBrush } from "react-icons/gi";
 import { TbTriangleSquareCircle } from "react-icons/tb";
 import "./ReimbursementOld.css";
-import Modal from "../Modal/Modal"; // Alert modal component
+import Modal from "../Modal/Modal";
 import Reimbursement from "./Reimbursement";
 
 const claimTypes = [
@@ -56,7 +56,7 @@ const ReimbursementOld = () => {
   );
   const [selectedSubType, setSelectedSubType] = useState("");
 
-  // Base URL and credential fallbacks
+ 
   const BASE = process.env.REACT_APP_BACKEND_URL || "";
   const API_KEY =
     process.env.REACT_APP_API_KEY || localStorage.getItem("apiKey") || "";
@@ -73,7 +73,7 @@ const ReimbursementOld = () => {
     return headers;
   };
 
-  // robust employeeId extraction from several possible localStorage shapes
+  
   const getStoredEmployeeId = () => {
     try {
       const candidateKeys = [
@@ -97,11 +97,11 @@ const ReimbursementOld = () => {
             parsed.emp_id;
           if (id) return String(id);
         } catch {
-          // raw string (maybe just an id)
+      
           if (k.toLowerCase().includes("employee") && raw) return raw;
         }
       }
-      // also try direct keys
+     
       const direct =
         localStorage.getItem("employeeId") ||
         localStorage.getItem("employee_id") ||
@@ -135,7 +135,7 @@ const ReimbursementOld = () => {
     return `${day}-${month}-${year}`;
   };
 
-  // Confirm / Alert modals
+ 
   const [confirmModal, setConfirmModal] = useState({
     isVisible: false,
     message: "",
@@ -156,7 +156,7 @@ const ReimbursementOld = () => {
   const closeAlert = () =>
     setAlertModal({ isVisible: false, title: "", message: "" });
 
-  // ---------------- Fetching ----------------
+ 
   const fetchProjects = useCallback(async () => {
     if (!BASE) {
       console.warn("REACT_APP_BACKEND_URL not set — skipping projects fetch.");
@@ -181,17 +181,7 @@ const ReimbursementOld = () => {
     }
   }, [BASE, API_KEY, authToken]);
 
-  /**
-   * Try several endpoints to get "self" reimbursements:
-   * 1. /old/reimbursement/:employeeId (preferred)
-   * 2. /old/reimbursement/me
-   * 3. /old/reimbursement/self
-   * 4. /old/reimbursements/me
-   * 5. /old/reimbursements/self
-   * 6. /old/reimbursement (as last resort)
-   *
-   * Only show the "missing authentication" message if server returns 401/403.
-   */
+ 
   const fetchReimbursements = useCallback(async () => {
     if (!BASE) {
       showAlert("Server URL not configured (REACT_APP_BACKEND_URL).");
@@ -220,7 +210,7 @@ const ReimbursementOld = () => {
           headers: authHeaders(),
         });
 
-        // treat several server shapes: array, {data: [...]}, {reimbursements: [...]}
+   
         let reimbursementsData = [];
         if (Array.isArray(resp.data)) reimbursementsData = resp.data;
         else if (Array.isArray(resp.data.data))
@@ -228,7 +218,7 @@ const ReimbursementOld = () => {
         else if (Array.isArray(resp.data.reimbursements))
           reimbursementsData = resp.data.reimbursements;
         else if (resp.data && typeof resp.data === "object") {
-          // if response looks like a single object with id -> wrap
+        
           if (resp.data.id || resp.data.employee_id)
             reimbursementsData = [resp.data];
           else
@@ -237,7 +227,7 @@ const ReimbursementOld = () => {
               .filter(Boolean);
         }
 
-        // use it (even if empty array — that's a valid response)
+       
         if (reimbursementsData && reimbursementsData.length >= 0) {
           console.debug(
             `[ReimbursementOld] success from ${url} — items:`,
@@ -245,7 +235,6 @@ const ReimbursementOld = () => {
           );
           setReimbursements(reimbursementsData);
 
-          // fetch attachments for claims (non-blocking)
           const attachmentsMap = {};
           await Promise.all(
             (reimbursementsData || []).map(async (claim) => {
@@ -278,7 +267,7 @@ const ReimbursementOld = () => {
             })
           );
           setAttachments(attachmentsMap);
-          return; // success — stop trying endpoints
+          return; 
         }
       } catch (err) {
         lastErr = err;
@@ -288,15 +277,15 @@ const ReimbursementOld = () => {
           status || err.message
         );
         if (status === 401 || status === 403) {
-          // only show missing-auth message when server explicitly says so
+         
           showAlert("Missing authentication credentials. Please log in again.");
           return;
         }
-        // otherwise try next endpoint
+     
       }
     }
 
-    // If we get here, nothing worked
+   
     const fallbackMsg =
       (lastErr && (lastErr.response?.data?.message || lastErr.message)) ||
       "We ran into a problem fetching reimbursements.";
@@ -307,10 +296,10 @@ const ReimbursementOld = () => {
   useEffect(() => {
     fetchReimbursements();
     fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
-  // ------------ Date handling/filtering logic ------------
+ 
   const tryParseDate = (s) => {
     if (!s && s !== 0) return null;
     if (s instanceof Date && !isNaN(s)) return s;
@@ -448,7 +437,7 @@ const ReimbursementOld = () => {
     applyFilters();
   }, [reimbursements, fromDate, toDate, statusFilter, applyFilters]);
 
-  // --------------- Form handlers & helpers ---------------
+ 
   const handleChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -634,7 +623,7 @@ const ReimbursementOld = () => {
     try {
       const fd = new FormData();
       Object.keys(formData).forEach((k) => {
-        if (k === "attachments") return; // handled separately
+        if (k === "attachments") return; 
         const val = formData[k];
         if (val !== null && val !== undefined) fd.append(k, val);
       });
@@ -666,7 +655,7 @@ const ReimbursementOld = () => {
       showAlert(
         response?.data?.message || "Reimbursement submitted successfully!"
       );
-      // reset form
+
       setFormData({
         employeeId: employeeId,
         department_id: departmentId,
@@ -810,7 +799,7 @@ const ReimbursementOld = () => {
     }
   };
 
-  // Use filteredReimbursements (NOT reimbursements) for display and totals
+ 
   const filterClaims = filteredReimbursements || [];
 
   const totalAmount = (filteredReimbursements || []).reduce((sum, claim) => {
@@ -1390,7 +1379,7 @@ const ReimbursementOld = () => {
     }
   };
 
-  // ------------ Render ------------
+ 
   return (
     <div className="reimbursement-container-old">
       <div className="rb-form-header-old">
@@ -1565,7 +1554,7 @@ const ReimbursementOld = () => {
           </tfoot>
         </table>
 
-        {/* Mobile cards */}
+     
         <div className="rb-reimbursement-cards-old">
           {filterClaims.map((claim, index) => (
             <div className="rb-reimbursement-card-old" key={claim.id}>
@@ -1632,7 +1621,7 @@ const ReimbursementOld = () => {
         </div>
       </div>
 
-      {/* Form modal */}
+     
       {showForm && (
         <div className="rb-modal-old">
           <div className="rb-modal-content-old">
@@ -1705,7 +1694,7 @@ const ReimbursementOld = () => {
         </div>
       )}
 
-      {/* Attachments modal */}
+    
       {isModalOpen && (
         <div className="att-modal-overlay-old">
           <div className="att-modal-content-old">

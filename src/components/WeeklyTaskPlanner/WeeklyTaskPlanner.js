@@ -28,11 +28,11 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
 
   const dateRange = formatDateRange(startDate, endDate);
 
-  // Updated: Returns "YYYY-WW" format like "2025-52", "2026-01"
+
   const getISOWeekNumber = (date) => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
-    // Move to Thursday of current week (ISO week year is determined by Thursday)
+   
     d.setDate(d.getDate() + 4 - (d.getDay() || 7));
     const yearStart = new Date(d.getFullYear(), 0, 1);
     const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
@@ -79,7 +79,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
     setIsListening(false);
   };
 
-  const weekId = getISOWeekNumber(startDate); // Now "2025-52" etc.
+  const weekId = getISOWeekNumber(startDate); 
 
   const weekDates = [];
   for (let i = 0; i < 7; i++) {
@@ -1144,7 +1144,7 @@ const WeeklyTaskPlanner = ({ userRole = "employee", employeeId }) => {
           const taskDateStr = formatDateIST(taskDate);
 
           const newTask = {
-            week_id: weekId, // Now "2025-52", "2026-01", etc.
+            week_id: weekId, 
             task_date: taskDateStr,
             project_id: task.projectId,
             project_name: task.projectName,

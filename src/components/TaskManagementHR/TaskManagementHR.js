@@ -705,7 +705,7 @@ const TaskManagementHR = () => {
                                     </div>
                                     <div className="task-hr-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* <span>{msg.senderName}</span> */}
+                                     
                                     </div>
                                   </div>
                                 ))}
@@ -757,7 +757,7 @@ const TaskManagementHR = () => {
                                     </div>
                                     <div className="task-hr-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* <span>{msg.senderName}</span> */}
+                                  
                                     </div>
                                   </div>
                                 ))}

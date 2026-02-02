@@ -659,11 +659,11 @@ export default function ReportPanel() {
       }
     }
 
-    // Always include employee-friendly and id values where applicable (employees component)
+    
     if (component !== "vendors") {
-      // employee id (exact) if available
+     
       if (filterEmployeeId) params.append("employee_id", filterEmployeeId);
-      // employee friendly name (helps server build human-readable meta when id wasn't selected)
+  
       if (filterEmployeeName) params.append("employee", filterEmployeeName);
 
       if (isTeamRole) {
@@ -726,9 +726,9 @@ export default function ReportPanel() {
         return;
       }
 
-      // include format inside buildParams to avoid manual concatenation problems
+      
       const paramString = buildParams({ includeFormat: true, preview: false });
-      // replace the default xlsx format with actual requested format
+      
       const finalParamString = paramString.replace(
         /format=xlsx/i,
         `format=${encodeURIComponent(format)}`

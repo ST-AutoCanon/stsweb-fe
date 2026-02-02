@@ -931,7 +931,7 @@ const GeneratePayslip = () => {
   <button
     onClick={() => {
       if (preview) {
-        // Back to form from preview
+       
         setPreview(false);
         setError(null);
         setSuccess(null);
@@ -940,7 +940,7 @@ const GeneratePayslip = () => {
           setPdfUrl(null);
         }
       } else {
-        // Full cancel from form
+       
         setShowModal(false);
         setPreview(false);
         setError(null);

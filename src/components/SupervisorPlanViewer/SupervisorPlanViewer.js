@@ -46,7 +46,7 @@ const SupervisorPlanViewer = () => {
     setTimeout(() => setAlertModal({ isVisible: false, message: "" }), 5000);
   };
 
-  // Employee level lookup map
+ 
   const employeeLevelMap = React.useMemo(() => {
     const map = {};
     const traverse = (nodes) => {
@@ -76,7 +76,7 @@ const SupervisorPlanViewer = () => {
     return employee?.supervisor_id === supervisorId;
   };
 
-  // Build Employee Tree
+
   const buildEmployeeTree = (employees) => {
     const map = {};
     const roots = [];
@@ -97,7 +97,7 @@ const SupervisorPlanViewer = () => {
     return roots;
   };
 
-  // Updated: Returns "YYYY-WW" format
+
   const getISOWeekNumber = (date) => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
@@ -121,7 +121,7 @@ const SupervisorPlanViewer = () => {
         : new Date().getFullYear();
     }
 
-    // Same logic as above to get correct ISO year
+   
     let tempDate = new Date(year, 0, 4);
     tempDate.setDate(tempDate.getDate() + 3);
     const thursdayOfWeek1 = new Date(tempDate);
@@ -654,7 +654,7 @@ const SupervisorPlanViewer = () => {
         return newPrev;
       });
 
-      // Refresh tasks
+     
       const res = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/weekly_task_supervisor`,
         {
@@ -814,8 +814,7 @@ const SupervisorPlanViewer = () => {
       setSelectedWeekId(weekIds[currentWeekIndex + 1]);
   };
 
-  // Fixed: Correctly generates week days even across year boundary
-  // Replace your current generateWeekDays function with this corrected version
+ 
 
   const generateWeekDays = () => {
     if (!selectedWeekId) return [];
@@ -837,21 +836,21 @@ const SupervisorPlanViewer = () => {
       return [];
     }
 
-    // Find Thursday of the week (ISO week year is determined by Thursday)
-    let tempDate = new Date(year, 0, 4); // Jan 4 of the year
-    tempDate.setDate(tempDate.getDate() + 3); // Move to Thursday (Jan 7 at latest)
+   
+    let tempDate = new Date(year, 0, 4); 
+    tempDate.setDate(tempDate.getDate() + 3); 
 
-    // Adjust back to the Thursday of week 1
+   
     const thursdayOfWeek1 = new Date(tempDate);
     thursdayOfWeek1.setDate(tempDate.getDate() - ((tempDate.getDay() + 3) % 7));
 
-    // Calculate Thursday of the target week
+   
     const thursdayOfTargetWeek = addDays(thursdayOfWeek1, (weekNum - 1) * 7);
 
-    // The ISO week year is the year of this Thursday
+  
     const isoYear = thursdayOfTargetWeek.getFullYear();
 
-    // Monday is 3 days before Thursday
+   
     const weekStart = addDays(thursdayOfTargetWeek, -3);
 
     const days = [];
@@ -874,7 +873,7 @@ const SupervisorPlanViewer = () => {
     if (selectedEmployee && selectedWeekId) {
       tasks.forEach((task) => {
         if (task.employee_id === selectedEmployee) {
-          // Accept both "2026-01" and old "1"
+         
           const taskWeek = task.week_id;
           const matchesWeek =
             taskWeek === selectedWeekId ||
@@ -1058,21 +1057,12 @@ const SupervisorPlanViewer = () => {
                         const effectiveReviewStatus =
                           pendingReviewChanges[task.task_id] ||
                           task.sup_review_status;
-                        //                    const isFrozen =
-                        // task.sup_review_status === "suspended_review" ||
-                        // reworkFrozenTasks[task.task_id];
-
-                        // const hierarchyFrozen = !canEditByHierarchy(task.employee_id);
-
-                        // const isFrozen =
-                        //   hierarchyFrozen ||
-                        //   task.sup_review_status === "suspended_review" ||
-                        //   reworkFrozenTasks[task.task_id];
+                       
                         const hierarchyFrozen = !canEditByHierarchy(
                           task.employee_id
                         );
 
-                        // Freeze ONLY if backend-saved status is re-work
+                      
                         const reworkFrozenFromDB =
                           savedSupStatus[task.task_id] === "re-work";
 

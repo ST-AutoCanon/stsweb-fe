@@ -110,11 +110,15 @@
 .im-modal-field select {
   max-height: 40px;
   appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%23333333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Custom arrow */
-  background-repeat: no-repeat;
-  background-position: right 10px center;
+  padding-right: 28px; 
+  background-image:
+    linear-gradient(45deg, transparent 50%, #333 50%),
+    linear-gradient(-45deg, transparent 50%, #333 50%);
+   background-position: right 10px center;
   background-size: 12px;
+  background-repeat: no-repeat;
 }
+
 
 .im-modal-field select::-webkit-scrollbar {
   width: 8px;

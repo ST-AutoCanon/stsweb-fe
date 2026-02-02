@@ -197,8 +197,8 @@
   display: flex;
   margin: 2%;
   max-width: 100%;
-  overflow-x: auto; /* Allows horizontal scrolling if needed */
-  flex-wrap: wrap; /* Ensures wrapping in smaller screens */
+  overflow-x: auto; 
+  flex-wrap: wrap; 
 }
 
 .claim-type-old label {
@@ -209,15 +209,15 @@
 .rb-tabs-old {
   width: 100%;
   display: flex;
-  flex-wrap: wrap; /* Allows tabs to wrap if they don't fit */
+  flex-wrap: wrap; 
   border-bottom: none;
   max-width: 100%;
   overflow: hidden;
 }
 
 .rb-tab-old {
-  flex: 1; /* Ensures tabs resize proportionally */
-  min-width: 120px; /* Prevents tabs from becoming too small */
+  flex: 1; 
+  min-width: 120px; 
   padding: 0.5%;
   cursor: pointer;
   font-size: 16px;
@@ -226,8 +226,8 @@
   border-radius: 5px 5px 0 0;
   border: 1px solid #949494;
   transition: background-color 0.3s;
-  text-align: center; /* Centers text */
-  white-space: nowrap; /* Prevents text breaking mid-word */
+  text-align: center;
+  white-space: nowrap;
 }
 
 .rb-tab.active-old {
@@ -508,8 +508,8 @@
 
 .disabled-icon-old {
   color: grey;
-  pointer-events: none; /* Prevents clicking */
-  opacity: 0.5; /* Makes it look disabled */
+  pointer-events: none; 
+  opacity: 0.5; 
 }
 
 .actions-column-old {
@@ -520,7 +520,6 @@
   display: none;
 }
 
-/* Responsive Mobile View */
 @media (max-width: 768px) {
   .reimbursement-table-old {
     display: none;
@@ -583,9 +582,9 @@
 
   .rb-card-header-old {
     display: flex;
-    flex-direction: column; /* Arrange items in a row */
-    justify-content: space-between; /* Push items apart */
-    align-items: center; /* Align items properly */
+    flex-direction: column;
+    justify-content: space-between; 
+    align-items: center; 
     font-weight: bold;
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
@@ -595,7 +594,7 @@
   .rb-status-old {
     font-size: 14px;
     font-weight: bold;
-    color: green; /* Change based on status */
+    color: green;
   }
 
   .rb-card-body-old {
@@ -607,32 +606,32 @@
   .rb-form-grid-old {
     display: flex;
     flex-direction: column;
-    gap: 5px; /* Reduce gap for better UX */
+    gap: 5px; 
   }
   .rb-form1-grid-old {
     display: flex;
     flex-direction: column;
-    gap: 5px; /* Reduce gap for better UX */
+    gap: 5px; 
   }
   .rb-form2-grid-old {
     display: flex;
     flex-direction: column;
-    gap: 5px; /* Reduce gap for better UX */
+    gap: 5px; 
   }
   .rb-form3-grid-old {
     display: flex;
     flex-direction: column;
-    gap: 5px; /* Reduce gap for better UX */
+    gap: 5px;
   }
   .rb-groups-old {
-    flex-direction: column; /* Stack elements in a column */
-    align-items: stretch; /* Ensure full width */
-    gap: 10px; /* Spacing between fields */
+    flex-direction: column; 
+    align-items: stretch;
+    gap: 10px; 
   }
 
   .rb-groups-old label {
-    display: block; /* Place label above input */
-    margin-bottom: 5px; /* Spacing between label and input */
+    display: block; 
+    margin-bottom: 5px;
     font-size: 15px;
   }
 
@@ -642,8 +641,8 @@
   }
   .rb-groups-old select {
     padding: 10px;
-    width: 100%; /* Make inputs/selects full width */
-    display: block; /* Ensure they stack */
+    width: 100%; 
+    display: block; 
   }
 
   .hidden-file-input-old {
@@ -656,14 +655,14 @@
     gap: 5px;
   }
   .pa-groups-old {
-    flex-direction: column !important; /* Stack elements in a column */
-    align-items: stretch; /* Ensure full width */
-    gap: 10px; /* Spacing between fields */
+    flex-direction: column !important; 
+    align-items: stretch; 
+    gap: 10px; 
   }
 
   .pa-groups-old label {
-    display: block; /* Place label above input */
-    margin-bottom: 5px; /* Spacing between label and input */
+    display: block; 
+    margin-bottom: 5px; 
     font-size: 15px;
   }
 
@@ -705,7 +704,7 @@
   }
 }
 
-/* Mobile View */
+
 @media (max-width: 768px) {
   .rb-modal-old {
     display: flex;

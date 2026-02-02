@@ -99,12 +99,12 @@ const SalaryDetails = () => {
 
     let monthlyDeductionsSum = 0;
 
-    // Always deducted (employee-side or mandatory)
+   
     monthlyDeductionsSum += parseFloat(salaryDetails.advanceRecovery || 0);
     monthlyDeductionsSum += parseFloat(salaryDetails.tds || 0);
     monthlyDeductionsSum += lopDeduction;
 
-    // Conditionally deducted based on respective IncludeInCtc flags (matching DetailsTab logic)
+   
     if (planData.pfEmployeeIncludeInCtc !== false) {
       monthlyDeductionsSum += parseFloat(salaryDetails.employeePF || 0);
     }

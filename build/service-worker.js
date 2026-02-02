@@ -1,5 +1,5 @@
 
-// service-worker.js
+
 
 self.addEventListener('push', (event) => {
   let data = {};
@@ -11,7 +11,7 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: '/logo192.png', // your notification icon
+    icon: '/logo192.png', 
     badge: '/favicon.ico',
     data: data.url || '/',
   };

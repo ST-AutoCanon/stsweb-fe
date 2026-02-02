@@ -56,7 +56,7 @@ const SalaryBreakupMain = () => {
   });
 
   const [incentivesModal, setIncentivesModal] = useState({
-    // 🔹 Add state
+    
     isVisible: false,
     employeeId: null,
     fullName: "",
@@ -82,12 +82,12 @@ const SalaryBreakupMain = () => {
     selectedCompensation: "",
     error: "",
   });
-  // NEW: Handler to switch to SalaryDetails view
+ 
   const handleViewSalaryDetails = () => {
-    setViewMode("salaryDetails"); // NEW: Switch to new view mode
-    setSearchQuery(""); // NEW: Reset search
-    setCurrentPage(1); // NEW: Reset pagination if needed
-    setMenuOpen(false); // NEW: Close menu if open
+    setViewMode("salaryDetails"); 
+    setSearchQuery(""); 
+    setCurrentPage(1); 
+    setMenuOpen(false); 
   };
   const [viewMode, setViewMode] = useState("main");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -143,7 +143,7 @@ const SalaryBreakupMain = () => {
   };
 
   const openIncentiveModal = (employeeId, fullName) => {
-    // 🔹 Add handler
+  
     setIncentivesModal({
       isVisible: true,
       employeeId,
@@ -179,7 +179,7 @@ const SalaryBreakupMain = () => {
       "12",
     ];
 
-    // Existing validations
+   
     if (!selectedOption) {
       setBonusModal({
         ...bonusModal,
@@ -276,7 +276,7 @@ const SalaryBreakupMain = () => {
       setIsLoading(false);
     }
 
-    // Proceed with bonus submission
+    
     const payload = {
       percentageCtc:
         selectedOption === "percentageCtc" ? parseFloat(percentageCtc) : null,
@@ -1161,7 +1161,7 @@ const SalaryBreakupMain = () => {
                     tableRef={tableRef}
                     handleViewSingleEmployee={handleViewSingleEmployee}
                     openAdvanceModal={openAdvanceModal}
-                    openIncentiveModal={openIncentiveModal} // 🔹 Add prop
+                    openIncentiveModal={openIncentiveModal} 
                     showDetailsTab={showDetailsTab}
                     selectedEmployee={selectedEmployee}
                     activeTab={activeTab}

@@ -28,7 +28,7 @@ const RbAdmin = () => {
     localStorage.getItem("dashboardData") || "{}"
   );
   const employeeId = employeeData?.employeeId;
-  // safer retrieval of userRole to avoid calling toLowerCase on null
+ 
   const userRole = (localStorage.getItem("userRole") || "").toLowerCase();
   const isHR = userRole === "hr";
 
@@ -715,7 +715,7 @@ const RbAdmin = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === "old") {
-      fetchEmployeeOptions(); // Fetch old data when switching to the old tab
+      fetchEmployeeOptions(); 
     }
   };
 
@@ -743,7 +743,7 @@ const RbAdmin = () => {
         </button>
       </div>
 
-      {/* Render area: show main admin table for 'all', Reimbursement for 'self', and RbAdminOld for 'old' */}
+     
       {view === "all" ? (
         <>
           <div className="rb-filters">

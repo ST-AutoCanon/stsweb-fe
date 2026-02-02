@@ -31,13 +31,7 @@ function extractEmployeeIdFromDashboardData(raw) {
   }
 }
 
-/**
- * EmployeeTypeahead
- *
- * Props:
- *  - departmentId (optional) <-- IMPORTANT: this will be used if provided
- *  - placeholder, limit, onSelect, onTyping, onClear, selectedValue, isTyping, minChars, debounceMs
- */
+
 export default function EmployeeTypeahead({
   departmentId: propDepartmentId = null,
   placeholder = "Search by name or email...",
@@ -57,7 +51,7 @@ export default function EmployeeTypeahead({
   const [open, setOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
 
-  // read dashboardData from localStorage as fallback if prop not provided
+ 
   const localDashboardRaw =
     typeof window !== "undefined" ? localStorage.getItem("dashboardData") : "";
   const localData = (() => {
@@ -73,7 +67,7 @@ export default function EmployeeTypeahead({
       ? String(localData.department_id || localData.departmentId)
       : null;
 
-  // final departmentId: prefer prop over local storage
+ 
   const departmentId = propDepartmentId
     ? String(propDepartmentId)
     : localDepartmentId;
@@ -116,7 +110,7 @@ export default function EmployeeTypeahead({
     ) {
       setQuery(selectedValue);
     }
-  }, [selectedValue, isTyping]); // keep as before
+  }, [selectedValue, isTyping]); 
 
   useEffect(() => {
     function onDocClick(e) {
@@ -146,7 +140,7 @@ export default function EmployeeTypeahead({
     }
   }, [query, onTyping, onClear]);
 
-  // MAIN fetch effect — depends on query, departmentId, limit, debounce etc.
+  
   useEffect(() => {
     if (debRef.current) {
       clearTimeout(debRef.current);
@@ -176,7 +170,7 @@ export default function EmployeeTypeahead({
       try {
         params.set("q", trimmed);
         params.set("limit", String(limit));
-        // Use departmentId (prop preferred). Only add it if available.
+       
         if (departmentId) params.set("department_id", String(departmentId));
       } catch (e) {}
 

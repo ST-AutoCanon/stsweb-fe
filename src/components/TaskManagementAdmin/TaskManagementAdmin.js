@@ -1062,7 +1062,7 @@ const TaskManagementAdmin = () => {
                                     </div>
                                     <div className="task-admin-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* s */}
+                                      {}
                                     </div>
                                   </div>
                                 ))}
@@ -1116,7 +1116,7 @@ const TaskManagementAdmin = () => {
                                     </div>
                                     <div className="task-admin-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* <span>{msg.senderName}</span> */}
+                                      {}
                                     </div>
                                   </div>
                                 ))}

@@ -28,7 +28,7 @@ const fetchLOPData = async (employeeId) => {
       ]);
 
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // 1-12
+    const currentMonth = currentDate.getMonth() + 1; 
     const currentYear = currentDate.getFullYear();
 
     const currentMonthLOP = currentMonthResponse.data.data.filter(

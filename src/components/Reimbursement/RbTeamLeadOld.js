@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./RbTeamLeadOld.css";
-import "./RbAdminOld.css"; // use the same CSS as admin old so UI matches
+import "./RbAdminOld.css";
 import { FaSearch } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
 import { FaFileInvoice } from "react-icons/fa6";
@@ -73,8 +73,8 @@ const RbTeamLeadOld = () => {
 
   useEffect(() => {
     fetchProjects();
-    fetchEmployees(); // initial fetch
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchEmployees();
+    
   }, []);
 
   const fetchProjects = async () => {
@@ -90,7 +90,7 @@ const RbTeamLeadOld = () => {
     }
   };
 
-  // returns grouped emp list
+  
   const fetchEmployees = async () => {
     try {
       const res = await axios.get(
@@ -240,13 +240,13 @@ const RbTeamLeadOld = () => {
     0
   );
 
-  // search + filter (client-side filter as fallback)
+
   const filteredEmployees = (employees || [])
     .map((emp) => ({
       ...emp,
       claims: (emp.claims || []).filter((claim) => {
         const status = (claim.status || "").toLowerCase().trim();
-        // normalize payment status: treat empty/null as 'pending'
+       
         const payRaw = claim.payment_status || "";
         const pay = String(payRaw).toLowerCase().trim();
 
@@ -258,12 +258,12 @@ const RbTeamLeadOld = () => {
           case "pending":
             return status === "pending";
           case "approved_pending":
-            // treat missing/empty payment_status as pending
+           
             return status === "approved" && (pay === "pending" || pay === "");
           case "approved_paid":
             return status === "approved" && pay === "paid";
           default:
-            return true; // "all" or unknown -> don't filter out
+            return true; 
         }
       }),
     }))
@@ -309,7 +309,7 @@ const RbTeamLeadOld = () => {
     }
   };
 
-  // openPaymentModal(claim)
+ 
   const openPaymentModal = async (claim) => {
     if (!claim) return showAlert("No claim selected");
 
@@ -328,7 +328,7 @@ const RbTeamLeadOld = () => {
         const rows = resp.data || [];
         serverClaim = rows.find((c) => Number(c.id) === Number(claim.id));
       } else {
-        // fallback: refresh team/admin list and find the claim
+       
         await fetchEmployees();
         const flat = (employees || []).flatMap((e) => e.claims || []);
         serverClaim = flat.find((c) => Number(c.id) === Number(claim.id));
@@ -345,7 +345,7 @@ const RbTeamLeadOld = () => {
       console.info("openPaymentModal: serverClaim:", serverClaim);
 
       if (String(serverClaim.status).toLowerCase() !== "approved") {
-        // show server claim properties to help debug
+       
         return showAlert(
           `Payment status can only be updated for approved reimbursements. Server status: "${serverClaim.status}".`
         );
@@ -367,14 +367,14 @@ const RbTeamLeadOld = () => {
     }
   };
 
-  // updatePaymentStatus() — uses selectedPaymentClaim already verified
+ 
   const updatePaymentStatus = async () => {
     if (!selectedPaymentOption)
       return showAlert("Please select a payment status.");
     if (!selectedPaymentClaim) return showAlert("No claim selected.");
 
     try {
-      // re-check server-side (optional, but safe)
+   
       const employeeId =
         selectedPaymentClaim.employee_id || selectedPaymentClaim.employeeId;
       let serverClaim = null;
@@ -412,7 +412,7 @@ const RbTeamLeadOld = () => {
       const payload = {
         payment_status: selectedPaymentOption,
         user_role: "Manager",
-      }; // or "admin" from admin UI
+      }; 
       console.info(
         "updatePaymentStatus: PUT payload ->",
         payload,
@@ -449,14 +449,14 @@ const RbTeamLeadOld = () => {
         responseType: "blob",
       });
 
-      // choose filename from content-disposition when present
+      
       const cd = res.headers["content-disposition"];
       let filename = `Reimbursement_${claim.id}.pdf`;
       if (cd) {
         const m = cd.match(/filename[^;=\n]*=(['"]?)([^;\n]*)\1/);
         if (m?.[2]) filename = m[2];
       } else {
-        // try to pick extension from content-type
+      
         const ct = (res.headers["content-type"] || "").toLowerCase();
         if (ct.includes("pdf")) filename = `Reimbursement_${claim.id}.pdf`;
         else if (ct.includes("officedocument") || ct.includes("word")) {
@@ -469,7 +469,7 @@ const RbTeamLeadOld = () => {
         contentType.includes("pdf") || filename.toLowerCase().endsWith(".pdf");
 
       if (!isPdf) {
-        // server didn't return PDF — inform user (fallback DOCX)
+     
         showAlert(
           "Server could not convert to PDF. A DOCX file was downloaded instead; open it with Word or convert to PDF locally."
         );
@@ -548,7 +548,7 @@ const RbTeamLeadOld = () => {
     link.remove();
   };
 
-  // helper to render invoices (kept similar to admin)
+ 
   const renderInvoices = (claim) => {
     if (!claim) return "—";
     const raw = claim.invoices;
@@ -676,19 +676,18 @@ const RbTeamLeadOld = () => {
                         <tr key={rb.id}>
                           <td>{emp.claims.indexOf(rb) + 1}</td>
 
-                          {/* Claim Type */}
+                     
                           <td>{rb.claim_type}</td>
 
-                          {/* Date */}
+                        
                           <td>{formatDisplayDate(rb.date || rb.from_date)}</td>
 
-                          {/* Amount (kept as total_amount) */}
+                         
                           <td>₹{rb.total_amount}</td>
 
-                          {/* Purpose */}
+                        
                           <td title={rb.purpose}>{rb.purpose}</td>
 
-                          {/* Attachments */}
                           <td>
                             {attachments[rb.id]?.length ? (
                               <button
@@ -703,25 +702,25 @@ const RbTeamLeadOld = () => {
                             )}
                           </td>
 
-                          {/* Invoices */}
+                         
                           <td>{renderInvoices(rb)}</td>
 
-                          {/* Participants */}
+                         
                           <td style={{ maxWidth: 200 }}>
                             {(rb.participants || "—").length > 0
                               ? rb.participants
                               : "—"}
                           </td>
 
-                          {/* Total Amount (duplicate of Amount if that's what you want) */}
+                         
                           <td>₹{rb.total_amount}</td>
 
-                          {/* Meals Objective */}
+                         
                           <td title="Meals objective">
                             {rb.meals_objective || "-"}
                           </td>
 
-                          {/* Status (approve/reject select or label) */}
+                        
                           <td>
                             {String(rb.status).toLowerCase() === "approved" ||
                             String(rb.status).toLowerCase() === "rejected" ? (
@@ -743,7 +742,7 @@ const RbTeamLeadOld = () => {
                             )}
                           </td>
 
-                          {/* Projects */}
+                         
                           <td>
                             {String(rb.status).toLowerCase() === "approved" ||
                             String(rb.status).toLowerCase() === "rejected" ? (
@@ -770,7 +769,7 @@ const RbTeamLeadOld = () => {
                             )}
                           </td>
 
-                          {/* Payment Status */}
+                       
                           <td>
                             {String(rb.status).toLowerCase() === "approved" ? (
                               !rb.payment_status ||
@@ -789,14 +788,14 @@ const RbTeamLeadOld = () => {
                             )}
                           </td>
 
-                          {/* Paid Date */}
+                        
                           <td>
                             {rb.paid_date
                               ? formatDisplayDate(rb.paid_date)
                               : "-"}
                           </td>
 
-                          {/* Actions */}
+                          
                           <td>
                             <FaFileInvoice
                               size={20}

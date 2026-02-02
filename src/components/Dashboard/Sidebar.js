@@ -112,7 +112,7 @@ const Sidebar = () => {
     }
   }, [setActiveContent, userRole]);
 
-  // Fetch subordinate status
+
   useEffect(() => {
     if (!employeeId) {
       console.log("NO employeeId found in localStorage → API not called");
@@ -208,22 +208,7 @@ const Sidebar = () => {
       return;
     }
 
-    // if (item.path === "/leaveQueries" && !subOption && userRole === "HR") {
-    //   setShowLeaveDropdown((prev) => !prev);
-    //   setShowCompensationDropdown(false);
-    //   setShowTaskDropdown(false);
-    //   setShowHRTaskDropdown(false);
-    //   setActiveSubItem("");
-    //   return;
-    // }
-//     if (item.path === "/leaveQueries" && !subOption && userRole === "Admin") {
-//   setShowLeaveDropdown((prev) => !prev);
-//   setShowCompensationDropdown(false);
-//   setShowTaskDropdown(false);
-//   setShowHRTaskDropdown(false);
-//   setActiveSubItem("");
-//   return;
-// }
+ 
 
 
     setShowCompensationDropdown(false);
@@ -255,7 +240,7 @@ const Sidebar = () => {
       return;
     }
 
-    // other menu paths
+
     switch (item.path) {
       case "/dashboard":
         setActiveContent(
@@ -399,7 +384,7 @@ const Sidebar = () => {
                     </span>
                   </div>
 
-                  {/* Compensation Submenu */}
+                  {}
                   {item.path === "/compensation" &&
                     showCompensationDropdown && (
                       <ul className="desktop-submenu">
@@ -445,7 +430,7 @@ const Sidebar = () => {
                       </ul>
                     )}
 
-                  {/* Task Management Submenu - UPDATED */}
+                  {}
                   {item.path === "/TaskManagement" && showTaskDropdown && (
                     <ul className="desktop-submenu">
                       {userRole === "Admin" ? (
@@ -518,7 +503,7 @@ const Sidebar = () => {
         </ul>
       </div>
 
-      {/* Bottom nav for mobile */}
+      {}
       <div className="bottom-nav fixed bottom-0 w-full bg-white text-black flex justify-around py-2 md:hidden z-50">
         <button
           className={`p-2 ${
@@ -657,7 +642,7 @@ const Sidebar = () => {
                         )}
                       </div>
 
-                      {/* Mobile Task Management Submenu */}
+                      {}
                       {item.path === "/TaskManagement" &&
                         mobileDropdown.task && (
                           <ul className="mobile-submenu">
@@ -706,7 +691,7 @@ const Sidebar = () => {
                           </ul>
                         )}
 
-                      {/* Other mobile submenus (compensation, leave) remain unchanged */}
+                      {}
                       {item.path === "/compensation" &&
                         mobileDropdown.compensation && (
                           <ul className="mobile-submenu">

@@ -81,7 +81,7 @@ const TaskManagement = () => {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
 
-  // Inside the useEffect for speech recognition — FIX DUPLICATE onresult
+
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -90,7 +90,7 @@ const TaskManagement = () => {
 
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = false; // 🔥 IMPORTANT
+    recognitionRef.current.interimResults = false; 
     recognitionRef.current.lang = "en-US";
 
     recognitionRef.current.onresult = (event) => {
@@ -174,8 +174,7 @@ const TaskManagement = () => {
     }
   }, []);
 
-  // ==================== CHANGED ONLY THIS PART ====================
-  // Now using the same hierarchy API as SupervisorPlanViewer
+ 
   useEffect(() => {
     if (!supervisorId) return;
 
@@ -190,12 +189,12 @@ const TaskManagement = () => {
           }
         );
 
-        // API returns response.data.hierarchy → tree structure
+       
         const hierarchy = Array.isArray(response.data.hierarchy)
           ? response.data.hierarchy
           : [];
 
-        // Flatten the tree to get all employees (including sub-ordinates)
+       
         const flattenEmployees = (nodes) => {
           let list = [];
           nodes.forEach((node) => {
@@ -234,7 +233,7 @@ const TaskManagement = () => {
 
     fetchEmployees();
   }, [supervisorId]);
-  // ================================================================
+ 
 
   useEffect(() => {
     if (!supervisorId || !employees.length) return;
@@ -424,7 +423,7 @@ const TaskManagement = () => {
     [tasks, selectedTaskId]
   );
 
-  const currentDate = new Date(2025, 8, 17, 11, 37); // 11:37 AM IST, September 17, 2025
+  const currentDate = new Date(2025, 8, 17, 11, 37); 
 
   const openDetails = (taskId) => setSelectedTaskId(taskId);
 
@@ -1150,7 +1149,7 @@ const TaskManagement = () => {
                                     </div>
                                     <div className="task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* <span>{msg.senderName}</span> */}
+                                     
                                     </div>
                                   </div>
                                 ))}
@@ -1241,7 +1240,7 @@ const TaskManagement = () => {
                                     </div>
                                     <div className="task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* <span>{msg.senderName}</span> */}
+                                    
                                     </div>
                                   </div>
                                 ))}

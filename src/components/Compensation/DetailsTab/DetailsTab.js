@@ -260,7 +260,7 @@ const DetailsTab = ({
     if (!monthString) return "";
     const [year, month] = monthString.split("-");
     const date = new Date(year, month - 1);
-    return date.toLocaleString("default", { month: "long", year: "numeric" }); // e.g. October 2025
+    return date.toLocaleString("default", { month: "long", year: "numeric" }); 
   };
 
   const incentiveObj = employeeIncentiveData[empId] || null;

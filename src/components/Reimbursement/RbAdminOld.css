@@ -274,10 +274,10 @@ td:hover {
   margin-top: 10px;
 }
 
-/* RbAdmin.css */
+
 
 .rb-sub-table-old .purpose-cell {
-  max-width: 150px; /* or whatever fits your layout */
+  max-width: 150px; 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

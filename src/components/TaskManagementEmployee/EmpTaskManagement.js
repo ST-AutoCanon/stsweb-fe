@@ -6,9 +6,9 @@ import "./EmpTaskManagement.css";
 import WeeklyTaskPlanner from "../WeeklyTaskPlanner/WeeklyTaskPlanner";
 
 const getProgressColor = (p) => {
-  if (p < 40) return "#ef4444"; // red-500
-  if (p < 70) return "#f59e0b"; // amber-500
-  return "#10b981"; // emerald-500
+  if (p < 40) return "#ef4444"; 
+  if (p < 70) return "#f59e0b";
+  return "#10b981";
 };
 
 const parseDate = (dateStr) => {
@@ -187,7 +187,7 @@ const EmpTaskManagement = () => {
         setTasks(tasksWithPhotos);
       } catch (err) {
         if (err.response && err.response.status === 404) {
-          setTasks([]); // Set tasks to empty array for 404
+          setTasks([]);
         } else {
           let errorMessage = "Failed to fetch tasks";
           if (err.response)
@@ -326,8 +326,7 @@ const EmpTaskManagement = () => {
     [tasks, selectedTaskId]
   );
 
-  const currentDate = new Date(2025, 8, 17, 1, 23); // 12:23 AM IST, September 17, 2025
-
+  const currentDate = new Date(2025, 8, 17, 1, 23); 
   const openDetails = (taskId) => {
     setSelectedTaskId(taskId);
     const task = tasks.find((t) => t.id === taskId);
@@ -935,7 +934,7 @@ const EmpTaskManagement = () => {
                                     </div>
                                     <div className="emp-task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* <span>{msg.senderName}</span> */}
+                                     
                                     </div>
                                   </div>
                                 ))}
@@ -1001,7 +1000,7 @@ const EmpTaskManagement = () => {
                                     </div>
                                     <div className="emp-task-message-meta">
                                       <span>{displayDate(msg.time)}</span>
-                                      {/* <span>{msg.senderName}</span> */}
+                                      
                                     </div>
                                   </div>
                                 ))}
