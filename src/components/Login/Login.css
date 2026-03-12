@@ -127,6 +127,17 @@ html {
   background-color: #79c42b;
 }
 
+.btn-forgot {
+  display: flex;
+  justify-content: flex-end;
+  background-color: transparent;
+  color: #007bff;
+  border: none;
+  margin: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .login-page {
   position: fixed;
   top: 0;

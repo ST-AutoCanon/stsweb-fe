@@ -68,6 +68,9 @@ export default function DashboardIframe({
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
   const [showParentUI, setShowParentUI] = useState(true);
+  const [sentMessageType, setSentMessageType] = useState(null);
+
+  const isForgotPasswordRequest = Boolean(routeCreds.forgotPassword);
 
   useEffect(() => {
     console.debug("[Parent] allowedOrigins:", allowedOrigins);
@@ -131,6 +134,36 @@ export default function DashboardIframe({
         });
       }
 
+      if (msg.type === "forgot-password-success") {
+        try {
+          sessionStorage.removeItem("EMBED_LOGIN");
+        } catch {}
+
+        navigate("/", {
+          replace: true,
+          state: {
+            openLogin: true,
+            forgotPasswordMessage:
+              msg.message || "Password reset link sent. Check your email.",
+          },
+        });
+      }
+
+      if (msg.type === "forgot-password-failed") {
+        try {
+          sessionStorage.removeItem("EMBED_LOGIN");
+        } catch {}
+
+        navigate("/", {
+          replace: true,
+          state: {
+            openLogin: true,
+            forgotPasswordMessage:
+              msg.error || "Failed to send reset password link.",
+          },
+        });
+      }
+
       if (msg.type === "child-logged-out") {
         console.debug("[Parent] child-logged-out received", msg);
 
@@ -176,21 +209,45 @@ export default function DashboardIframe({
     }
 
     const fallback = setTimeout(() => {
-      if (!childReady && username && password) {
-        try {
-          iframeRef.current?.contentWindow?.postMessage(
-            {
-              type: "parent-login",
-              username,
-              password,
-              orgId: orgIdFromStorage,
-            },
-            iframeOrigin || "*",
-          );
-          setStatus("sent");
-        } catch (err) {
-          setStatus("error");
-          setError("postMessage failed (fallback)");
+      if (sentMessageType) return;
+
+      if (!childReady) {
+        if (isForgotPasswordRequest && username) {
+          try {
+            iframeRef.current?.contentWindow?.postMessage(
+              {
+                type: "parent-forgot-password",
+                username,
+                orgId: orgIdFromStorage,
+              },
+              iframeOrigin || "*",
+            );
+            setSentMessageType("forgot-password");
+            setStatus("sent");
+          } catch (err) {
+            setStatus("error");
+            setError("postMessage failed (fallback)");
+          }
+          return;
+        }
+
+        if (username && password) {
+          try {
+            iframeRef.current?.contentWindow?.postMessage(
+              {
+                type: "parent-login",
+                username,
+                password,
+                orgId: orgIdFromStorage,
+              },
+              iframeOrigin || "*",
+            );
+            setSentMessageType("login");
+            setStatus("sent");
+          } catch (err) {
+            setStatus("error");
+            setError("postMessage failed (fallback)");
+          }
         }
       }
     }, 250);
@@ -203,10 +260,36 @@ export default function DashboardIframe({
     password,
     iframeOrigin,
     orgIdFromStorage,
+    isForgotPasswordRequest,
+    sentMessageType,
   ]);
 
   useEffect(() => {
     if (!childReady) return;
+    if (sentMessageType) return;
+
+    if (isForgotPasswordRequest) {
+      if (!username) return;
+
+      try {
+        iframeRef.current?.contentWindow?.postMessage(
+          {
+            type: "parent-forgot-password",
+            username,
+            orgId: orgIdFromStorage,
+          },
+          iframeOrigin || "*",
+        );
+        setSentMessageType("forgot-password");
+        setStatus("sent");
+      } catch (err) {
+        setStatus("error");
+        setError("postMessage failed");
+      }
+
+      return;
+    }
+
     if (!username || !password) return;
 
     try {
@@ -219,12 +302,21 @@ export default function DashboardIframe({
         },
         iframeOrigin || "*",
       );
+      setSentMessageType("login");
       setStatus("sent");
     } catch (err) {
       setStatus("error");
       setError("postMessage failed");
     }
-  }, [childReady, username, password, iframeOrigin, orgIdFromStorage]);
+  }, [
+    childReady,
+    username,
+    password,
+    iframeOrigin,
+    orgIdFromStorage,
+    isForgotPasswordRequest,
+    sentMessageType,
+  ]);
 
   useEffect(() => {
     if (status !== "sent") return;

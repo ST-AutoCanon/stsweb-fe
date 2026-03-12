@@ -53,6 +53,9 @@ const Navbar = () => {
     if (location.state?.loginSuccess) {
       setIsModalOpen(false);
     }
+    if (location.state?.openLogin) {
+      setIsModalOpen(true);
+    }
   }, [location.state]);
 
   return (

@@ -18,6 +18,8 @@ export default function Login({ onClose }) {
   useEffect(() => {
     if (location.state?.loginError) {
       setErrorMessage(location.state.loginError);
+    } else if (location.state?.forgotPasswordMessage) {
+      setErrorMessage(location.state.forgotPasswordMessage);
     }
   }, [location.state]);
 
@@ -57,6 +59,28 @@ export default function Login({ onClose }) {
     navigate("/dashboard", { replace: true });
   };
 
+  const handleForgotPassword = () => {
+    setErrorMessage("");
+
+    if (!username) {
+      setErrorMessage(
+        "Please enter your username/email to reset your password.",
+      );
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(
+        "EMBED_LOGIN",
+        JSON.stringify({ username, password: "", orgId: 1 }),
+      );
+    } catch (err) {
+      console.warn("sessionStorage write failed", err);
+    }
+
+    navigate("/dashboard", { replace: true, state: { forgotPassword: true } });
+  };
+
   if (!isModalOpen) return null;
 
   return (
@@ -89,7 +113,6 @@ export default function Login({ onClose }) {
                   className="login-logo-img"
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="username">User Name</label>
                 <input
@@ -101,7 +124,6 @@ export default function Login({ onClose }) {
                   autoComplete="username"
                 />
               </div>
-
               <div className="form-group password-group">
                 <label htmlFor="password">Password</label>
                 <div className="password-input-wrapper">
@@ -136,6 +158,13 @@ export default function Login({ onClose }) {
                   {errorMessage}
                 </div>
               )}
+              <span
+                type="button"
+                className="btn-forgot"
+                onClick={handleForgotPassword}
+              >
+                Forgot Password?
+              </span>
               <div className="form-options">
                 <button type="submit" className="btn-login">
                   Login
