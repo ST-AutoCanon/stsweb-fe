@@ -50,7 +50,7 @@ const Footer = () => {
           <a href="mailto:info@sukalpatech.com" className="social-icon2">
             <FaEnvelope size={30} />
           </a>
-          <a href="tel:9742134584" className="social-icon2">
+          <a href="tel: 9686465612" className="social-icon2">
             <FaPhone size={21} />
           </a>
           <a
